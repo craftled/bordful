@@ -12,9 +12,9 @@ import { JobSearchInput } from "@/components/ui/job-search-input";
 export const revalidate = 300;
 
 interface Props {
-  params: Promise<{
+  params: {
     level: string;
-  }>;
+  };
 }
 
 /**
@@ -30,9 +30,7 @@ function getCareerLevelFromSlug(slug: string): CareerLevel | null {
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const levelSlug = decodeURIComponent(resolvedParams.level).toLowerCase();
+  const levelSlug = decodeURIComponent(params.level).toLowerCase();
   const careerLevel = getCareerLevelFromSlug(levelSlug);
 
   if (!careerLevel || careerLevel === "NotSpecified") {
@@ -53,9 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CareerLevelPage({ params }: Props) {
   const jobs = await getJobs();
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const levelSlug = decodeURIComponent(resolvedParams.level).toLowerCase();
+  const levelSlug = decodeURIComponent(params.level).toLowerCase();
   const careerLevel = getCareerLevelFromSlug(levelSlug);
 
   if (!careerLevel || careerLevel === "NotSpecified") {
