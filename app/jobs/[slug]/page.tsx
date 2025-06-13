@@ -34,8 +34,8 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  // Get all jobs first and resolve params
-  const [allJobs, { slug }] = await Promise.all([getJobs(), params]);
+  const allJobs = await getJobs();
+  const { slug } = params;
 
   // Find the job with matching slug
   const job = allJobs.find((j) => {
@@ -168,8 +168,7 @@ export default async function JobPostPage({
 }: {
   params: { slug: string };
 }) {
-  // Await the params to resolve before using
-  const { slug } = await params;
+  const { slug } = params;
 
   const jobs = await getJobs();
   const job = jobs.find((j) => generateJobSlug(j.title, j.company) === slug);

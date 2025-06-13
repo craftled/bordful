@@ -239,8 +239,7 @@ export async function GET(
 ): Promise<ImageResponse | Response> {
   try {
     // Get the job slug and fetch job data
-    const params = await context.params;
-    const { slug } = params;
+    const { slug } = context.params;
 
     const job = await getJobBySlugMinimal(slug);
     if (!job) {

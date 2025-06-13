@@ -16,9 +16,9 @@ import { JobSearchInput } from "@/components/ui/job-search-input";
 export const revalidate = 300;
 
 interface Props {
-  params: Promise<{
+  params: {
     type: string;
-  }>;
+  };
 }
 
 /**
@@ -34,9 +34,7 @@ function getJobTypeFromSlug(slug: string): JobType | null {
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const typeSlug = decodeURIComponent(resolvedParams.type).toLowerCase();
+  const typeSlug = decodeURIComponent(params.type).toLowerCase();
   const jobType = getJobTypeFromSlug(typeSlug);
 
   if (!jobType) {
@@ -58,9 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function JobTypePage({ params }: Props) {
   const jobs = await getJobs();
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const typeSlug = decodeURIComponent(resolvedParams.type).toLowerCase();
+  const typeSlug = decodeURIComponent(params.type).toLowerCase();
   const jobType = getJobTypeFromSlug(typeSlug);
 
   if (!jobType) {

@@ -16,16 +16,14 @@ import { JobSearchInput } from "@/components/ui/job-search-input";
 export const revalidate = 300;
 
 interface Props {
-  params: Promise<{
+  params: {
     language: string;
-  }>;
+  };
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const languageCode = resolvedParams.language.toLowerCase();
+  const languageCode = params.language.toLowerCase();
 
   // Check if valid language code
   if (!LANGUAGE_CODES.includes(languageCode as LanguageCode)) {
@@ -46,9 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LanguagePage({ params }: Props) {
   const jobs = await getJobs();
-  // Await the entire params object first
-  const resolvedParams = await params;
-  const languageCode = resolvedParams.language.toLowerCase();
+  const languageCode = params.language.toLowerCase();
 
   // Check if valid language code
   if (!LANGUAGE_CODES.includes(languageCode as LanguageCode)) {
