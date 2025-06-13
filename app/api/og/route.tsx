@@ -188,7 +188,7 @@ async function fetchImageAsDataURI(
         /<svg(?=\s)([^>]*?)\s+(width|height)="[^"]*"/g,
         "<svg$1"
       );
-      return `data:image/svg+xml;base64,${btoa(svgText)}`;
+      return `data:image/svg+xml;base64,${Buffer.from(svgText).toString("base64")}`;
     } else {
       // Handle other image types (PNG, JPG, etc.)
       const imageData = await response.arrayBuffer();
