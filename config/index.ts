@@ -14,9 +14,10 @@ import type { Config } from "./config.example";
 
 let customConfig: Partial<Config> | undefined;
 
-// Try to load custom config if it exists
+// Try to load custom config if it exists using dynamic import
 try {
-  customConfig = require("./config").config;
+  const mod = await import("./config");
+  customConfig = mod.config;
 } catch {
   // No custom config found, will use example config
 }
