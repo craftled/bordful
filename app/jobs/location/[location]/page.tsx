@@ -70,7 +70,7 @@ export default async function JobLocationPage({ params }: Props) {
             <JobSearchInput placeholder="Search remote jobs..." />
           </div>
         </HeroSection>
-        <JobsLayout allJobs={jobs} filteredJobs={filteredJobs} />
+        <JobsLayout filteredJobs={filteredJobs} />
       </>
     );
   }
@@ -100,7 +100,7 @@ export default async function JobLocationPage({ params }: Props) {
           <JobSearchInput placeholder={`Search ${countryName} jobs...`} />
         </div>
       </HeroSection>
-      <JobsLayout allJobs={jobs} filteredJobs={filteredJobs} />
+      <JobsLayout filteredJobs={filteredJobs} />
     </>
   );
 }

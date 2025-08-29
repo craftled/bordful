@@ -18,12 +18,10 @@ import { useJobSearch } from "@/lib/hooks/useJobSearch";
 import { filterJobsBySearch } from "@/lib/utils/filter-jobs";
 
 interface JobsLayoutProps {
-  allJobs: Job[]; // Keep for backward compatibility with existing page components
   filteredJobs: Job[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function JobsLayout({ allJobs, filteredJobs }: JobsLayoutProps) {
+export function JobsLayout({ filteredJobs }: JobsLayoutProps) {
   const searchParams = useSearchParams();
   const { sortOrder } = useSortOrder();
   const { page } = usePagination();

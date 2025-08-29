@@ -91,7 +91,7 @@ export default async function JobTypePage({ params }: Props) {
           />
         </div>
       </HeroSection>
-      <JobsLayout allJobs={jobs} filteredJobs={filteredJobs} />
+      <JobsLayout filteredJobs={filteredJobs} />
     </>
   );
 }

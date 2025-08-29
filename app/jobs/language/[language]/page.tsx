@@ -79,7 +79,7 @@ export default async function LanguagePage({ params }: Props) {
           <JobSearchInput placeholder={`Search ${displayName} jobs...`} />
         </div>
       </HeroSection>
-      <JobsLayout allJobs={jobs} filteredJobs={filteredJobs} />
+      <JobsLayout filteredJobs={filteredJobs} />
     </>
   );
 }
