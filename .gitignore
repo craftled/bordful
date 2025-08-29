@@ -2,7 +2,12 @@
 
 # dependencies
 /node_modules
+
+# lockfiles
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
 
 # next.js
 /.next/

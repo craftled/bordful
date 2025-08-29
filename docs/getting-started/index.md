@@ -17,9 +17,13 @@ cd bordful
 
 ## 2. Install Dependencies
 
-Install the required dependencies using npm:
+Install the required dependencies using Bun (recommended) or npm:
 
 ```bash
+# Using Bun (recommended - faster installs)
+bun install
+
+# OR using npm
 npm install
 ```
 
@@ -68,6 +72,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 Run the development server to see your job board in action:
 
 ```bash
+# Using Bun (recommended)
+bun run dev
+
+# OR using npm
 npm run dev
 ```
 

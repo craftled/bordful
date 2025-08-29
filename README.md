@@ -43,9 +43,15 @@ Get your Bordful job board up and running in just 5 minutes with this step-by-st
 - **[Windsurf](https://windsurf.com/refer?referral_code=d886df4b0e)** - Agentic AI coding assistant
 - **Why?** These editors will help you customize your job board with AI assistance, even if you're not a developer!
 
-**2. Install Node.js (Required)**
+**2. Install Node.js OR Bun (Required)**
 
-**Easy Method - Download Installer:**
+**Option A: Install Bun (Recommended - Faster)**
+```bash
+# Install Bun (all platforms)
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Option B: Install Node.js**
 1. Go to [nodejs.org](https://nodejs.org/)
 2. Download the LTS version (recommended for most users)
 3. Run the installer and follow the prompts
@@ -67,6 +73,10 @@ Open your Terminal (Mac) or Command Prompt (Windows) and run:
 ![Check Node and NPM Versions](public/check-node-and-npm-versions.jpg)
 
 ```bash
+# If you installed Bun
+bun --version   # Should show v1.0+ or higher
+
+# If you installed Node.js
 node --version  # Should show v18+ or higher
 npm --version   # Should show 8+ or higher
 ```
@@ -83,7 +93,7 @@ npm --version   # Should show 8+ or higher
 5. Click "Begin import"
 6. Once complete, click "Clone or download" → "Download ZIP"
 7. Extract the ZIP file to your desired folder
-8. Open Terminal/Command Prompt in that folder and run: `npm install`
+8. Open Terminal/Command Prompt in that folder and run: `bun install` or `npm install`
 
 ✅ **Benefits**: Private by default, no Git knowledge required, ready for Vercel deployment
 
@@ -93,7 +103,9 @@ npm --version   # Should show 8+ or higher
 git clone https://github.com/craftled/bordful
 cd bordful
 
-# Install dependencies
+# Install dependencies (choose one)
+bun install    # Recommended - faster
+# OR
 npm install
 ```
 
@@ -164,7 +176,9 @@ ENCHARGE_WRITE_KEY=your_encharge_key_here
 #### Step 5: Start Your Job Board (30 seconds)
 
 ```bash
-# Start the development server
+# Start the development server (choose one)
+bun run dev    # Recommended - faster
+# OR
 npm run dev
 ```
 
@@ -213,9 +227,10 @@ Ready to go live? Deploy to Vercel in 3 steps:
 #### Step 1: Prepare for Deployment
 
 ```bash
-# Test your build locally first
-npm run build
-npm run start
+# Test your build locally first (choose one)
+bun run build && bun run start    # Recommended
+# OR
+npm run build && npm run start
 ```
 
 #### Step 2: Deploy to Vercel
@@ -251,8 +266,9 @@ AIRTABLE_TABLE_NAME = Jobs
 - Check your Airtable base has jobs with `status` field set to "Published"
 - Verify your `AIRTABLE_ACCESS_TOKEN` and `AIRTABLE_BASE_ID` are correct in `.env`
 
-**`npm install` not working?**
-- Make sure Node.js is installed: run `node --version`
+**Package installation not working?**
+- If using Bun: Make sure it's installed: run `bun --version`
+- If using npm: Make sure Node.js is installed: run `node --version`
 - Navigate to the correct folder before running the command
 - On Windows, try running Command Prompt as Administrator
 

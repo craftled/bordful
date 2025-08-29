@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.55] - 2025-08-29
+
+### Changed
+- Migrated from npm to Bun for faster package management and builds
+- Updated package.json scripts to use Bun with `--bun` flag for optimal performance
+- Enhanced documentation across all files to recommend Bun as primary package manager
+- Updated installation guides, troubleshooting docs, and README with Bun instructions
+- Added Bun lockfile (bun.lockb) to .gitignore for proper version control
+
+### Removed
+- Removed package-lock.json and npm-managed node_modules
+- Cleaned up npm-specific references in favor of Bun recommendations
+
 ## [0.1.54] - 2025-08-05
 
 ### Changed

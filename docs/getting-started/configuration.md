@@ -627,6 +627,10 @@ After completing your configuration:
 1. Save your changes
 2. Restart your development server:
    ```bash
+   # Using Bun (recommended)
+   bun run dev
+   
+   # OR using npm
    npm run dev
    ```
 3. Verify all settings are applied correctly

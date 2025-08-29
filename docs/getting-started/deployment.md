@@ -15,10 +15,12 @@ This document explains how to deploy your Bordful job board to various platforms
 Before deploying to production, it's recommended to verify your build locally:
 
 ```bash
-# Build the project
-npm run build
+# Using Bun (recommended)
+bun run build
+bun run start
 
-# Test the production build
+# OR using npm
+npm run build
 npm start
 ```
 
@@ -97,7 +99,7 @@ Vercel is the recommended hosting platform for Bordful as it's built with Next.j
    - Click "New site from Git"
    - Choose your repository
 3. Configure build settings:
-   - Build command: `npm run build`
+   - Build command: `bun run build` (or `npm run build`)
    - Publish directory: `.next`
 4. Configure environment variables:
    - Add all required environment variables in the Netlify dashboard
@@ -105,7 +107,7 @@ Vercel is the recommended hosting platform for Bordful as it's built with Next.j
 
 ```toml
 [build]
-  command = "npm run build"
+  command = "bun run build"  # or "npm run build"
   publish = ".next"
 
 [build.environment]

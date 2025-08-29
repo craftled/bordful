@@ -57,16 +57,28 @@ This guide addresses the most common issues you might encounter when installing 
 **Issue:** `npm install` fails with dependency conflicts or missing packages.
 
 **Solution:**
-1. Try clearing the npm cache:
+1. Clear the package manager cache:
    ```bash
+   # For Bun
+   bun pm cache rm
+   
+   # For npm
    npm cache clean --force
    ```
-2. Delete the node_modules folder and package-lock.json:
+2. Delete dependency files:
    ```bash
+   # For Bun
+   rm -rf node_modules bun.lockb
+   
+   # For npm
    rm -rf node_modules package-lock.json
    ```
 3. Reinstall dependencies:
    ```bash
+   # Using Bun (recommended)
+   bun install
+   
+   # OR using npm
    npm install
    ```
 4. If issues persist, check for global npm configuration problems:
@@ -162,6 +174,12 @@ This guide addresses the most common issues you might encounter when installing 
 4. Rebuild your application with a clean cache:
    ```bash
    rm -rf .next
+   
+   # Using Bun (recommended)
+   bun run build
+   bun run start
+   
+   # OR using npm
    npm run build
    npm start
    ```
@@ -206,6 +224,10 @@ If you're experiencing server-side rendering issues:
 
 1. Enable more verbose Next.js logging:
    ```bash
+   # Using Bun
+   DEBUG=* bun run dev
+   
+   # OR using npm
    DEBUG=* npm run dev
    ```
 2. Check server-side console logs for errors
@@ -234,6 +256,10 @@ For deeper Airtable connectivity issues:
    ```
 2. Run with:
    ```bash
+   # Using Bun
+   bun run test-airtable.ts
+   
+   # OR using npx
    npx ts-node test-airtable.ts
    ```
 3. Check the output for specific error messages or data issues
@@ -273,7 +299,11 @@ If you're setting up Bordful on a fresh system and encountering issues:
 1. **Verify System Requirements**:
    ```bash
    node -v  # Should be v18.0.0 or higher
-   npm -v   # Should be v9.0.0 or higher
+   
+   # Check package manager
+   bun --version  # Recommended: v1.0.0 or higher
+   # OR
+   npm -v         # Should be v9.0.0 or higher
    ```
 
 2. **Installation Order**:
@@ -342,10 +372,12 @@ If your development server won't start:
    ```bash
    # Clean environment
    rm -rf .next node_modules/.cache
+   
    # Reinstall dependencies if needed
-   npm install
+   bun install  # or npm install
+   
    # Start with verbose logging
-   npm run dev -- --verbose
+   bun run dev  # or npm run dev -- --verbose
    ```
 
 3. **Last Resort Options**:
@@ -358,7 +390,7 @@ If your development server won't start:
 If you're having issues deploying to production:
 
 1. **Pre-deployment Checklist**:
-   - Verify local build works (`npm run build && npm start`)
+   - Verify local build works (`bun run build && bun run start` or `npm run build && npm start`)
    - Check environment variables are set in deployment platform
    - Ensure all dependencies are in package.json
 

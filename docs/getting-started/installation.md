@@ -12,8 +12,8 @@ This guide provides detailed instructions for installing and setting up your Bor
 
 Before you begin, ensure you have the following:
 
-- [Node.js](https://nodejs.org/) (v18 or later)
-- [npm](https://www.npmjs.com/) (v9 or later)
+- [Node.js](https://nodejs.org/) (v18 or later) OR [Bun](https://bun.sh/) (v1.0 or later)
+- Package manager: [Bun](https://bun.sh/) (recommended) or [npm](https://www.npmjs.com/)
 - An [Airtable](https://airtable.com/invite/r/y2hcMqpl) account
 - Basic knowledge of JavaScript/TypeScript and React
 - Git installed on your system
@@ -29,9 +29,13 @@ cd bordful
 
 ## Step 2: Install Dependencies
 
-Install the required dependencies using npm:
+Install the required dependencies using Bun (recommended) or npm:
 
 ```bash
+# Using Bun (recommended - faster installs)
+bun install
+
+# OR using npm
 npm install
 ```
 
@@ -157,6 +161,10 @@ For detailed information about setting up Airtable, see [Airtable Setup Guide](/
 Now that you've set up your environment and configuration, start the development server:
 
 ```bash
+# Using Bun (recommended)
+bun run dev
+
+# OR using npm
 npm run dev
 ```
 
@@ -189,10 +197,12 @@ Now that your Bordful job board is up and running, you might want to:
 Before deploying to production, it's recommended to verify your build locally:
 
 ```bash
-# Build the project
-npm run build
+# Using Bun (recommended)
+bun run build
+bun run start
 
-# Test the production build
+# OR using npm
+npm run build
 npm start
 ```
 

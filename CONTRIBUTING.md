@@ -12,7 +12,7 @@ git checkout -b feature/your-feature-name
 ```
 
 4. Make your changes
-5. Run tests and linting: `npm run lint`
+5. Run linting: `bun run lint` or `npm run lint`
 6. Commit your changes: `git commit -m 'Add some feature'`
 7. Push to the branch: `git push origin feature/your-feature-name`
 8. Submit a pull request
@@ -21,6 +21,10 @@ git checkout -b feature/your-feature-name
 
 1. Install dependencies:
 ```bash
+# Using Bun (recommended - faster)
+bun install
+
+# OR using npm
 npm install
 ```
 
@@ -37,6 +41,10 @@ AIRTABLE_BASE_ID=your_base_id_here
 
 4. Run the development server:
 ```bash
+# Using Bun (recommended)
+bun run dev
+
+# OR using npm
 npm run dev
 ```
 
