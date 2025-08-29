@@ -87,7 +87,7 @@ export default async function CareerLevelPage({ params }: Props) {
           />
         </div>
       </HeroSection>
-      <JobsLayout allJobs={jobs} filteredJobs={filteredJobs} />
+      <JobsLayout filteredJobs={filteredJobs} />
     </>
   );
 }
