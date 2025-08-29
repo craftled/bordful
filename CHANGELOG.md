@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated from npm to Bun for faster package management and builds
 - Updated package.json scripts to use Bun with `--bun` flag for optimal performance
 - Enhanced documentation across all files to recommend Bun as primary package manager
-- Updated installation guides, troubleshooting docs, and README with Bun instructions
+- Updated guides, docs, and README with Bun instructions
 - Added Bun lockfile (bun.lockb) to .gitignore for proper version control
 
 ### Removed
