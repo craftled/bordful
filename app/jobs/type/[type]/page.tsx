@@ -1,25 +1,25 @@
-import { getJobs } from "@/lib/db/airtable";
-import { HeroSection } from "@/components/ui/hero-section";
-import config from "@/config";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { JobsLayout } from "@/components/jobs/JobsLayout";
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { JobsLayout } from '@/components/jobs/JobsLayout';
+import { HeroSection } from '@/components/ui/hero-section';
+import { JobSearchInput } from '@/components/ui/job-search-input';
+import config from '@/config';
 import {
-  JobType,
-  JOB_TYPE_DISPLAY_NAMES,
   JOB_TYPE_DESCRIPTIONS,
-} from "@/lib/constants/job-types";
-import { generateMetadata as createMetadata } from "@/lib/utils/metadata";
-import { JobSearchInput } from "@/components/ui/job-search-input";
+  JOB_TYPE_DISPLAY_NAMES,
+  type JobType,
+} from '@/lib/constants/job-types';
+import { getJobs } from '@/lib/db/airtable';
+import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
 
 // Revalidate page every 5 minutes
 export const revalidate = 300;
 
-interface Props {
+type Props = {
   params: Promise<{
     type: string;
   }>;
-}
+};
 
 /**
  * Convert URL slug to job type
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!jobType) {
     return {
-      title: "Job Type Not Found | " + config.title,
+      title: `Job Type Not Found | ${config.title}`,
       description: "The job type you're looking for doesn't exist.",
     };
   }
@@ -72,17 +72,19 @@ export default async function JobTypePage({ params }: Props) {
 
   const filteredJobs = jobs.filter((job) => job.type === jobType);
 
-  if (filteredJobs.length === 0) return notFound();
+  if (filteredJobs.length === 0) {
+    return notFound();
+  }
 
   return (
     <>
       <HeroSection
         badge={displayName}
-        title={`${displayName} Jobs`}
         description={`Browse ${filteredJobs.length.toLocaleString()} ${
-          filteredJobs.length === 1 ? "position" : "positions"
+          filteredJobs.length === 1 ? 'position' : 'positions'
         } for ${displayName.toLowerCase()} roles. ${description}`}
         heroImage={config.jobsPages?.dynamicPages?.type?.heroImage}
+        title={`${displayName} Jobs`}
       >
         {/* Search Bar */}
         <div className="max-w-[480px]">

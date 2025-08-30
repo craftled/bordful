@@ -29,7 +29,7 @@ Before diving into specific guides, try these general troubleshooting steps:
 3. **Clear Cache**: Delete the `.next` folder and node_modules to start fresh
 4. **Check Console Errors**: Look for specific error messages in your terminal or browser console
 5. **Restart Development Server**: Sometimes a simple restart resolves temporary issues
-6. **Check Dependencies**: Ensure all dependencies are correctly installed with `bun install` or `npm install`
+6. **Check Dependencies**: Ensure all dependencies are correctly installed with `bun install`
 7. **Verify Node Version**: Confirm you're using a compatible Node.js version (v18+ recommended)
 
 ## Frequently Asked Questions

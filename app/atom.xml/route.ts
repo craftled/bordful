@@ -1,16 +1,15 @@
-import { Feed } from "feed";
-import { getJobs } from "@/lib/db/airtable";
-import { generateJobSlug } from "@/lib/utils/slugify";
-import { formatSalary } from "@/lib/db/airtable";
-import config from "@/config";
+import { Feed } from 'feed';
+import config from '@/config';
+import { formatSalary, getJobs } from '@/lib/db/airtable';
+import { generateJobSlug } from '@/lib/utils/slugify';
 
 export const revalidate = 300; // 5 minutes, matching other dynamic routes
 
 export async function GET() {
   try {
     // Check if Atom feeds are enabled in the configuration
-    if (!config.rssFeed?.enabled || !config.rssFeed?.formats?.atom) {
-      return new Response("Atom feed not enabled", { status: 404 });
+    if (!(config.rssFeed?.enabled && config.rssFeed?.formats?.atom)) {
+      return new Response('Atom feed not enabled', { status: 404 });
     }
 
     const baseUrl = config.url;
@@ -21,12 +20,12 @@ export async function GET() {
       description: config.description,
       id: baseUrl,
       link: baseUrl,
-      language: "en",
+      language: 'en',
       image: `${baseUrl}/opengraph-image.png`,
       favicon: `${baseUrl}/favicon.ico`,
       copyright: `All rights reserved ${new Date().getFullYear()}`,
       updated: new Date(),
-      generator: "Bordful Job Board",
+      generator: 'Bordful Job Board',
       feedLinks: {
         rss2: `${baseUrl}/feed.xml`,
         json: `${baseUrl}/feed.json`,
@@ -42,7 +41,7 @@ export async function GET() {
 
     jobs.forEach((job) => {
       // Only include active jobs
-      if (job.status === "active") {
+      if (job.status === 'active') {
         const jobSlug = generateJobSlug(job.title, job.company);
         const jobUrl = `${baseUrl}/jobs/${jobSlug}`;
 
@@ -52,19 +51,19 @@ export async function GET() {
 
 **Type:** ${job.type}
 **Location:** ${job.workplace_type}${
-          job.workplace_city ? ` - ${job.workplace_city}` : ""
-        }${job.workplace_country ? `, ${job.workplace_country}` : ""}
-**Salary:** ${job.salary ? formatSalary(job.salary, true) : "Not specified"}
-**Posted:** ${new Date(job.posted_date).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
+          job.workplace_city ? ` - ${job.workplace_city}` : ''
+        }${job.workplace_country ? `, ${job.workplace_country}` : ''}
+**Salary:** ${job.salary ? formatSalary(job.salary, true) : 'Not specified'}
+**Posted:** ${new Date(job.posted_date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
         })}
 
 ${
   job.description
     ? job.description.substring(0, descriptionLength)
-    : "No description available"
+    : 'No description available'
 }...
 
 **Apply Now:** ${job.apply_url}
@@ -83,7 +82,8 @@ ${
             },
           ],
           date:
-            job.posted_date && !isNaN(new Date(job.posted_date).getTime())
+            job.posted_date &&
+            !Number.isNaN(new Date(job.posted_date).getTime())
               ? new Date(job.posted_date)
               : new Date(),
           image: job.featured ? `${baseUrl}/featured-job.png` : undefined,
@@ -105,11 +105,10 @@ ${
     // Return the feed as Atom XML with proper headers
     return new Response(feed.atom1(), {
       headers: {
-        "Content-Type": "application/atom+xml; charset=utf-8",
+        'Content-Type': 'application/atom+xml; charset=utf-8',
       },
     });
-  } catch (error) {
-    console.error("Error generating Atom feed:", error);
-    return new Response("Error generating Atom feed", { status: 500 });
+  } catch (_error) {
+    return new Response('Error generating Atom feed', { status: 500 });
   }
 }

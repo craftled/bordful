@@ -1,33 +1,40 @@
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { CareerLevel, Job, normalizeAnnualSalary } from "@/lib/db/airtable";
-import { CAREER_LEVEL_DISPLAY_NAMES } from "@/lib/constants/career-levels";
-import {
-  LanguageCode,
-  getDisplayNameFromCode,
-} from "@/lib/constants/languages";
-import { JOB_TYPE_DISPLAY_NAMES, JobType } from "@/lib/constants/job-types";
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   parseAsArrayOf,
-  parseAsString,
   parseAsBoolean,
+  parseAsString,
   useQueryState,
-} from "nuqs";
-import { ChevronDown, ChevronUp } from "lucide-react";
+} from 'nuqs';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { CAREER_LEVEL_DISPLAY_NAMES } from '@/lib/constants/career-levels';
+import {
+  JOB_TYPE_DISPLAY_NAMES,
+  type JobType,
+} from '@/lib/constants/job-types';
+import {
+  getDisplayNameFromCode,
+  type LanguageCode,
+} from '@/lib/constants/languages';
+import {
+  type CareerLevel,
+  type Job,
+  normalizeAnnualSalary,
+} from '@/lib/db/airtable';
 
 type FilterType =
-  | "type"
-  | "role"
-  | "remote"
-  | "salary"
-  | "visa"
-  | "language"
-  | "clear";
+  | 'type'
+  | 'role'
+  | 'remote'
+  | 'salary'
+  | 'visa'
+  | 'language'
+  | 'clear';
 type FilterValue = string[] | boolean | CareerLevel[] | LanguageCode[] | true;
 
-interface JobFiltersProps {
+type JobFiltersProps = {
   onFilterChange: (filterType: FilterType, value: FilterValue) => void;
   initialFilters: {
     types: string[];
@@ -38,16 +45,16 @@ interface JobFiltersProps {
     languages: LanguageCode[];
   };
   jobs: Job[];
-}
+};
 
 // Filter Item component to make UI more DRY
-interface FilterItemProps {
+type FilterItemProps = {
   id: string;
   label: string;
   count: number;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
-}
+};
 
 function FilterItem({
   id,
@@ -59,14 +66,14 @@ function FilterItem({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
-        <Label htmlFor={id} className="text-sm font-normal">
+        <Checkbox checked={checked} id={id} onCheckedChange={onCheckedChange} />
+        <Label className="font-normal text-sm" htmlFor={id}>
           {label}
         </Label>
       </div>
       <span
-        className={`text-xs px-2 py-0.5 rounded-full ${
-          checked ? "bg-zinc-900 text-zinc-50" : "bg-zinc-100 text-zinc-500"
+        className={`rounded-full px-2 py-0.5 text-xs ${
+          checked ? 'bg-zinc-900 text-zinc-50' : 'bg-zinc-100 text-zinc-500'
         }`}
       >
         {count.toLocaleString()}
@@ -76,13 +83,13 @@ function FilterItem({
 }
 
 // Switch Item component for boolean filters
-interface SwitchItemProps {
+type SwitchItemProps = {
   id: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   count: number;
   total?: number;
-}
+};
 
 function SwitchItem({
   id,
@@ -94,18 +101,18 @@ function SwitchItem({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
-        <Label htmlFor={id} className="text-sm font-normal text-gray-500">
-          {checked ? "Yes" : "No"}
+        <Switch checked={checked} id={id} onCheckedChange={onCheckedChange} />
+        <Label className="font-normal text-gray-500 text-sm" htmlFor={id}>
+          {checked ? 'Yes' : 'No'}
         </Label>
       </div>
       <span
-        className={`text-xs px-2 py-0.5 rounded-full ${
-          checked ? "bg-zinc-900 text-zinc-50" : "bg-zinc-100 text-zinc-500"
+        className={`rounded-full px-2 py-0.5 text-xs ${
+          checked ? 'bg-zinc-900 text-zinc-50' : 'bg-zinc-100 text-zinc-500'
         }`}
       >
         {count.toLocaleString()}
-        {total ? ` of ${total.toLocaleString()}` : ""}
+        {total ? ` of ${total.toLocaleString()}` : ''}
       </span>
     </div>
   );
@@ -121,36 +128,36 @@ export function JobFilters({
 
   // URL state for job types filter using nuqs
   const [typesParam, setTypesParam] = useQueryState(
-    "types",
+    'types',
     parseAsArrayOf(parseAsString).withDefault([])
   );
 
   // URL state for career levels filter using nuqs
   const [rolesParam, setRolesParam] = useQueryState(
-    "roles",
+    'roles',
     parseAsArrayOf(parseAsString).withDefault([])
   );
 
   // URL state for salary ranges filter using nuqs
   const [salaryRangesParam, setSalaryRangesParam] = useQueryState(
-    "salary",
+    'salary',
     parseAsArrayOf(parseAsString).withDefault([])
   );
 
   // URL state for languages filter using nuqs
   const [languagesParam, setLanguagesParam] = useQueryState(
-    "languages",
+    'languages',
     parseAsArrayOf(parseAsString).withDefault([])
   );
 
   // URL state for boolean filters using nuqs
   const [remoteParam, setRemoteParam] = useQueryState(
-    "remote",
+    'remote',
     parseAsBoolean.withDefault(false)
   );
 
   const [visaParam, setVisaParam] = useQueryState(
-    "visa",
+    'visa',
     parseAsBoolean.withDefault(false)
   );
 
@@ -202,7 +209,7 @@ export function JobFilters({
   // Generic handler for array-based filters
   const createArrayFilterHandler = useCallback(
     (
-      filterType: Extract<FilterType, "type" | "role" | "salary" | "language">,
+      filterType: Extract<FilterType, 'type' | 'role' | 'salary' | 'language'>,
       currentValues: string[],
       setter: (value: string[] | null) => Promise<URLSearchParams>
     ) => {
@@ -222,7 +229,7 @@ export function JobFilters({
   // Generic handler for boolean filters
   const createBooleanFilterHandler = useCallback(
     (
-      filterType: Extract<FilterType, "remote" | "visa">,
+      filterType: Extract<FilterType, 'remote' | 'visa'>,
       setter: (value: boolean | null) => Promise<URLSearchParams>
     ) => {
       return async (checked: boolean) => {
@@ -236,7 +243,7 @@ export function JobFilters({
   // Generic reset function for array filters
   const createArrayFilterReset = useCallback(
     (
-      filterType: Extract<FilterType, "type" | "role" | "salary" | "language">,
+      filterType: Extract<FilterType, 'type' | 'role' | 'salary' | 'language'>,
       setter: (value: null) => Promise<URLSearchParams>
     ) => {
       return async () => {
@@ -250,7 +257,7 @@ export function JobFilters({
   // Generic reset function for boolean filters
   const createBooleanFilterReset = useCallback(
     (
-      filterType: Extract<FilterType, "remote" | "visa">,
+      filterType: Extract<FilterType, 'remote' | 'visa'>,
       setter: (value: null) => Promise<URLSearchParams>
     ) => {
       return async () => {
@@ -263,64 +270,64 @@ export function JobFilters({
 
   // Create handlers using the generic functions
   const handleTypeChange = useCallback(
-    createArrayFilterHandler("type", typesParam, setTypesParam),
-    [typesParam, setTypesParam, createArrayFilterHandler]
+    createArrayFilterHandler('type', typesParam, setTypesParam),
+    []
   );
 
   const handleLevelChange = useCallback(
-    createArrayFilterHandler("role", rolesParam, setRolesParam),
-    [rolesParam, setRolesParam, createArrayFilterHandler]
+    createArrayFilterHandler('role', rolesParam, setRolesParam),
+    []
   );
 
   const handleSalaryChange = useCallback(
-    createArrayFilterHandler("salary", salaryRangesParam, setSalaryRangesParam),
-    [salaryRangesParam, setSalaryRangesParam, createArrayFilterHandler]
+    createArrayFilterHandler('salary', salaryRangesParam, setSalaryRangesParam),
+    []
   );
 
   const handleLanguageChange = useCallback(
-    createArrayFilterHandler("language", languagesParam, setLanguagesParam),
-    [languagesParam, setLanguagesParam, createArrayFilterHandler]
+    createArrayFilterHandler('language', languagesParam, setLanguagesParam),
+    []
   );
 
   const handleRemoteChange = useCallback(
-    createBooleanFilterHandler("remote", setRemoteParam),
-    [setRemoteParam, createBooleanFilterHandler]
+    createBooleanFilterHandler('remote', setRemoteParam),
+    []
   );
 
   const handleVisaChange = useCallback(
-    createBooleanFilterHandler("visa", setVisaParam),
-    [setVisaParam, createBooleanFilterHandler]
+    createBooleanFilterHandler('visa', setVisaParam),
+    []
   );
 
   // Create reset functions using the generic functions
   const resetTypes = useCallback(
-    createArrayFilterReset("type", setTypesParam),
-    [setTypesParam, createArrayFilterReset]
+    createArrayFilterReset('type', setTypesParam),
+    []
   );
 
   const resetLevels = useCallback(
-    createArrayFilterReset("role", setRolesParam),
-    [setRolesParam, createArrayFilterReset]
+    createArrayFilterReset('role', setRolesParam),
+    []
   );
 
   const resetSalary = useCallback(
-    createArrayFilterReset("salary", setSalaryRangesParam),
-    [setSalaryRangesParam, createArrayFilterReset]
+    createArrayFilterReset('salary', setSalaryRangesParam),
+    []
   );
 
   const resetLanguages = useCallback(
-    createArrayFilterReset("language", setLanguagesParam),
-    [setLanguagesParam, createArrayFilterReset]
+    createArrayFilterReset('language', setLanguagesParam),
+    []
   );
 
   const resetRemote = useCallback(
-    createBooleanFilterReset("remote", setRemoteParam),
-    [setRemoteParam, createBooleanFilterReset]
+    createBooleanFilterReset('remote', setRemoteParam),
+    []
   );
 
   const resetVisa = useCallback(
-    createBooleanFilterReset("visa", setVisaParam),
-    [setVisaParam, createBooleanFilterReset]
+    createBooleanFilterReset('visa', setVisaParam),
+    []
   );
 
   // Toggle states for expandable sections
@@ -329,27 +336,27 @@ export function JobFilters({
 
   // Predefined lists
   const initialLevels: CareerLevel[] = [
-    "Internship",
-    "EntryLevel",
-    "Associate",
-    "Junior",
-    "MidLevel",
-    "Senior",
-    "Staff",
-    "Principal",
+    'Internship',
+    'EntryLevel',
+    'Associate',
+    'Junior',
+    'MidLevel',
+    'Senior',
+    'Staff',
+    'Principal',
   ];
 
   const additionalLevels: CareerLevel[] = [
-    "Lead",
-    "Manager",
-    "SeniorManager",
-    "Director",
-    "SeniorDirector",
-    "VP",
-    "SVP",
-    "EVP",
-    "CLevel",
-    "Founder",
+    'Lead',
+    'Manager',
+    'SeniorManager',
+    'Director',
+    'SeniorDirector',
+    'VP',
+    'SVP',
+    'EVP',
+    'CLevel',
+    'Founder',
   ];
 
   // Handle clearing all filters
@@ -362,7 +369,7 @@ export function JobFilters({
       resetRemote(),
       resetVisa(),
     ]);
-    onFilterChange("clear", true);
+    onFilterChange('clear', true);
   }, [
     onFilterChange,
     resetTypes,
@@ -376,46 +383,66 @@ export function JobFilters({
   // Memoized counts and calculations
   const counts = useMemo(
     () => ({
-      types: jobs.reduce((acc, job) => {
-        if (job.type) acc[job.type] = (acc[job.type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
+      types: jobs.reduce(
+        (acc, job) => {
+          if (job.type) {
+            acc[job.type] = (acc[job.type] || 0) + 1;
+          }
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
 
-      roles: jobs.reduce((acc, job) => {
-        job.career_level.forEach((level) => {
-          if (level !== "NotSpecified") acc[level] = (acc[level] || 0) + 1;
-        });
-        return acc;
-      }, {} as Record<CareerLevel, number>),
+      roles: jobs.reduce(
+        (acc, job) => {
+          job.career_level.forEach((level) => {
+            if (level !== 'NotSpecified') {
+              acc[level] = (acc[level] || 0) + 1;
+            }
+          });
+          return acc;
+        },
+        {} as Record<CareerLevel, number>
+      ),
 
-      remote: jobs.filter((job) => job.workplace_type === "Remote").length,
+      remote: jobs.filter((job) => job.workplace_type === 'Remote').length,
 
-      visa: jobs.filter((job) => job.visa_sponsorship === "Yes").length,
+      visa: jobs.filter((job) => job.visa_sponsorship === 'Yes').length,
 
       salary: jobs.reduce(
         (acc, job) => {
-          if (!job.salary) return acc;
+          if (!job.salary) {
+            return acc;
+          }
           const annualSalary = normalizeAnnualSalary(job.salary);
-          if (annualSalary < 50000) acc["< $50K"]++;
-          else if (annualSalary <= 100000) acc["$50K - $100K"]++;
-          else if (annualSalary <= 200000) acc["$100K - $200K"]++;
-          else acc["> $200K"]++;
+          if (annualSalary < 50_000) {
+            acc['< $50K']++;
+          } else if (annualSalary <= 100_000) {
+            acc['$50K - $100K']++;
+          } else if (annualSalary <= 200_000) {
+            acc['$100K - $200K']++;
+          } else {
+            acc['> $200K']++;
+          }
           return acc;
         },
         {
-          "< $50K": 0,
-          "$50K - $100K": 0,
-          "$100K - $200K": 0,
-          "> $200K": 0,
+          '< $50K': 0,
+          '$50K - $100K': 0,
+          '$100K - $200K': 0,
+          '> $200K': 0,
         }
       ),
 
-      languages: jobs.reduce((acc, job) => {
-        job.languages?.forEach((lang) => {
-          acc[lang] = (acc[lang] || 0) + 1;
-        });
-        return acc;
-      }, {} as Record<LanguageCode, number>),
+      languages: jobs.reduce(
+        (acc, job) => {
+          job.languages?.forEach((lang) => {
+            acc[lang] = (acc[lang] || 0) + 1;
+          });
+          return acc;
+        },
+        {} as Record<LanguageCode, number>
+      ),
     }),
     [jobs]
   );
@@ -444,15 +471,15 @@ export function JobFilters({
     : initialLevels;
 
   return (
-    <div className="p-5 border rounded-lg bg-gray-50 relative">
-      <div className="flex justify-between items-center">
+    <div className="relative rounded-lg border bg-gray-50 p-5">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-md font-semibold">Filters</h2>
+          <h2 className="font-semibold text-md">Filters</h2>
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="md:hidden flex items-center text-sm text-zinc-900"
-            aria-expanded={isExpanded}
             aria-controls="filter-content"
+            aria-expanded={isExpanded}
+            className="flex items-center text-sm text-zinc-900 md:hidden"
+            onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
               <ChevronUp className="h-4 w-4" />
@@ -460,41 +487,41 @@ export function JobFilters({
               <ChevronDown className="h-4 w-4" />
             )}
             <span className="sr-only">
-              {isExpanded ? "Collapse filters" : "Expand filters"}
+              {isExpanded ? 'Collapse filters' : 'Expand filters'}
             </span>
           </button>
         </div>
         <button
+          className="text-sm text-zinc-900 underline underline-offset-4 transition-colors hover:text-zinc-700"
           onClick={handleClearFilters}
-          className="text-sm underline underline-offset-4 text-zinc-900 hover:text-zinc-700 transition-colors"
         >
           Clear all
         </button>
       </div>
 
       {isExpanded && (
-        <div className="md:hidden h-[1px] w-full bg-gray-200 my-4"></div>
+        <div className="my-4 h-[1px] w-full bg-gray-200 md:hidden" />
       )}
 
       <div
-        id="filter-content"
-        className={`${isExpanded ? "mt-6" : "mt-0"} space-y-6 ${
-          isExpanded ? "block" : "hidden md:block md:mt-6"
+        className={`${isExpanded ? 'mt-6' : 'mt-0'} space-y-6 ${
+          isExpanded ? 'block' : 'hidden md:mt-6 md:block'
         }`}
+        id="filter-content"
       >
         {/* Job Type */}
         <div className="space-y-4">
-          <h3 className="text-md font-semibold">Job Type</h3>
+          <h3 className="font-semibold text-md">Job Type</h3>
           <div className="space-y-3">
             {/* Map over job types from constants instead of hardcoding */}
             {Object.entries(JOB_TYPE_DISPLAY_NAMES).map(
               ([type, displayName]) => (
                 <FilterItem
-                  key={type}
-                  id={`job-type-${type}`}
-                  label={displayName}
-                  count={counts.types[type as JobType] || 0}
                   checked={typesParam.includes(type)}
+                  count={counts.types[type as JobType] || 0}
+                  id={`job-type-${type}`}
+                  key={type}
+                  label={displayName}
                   onCheckedChange={(checked) => handleTypeChange(checked, type)}
                 />
               )
@@ -504,50 +531,50 @@ export function JobFilters({
 
         {/* Career Level */}
         <div className="space-y-4">
-          <h3 className="text-md font-semibold">Career Level</h3>
+          <h3 className="font-semibold text-md">Career Level</h3>
           <div className="space-y-3">
             {visibleLevels.map((level) => (
               <FilterItem
-                key={level}
-                id={level.toLowerCase().replace(" ", "-")}
-                label={CAREER_LEVEL_DISPLAY_NAMES[level]}
-                count={counts.roles[level] || 0}
                 checked={rolesParam.includes(level)}
+                count={counts.roles[level] || 0}
+                id={level.toLowerCase().replace(' ', '-')}
+                key={level}
+                label={CAREER_LEVEL_DISPLAY_NAMES[level]}
                 onCheckedChange={(checked) => handleLevelChange(checked, level)}
               />
             ))}
           </div>
           <button
+            className="text-sm text-zinc-900 underline underline-offset-4 transition-colors hover:text-zinc-700"
             onClick={() => setShowAllLevels(!showAllLevels)}
-            className="text-sm underline underline-offset-4 text-zinc-900 hover:text-zinc-700 transition-colors"
           >
-            {showAllLevels ? "Show fewer levels" : "Show more levels"}
+            {showAllLevels ? 'Show fewer levels' : 'Show more levels'}
           </button>
         </div>
 
         {/* Remote Only */}
         <div className="space-y-4">
-          <h3 className="text-md font-semibold">Remote Only</h3>
+          <h3 className="font-semibold text-md">Remote Only</h3>
           <SwitchItem
-            id="remote-only"
             checked={remoteParam}
-            onCheckedChange={handleRemoteChange}
             count={counts.remote}
+            id="remote-only"
+            onCheckedChange={handleRemoteChange}
             total={jobs.length}
           />
         </div>
 
         {/* Salary Range */}
         <div className="space-y-4">
-          <h3 className="text-md font-semibold">Salary Range</h3>
+          <h3 className="font-semibold text-md">Salary Range</h3>
           <div className="space-y-3">
             {Object.entries(counts.salary).map(([range, count]) => (
               <FilterItem
-                key={range}
-                id={`salary-${range.toLowerCase().replace(/[\s\$>]/g, "-")}`}
-                label={`${range}/year`}
-                count={count}
                 checked={salaryRangesParam.includes(range)}
+                count={count}
+                id={`salary-${range.toLowerCase().replace(/[\s$>]/g, '-')}`}
+                key={range}
+                label={`${range}/year`}
                 onCheckedChange={(checked) =>
                   handleSalaryChange(checked, range)
                 }
@@ -558,26 +585,26 @@ export function JobFilters({
 
         {/* Visa Sponsorship */}
         <div className="space-y-4">
-          <h3 className="text-md font-semibold">Visa Sponsorship</h3>
+          <h3 className="font-semibold text-md">Visa Sponsorship</h3>
           <SwitchItem
-            id="visa-sponsorship"
             checked={visaParam}
-            onCheckedChange={handleVisaChange}
             count={counts.visa || 0}
+            id="visa-sponsorship"
+            onCheckedChange={handleVisaChange}
           />
         </div>
 
         {/* Languages */}
         <div className="space-y-4">
-          <h3 className="text-md font-semibold">Languages</h3>
+          <h3 className="font-semibold text-md">Languages</h3>
           <div className="space-y-3">
             {languageEntries.visible.map(([lang, count]) => (
               <FilterItem
-                key={lang}
-                id={`lang-${lang.toLowerCase()}`}
-                label={getDisplayNameFromCode(lang as LanguageCode)}
-                count={count}
                 checked={languagesParam.includes(lang)}
+                count={count}
+                id={`lang-${lang.toLowerCase()}`}
+                key={lang}
+                label={getDisplayNameFromCode(lang as LanguageCode)}
                 onCheckedChange={(checked) =>
                   handleLanguageChange(checked, lang as LanguageCode)
                 }
@@ -586,13 +613,13 @@ export function JobFilters({
           </div>
           {languageEntries.additional.length > 0 && (
             <button
+              className="text-sm text-zinc-900 underline underline-offset-4 transition-colors hover:text-zinc-700"
               onClick={() => setShowAllLanguages(!showAllLanguages)}
-              className="text-sm underline underline-offset-4 text-zinc-900 hover:text-zinc-700 transition-colors"
             >
               {showAllLanguages
-                ? "Show fewer languages"
+                ? 'Show fewer languages'
                 : `Show ${languageEntries.additional.length} more language${
-                    languageEntries.additional.length > 1 ? "s" : ""
+                    languageEntries.additional.length > 1 ? 's' : ''
                   }`}
             </button>
           )}

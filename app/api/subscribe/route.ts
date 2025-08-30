@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
-import { emailProvider } from "@/lib/email";
-import config from "@/config";
+import { NextResponse } from 'next/server';
+import config from '@/config';
+import { emailProvider } from '@/lib/email';
 
 // Prevent caching
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 // Simple in-memory rate limiter
 // In a production environment, you would use Redis or another distributed cache
-interface RateLimitInfo {
+type RateLimitInfo = {
   count: number;
   resetTime: number;
-}
+};
 
 // Store IP addresses and their request counts
 // This will be reset when the server restarts
@@ -56,21 +56,21 @@ export async function POST(request: Request) {
     // Check if job alerts feature is enabled
     if (!config.jobAlerts?.enabled) {
       return NextResponse.json(
-        { error: "Job alerts feature is disabled" },
+        { error: 'Job alerts feature is disabled' },
         { status: 404 }
       );
     }
 
     // Get client IP with fallback for development
     const clientIp =
-      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-      request.headers.get("x-real-ip") ||
-      (process.env.NODE_ENV === "development" ? "203.0.113.1" : "unknown");
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      request.headers.get('x-real-ip') ||
+      (process.env.NODE_ENV === 'development' ? '203.0.113.1' : 'unknown');
 
     // Check rate limit
     if (isRateLimited(clientIp)) {
       return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
+        { error: 'Too many requests. Please try again later.' },
         { status: 429 }
       );
     }
@@ -80,16 +80,16 @@ export async function POST(request: Request) {
 
     // Validate email format with a more comprehensive check
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!email || !emailRegex.test(email)) {
+    if (!(email && emailRegex.test(email))) {
       return NextResponse.json(
-        { error: "Valid email address is required" },
+        { error: 'Valid email address is required' },
         { status: 400 }
       );
     }
 
     // Validate name is provided and not empty
-    if (!name || name.trim() === "") {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    if (!name || name.trim() === '') {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
     // Subscribe the user
@@ -98,17 +98,17 @@ export async function POST(request: Request) {
       name,
       ip: clientIp,
       metadata: {
-        source: "website-form",
-        userAgent: request.headers.get("user-agent"),
-        referer: request.headers.get("referer"),
-        origin: request.headers.get("origin"),
+        source: 'website-form',
+        userAgent: request.headers.get('user-agent'),
+        referer: request.headers.get('referer'),
+        origin: request.headers.get('origin'),
       },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+      error instanceof Error ? error.message : 'Unknown error';
 
     return NextResponse.json(
       {

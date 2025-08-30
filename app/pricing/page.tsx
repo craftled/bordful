@@ -1,13 +1,13 @@
-import { Metadata } from "next";
-import { Check, Sparkles, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { HeroSection } from "@/components/ui/hero-section";
-import { Button } from "@/components/ui/button";
-import { JobBadge } from "@/components/ui/job-badge";
-import config from "@/config";
-import { MetadataBreadcrumb } from "@/components/ui/metadata-breadcrumb";
-import { resolveColor } from "@/lib/utils/colors";
+import { ArrowUpRight, Check, Sparkles } from 'lucide-react';
+import type { Metadata } from 'next';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { HeroSection } from '@/components/ui/hero-section';
+import { JobBadge } from '@/components/ui/job-badge';
+import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
+import config from '@/config';
+import { resolveColor } from '@/lib/utils/colors';
 
 // Format a billing term for display
 const formatPricingBillingTerm = (billingTerm: string): string => {
@@ -16,39 +16,39 @@ const formatPricingBillingTerm = (billingTerm: string): string => {
 
 // Add metadata for SEO
 export const metadata: Metadata = {
-  title: `${config.pricing?.title || "Pricing"} | ${config.title}`,
+  title: `${config.pricing?.title || 'Pricing'} | ${config.title}`,
   description:
     config.pricing?.description ||
     "Choose the plan that's right for your job board needs.",
   keywords:
     config.pricing?.keywords ||
-    "job board pricing, post job, job listing plans, recruitment pricing",
+    'job board pricing, post job, job listing plans, recruitment pricing',
   openGraph: {
-    title: `${config.pricing?.title || "Pricing"} | ${config.title}`,
+    title: `${config.pricing?.title || 'Pricing'} | ${config.title}`,
     description:
       config.pricing?.description ||
       "Choose the plan that's right for your job board needs.",
-    type: "website",
+    type: 'website',
     url: `${config.url}/pricing`,
   },
   twitter: {
-    card: "summary_large_image",
-    title: `${config.pricing?.title || "Pricing"} | ${config.title}`,
+    card: 'summary_large_image',
+    title: `${config.pricing?.title || 'Pricing'} | ${config.title}`,
     description:
       config.pricing?.description ||
       "Choose the plan that's right for your job board needs.",
   },
   alternates: {
-    canonical: "/pricing",
+    canonical: '/pricing',
     languages: {
       en: `${config.url}/pricing`,
-      "x-default": `${config.url}/pricing`,
+      'x-default': `${config.url}/pricing`,
     },
   },
 };
 
 // This page will be static
-export const dynamic = "force-static";
+export const dynamic = 'force-static';
 
 export default function PricingPage() {
   // If pricing is not enabled, redirect to home page
@@ -56,7 +56,7 @@ export default function PricingPage() {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Pricing Not Available</h1>
+          <h1 className="mb-4 font-bold text-2xl">Pricing Not Available</h1>
           <p className="mb-6">The pricing page is currently not available.</p>
           <Link href="/">
             <Button>Return Home</Button>
@@ -69,10 +69,10 @@ export default function PricingPage() {
   return (
     <main className="min-h-screen bg-background">
       <HeroSection
-        badge={config.pricing.badge || "Pricing"}
-        title={config.pricing.title}
+        badge={config.pricing.badge || 'Pricing'}
         description={config.pricing.description}
         heroImage={config.pricing.heroImage}
+        title={config.pricing.title}
       />
 
       {/* Pricing Cards */}
@@ -81,23 +81,23 @@ export default function PricingPage() {
           <MetadataBreadcrumb metadata={metadata} pathname="/pricing" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {config.pricing.plans.map((plan, index) => (
-            <div key={index} className="group relative">
+            <div className="group relative" key={index}>
               <div
-                className={`block px-5 py-6 border rounded-lg transition-all h-full ${
+                className={`block h-full rounded-lg border px-5 py-6 transition-all ${
                   plan.highlighted
-                    ? "border-zinc-400 shadow-sm"
-                    : "hover:border-gray-400"
+                    ? 'border-zinc-400 shadow-sm'
+                    : 'hover:border-gray-400'
                 }`}
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-2">
-                    <h2 className="text-lg font-medium">{plan.name}</h2>
+                    <h2 className="font-medium text-lg">{plan.name}</h2>
                     {plan.badge && (
                       <JobBadge
-                        type={plan.badge.type || "featured"}
-                        icon={<Sparkles className="w-3 h-3" />}
+                        icon={<Sparkles className="h-3 w-3" />}
+                        type={plan.badge.type || 'featured'}
                       >
                         {plan.badge.text}
                       </JobBadge>
@@ -105,30 +105,27 @@ export default function PricingPage() {
                   </div>
 
                   <div className="flex items-baseline">
-                    <span className="text-2xl font-bold">
-                      {plan.price === 0 ? "Free" : `$${plan.price}`}
+                    <span className="font-bold text-2xl">
+                      {plan.price === 0 ? 'Free' : `$${plan.price}`}
                     </span>
                     {plan.price > 0 && (
-                      <span className="ml-1 text-sm text-gray-500">
+                      <span className="ml-1 text-gray-500 text-sm">
                         {formatPricingBillingTerm(plan.billingTerm)}
                       </span>
                     )}
                   </div>
 
-                  <div className="text-sm text-gray-600">
+                  <div className="text-gray-600 text-sm">
                     {plan.description}
                   </div>
 
                   <div>
                     <Button
                       asChild
+                      className="w-full gap-1.5 text-xs"
                       size="xs"
-                      variant={
-                        plan.cta.variant === "outline" ? "outline" : "primary"
-                      }
-                      className="gap-1.5 text-xs w-full"
                       style={
-                        plan.cta.variant !== "outline"
+                        plan.cta.variant !== 'outline'
                           ? {
                               backgroundColor: resolveColor(
                                 config.ui.primaryColor
@@ -136,36 +133,39 @@ export default function PricingPage() {
                             }
                           : undefined
                       }
+                      variant={
+                        plan.cta.variant === 'outline' ? 'outline' : 'primary'
+                      }
                     >
                       <Link
                         href={plan.cta.link}
-                        target={
-                          plan.cta.link.startsWith("http")
-                            ? "_blank"
+                        rel={
+                          plan.cta.link.startsWith('http')
+                            ? 'noopener noreferrer'
                             : undefined
                         }
-                        rel={
-                          plan.cta.link.startsWith("http")
-                            ? "noopener noreferrer"
+                        target={
+                          plan.cta.link.startsWith('http')
+                            ? '_blank'
                             : undefined
                         }
                       >
                         {plan.cta.label}
                         <ArrowUpRight
-                          className="h-3.5 w-3.5"
                           aria-hidden="true"
+                          className="h-3.5 w-3.5"
                         />
                       </Link>
                     </Button>
                   </div>
 
-                  <div className="border-t pt-4"></div>
+                  <div className="border-t pt-4" />
 
                   <ul className="space-y-2.5">
                     {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <Check className="h-4 w-4 text-green-600 flex-shrink-0 mr-2 mt-0.5" />
-                        <span className="text-sm text-gray-700">{feature}</span>
+                      <li className="flex items-start" key={featureIndex}>
+                        <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-600" />
+                        <span className="text-gray-700 text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -177,14 +177,14 @@ export default function PricingPage() {
 
         {/* Payment Processing Information */}
         {config.pricing.paymentProcessingText && (
-          <div className="max-w-sm mx-auto mt-12 text-center">
-            <p className="text-xs text-gray-500 text-balance">
+          <div className="mx-auto mt-12 max-w-sm text-center">
+            <p className="text-balance text-gray-500 text-xs">
               {config.pricing.paymentProcessingText}
             </p>
 
             {/* Payment Method Icons */}
             {config.pricing.paymentMethods?.enabled && (
-              <div className="flex justify-center items-center gap-2 mt-4">
+              <div className="mt-4 flex items-center justify-center gap-2">
                 {(
                   config.pricing.paymentMethods.icons as unknown as Array<{
                     name: string;
@@ -192,14 +192,14 @@ export default function PricingPage() {
                   }>
                 ).map((icon) => (
                   <div
+                    className="relative h-8 w-10 transition-all hover:opacity-100 hover:grayscale-0"
                     key={icon.name}
-                    className="relative w-10 h-8 hover:grayscale-0 hover:opacity-100 transition-all"
                   >
                     <Image
-                      src={`/assets/${icon.name}.svg`}
                       alt={icon.alt || `${icon.name} payment method`}
                       fill
-                      style={{ objectFit: "contain" }}
+                      src={`/assets/${icon.name}.svg`}
+                      style={{ objectFit: 'contain' }}
                     />
                   </div>
                 ))}

@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-interface CollapsibleTextProps {
+type CollapsibleTextProps = {
   text: string;
   maxLength: number;
-}
+};
 
 export function CollapsibleText({ text, maxLength }: CollapsibleTextProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // If text is shorter than maxLength, just return it
   if (text.length <= maxLength) {
-    return <p className="text-sm text-gray-600 whitespace-pre-line">{text}</p>;
+    return <p className="whitespace-pre-line text-gray-600 text-sm">{text}</p>;
   }
 
   const displayText = isExpanded
@@ -21,12 +21,12 @@ export function CollapsibleText({ text, maxLength }: CollapsibleTextProps) {
 
   return (
     <div>
-      <p className="text-sm text-gray-600 whitespace-pre-line">{displayText}</p>
+      <p className="whitespace-pre-line text-gray-600 text-sm">{displayText}</p>
       <button
+        className="mt-1 text-sm text-zinc-900 underline underline-offset-4 transition-colors hover:text-zinc-700"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="text-sm underline underline-offset-4 text-zinc-900 hover:text-zinc-700 transition-colors mt-1"
       >
-        {isExpanded ? "Show less" : "Show more"}
+        {isExpanded ? 'Show less' : 'Show more'}
       </button>
     </div>
   );

@@ -21,7 +21,7 @@ By following this guide, you'll have a fully functional job board website with:
 
 ## Why Bordful?
 
-- **Modern Tech Stack:** Built with Next.js, Tailwind CSS, and Airtable for a fast, flexible, and easy-to-manage job board.
+- **Modern Tech Stack:** Built with Next.js, Tailwind CSS, Airtable, and Ultracite for a fast, flexible, and easy-to-manage job board with lightning-fast linting and formatting.
 - **Comprehensive SEO:** Rich schema.org JobPosting data, automatic XML sitemaps, and more to maximize visibility.
 - **Highly Customizable:** Easily tailor the theme, layout, navigation, hero section, and every other aspect to match your brand.
 - **Real-time Updates:** Leverages Next.js Incremental Static Regeneration (ISR) to keep job listings fresh without manual rebuilds.
@@ -70,7 +70,7 @@ choco install nodejs
 **3. Verify Installation**
 Open your Terminal (Mac) or Command Prompt (Windows) and run:
 
-![Check Node and NPM Versions](public/check-node-and-npm-versions.jpg)
+![Check Node and Bun Versions](public/check-node-and-bun-versions.jpg)
 
 ```bash
 # If you installed Bun
@@ -78,7 +78,7 @@ bun --version   # Should show v1.0+ or higher
 
 # If you installed Node.js
 node --version  # Should show v18+ or higher
-npm --version   # Should show 8+ or higher
+bun --version   # Should show v1.0+ or higher
 ```
 
 ✅ **Success Check:** If you see version numbers, you're ready to continue!
@@ -93,7 +93,7 @@ npm --version   # Should show 8+ or higher
 5. Click "Begin import"
 6. Once complete, click "Clone or download" → "Download ZIP"
 7. Extract the ZIP file to your desired folder
-8. Open Terminal/Command Prompt in that folder and run: `bun install` or `npm install`
+8. Open Terminal/Command Prompt in that folder and run: `bun install`
 
 ✅ **Benefits**: Private by default, no Git knowledge required, ready for Vercel deployment
 
@@ -103,10 +103,8 @@ npm --version   # Should show 8+ or higher
 git clone https://github.com/craftled/bordful
 cd bordful
 
-# Install dependencies (choose one)
-bun install    # Recommended - faster
-# OR
-npm install
+# Install dependencies
+bun install
 ```
 
 > 💡 **Tip**: Option A is perfect if you're not comfortable with Git or want to keep your code private from the start.
@@ -176,10 +174,8 @@ ENCHARGE_WRITE_KEY=your_encharge_key_here
 #### Step 5: Start Your Job Board (30 seconds)
 
 ```bash
-# Start the development server (choose one)
-bun run dev    # Recommended - faster
-# OR
-npm run dev
+# Start the development server
+bun run dev
 ```
 
 🎉 **That's it!** Visit [http://localhost:3000](http://localhost:3000) to see your job board in action.
@@ -227,10 +223,8 @@ Ready to go live? Deploy to Vercel in 3 steps:
 #### Step 1: Prepare for Deployment
 
 ```bash
-# Test your build locally first (choose one)
-bun run build && bun run start    # Recommended
-# OR
-npm run build && npm run start
+# Test your build locally first
+bun run build && bun run start
 ```
 
 #### Step 2: Deploy to Vercel
@@ -267,8 +261,7 @@ AIRTABLE_TABLE_NAME = Jobs
 - Verify your `AIRTABLE_ACCESS_TOKEN` and `AIRTABLE_BASE_ID` are correct in `.env`
 
 **Package installation not working?**
-- If using Bun: Make sure it's installed: run `bun --version`
-- If using npm: Make sure Node.js is installed: run `node --version`
+- Make sure Bun is installed: run `bun --version`
 - Navigate to the correct folder before running the command
 - On Windows, try running Command Prompt as Administrator
 
@@ -300,8 +293,18 @@ Can you help me find and update the relevant text?"
 
 **🚀 Fix Deployment Issues:**
 ```
-"I'm getting this error when deploying to Vercel: [paste error]. 
+"I'm getting this error when deploying to Vercel: [paste error].
 Can you help me fix it?"
+```
+
+**🔧 Code Quality & Linting:**
+```
+"I'm getting linting errors with Ultracite/Biome. Can you help me fix: [describe the error]?"
+```
+
+**⚡ Performance Optimization:**
+```
+"How can I optimize this code for better performance? Any suggestions for [specific area]?"
 ```
 
 > 💡 **Pro Tip:** Always describe what you want to achieve rather than asking for specific code!
@@ -434,6 +437,11 @@ config/
   config.example.ts           # Example configuration file
   index.ts                    # Configuration exports
   README.md                   # Configuration documentation
+
+biome.jsonc                  # Ultracite/Biome configuration
+AGENTS.md                    # AI assistant rules for Ultracite
+.cursor/rules/               # Cursor AI editor rules
+.vscode/settings.json        # VS Code Ultracite configuration
 
 hooks/
   use-toast.ts                # Toast notification hook

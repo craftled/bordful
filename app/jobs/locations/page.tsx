@@ -1,48 +1,48 @@
-import { getJobs } from "@/lib/db/airtable";
-import { Globe2 } from "lucide-react";
-import type { Metadata } from "next";
-import config from "@/config";
-import { HeroSection } from "@/components/ui/hero-section";
-import Link from "next/link";
-import type { LocationCounts } from "@/lib/constants/locations";
+import { Globe2 } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { HeroSection } from '@/components/ui/hero-section';
+import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
+import config from '@/config';
+import type { Country } from '@/lib/constants/countries';
+import type { LocationCounts } from '@/lib/constants/locations';
 import {
-  formatLocationTitle,
   createLocationSlug,
-} from "@/lib/constants/locations";
-import { Country } from "@/lib/constants/countries";
-import { generateMetadata } from "@/lib/utils/metadata";
-import { MetadataBreadcrumb } from "@/components/ui/metadata-breadcrumb";
+  formatLocationTitle,
+} from '@/lib/constants/locations';
+import { getJobs } from '@/lib/db/airtable';
+import { generateMetadata } from '@/lib/utils/metadata';
 
 // Generate metadata for SEO
 export const metadata: Metadata = generateMetadata({
-  title: "Browse Jobs by Location | " + config.title,
+  title: `Browse Jobs by Location | ${config.title}`,
   description:
-    "Explore tech jobs by location. Find remote opportunities or positions in your preferred country.",
-  path: "/jobs/locations",
+    'Explore tech jobs by location. Find remote opportunities or positions in your preferred country.',
+  path: '/jobs/locations',
 });
 
 // Revalidate page every 5 minutes
 export const revalidate = 300;
 
-interface LocationCardProps {
+type LocationCardProps = {
   href: string;
   title: string;
   count: number;
-}
+};
 
 function LocationCard({ href, title, count }: LocationCardProps) {
   return (
     <Link
-      href={href}
-      className="block p-4 sm:p-5 border rounded-lg transition-all hover:border-gray-400"
       aria-label={`Browse ${count.toLocaleString()} ${title} ${
-        count === 1 ? "position" : "positions"
+        count === 1 ? 'position' : 'positions'
       }`}
+      className="block rounded-lg border p-4 transition-all hover:border-gray-400 sm:p-5"
+      href={href}
     >
       <div className="space-y-1.5 sm:space-y-2">
-        <h2 className="text-sm sm:text-base font-medium">{title}</h2>
-        <div className="text-xs sm:text-sm text-gray-500">
-          {count.toLocaleString()} {count === 1 ? "position" : "positions"}{" "}
+        <h2 className="font-medium text-sm sm:text-base">{title}</h2>
+        <div className="text-gray-500 text-xs sm:text-sm">
+          {count.toLocaleString()} {count === 1 ? 'position' : 'positions'}{' '}
           available
         </div>
       </div>
@@ -56,7 +56,7 @@ export default async function LocationsPage() {
   // Aggregate job counts by location
   const locationCounts = jobs.reduce<LocationCounts>(
     (acc, job) => {
-      if (job.workplace_type === "Remote") {
+      if (job.workplace_type === 'Remote') {
         acc.remote += 1;
       }
       if (job.workplace_country) {
@@ -100,9 +100,9 @@ export default async function LocationsPage() {
     <>
       <HeroSection
         badge="Locations"
-        title="Browse Jobs by Location"
         description={`Explore ${jobs.length.toLocaleString()} open positions across different locations. Find remote opportunities or positions in your preferred country.`}
         heroImage={config.jobsPages?.locations?.heroImage}
+        title="Browse Jobs by Location"
       />
 
       <main className="container py-6 sm:py-8">
@@ -110,33 +110,33 @@ export default async function LocationsPage() {
           {/* Breadcrumbs */}
           <div className="mb-6">
             <MetadataBreadcrumb
+              items={[
+                { name: 'Home', url: '/' },
+                { name: 'Jobs', url: '/jobs' },
+                { name: 'Locations', url: '/jobs/locations' },
+              ]}
               metadata={metadata}
               pathname="/jobs/locations"
-              items={[
-                { name: "Home", url: "/" },
-                { name: "Jobs", url: "/jobs" },
-                { name: "Locations", url: "/jobs/locations" },
-              ]}
             />
           </div>
 
           {/* Remote Section */}
           {locationCounts.remote > 0 && (
             <section className="mb-10">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="mb-4 flex items-center gap-2">
                 <Globe2
-                  className="w-4 sm:w-5 h-4 sm:h-5 text-muted-foreground"
                   aria-hidden="true"
+                  className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
                 />
-                <h2 className="text-lg sm:text-xl font-semibold">
+                <h2 className="font-semibold text-lg sm:text-xl">
                   Remote Opportunities
                 </h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 <LocationCard
+                  count={locationCounts.remote}
                   href="/jobs/location/remote"
                   title="Remote"
-                  count={locationCounts.remote}
                 />
               </div>
             </section>
@@ -144,22 +144,22 @@ export default async function LocationsPage() {
 
           {/* Countries Section */}
           <section>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <Globe2
-                className="w-4 sm:w-5 h-4 sm:h-5 text-muted-foreground"
                 aria-hidden="true"
+                className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
               />
-              <h2 className="text-lg sm:text-xl font-semibold">
+              <h2 className="font-semibold text-lg sm:text-xl">
                 Jobs by Country
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {sortedCountries.map(({ title, slug, count }) => (
                 <LocationCard
-                  key={slug}
-                  href={`/jobs/location/${slug}`}
-                  title={title}
                   count={count}
+                  href={`/jobs/location/${slug}`}
+                  key={slug}
+                  title={title}
                 />
               ))}
             </div>

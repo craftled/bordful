@@ -1,16 +1,16 @@
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin, Phone } from 'lucide-react';
 // No card components needed
-import config from "@/config";
-import { resolveColor } from "@/lib/utils/colors";
+import config from '@/config';
+import { resolveColor } from '@/lib/utils/colors';
 
-interface ContactInfoSectionProps {
+type ContactInfoSectionProps = {
   title: string;
   description: string;
   companyName: string;
   email: string;
   phone: string;
   address: string;
-}
+};
 
 export function ContactInfoSection({
   title,
@@ -23,10 +23,10 @@ export function ContactInfoSection({
   const primaryColor = resolveColor(config.ui.primaryColor);
 
   return (
-    <div className="p-5 border rounded-lg hover:border-gray-400 transition-all">
+    <div className="rounded-lg border p-5 transition-all hover:border-gray-400">
       <div className="pb-4">
-        <h3 className="text-xl font-semibold text-zinc-900">{title}</h3>
-        <p className="text-zinc-600 mt-1 text-sm">{description}</p>
+        <h3 className="font-semibold text-xl text-zinc-900">{title}</h3>
+        <p className="mt-1 text-sm text-zinc-600">{description}</p>
       </div>
       <div>
         <div className="space-y-4">
@@ -35,8 +35,8 @@ export function ContactInfoSection({
           <div className="flex items-center gap-2.5">
             <Mail className="h-4 w-4 text-zinc-500" />
             <a
-              href={`mailto:${email}`}
               className="text-sm hover:underline"
+              href={`mailto:${email}`}
               style={{ color: primaryColor }}
             >
               {email}
@@ -46,8 +46,8 @@ export function ContactInfoSection({
           <div className="flex items-center gap-2.5">
             <Phone className="h-4 w-4 text-zinc-500" />
             <a
-              href={`tel:${phone.replace(/\D/g, "")}`}
               className="text-sm hover:underline"
+              href={`tel:${phone.replace(/\D/g, '')}`}
               style={{ color: primaryColor }}
             >
               {phone}
@@ -55,8 +55,8 @@ export function ContactInfoSection({
           </div>
 
           <div className="flex items-start gap-2.5">
-            <MapPin className="h-4 w-4 text-zinc-500 mt-0.5" />
-            <span className="text-zinc-700 text-sm">{address}</span>
+            <MapPin className="mt-0.5 h-4 w-4 text-zinc-500" />
+            <span className="text-sm text-zinc-700">{address}</span>
           </div>
         </div>
       </div>

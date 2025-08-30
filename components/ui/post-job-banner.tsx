@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import config from "@/config";
-import { resolveColor } from "@/lib/utils/colors";
-import { Briefcase } from "lucide-react";
+import { Briefcase } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import config from '@/config';
+import { resolveColor } from '@/lib/utils/colors';
 
 export function PostJobBanner() {
   // Early return if banner is disabled
@@ -22,44 +22,44 @@ export function PostJobBanner() {
   } = config.postJobBanner;
 
   return (
-    <Card className="p-6 border shadow-none rounded-lg">
-      <h3 className="text-lg font-semibold mb-3">{title}</h3>
-      <p className="text-sm mb-4 text-muted-foreground">{description}</p>
+    <Card className="rounded-lg border p-6 shadow-none">
+      <h3 className="mb-3 font-semibold text-lg">{title}</h3>
+      <p className="mb-4 text-muted-foreground text-sm">{description}</p>
 
       {showTrustedBy && (
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex -space-x-3">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="-space-x-3 flex">
             {companyAvatars.map((avatar, index) => (
-              <Avatar key={index} className="h-7 w-7 border border-background">
-                <AvatarImage src={avatar.src} alt={avatar.alt} />
+              <Avatar className="h-7 w-7 border border-background" key={index}>
+                <AvatarImage alt={avatar.alt} src={avatar.src} />
                 <AvatarFallback>{avatar.fallback}</AvatarFallback>
               </Avatar>
             ))}
           </div>
-          <span className="text-xs text-muted-foreground">{trustedByText}</span>
+          <span className="text-muted-foreground text-xs">{trustedByText}</span>
         </div>
       )}
 
       <a
-        href={cta.link}
-        target={cta.external ? "_blank" : undefined}
-        rel={cta.external ? "noopener noreferrer" : undefined}
         className="block"
+        href={cta.link}
+        rel={cta.external ? 'noopener noreferrer' : undefined}
+        target={cta.external ? '_blank' : undefined}
       >
         <Button
+          className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-xs sm:h-7 sm:px-2.5"
           size="xs"
-          className="w-full gap-1.5 text-xs h-8 sm:h-7 px-3 sm:px-2.5 flex items-center justify-center"
-          variant="primary"
           style={{ backgroundColor: resolveColor(config.ui.primaryColor) }}
+          variant="primary"
         >
           <span className="flex items-center justify-center">
             {cta.text}
-            <Briefcase className="h-3.5 w-3.5 ml-1" aria-hidden="true" />
+            <Briefcase aria-hidden="true" className="ml-1 h-3.5 w-3.5" />
           </span>
         </Button>
       </a>
 
-      <p className="text-xs text-center mt-4 text-muted-foreground">
+      <p className="mt-4 text-center text-muted-foreground text-xs">
         {trustMessage}
       </p>
     </Card>

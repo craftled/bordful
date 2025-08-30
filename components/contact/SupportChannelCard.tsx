@@ -1,28 +1,28 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
-  ArrowUpRight,
   ArrowRight,
-  Mail,
-  HelpCircle,
-  Phone,
-  MessageSquare,
+  ArrowUpRight,
   Github,
+  HelpCircle,
   Linkedin,
+  type LucideIcon,
+  Mail,
+  MessageSquare,
+  Phone,
   Rss,
-} from "lucide-react";
-import { LucideIcon } from "lucide-react";
-import Image from "next/image";
-import config from "@/config";
-import { resolveColor } from "@/lib/utils/colors";
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import config from '@/config';
+import { resolveColor } from '@/lib/utils/colors';
 
-interface SupportChannelCardProps {
+type SupportChannelCardProps = {
   title: string;
   description: string;
   buttonText: string;
   buttonLink: string;
   icon: string;
-}
+};
 
 // Map of icon names to components
 const iconMap: Record<string, LucideIcon> = {
@@ -43,56 +43,56 @@ export function SupportChannelCard({
   icon,
 }: SupportChannelCardProps) {
   // Check if it's Twitter icon
-  const isTwitterIcon = icon === "Twitter";
+  const isTwitterIcon = icon === 'Twitter';
 
   // Get the icon component or use HelpCircle as fallback
-  const IconComponent = !isTwitterIcon ? iconMap[icon] || HelpCircle : null;
+  const IconComponent = isTwitterIcon ? null : iconMap[icon] || HelpCircle;
 
   const isExternalLink =
-    buttonLink.startsWith("http") || buttonLink.startsWith("mailto");
+    buttonLink.startsWith('http') || buttonLink.startsWith('mailto');
 
   return (
-    <div className="h-full flex flex-col p-5 border rounded-lg hover:border-gray-400 transition-all">
-      <div className="pb-2 space-y-3">
+    <div className="flex h-full flex-col rounded-lg border p-5 transition-all hover:border-gray-400">
+      <div className="space-y-3 pb-2">
         <div>
           {isTwitterIcon ? (
-            <div className="h-5 w-5 relative">
+            <div className="relative h-5 w-5">
               <Image
-                src="/assets/social/twitter.svg"
                 alt="Twitter/X"
-                width={20}
-                height={20}
                 className="object-contain"
+                height={20}
+                src="/assets/social/twitter.svg"
+                width={20}
               />
             </div>
           ) : (
             <IconComponent className="h-5 w-5 text-zinc-700" />
           )}
         </div>
-        <h3 className="text-base font-medium text-zinc-900">{title}</h3>
+        <h3 className="font-medium text-base text-zinc-900">{title}</h3>
       </div>
-      <div className="pb-6 flex-grow">
+      <div className="flex-grow pb-6">
         <p className="text-sm text-zinc-600 leading-relaxed">{description}</p>
       </div>
-      <div className="pt-0 mt-auto">
+      <div className="mt-auto pt-0">
         <Button
           asChild
+          className="w-full gap-1.5 text-xs"
           size="xs"
-          variant="primary"
-          className="gap-1.5 text-xs w-full"
           style={{ backgroundColor: resolveColor(config.ui.primaryColor) }}
+          variant="primary"
         >
           <Link
             href={buttonLink}
-            target={isExternalLink ? "_blank" : undefined}
-            rel={isExternalLink ? "noopener noreferrer" : undefined}
+            rel={isExternalLink ? 'noopener noreferrer' : undefined}
+            target={isExternalLink ? '_blank' : undefined}
           >
             {buttonText}
             {isExternalLink && (
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
             )}
             {!isExternalLink && (
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
             )}
           </Link>
         </Button>

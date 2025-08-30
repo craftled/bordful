@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -17,62 +17,62 @@ const nextConfig: NextConfig = {
     return [
       {
         // Apply these headers to all routes
-        source: "/:path*",
+        source: '/:path*',
         headers: [
           {
-            key: "X-Robots-Tag",
+            key: 'X-Robots-Tag',
             value:
-              "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+              'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
           },
         ],
       },
       {
         // Apply specific headers to image files
-        source: "/:path*.jpg",
+        source: '/:path*.jpg',
         headers: [
           {
-            key: "X-Robots-Tag",
-            value: "index, max-image-preview:large",
+            key: 'X-Robots-Tag',
+            value: 'index, max-image-preview:large',
           },
         ],
       },
       {
         // Apply specific headers to image files
-        source: "/:path*.jpeg",
+        source: '/:path*.jpeg',
         headers: [
           {
-            key: "X-Robots-Tag",
-            value: "index, max-image-preview:large",
+            key: 'X-Robots-Tag',
+            value: 'index, max-image-preview:large',
           },
         ],
       },
       {
         // Apply specific headers to image files
-        source: "/:path*.png",
+        source: '/:path*.png',
         headers: [
           {
-            key: "X-Robots-Tag",
-            value: "index, max-image-preview:large",
+            key: 'X-Robots-Tag',
+            value: 'index, max-image-preview:large',
           },
         ],
       },
       {
         // Apply specific headers to image files
-        source: "/:path*.svg",
+        source: '/:path*.svg',
         headers: [
           {
-            key: "X-Robots-Tag",
-            value: "index, max-image-preview:large",
+            key: 'X-Robots-Tag',
+            value: 'index, max-image-preview:large',
           },
         ],
       },
       {
         // Apply specific headers to PDF files
-        source: "/:path*.pdf",
+        source: '/:path*.pdf',
         headers: [
           {
-            key: "X-Robots-Tag",
-            value: "index, nosnippet",
+            key: 'X-Robots-Tag',
+            value: 'index, nosnippet',
           },
         ],
       },

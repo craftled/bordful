@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --font-geist-sans: 'Geist Sans';
-    --font-geist-mono: 'Geist Mono';
-    --font-inter: 'Inter';
-    --font-ibm-plex-serif: 'IBM Plex Serif';
+    --font-geist-sans: "Geist Sans";
+    --font-geist-mono: "Geist Mono";
+    --font-inter: "Inter";
+    --font-ibm-plex-serif: "IBM Plex Serif";
   }
 
   /* Font styling for IBM Plex Serif */
@@ -34,7 +34,9 @@
     }
 
     /* Base text size */
-    p, ul, ol {
+    p,
+    ul,
+    ol {
       @apply text-sm text-gray-700 leading-relaxed;
     }
 
@@ -65,7 +67,10 @@
     }
 
     /* Lists inside lists */
-    ul ul, ol ol, ul ol, ol ul {
+    ul ul,
+    ol ol,
+    ul ol,
+    ol ul {
       @apply mt-1 mb-1;
     }
 

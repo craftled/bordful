@@ -1,7 +1,7 @@
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import remarkStringify from "remark-stringify";
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import remarkStringify from 'remark-stringify';
+import { unified } from 'unified';
 
 /**
  * Normalize raw Markdown from Airtable into GitHub-Flavored Markdown.
@@ -15,17 +15,19 @@ import remarkStringify from "remark-stringify";
  * @returns A cleaned, standardized Markdown string with proper paragraphs
  */
 export function normalizeMarkdown(raw: string): string {
-  if (!raw) return "";
+  if (!raw) {
+    return '';
+  }
 
   // First, apply some general regex replacements to standardize content
   let fixed = raw;
 
   // Preserve literal asterisks in text by temporarily replacing them
-  fixed = fixed.replace(/\\\*/g, "___ESCAPED_ASTERISK___");
+  fixed = fixed.replace(/\\\*/g, '___ESCAPED_ASTERISK___');
 
   // Ensure bolded section headers are properly separated into their own paragraphs
-  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+(?::\*\*|\*\*))/g, "$1\n\n$2");
-  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+:[^*\n]*\*\*)/g, "$1\n\n$2");
+  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+(?::\*\*|\*\*))/g, '$1\n\n$2');
+  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+:[^*\n]*\*\*)/g, '$1\n\n$2');
 
   // Detect and fix section introductions with bold text ending in colons
   // like "As a distributed team, **some key qualities are particularly important** for all of us at Hop Labs:"
@@ -38,7 +40,7 @@ export function normalizeMarkdown(raw: string): string {
   // This handles cases like "item text\nNew paragraph" where it should be "item text\n\nNew paragraph"
   fixed = fixed.replace(
     /^(\s*[-*+]\s+.+?)(\n)([A-Z][a-z])/gm,
-    (match, listItem, newline, startOfParagraph) => {
+    (_match, listItem, _newline, startOfParagraph) => {
       // Only add a blank line if it appears to be a new sentence/paragraph and not part of the list item
       return `${listItem}\n\n${startOfParagraph}`;
     }
@@ -48,24 +50,24 @@ export function normalizeMarkdown(raw: string): string {
   // E.g., "last list item. What we're looking for **specifically for this role**:"
   fixed = fixed.replace(
     /^(\s*[-*+]\s+[^\n]+)(\s+)([A-Z][a-z][^:]*\s\*\*[^*\n]+\*\*[^:\n]*:)$/gm,
-    (match, listItem, spacing, sectionIntro) => {
+    (_match, listItem, _spacing, sectionIntro) => {
       // Split the section intro as a separate paragraph
       return `${listItem}\n\n${sectionIntro}`;
     }
   );
 
   // Split the content into lines for processing
-  const lines = fixed.split("\n");
+  const lines = fixed.split('\n');
   const result: string[] = [];
 
   // Stack to track list hierarchy
-  interface ListState {
+  type ListState = {
     indent: number; // The indentation level of this list item
     marker: string; // The list marker used (e.g., "- " or "1. " or "a. ")
-    type: "ul" | "ol"; // Type of list (unordered or ordered)
+    type: 'ul' | 'ol'; // Type of list (unordered or ordered)
     hasBoldHeader: boolean; // Whether this list item has a bolded header
-    markerStyle?: "number" | "letter"; // Style of ordered list markers (1,2,3 or a,b,c)
-  }
+    markerStyle?: 'number' | 'letter'; // Style of ordered list markers (1,2,3 or a,b,c)
+  };
 
   // Initialize an empty stack to track list context
   const listStack: ListState[] = [];
@@ -73,8 +75,8 @@ export function normalizeMarkdown(raw: string): string {
   // Keep track of previous line info for context
   let previousLineWasEmptyOrHeading = true; // Start as true for first line
   let insideListItem = false;
-  let currentListItemContent = "";
-  let currentListItemIndent = "";
+  let currentListItemContent = '';
+  let currentListItemIndent = '';
 
   // Process each line with stack-based list tracking
   for (let i = 0; i < lines.length; i++) {
@@ -83,12 +85,12 @@ export function normalizeMarkdown(raw: string): string {
     const trimmedLine = line.trim();
 
     // Skip completely empty lines but preserve them
-    if (trimmedLine === "") {
-      result.push("");
+    if (trimmedLine === '') {
+      result.push('');
       previousLineWasEmptyOrHeading = true;
 
       // If we have two consecutive empty lines, reset list context
-      if (i > 0 && lines[i - 1].trim() === "") {
+      if (i > 0 && lines[i - 1].trim() === '') {
         listStack.length = 0;
         insideListItem = false;
       }
@@ -106,8 +108,8 @@ export function normalizeMarkdown(raw: string): string {
       // If we were inside a list item, finish that first
       if (insideListItem && currentListItemContent) {
         result.push(`${currentListItemIndent}${currentListItemContent}`);
-        result.push(""); // Add a blank line
-        currentListItemContent = "";
+        result.push(''); // Add a blank line
+        currentListItemContent = '';
         insideListItem = false;
       }
 
@@ -115,16 +117,16 @@ export function normalizeMarkdown(raw: string): string {
       if (
         !previousLineWasEmptyOrHeading &&
         result.length > 0 &&
-        result[result.length - 1] !== ""
+        result.at(-1) !== ''
       ) {
-        result.push("");
+        result.push('');
       }
 
       // Add the section introduction
       result.push(trimmedLine);
 
       // Add an empty line after to separate it from the next section
-      result.push("");
+      result.push('');
 
       previousLineWasEmptyOrHeading = true;
       continue;
@@ -141,15 +143,15 @@ export function normalizeMarkdown(raw: string): string {
       if (
         !previousLineWasEmptyOrHeading &&
         result.length > 0 &&
-        result[result.length - 1] !== ""
+        result.at(-1) !== ''
       ) {
-        result.push("");
+        result.push('');
       }
 
       result.push(trimmedLine);
 
       // Add an empty line after to ensure it's treated as a separate paragraph
-      result.push("");
+      result.push('');
 
       previousLineWasEmptyOrHeading = true;
       insideListItem = false;
@@ -157,7 +159,7 @@ export function normalizeMarkdown(raw: string): string {
     }
 
     // Check for headings
-    if (trimmedLine.startsWith("#")) {
+    if (trimmedLine.startsWith('#')) {
       // Clear the list stack when encountering headings
       listStack.length = 0;
       insideListItem = false;
@@ -182,29 +184,29 @@ export function normalizeMarkdown(raw: string): string {
       // If we were inside a list item and now starting a new one, commit the previous list item
       if (insideListItem && currentListItemContent) {
         result.push(`${currentListItemIndent}${currentListItemContent}`);
-        currentListItemContent = "";
+        currentListItemContent = '';
       }
 
       // This is a list item - determine type and content
-      let content = "";
-      let listType: "ul" | "ol" = "ul";
-      let marker = "-";
-      let markerStyle: "number" | "letter" | undefined = undefined;
+      let content = '';
+      let listType: 'ul' | 'ol' = 'ul';
+      let marker = '-';
+      let markerStyle: 'number' | 'letter' | undefined;
 
       if (unorderedMatch) {
         content = unorderedMatch[1];
-        listType = "ul";
-        marker = "-";
+        listType = 'ul';
+        marker = '-';
       } else if (orderedNumMatch) {
         content = orderedNumMatch[1];
-        listType = "ol";
-        marker = "1.";
-        markerStyle = "number";
+        listType = 'ol';
+        marker = '1.';
+        markerStyle = 'number';
       } else if (orderedLetterMatch) {
         content = orderedLetterMatch[1];
-        listType = "ol";
-        marker = "a.";
-        markerStyle = "letter";
+        listType = 'ol';
+        marker = 'a.';
+        markerStyle = 'letter';
       }
 
       // Check if this is a bolded header with colon (e.g., "**Frontend Development:**")
@@ -235,7 +237,7 @@ export function normalizeMarkdown(raw: string): string {
               hasBoldHeader: false,
               markerStyle,
             });
-          } else if (indentation > listStack[listStack.length - 1].indent) {
+          } else if (indentation > listStack.at(-1).indent) {
             // This is a nested list
             listStack.push({
               indent: indentation,
@@ -248,7 +250,7 @@ export function normalizeMarkdown(raw: string): string {
             // Pop items from stack until we find the appropriate level
             while (
               listStack.length > 0 &&
-              indentation <= listStack[listStack.length - 1].indent
+              indentation <= listStack.at(-1).indent
             ) {
               listStack.pop();
             }
@@ -262,18 +264,18 @@ export function normalizeMarkdown(raw: string): string {
           }
 
           // Format the list item with proper indentation
-          const properIndent = "  ".repeat(listStack.length - 1);
+          const properIndent = '  '.repeat(listStack.length - 1);
           result.push(`${properIndent}${marker} ${content}`);
         }
 
         // Add a line break before the bold header
-        result.push("");
+        result.push('');
 
         // Then add the bold header as a separate item
         result.push(containsEmbeddedHeader[2]);
 
         // Add a line break after the bold header
-        result.push("");
+        result.push('');
 
         previousLineWasEmptyOrHeading = true;
         insideListItem = false;
@@ -303,7 +305,7 @@ export function normalizeMarkdown(raw: string): string {
               hasBoldHeader,
               markerStyle,
             });
-          } else if (indentation > listStack[listStack.length - 1].indent) {
+          } else if (indentation > listStack.at(-1).indent) {
             // This is a nested list
             listStack.push({
               indent: indentation,
@@ -316,7 +318,7 @@ export function normalizeMarkdown(raw: string): string {
             // Pop items from stack until we find the appropriate level
             while (
               listStack.length > 0 &&
-              indentation <= listStack[listStack.length - 1].indent
+              indentation <= listStack.at(-1).indent
             ) {
               listStack.pop();
             }
@@ -330,7 +332,7 @@ export function normalizeMarkdown(raw: string): string {
           }
 
           // Format the list item with proper indentation
-          const properIndent = "  ".repeat(listStack.length - 1);
+          const properIndent = '  '.repeat(listStack.length - 1);
           result.push(`${properIndent}${marker} ${listItemContent}`);
         }
 
@@ -339,13 +341,13 @@ export function normalizeMarkdown(raw: string): string {
         insideListItem = false;
 
         // Add blank line before section intro
-        result.push("");
+        result.push('');
 
         // Add the section intro as a separate paragraph
         result.push(sectionIntroText);
 
         // Add blank line after section intro
-        result.push("");
+        result.push('');
 
         previousLineWasEmptyOrHeading = true;
         continue;
@@ -374,7 +376,7 @@ export function normalizeMarkdown(raw: string): string {
               hasBoldHeader,
               markerStyle,
             });
-          } else if (indentation > listStack[listStack.length - 1].indent) {
+          } else if (indentation > listStack.at(-1).indent) {
             // This is a nested list
             listStack.push({
               indent: indentation,
@@ -387,7 +389,7 @@ export function normalizeMarkdown(raw: string): string {
             // Pop items from stack until we find the appropriate level
             while (
               listStack.length > 0 &&
-              indentation <= listStack[listStack.length - 1].indent
+              indentation <= listStack.at(-1).indent
             ) {
               listStack.pop();
             }
@@ -401,11 +403,11 @@ export function normalizeMarkdown(raw: string): string {
           }
 
           // Format the list item with proper indentation
-          const properIndent = "  ".repeat(listStack.length - 1);
+          const properIndent = '  '.repeat(listStack.length - 1);
           result.push(`${properIndent}${marker} ${content}`);
 
           // Add a blank line to separate the list item from the paragraph
-          result.push("");
+          result.push('');
 
           // Add the paragraph content as a separate paragraph
           result.push(paragraphContent);
@@ -426,7 +428,7 @@ export function normalizeMarkdown(raw: string): string {
           hasBoldHeader,
           markerStyle,
         });
-      } else if (indentation > listStack[listStack.length - 1].indent) {
+      } else if (indentation > listStack.at(-1).indent) {
         // This is a nested list
         listStack.push({
           indent: indentation,
@@ -437,10 +439,7 @@ export function normalizeMarkdown(raw: string): string {
         });
       } else {
         // Pop items from stack until we find the appropriate level
-        while (
-          listStack.length > 0 &&
-          indentation <= listStack[listStack.length - 1].indent
-        ) {
+        while (listStack.length > 0 && indentation <= listStack.at(-1).indent) {
           listStack.pop();
         }
         listStack.push({
@@ -453,7 +452,7 @@ export function normalizeMarkdown(raw: string): string {
       }
 
       // Format the list item with proper indentation
-      const properIndent = "  ".repeat(listStack.length - 1);
+      const properIndent = '  '.repeat(listStack.length - 1);
       currentListItemIndent = properIndent;
       currentListItemContent = `${marker} ${content}`;
 
@@ -461,13 +460,13 @@ export function normalizeMarkdown(raw: string): string {
       if (hasBoldHeader) {
         // Ensure there's spacing before bolded headers in lists if not at start
         if (!previousLineWasEmptyOrHeading && listStack.length === 1) {
-          result.push(""); // Add empty line before top-level bolded headers
+          result.push(''); // Add empty line before top-level bolded headers
         }
 
         // For bolded headers, add the list item immediately
         result.push(`${properIndent}${marker} ${content}`);
         insideListItem = false;
-        currentListItemContent = "";
+        currentListItemContent = '';
       }
 
       previousLineWasEmptyOrHeading = false;
@@ -475,7 +474,7 @@ export function normalizeMarkdown(raw: string): string {
       // This is not a list item
       if (listStack.length > 0) {
         // Check if this is content belonging to the previous list item
-        const lastItem = listStack[listStack.length - 1];
+        const lastItem = listStack.at(-1);
 
         // Check if this is a section introduction (with bold text and ending in colon)
         const isSectionIntro = trimmedLine.match(
@@ -488,7 +487,7 @@ export function normalizeMarkdown(raw: string): string {
           // Push any accumulated list item content
           if (insideListItem && currentListItemContent) {
             result.push(`${currentListItemIndent}${currentListItemContent}`);
-            currentListItemContent = "";
+            currentListItemContent = '';
             insideListItem = false;
           }
 
@@ -496,13 +495,13 @@ export function normalizeMarkdown(raw: string): string {
           listStack.length = 0;
 
           // Add blank line before section intro
-          result.push("");
+          result.push('');
 
           // Add the section intro as a standalone paragraph
           result.push(trimmedLine);
 
           // Add blank line after section intro
-          result.push("");
+          result.push('');
 
           previousLineWasEmptyOrHeading = true;
           continue;
@@ -510,8 +509,8 @@ export function normalizeMarkdown(raw: string): string {
 
         if (indentation >= lastItem.indent) {
           // This is content at the same or greater indentation level as the list item
-          const listIndent = "  ".repeat(listStack.length - 1);
-          const contentIndent = "  "; // Standard markdown indentation for content
+          const listIndent = '  '.repeat(listStack.length - 1);
+          const contentIndent = '  '; // Standard markdown indentation for content
 
           // Check if this starts with a bold section marker that should be separated
           if (
@@ -523,18 +522,18 @@ export function normalizeMarkdown(raw: string): string {
             // If we have accumulated content for a list item, push it
             if (insideListItem && currentListItemContent) {
               result.push(`${currentListItemIndent}${currentListItemContent}`);
-              currentListItemContent = "";
+              currentListItemContent = '';
               insideListItem = false;
             }
 
             // Add an empty line before the bolded section
-            result.push("");
+            result.push('');
 
             // Add the bolded section as a standalone paragraph
             result.push(trimmedLine);
 
             // Add an empty line after
-            result.push("");
+            result.push('');
 
             // Reset list context since this is a new section
             listStack.length = 0;
@@ -545,7 +544,7 @@ export function normalizeMarkdown(raw: string): string {
           else if (
             /^[A-Z][a-z]/.test(trimmedLine) || // Line starts with a capital letter
             (!trimmedLine.match(/^[-*+]|^\d+\.|^[a-z]\./) && // Not a list marker
-              trimmedLine !== "" && // Not an empty line
+              trimmedLine !== '' && // Not an empty line
               indentation === lastItem.indent) // At the exact same indentation as the list item
           ) {
             // This looks like a new paragraph or non-list content
@@ -553,8 +552,8 @@ export function normalizeMarkdown(raw: string): string {
             // If we have accumulated content for a list item, push it
             if (insideListItem && currentListItemContent) {
               result.push(`${currentListItemIndent}${currentListItemContent}`);
-              result.push(""); // Add blank line
-              currentListItemContent = "";
+              result.push(''); // Add blank line
+              currentListItemContent = '';
               insideListItem = false;
             }
 
@@ -562,7 +561,7 @@ export function normalizeMarkdown(raw: string): string {
             result.push(trimmedLine);
 
             // Add a blank line after
-            result.push("");
+            result.push('');
 
             previousLineWasEmptyOrHeading = true;
           } else {
@@ -596,7 +595,7 @@ export function normalizeMarkdown(raw: string): string {
                   // Add the regular content to the current list item
                   if (regularContent) {
                     if (currentListItemContent.length > 0) {
-                      currentListItemContent += " " + regularContent;
+                      currentListItemContent += ` ${regularContent}`;
                     } else {
                       currentListItemContent = regularContent;
                     }
@@ -610,23 +609,23 @@ export function normalizeMarkdown(raw: string): string {
                   // Reset list tracking
                   listStack.length = 0;
                   insideListItem = false;
-                  currentListItemContent = "";
+                  currentListItemContent = '';
 
                   // Add blank line
-                  result.push("");
+                  result.push('');
 
                   // Add section intro as standalone paragraph
                   result.push(introContent);
 
                   // Add blank line after
-                  result.push("");
+                  result.push('');
 
                   previousLineWasEmptyOrHeading = true;
                   continue;
                 }
                 // If content contains a line starting with bold, special handling
-                else if (
-                  trimmedLine.startsWith("**") &&
+                if (
+                  trimmedLine.startsWith('**') &&
                   !trimmedLine.match(/^\*\*[^*]+\*\*[^A-Z]/)
                 ) {
                   // Not just emphasis in a sentence
@@ -637,17 +636,17 @@ export function normalizeMarkdown(raw: string): string {
                   );
 
                   // Add a blank line
-                  result.push("");
+                  result.push('');
 
                   // Then add this as separate content
                   result.push(trimmedLine);
 
                   insideListItem = false;
-                  currentListItemContent = "";
+                  currentListItemContent = '';
                 } else {
                   // Append to the current list item content (with proper spacing)
                   if (currentListItemContent.length > 0) {
-                    currentListItemContent += " " + trimmedLine;
+                    currentListItemContent += ` ${trimmedLine}`;
                   } else {
                     currentListItemContent = trimmedLine;
                   }
@@ -667,7 +666,7 @@ export function normalizeMarkdown(raw: string): string {
           // If we have accumulated list item content, push it first
           if (currentListItemContent) {
             result.push(`${currentListItemIndent}${currentListItemContent}`);
-            currentListItemContent = "";
+            currentListItemContent = '';
           }
 
           result.push(trimmedLine);
@@ -678,23 +677,23 @@ export function normalizeMarkdown(raw: string): string {
         // If we have accumulated list item content, push it first
         if (insideListItem && currentListItemContent) {
           result.push(`${currentListItemIndent}${currentListItemContent}`);
-          currentListItemContent = "";
+          currentListItemContent = '';
           insideListItem = false;
         }
 
         result.push(trimmedLine);
 
         // Add paragraph break if next line is not empty and not a list continuation
-        const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : "";
+        const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
         if (
-          nextLine !== "" &&
-          !nextLine.startsWith("-") &&
-          !nextLine.startsWith("*") &&
-          !nextLine.startsWith("+") &&
+          nextLine !== '' &&
+          !nextLine.startsWith('-') &&
+          !nextLine.startsWith('*') &&
+          !nextLine.startsWith('+') &&
           !nextLine.match(/^\d+\.\s+/) &&
           !nextLine.match(/^[a-z]\.\s+/i)
         ) {
-          result.push("");
+          result.push('');
         }
 
         previousLineWasEmptyOrHeading = false;
@@ -708,25 +707,25 @@ export function normalizeMarkdown(raw: string): string {
   }
 
   // Join the processed lines
-  let processed = result.join("\n");
+  let processed = result.join('\n');
 
   // Apply additional formatting with regex for specific patterns
 
   // Ensure standalone bold headers are properly formatted with spacing
   processed = processed.replace(/^(\*\*[^*\n:]+(?::|)\*\*)\s*$/gm, (match) => {
-    return match + "\n";
+    return `${match}\n`;
   });
 
   // Fix bolded headers with proper spacing
   processed = processed.replace(
     /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*$/gm,
-    (match, indent, title) => {
+    (_match, indent, title) => {
       return `${indent}- **${title}:**`;
     }
   );
 
   // Fix bold headers with colons to preserve spaces after the colon
-  processed = processed.replace(/\*\*([^*\n:]+):\s*\*\*/g, (match, title) => {
+  processed = processed.replace(/\*\*([^*\n:]+):\s*\*\*/g, (_match, title) => {
     return `**${title}:** `;
   });
 
@@ -785,7 +784,7 @@ export function normalizeMarkdown(raw: string): string {
   // Find section introductions that aren't properly separated
   processed = processed.replace(
     /([^\n])(\n)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)(\n)/g,
-    (match, prevContent, newline1, sectionIntro) => {
+    (_match, prevContent, _newline1, sectionIntro) => {
       // Make sure section intros have paragraphs breaks
       return `${prevContent}\n\n${sectionIntro}\n\n`;
     }
@@ -797,22 +796,19 @@ export function normalizeMarkdown(raw: string): string {
   });
 
   // Fix missing spaces between bold text and opening parentheses
-  processed = processed.replace(/\*\*([^*\n]+?)\*\*\(/g, "**$1** (");
+  processed = processed.replace(/\*\*([^*\n]+?)\*\*\(/g, '**$1** (');
 
   // Ensure proper separation between paragraphs and lists
-  processed = processed.replace(
-    /([^\n])\n([\-\*\+\d][\.\*\-\+]?\s)/g,
-    "$1\n\n$2"
-  );
+  processed = processed.replace(/([^\n])\n([-*+\d][.*\-+]?\s)/g, '$1\n\n$2');
 
   // Ensure proper separation between headings and content
-  processed = processed.replace(/(^#[^\n]+)\n([^#\n])/gm, "$1\n\n$2");
+  processed = processed.replace(/(^#[^\n]+)\n([^#\n])/gm, '$1\n\n$2');
 
   // Fix line breaks within list items that might contain bolded text
   // This prevents improper breaking of lines with bold formatting
   processed = processed.replace(
     /^(\s*)[-*+]\s+([^*\n]*)\*\*([^*\n]+)\*\*$/gm,
-    (match, indent, prefix, boldText) => {
+    (_match, indent, prefix, boldText) => {
       return `${indent}- ${prefix}**${boldText}**`;
     }
   );
@@ -820,14 +816,14 @@ export function normalizeMarkdown(raw: string): string {
   // Fix incorrectly split bold text in list items
   processed = processed.replace(
     /^(\s*)[-*+]\s+([^*\n]*?)(\n+)(\*\*[^*\n]+\*\*)/gm,
-    (match, indent, prefix, newlines, boldText) => {
+    (match, indent, prefix, _newlines, boldText) => {
       // Only combine if it looks like they should be together
       if (
-        prefix.trim().endsWith("with") ||
-        prefix.trim().endsWith("in") ||
-        prefix.trim().endsWith("and") ||
-        prefix.trim().endsWith("for") ||
-        prefix.trim().endsWith("using")
+        prefix.trim().endsWith('with') ||
+        prefix.trim().endsWith('in') ||
+        prefix.trim().endsWith('and') ||
+        prefix.trim().endsWith('for') ||
+        prefix.trim().endsWith('using')
       ) {
         return `${indent}- ${prefix} ${boldText}`;
       }
@@ -841,24 +837,24 @@ export function normalizeMarkdown(raw: string): string {
   });
 
   // Remove excessive blank lines (more than 2 consecutive)
-  processed = processed.replace(/\n{3,}/g, "\n\n");
+  processed = processed.replace(/\n{3,}/g, '\n\n');
 
   // Restore literal asterisks
-  processed = processed.replace(/___ESCAPED_ASTERISK___/g, "\\*");
+  processed = processed.replace(/___ESCAPED_ASTERISK___/g, '\\*');
 
   // Process the Markdown through unified with standard settings
   const file = unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkStringify, {
-      bullet: "*", // Use asterisks for bullet points
-      listItemIndent: "one", // Use one space for list item indentation
-      emphasis: "_", // Use underscores for emphasis
-      strong: "*", // Use asterisks for strong emphasis
-      fence: "`", // Use backticks for fenced code blocks
+      bullet: '*', // Use asterisks for bullet points
+      listItemIndent: 'one', // Use one space for list item indentation
+      emphasis: '_', // Use underscores for emphasis
+      strong: '*', // Use asterisks for strong emphasis
+      fence: '`', // Use backticks for fenced code blocks
       fences: true, // Always use fenced code blocks
       resourceLink: false, // Use autolinks when possible
-      rule: "-", // Use hyphens for thematic breaks
+      rule: '-', // Use hyphens for thematic breaks
       ruleSpaces: false, // No spaces between markers in thematic breaks
     })
     .processSync(processed);

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.56] - 2025-08-30
+
+### Changed
+- Migrated from ESLint/Prettier to Ultracite/Biome for lightning-fast linting and formatting
+- Updated package.json scripts to use `bunx ultracite lint` and `bunx ultracite format`
+- Updated all code comments from ESLint disable to Biome ignore comments
+- Enhanced VS Code configuration with Biome formatter and linter settings
+- Updated documentation across README.md, CONTRIBUTING.md, and all docs files
+- Added Cursor AI rules (9 rule files) for enhanced AI-assisted development
+
+### Removed
+- Removed ESLint and Prettier dependencies
+- Cleaned up ESLint/Prettier references from all documentation files
+- Removed npm package manager references in favor of Bun-only approach
+
 ## [0.1.55] - 2025-08-29
 
 ### Changed

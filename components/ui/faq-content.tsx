@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Search, Link as LinkIcon, X, ArrowRight } from "lucide-react";
+import { ArrowRight, Link as LinkIcon, Search, X } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
+import type { Answer, FAQPage, Question, WithContext } from 'schema-dts';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
-import { useRouter, useSearchParams } from "next/navigation";
-import { slugify } from "@/lib/utils/slugify";
-import type { FAQPage, WithContext, Question, Answer } from "schema-dts";
-import { resolveColor } from "@/lib/utils/colors";
-import config from "@/config";
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import config from '@/config';
+import { resolveColor } from '@/lib/utils/colors';
+import { slugify } from '@/lib/utils/slugify';
 
 // Define the types based on the config
-interface FAQItem {
+type FAQItem = {
   question: string;
   answer: string;
   isRichText?: boolean;
-}
+};
 
 // We're using this interface in the ReadonlyArray type below
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface FAQCategory {
+// biome-ignore lint/correctness/noUnusedVariables: Type needed for ReadonlyArray type
+type FAQCategory = {
   title: string;
   items: FAQItem[];
-}
+};
 
-interface FAQContentProps {
+type FAQContentProps = {
   categories: ReadonlyArray<{
     readonly title: string;
     readonly items: ReadonlyArray<{
@@ -43,12 +43,12 @@ interface FAQContentProps {
       readonly isRichText?: boolean;
     }>;
   }>;
-}
+};
 
 export function FAQContent({ categories }: FAQContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -59,7 +59,7 @@ export function FAQContent({ categories }: FAQContentProps) {
 
   // Get the search query from URL if it exists
   useEffect(() => {
-    const query = searchParams.get("q");
+    const query = searchParams.get('q');
     if (query) {
       setSearchTerm(query);
       handleSearch(query);
@@ -72,7 +72,7 @@ export function FAQContent({ categories }: FAQContentProps) {
       setTimeout(() => {
         const element = document.getElementById(categoryId);
         if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
+          element.scrollIntoView({ behavior: 'smooth' });
 
           // Find and expand the items in this category
           const categoryIndex = categories.findIndex(
@@ -88,8 +88,8 @@ export function FAQContent({ categories }: FAQContentProps) {
         }
       }, 100);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, categories]);
+    // biome-ignore lint/react-hooks/exhaustive-deps: Stable dependencies for FAQ functionality
+  }, [searchParams, categories, getItemId, handleSearch]);
 
   // Handle search
   const handleSearch = (value: string) => {
@@ -126,16 +126,16 @@ export function FAQContent({ categories }: FAQContentProps) {
     if (value.trim()) {
       router.replace(`/faq?q=${encodeURIComponent(value)}`, { scroll: false });
     } else {
-      router.replace("/faq", { scroll: false });
+      router.replace('/faq', { scroll: false });
     }
   };
 
   // Handle keyboard navigation
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape") {
-      setSearchTerm("");
+    if (e.key === 'Escape') {
+      setSearchTerm('');
       setExpandedItems([]);
-      router.replace("/faq", { scroll: false });
+      router.replace('/faq', { scroll: false });
     }
   };
 
@@ -143,19 +143,19 @@ export function FAQContent({ categories }: FAQContentProps) {
   const generateFAQSchema = () => {
     // Create type-safe schema using schema-dts
     const faqSchema: WithContext<FAQPage> = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
       mainEntity: categories.flatMap((category) =>
         category.items.map(
           (item) =>
             ({
-              "@type": "Question",
+              '@type': 'Question',
               name: item.question,
               acceptedAnswer: {
-                "@type": "Answer",
+                '@type': 'Answer',
                 text: item.answer,
               } as Answer,
-            } as Question)
+            }) as Question
         )
       ),
     };
@@ -164,12 +164,12 @@ export function FAQContent({ categories }: FAQContentProps) {
   };
 
   // Scroll to category - keeping this for potential future use
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const scrollToCategory = (categoryId: string) => {
+  // biome-ignore lint/correctness/noUnusedVariables: Function kept for future use
+  const _scrollToCategory = (categoryId: string) => {
     const element = document.getElementById(categoryId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      window.history.pushState(null, "", `#${categoryId}`);
+      element.scrollIntoView({ behavior: 'smooth' });
+      window.history.pushState(null, '', `#${categoryId}`);
     }
   };
 
@@ -191,32 +191,32 @@ export function FAQContent({ categories }: FAQContentProps) {
     <>
       {/* FAQ Schema for SEO */}
       <script
-        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: generateFAQSchema() }}
+        type="application/ld+json"
       />
 
       {/* Search Bar */}
       <div className="mb-8 w-full">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
           <Input
-            type="text"
-            placeholder="Search FAQs..."
-            className="pl-9 h-10"
-            value={searchTerm}
+            aria-label="Search FAQs"
+            className="h-10 pl-9"
             onChange={(e) => handleSearch(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            aria-label="Search FAQs"
+            placeholder="Search FAQs..."
+            type="text"
+            value={searchTerm}
           />
           {searchTerm && (
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setExpandedItems([]);
-                router.replace("/faq", { scroll: false });
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               aria-label="Clear search"
+              className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-400 hover:text-gray-600"
+              onClick={() => {
+                setSearchTerm('');
+                setExpandedItems([]);
+                router.replace('/faq', { scroll: false });
+              }}
             >
               <X className="h-4 w-4" />
             </button>
@@ -227,18 +227,18 @@ export function FAQContent({ categories }: FAQContentProps) {
       {/* FAQ Content */}
       <div className="space-y-10">
         {filteredCategories.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-zinc-600 mb-4">
+          <div className="py-8 text-center">
+            <p className="mb-4 text-zinc-600">
               No results found for &quot;{searchTerm}&quot;
             </p>
             <Button
-              variant="outline"
-              size="xs"
               onClick={() => {
-                setSearchTerm("");
+                setSearchTerm('');
                 setExpandedItems([]);
-                router.replace("/faq", { scroll: false });
+                router.replace('/faq', { scroll: false });
               }}
+              size="xs"
+              variant="outline"
             >
               Clear Search
             </Button>
@@ -248,67 +248,67 @@ export function FAQContent({ categories }: FAQContentProps) {
             const categoryId = slugify(category.title);
             return (
               <div
-                key={categoryIndex}
                 className="space-y-4"
                 id={categoryId}
+                key={categoryIndex}
                 ref={(el) => {
                   categoryRefs.current[categoryId] = el;
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-zinc-900">
+                  <h2 className="font-semibold text-lg text-zinc-900">
                     {category.title}
                   </h2>
                   <button
+                    aria-label={`Copy link to ${category.title} section`}
+                    className="text-zinc-400 transition-colors hover:text-zinc-600"
                     onClick={() => {
                       navigator.clipboard.writeText(
                         `${window.location.origin}/faq#${categoryId}`
                       );
                       // You could add a toast notification here
                     }}
-                    className="text-zinc-400 hover:text-zinc-600 transition-colors"
-                    aria-label={`Copy link to ${category.title} section`}
                     title="Copy link to this section"
                   >
                     <LinkIcon className="h-4 w-4" />
                   </button>
                 </div>
                 <Accordion
+                  className="space-y-2"
+                  onValueChange={setExpandedItems}
                   type="multiple"
                   value={expandedItems}
-                  onValueChange={setExpandedItems}
-                  className="space-y-2"
                 >
                   {category.items.map((item, itemIndex) => {
                     const itemId = getItemId(category.title, item.question);
                     return (
                       <AccordionItem
+                        className="overflow-hidden rounded-lg border border-zinc-200 px-4"
                         key={itemIndex}
                         value={itemId}
-                        className="border border-zinc-200 rounded-lg px-4 overflow-hidden"
                       >
-                        <AccordionTrigger className="text-sm font-medium text-zinc-800 py-4 hover:no-underline">
+                        <AccordionTrigger className="py-4 font-medium text-sm text-zinc-800 hover:no-underline">
                           {item.question}
                         </AccordionTrigger>
-                        <AccordionContent className="text-sm text-zinc-600 pb-4 pt-1">
+                        <AccordionContent className="pt-1 pb-4 text-sm text-zinc-600">
                           {item.isRichText ? (
                             <div className="markdown-content">
                               <ReactMarkdown
-                                remarkPlugins={[remarkGfm, remarkBreaks]}
                                 components={{
                                   // Apply primary color to all links in markdown content
                                   a: ({ ...props }) => (
                                     <a
                                       {...props}
+                                      className="underline transition-opacity hover:opacity-80"
                                       style={{
                                         color: resolveColor(
                                           config.ui.primaryColor
                                         ),
                                       }}
-                                      className="underline hover:opacity-80 transition-opacity"
                                     />
                                   ),
                                 }}
+                                remarkPlugins={[remarkGfm, remarkBreaks]}
                               >
                                 {item.answer}
                               </ReactMarkdown>
@@ -327,24 +327,24 @@ export function FAQContent({ categories }: FAQContentProps) {
         )}
 
         {/* Contact Section */}
-        <div className="mt-12 pt-8 border-t border-zinc-200 text-center">
-          <h2 className="text-lg font-semibold mb-2 text-zinc-900">
+        <div className="mt-12 border-zinc-200 border-t pt-8 text-center">
+          <h2 className="mb-2 font-semibold text-lg text-zinc-900">
             Still have questions?
           </h2>
-          <p className="text-sm text-zinc-600 mb-6">
+          <p className="mb-6 text-sm text-zinc-600">
             If you couldn&apos;t find the answer to your question, feel free to
             contact us.
           </p>
           <Button
             asChild
-            size="xs"
-            variant="primary"
             className="gap-1.5 text-xs"
+            size="xs"
             style={{ backgroundColor: resolveColor(config.ui.primaryColor) }}
+            variant="primary"
           >
             <Link href="/about">
               Contact
-              <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden="true" />
+              <ArrowRight aria-hidden="true" className="ml-1 h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>

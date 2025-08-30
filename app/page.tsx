@@ -1,22 +1,22 @@
-import { HomePage } from "@/components/home/HomePage";
-import { Metadata } from "next";
-import config from "@/config";
-import { getJobs } from "@/lib/db/airtable";
-import { generateMetadata } from "@/lib/utils/metadata";
+import type { Metadata } from 'next';
+import { HomePage } from '@/components/home/HomePage';
+import config from '@/config';
+import { getJobs } from '@/lib/db/airtable';
+import { generateMetadata } from '@/lib/utils/metadata';
 
 // Add metadata for SEO
 export const metadata: Metadata = generateMetadata({
   title: config.title,
   description: config.description,
-  path: "/",
+  path: '/',
   openGraph: {
-    type: "website",
+    type: 'website',
     images: [
       {
-        url: "/api/og",
+        url: '/api/og',
         width: 1200,
         height: 630,
-        alt: config.title + " - " + config.description,
+        alt: `${config.title} - ${config.description}`,
       },
     ],
   },

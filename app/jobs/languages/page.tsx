@@ -1,43 +1,43 @@
-import { getJobs } from "@/lib/db/airtable";
-import { Languages } from "lucide-react";
-import type { Metadata } from "next";
-import config from "@/config";
-import { HeroSection } from "@/components/ui/hero-section";
-import Link from "next/link";
+import { Languages } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { HeroSection } from '@/components/ui/hero-section';
+import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
+import config from '@/config';
 import {
-  LanguageCode,
   getDisplayNameFromCode,
-} from "@/lib/constants/languages";
-import { generateMetadata } from "@/lib/utils/metadata";
-import { MetadataBreadcrumb } from "@/components/ui/metadata-breadcrumb";
+  type LanguageCode,
+} from '@/lib/constants/languages';
+import { getJobs } from '@/lib/db/airtable';
+import { generateMetadata } from '@/lib/utils/metadata';
 
 // Generate metadata for SEO
 export const metadata: Metadata = generateMetadata({
-  title: "Browse Jobs by Language | " + config.title,
+  title: `Browse Jobs by Language | ${config.title}`,
   description:
-    "Explore tech jobs by required languages. Find positions that match your language skills and preferences.",
-  path: "/jobs/languages",
+    'Explore tech jobs by required languages. Find positions that match your language skills and preferences.',
+  path: '/jobs/languages',
 });
 
 // Revalidate page every 5 minutes
 export const revalidate = 300;
 
-interface LanguageCardProps {
+type LanguageCardProps = {
   href: string;
   title: string;
   count: number;
-}
+};
 
 function LanguageCard({ href, title, count }: LanguageCardProps) {
   return (
     <Link
+      className="block rounded-lg border p-4 transition-all hover:border-gray-400 sm:p-5"
       href={href}
-      className="block p-4 sm:p-5 border rounded-lg transition-all hover:border-gray-400"
     >
       <div className="space-y-1.5 sm:space-y-2">
-        <h2 className="text-sm sm:text-base font-medium">{title}</h2>
-        <p className="text-xs sm:text-sm text-gray-500">
-          {count.toLocaleString()} {count === 1 ? "position" : "positions"}{" "}
+        <h2 className="font-medium text-sm sm:text-base">{title}</h2>
+        <p className="text-gray-500 text-xs sm:text-sm">
+          {count.toLocaleString()} {count === 1 ? 'position' : 'positions'}{' '}
           available
         </p>
       </div>
@@ -80,9 +80,9 @@ export default async function LanguagesPage() {
     <>
       <HeroSection
         badge="Languages"
-        title="Browse Jobs by Language"
         description={`Explore ${jobs.length.toLocaleString()} open positions across different language requirements. Find the perfect role that matches your language skills.`}
         heroImage={config.jobsPages?.languages?.heroImage}
+        title="Browse Jobs by Language"
       />
 
       <main className="container py-6 sm:py-8">
@@ -90,33 +90,33 @@ export default async function LanguagesPage() {
           {/* Breadcrumbs */}
           <div className="mb-6">
             <MetadataBreadcrumb
+              items={[
+                { name: 'Home', url: '/' },
+                { name: 'Jobs', url: '/jobs' },
+                { name: 'Languages', url: '/jobs/languages' },
+              ]}
               metadata={metadata}
               pathname="/jobs/languages"
-              items={[
-                { name: "Home", url: "/" },
-                { name: "Jobs", url: "/jobs" },
-                { name: "Languages", url: "/jobs/languages" },
-              ]}
             />
           </div>
 
           <section>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <Languages
-                className="w-4 sm:w-5 h-4 sm:h-5 text-muted-foreground"
                 aria-hidden="true"
+                className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
               />
-              <h2 className="text-lg sm:text-xl font-semibold">
+              <h2 className="font-semibold text-lg sm:text-xl">
                 Available Languages
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {sortedLanguages.map(({ code, title, count }) => (
                 <LanguageCard
-                  key={code}
-                  href={`/jobs/language/${code}`}
-                  title={title}
                   count={count}
+                  href={`/jobs/language/${code}`}
+                  key={code}
+                  title={title}
                 />
               ))}
             </div>

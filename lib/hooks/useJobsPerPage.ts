@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { parseAsInteger, useQueryState } from "nuqs";
+import { parseAsInteger, useQueryState } from 'nuqs';
 
 export function useJobsPerPage() {
   const [jobsPerPage, setJobsPerPage] = useQueryState(
-    "per_page",
+    'per_page',
     parseAsInteger.withDefault(10)
   );
 

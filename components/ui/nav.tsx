@@ -1,53 +1,59 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import config from "@/config";
 import {
-  Menu,
-  X,
-  ChevronDown,
   Briefcase,
   BriefcaseBusiness,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect, ReactNode, useCallback } from "react";
-import { usePathname } from "next/navigation";
-import { resolveColor } from "@/lib/utils/colors";
+  ChevronDown,
+  Menu,
+  X,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { Button } from '@/components/ui/button';
+import config from '@/config';
+import { resolveColor } from '@/lib/utils/colors';
 
 // Brand icon component that uses the configured icon name or falls back to BriefcaseBusiness
 function BrandIcon() {
   // We're intentionally using a simple approach for the brand icon
   // Most users will use a custom logo, so this is just a fallback
-  return <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />;
+  return <BriefcaseBusiness aria-hidden="true" className="h-4 w-4" />;
 }
 
 // Reusable component interfaces
-interface NavLinkProps {
+type NavLinkProps = {
   href: string;
   isActive: boolean;
   onClick?: () => void;
   children: ReactNode;
   className?: string;
-}
+};
 
-interface SocialLinkProps {
+type SocialLinkProps = {
   href: string;
   label: string;
   children: ReactNode;
-}
+};
 
-interface SocialIconProps {
+type SocialIconProps = {
   src: string;
   alt: string;
-}
+};
 
-interface DropdownItemProps {
+type DropdownItemProps = {
   href: string;
   isActive: boolean;
   onClick?: () => void;
   children: ReactNode;
-}
+};
 
 // Reusable navigation link component
 function NavLink({
@@ -55,18 +61,18 @@ function NavLink({
   isActive,
   onClick,
   children,
-  className = "",
+  className = '',
 }: NavLinkProps) {
-  const baseClasses = "text-sm px-2.5 py-1 rounded-lg transition-colors";
-  const activeClasses = "text-zinc-900 bg-zinc-100";
-  const inactiveClasses = "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50";
+  const baseClasses = 'text-sm px-2.5 py-1 rounded-lg transition-colors';
+  const activeClasses = 'text-zinc-900 bg-zinc-100';
+  const inactiveClasses = 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50';
 
   const linkClasses = `${baseClasses} ${
     isActive ? activeClasses : inactiveClasses
   } ${className}`;
 
   return (
-    <Link href={href} className={linkClasses} onClick={onClick}>
+    <Link className={linkClasses} href={href} onClick={onClick}>
       {children}
     </Link>
   );
@@ -76,11 +82,11 @@ function NavLink({
 function SocialLink({ href, label, children }: SocialLinkProps) {
   return (
     <Link
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-zinc-600 hover:text-zinc-900 transition-colors"
       aria-label={label}
+      className="text-zinc-600 transition-colors hover:text-zinc-900"
+      href={href}
+      rel="noopener noreferrer"
+      target="_blank"
     >
       {children}
     </Link>
@@ -90,36 +96,36 @@ function SocialLink({ href, label, children }: SocialLinkProps) {
 // Reusable social icon component with hover effect
 function SocialIcon({ src, alt }: SocialIconProps) {
   return (
-    <div className="relative group">
+    <div className="group relative">
       {/* Default state (zinc-600) */}
       <Image
-        src={src}
         alt={alt}
-        width={16}
+        className="transition-opacity group-hover:opacity-0"
         height={16}
-        className="group-hover:opacity-0 transition-opacity"
+        src={src}
         style={{
-          width: "16px",
-          height: "16px",
+          width: '16px',
+          height: '16px',
           filter:
-            "invert(41%) sepia(9%) saturate(380%) hue-rotate(202deg) brightness(94%) contrast(91%)", // zinc-600
+            'invert(41%) sepia(9%) saturate(380%) hue-rotate(202deg) brightness(94%) contrast(91%)', // zinc-600
         }}
+        width={16}
       />
 
       {/* Hover state (zinc-900) - positioned absolutely on top */}
       <Image
-        src={src}
         alt=""
-        width={16}
-        height={16}
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{
-          width: "16px",
-          height: "16px",
-          filter:
-            "invert(14%) sepia(8%) saturate(427%) hue-rotate(202deg) brightness(93%) contrast(90%)", // zinc-900
-        }}
         aria-hidden="true"
+        className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
+        height={16}
+        src={src}
+        style={{
+          width: '16px',
+          height: '16px',
+          filter:
+            'invert(14%) sepia(8%) saturate(427%) hue-rotate(202deg) brightness(93%) contrast(90%)', // zinc-900
+        }}
+        width={16}
       />
     </div>
   );
@@ -132,16 +138,16 @@ function DropdownItem({
   onClick,
   children,
 }: DropdownItemProps) {
-  const baseClasses = "block px-4 py-2 text-sm";
-  const activeClasses = "bg-zinc-100 text-zinc-900";
-  const inactiveClasses = "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900";
+  const baseClasses = 'block px-4 py-2 text-sm';
+  const activeClasses = 'bg-zinc-100 text-zinc-900';
+  const inactiveClasses = 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900';
 
   const itemClasses = `${baseClasses} ${
     isActive ? activeClasses : inactiveClasses
   }`;
 
   return (
-    <Link href={href} className={itemClasses} onClick={onClick} role="menuitem">
+    <Link className={itemClasses} href={href} onClick={onClick} role="menuitem">
       {children}
     </Link>
   );
@@ -154,65 +160,65 @@ type SocialPlatformConfig = {
   src: string;
   alt: string;
   labelPrefix: string;
-  enabled: (config: typeof import("@/config").default) => boolean;
-  getUrl: (config?: typeof import("@/config").default) => string;
+  enabled: (config: typeof import('@/config').default) => boolean;
+  getUrl: (config?: typeof import('@/config').default) => string;
 };
 
 // Define social platforms with their properties outside of component for reuse
 const SOCIAL_PLATFORMS: SocialPlatformConfig[] = [
   {
-    id: "rss",
-    configProp: "rssFeed",
-    src: "/assets/social/rss.svg",
-    alt: "RSS Feed",
-    labelPrefix: "Subscribe to",
+    id: 'rss',
+    configProp: 'rssFeed',
+    src: '/assets/social/rss.svg',
+    alt: 'RSS Feed',
+    labelPrefix: 'Subscribe to',
     enabled: (config) => config.rssFeed?.enabled,
-    getUrl: () => "/feed.xml",
+    getUrl: () => '/feed.xml',
   },
   {
-    id: "github",
-    configProp: "github",
-    src: "/assets/social/github.svg",
-    alt: "GitHub",
-    labelPrefix: "View on",
+    id: 'github',
+    configProp: 'github',
+    src: '/assets/social/github.svg',
+    alt: 'GitHub',
+    labelPrefix: 'View on',
     enabled: (config) => config.nav.github?.show,
-    getUrl: (config) => config!.nav.github?.url || "",
+    getUrl: (config) => config?.nav.github?.url || '',
   },
   {
-    id: "linkedin",
-    configProp: "linkedin",
-    src: "/assets/social/linkedin.svg",
-    alt: "LinkedIn",
-    labelPrefix: "Follow us on",
+    id: 'linkedin',
+    configProp: 'linkedin',
+    src: '/assets/social/linkedin.svg',
+    alt: 'LinkedIn',
+    labelPrefix: 'Follow us on',
     enabled: (config) => config.nav.linkedin?.show,
-    getUrl: (config) => config!.nav.linkedin?.url || "",
+    getUrl: (config) => config?.nav.linkedin?.url || '',
   },
   {
-    id: "twitter",
-    configProp: "twitter",
-    src: "/assets/social/twitter.svg",
-    alt: "Twitter",
-    labelPrefix: "Follow us on X (",
+    id: 'twitter',
+    configProp: 'twitter',
+    src: '/assets/social/twitter.svg',
+    alt: 'Twitter',
+    labelPrefix: 'Follow us on X (',
     enabled: (config) => config.nav.twitter?.show,
-    getUrl: (config) => config!.nav.twitter?.url || "",
+    getUrl: (config) => config?.nav.twitter?.url || '',
   },
   {
-    id: "bluesky",
-    configProp: "bluesky",
-    src: "/assets/social/bluesky.svg",
-    alt: "Bluesky",
-    labelPrefix: "Follow us on",
+    id: 'bluesky',
+    configProp: 'bluesky',
+    src: '/assets/social/bluesky.svg',
+    alt: 'Bluesky',
+    labelPrefix: 'Follow us on',
     enabled: (config) => config.nav.bluesky?.show,
-    getUrl: (config) => config!.nav.bluesky?.url || "",
+    getUrl: (config) => config?.nav.bluesky?.url || '',
   },
   {
-    id: "reddit",
-    configProp: "reddit",
-    src: "/assets/social/reddit.svg",
-    alt: "Reddit",
-    labelPrefix: "Follow us on",
+    id: 'reddit',
+    configProp: 'reddit',
+    src: '/assets/social/reddit.svg',
+    alt: 'Reddit',
+    labelPrefix: 'Follow us on',
     enabled: (config) => config.nav.reddit?.show,
-    getUrl: (config) => config!.nav.reddit?.url || "",
+    getUrl: (config) => config?.nav.reddit?.url || '',
   },
 ];
 
@@ -277,9 +283,9 @@ function useDropdownMenu() {
       });
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
       // Clear any pending timeout when unmounting
       if (dropdownTimeoutRef.current) {
         clearTimeout(dropdownTimeoutRef.current);
@@ -314,7 +320,7 @@ export function Nav() {
 
   // Check if a path is active (exact match or starts with for /jobs)
   const isActivePath = (path: string): boolean => {
-    if (path === "/jobs") {
+    if (path === '/jobs') {
       return pathname.startsWith(path);
     }
     return pathname === path;
@@ -327,19 +333,21 @@ export function Nav() {
         {/* Social Media Links */}
         {SOCIAL_PLATFORMS.map((platform) => {
           // Check if this platform is enabled in the configuration
-          if (!platform.enabled(config)) return null;
+          if (!platform.enabled(config)) {
+            return null;
+          }
 
           const label =
             platform.labelPrefix +
-            (platform.id === "twitter" ? "Twitter)" : ` ${platform.alt}`);
+            (platform.id === 'twitter' ? 'Twitter)' : ` ${platform.alt}`);
 
           return (
             <SocialLink
-              key={platform.id}
               href={platform.getUrl(config)}
+              key={platform.id}
               label={label}
             >
-              <SocialIcon src={platform.src} alt={platform.alt} />
+              <SocialIcon alt={platform.alt} src={platform.src} />
             </SocialLink>
           );
         })}
@@ -356,23 +364,23 @@ export function Nav() {
 
         if (isMobile) {
           return (
-            <div key={item.link} className="mb-1">
+            <div className="mb-1" key={item.link}>
               <NavLink
+                className="mb-1 block"
                 href={item.link}
                 isActive={pathname === item.link}
                 onClick={() => setIsOpen(false)}
-                className="mb-1 block"
               >
                 {item.label}
               </NavLink>
-              <div className="pl-4 mt-1 border-l border-zinc-200">
+              <div className="mt-1 border-zinc-200 border-l pl-4">
                 {item.items.map((subItem) => (
                   <NavLink
-                    key={subItem.link}
+                    className="mb-1 block"
                     href={subItem.link}
                     isActive={pathname === subItem.link}
+                    key={subItem.link}
                     onClick={() => setIsOpen(false)}
-                    className="mb-1 block"
                   >
                     {subItem.label}
                   </NavLink>
@@ -385,37 +393,37 @@ export function Nav() {
         // Desktop dropdown
         return (
           <div
-            key={item.link}
             className="relative"
-            ref={(ref) => registerDropdownRef(item.label, ref)}
+            key={item.link}
             onMouseEnter={() => handleDropdownMouseEnter(item.label)}
             onMouseLeave={() => handleDropdownMouseLeave(item.label)}
+            ref={(ref) => registerDropdownRef(item.label, ref)}
           >
             <button
-              className={`text-sm px-2.5 py-1 rounded-lg flex items-center ${
-                pathname.startsWith(item.link)
-                  ? "text-zinc-900 bg-zinc-100"
-                  : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
-              } transition-colors`}
               aria-expanded={isDropdownOpen}
+              className={`flex items-center rounded-lg px-2.5 py-1 text-sm ${
+                pathname.startsWith(item.link)
+                  ? 'bg-zinc-100 text-zinc-900'
+                  : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+              } transition-colors`}
               onClick={() => toggleDropdown(item.label)}
             >
               {item.label}
-              <ChevronDown className="ml-1 h-3 w-3" aria-hidden="true" />
+              <ChevronDown aria-hidden="true" className="ml-1 h-3 w-3" />
             </button>
 
             {isDropdownOpen && (
               <div
-                className="absolute left-0 mt-1 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                className="absolute left-0 z-50 mt-1 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
                 onMouseEnter={() => handleDropdownMouseEnter(item.label)}
                 onMouseLeave={() => handleDropdownMouseLeave(item.label)}
               >
-                <div className="py-1" role="menu" aria-orientation="vertical">
+                <div aria-orientation="vertical" className="py-1" role="menu">
                   {item.items.map((subItem) => (
                     <DropdownItem
-                      key={subItem.link}
                       href={subItem.link}
                       isActive={pathname === subItem.link}
+                      key={subItem.link}
                       onClick={() => toggleDropdown(item.label)}
                     >
                       {subItem.label}
@@ -431,11 +439,11 @@ export function Nav() {
       // Regular menu items
       return (
         <NavLink
-          key={item.link}
+          className={isMobile ? 'mb-1' : ''}
           href={item.link}
           isActive={isActivePath(item.link)}
+          key={item.link}
           onClick={() => isMobile && setIsOpen(false)}
-          className={isMobile ? "mb-1" : ""}
         >
           {item.label}
         </NavLink>
@@ -448,35 +456,35 @@ export function Nav() {
   const renderMobileNavItems = () => renderNavItems(true);
 
   return (
-    <header className="border-b border-zinc-200 bg-white relative z-40">
+    <header className="relative z-40 border-zinc-200 border-b bg-white">
       <div className="container mx-auto px-4">
         <nav
-          className="flex h-14 items-center justify-between"
           aria-label="Main navigation"
+          className="flex h-14 items-center justify-between"
         >
           {/* Brand */}
           <Link
-            href="/"
-            className="flex items-center space-x-1.5 text-zinc-900 hover:text-zinc-800 transition-colors"
             aria-label="Home"
+            className="flex items-center space-x-1.5 text-zinc-900 transition-colors hover:text-zinc-800"
+            href="/"
           >
             {config.nav.logo.enabled ? (
               <Image
-                src={config.nav.logo.src}
                 alt={config.nav.logo.alt}
-                width={config.nav.logo.width}
-                height={config.nav.logo.height}
                 className="object-contain"
+                height={config.nav.logo.height}
                 priority
+                src={config.nav.logo.src}
                 style={{
                   width: `${config.nav.logo.width}px`,
                   height: `${config.nav.logo.height}px`,
                 }}
+                width={config.nav.logo.width}
               />
             ) : (
               <>
                 <BrandIcon />
-                <span className="text-sm font-medium">{config.nav.title}</span>
+                <span className="font-medium text-sm">{config.nav.title}</span>
               </>
             )}
           </Link>
@@ -487,50 +495,50 @@ export function Nav() {
             {config.nav.postJob.show && (
               <Button
                 asChild
+                className="gap-1 px-2 py-1 text-xs"
                 size="xs"
-                className="gap-1 text-xs px-2 py-1"
-                variant={config.nav.postJob.variant || "default"}
                 style={
-                  config.nav.postJob.variant === "primary"
+                  config.nav.postJob.variant === 'primary'
                     ? {
                         backgroundColor: resolveColor(config.ui.primaryColor),
                       }
                     : undefined
                 }
+                variant={config.nav.postJob.variant || 'default'}
               >
                 <Link
                   href={config.nav.postJob.link}
                   {...(config.nav.postJob.external
-                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
                     : {})}
                 >
                   {config.nav.postJob.label}
-                  <Briefcase className="h-3 w-3 ml-1" aria-hidden="true" />
+                  <Briefcase aria-hidden="true" className="ml-1 h-3 w-3" />
                 </Link>
               </Button>
             )}
 
             {/* Mobile menu button */}
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-zinc-600 hover:text-zinc-900 transition-colors"
               aria-expanded={isOpen}
               aria-label="Toggle menu"
+              className="p-2 text-zinc-600 transition-colors hover:text-zinc-900"
+              onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? (
-                <X className="h-4 w-4" aria-hidden="true" />
+                <X aria-hidden="true" className="h-4 w-4" />
               ) : (
-                <Menu className="h-4 w-4" aria-hidden="true" />
+                <Menu aria-hidden="true" className="h-4 w-4" />
               )}
             </button>
           </div>
 
           {/* Desktop navigation */}
-          <div className="hidden lg:flex items-center">
+          <div className="hidden items-center lg:flex">
             {/* Primary Navigation */}
             <nav
-              className="flex items-center space-x-2 mr-4 whitespace-nowrap"
               aria-label="Primary"
+              className="mr-4 flex items-center space-x-2 whitespace-nowrap"
             >
               {renderDesktopNavItems()}
             </nav>
@@ -542,27 +550,27 @@ export function Nav() {
               {config.nav.postJob.show && (
                 <Button
                   asChild
+                  className="ml-5 gap-1.5 whitespace-nowrap text-xs"
                   size="xs"
-                  className="ml-5 gap-1.5 text-xs whitespace-nowrap"
-                  variant={config.nav.postJob.variant || "default"}
                   style={
-                    config.nav.postJob.variant === "primary"
+                    config.nav.postJob.variant === 'primary'
                       ? {
                           backgroundColor: resolveColor(config.ui.primaryColor),
                         }
                       : undefined
                   }
+                  variant={config.nav.postJob.variant || 'default'}
                 >
                   <Link
                     href={config.nav.postJob.link}
                     {...(config.nav.postJob.external
-                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      ? { target: '_blank', rel: 'noopener noreferrer' }
                       : {})}
                   >
                     {config.nav.postJob.label}
                     <Briefcase
-                      className="h-3.5 w-3.5 ml-1"
                       aria-hidden="true"
+                      className="ml-1 h-3.5 w-3.5"
                     />
                   </Link>
                 </Button>
@@ -572,16 +580,16 @@ export function Nav() {
         </nav>
 
         {isOpen && (
-          <div className="lg:hidden border-t border-zinc-200">
+          <div className="border-zinc-200 border-t lg:hidden">
             <nav
-              className="flex flex-col py-4 px-4"
               aria-label="Mobile navigation"
+              className="flex flex-col px-4 py-4"
             >
               {/* Primary Navigation */}
               {renderMobileNavItems()}
 
               {/* Social Links */}
-              <div className="flex items-center space-x-3 px-4 py-4 border-t border-zinc-200 mt-2">
+              <div className="mt-2 flex items-center space-x-3 border-zinc-200 border-t px-4 py-4">
                 {renderSocialLinks()}
               </div>
 
@@ -590,11 +598,10 @@ export function Nav() {
                 <div className="px-4 pt-2 lg:hidden">
                   <Button
                     asChild
+                    className={'w-full gap-1.5 text-xs'}
                     size="xs"
-                    className={`w-full gap-1.5 text-xs`}
-                    variant={config.nav.postJob.variant || "default"}
                     style={
-                      config.nav.postJob.variant === "primary"
+                      config.nav.postJob.variant === 'primary'
                         ? {
                             backgroundColor: resolveColor(
                               config.ui.primaryColor
@@ -602,19 +609,20 @@ export function Nav() {
                           }
                         : undefined
                     }
+                    variant={config.nav.postJob.variant || 'default'}
                   >
                     <Link
                       href={config.nav.postJob.link}
                       {...(config.nav.postJob.external
-                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        ? { target: '_blank', rel: 'noopener noreferrer' }
                         : {})}
-                      onClick={() => setIsOpen(false)}
                       className="flex items-center justify-center"
+                      onClick={() => setIsOpen(false)}
                     >
                       {config.nav.postJob.label}
                       <Briefcase
-                        className="h-3.5 w-3.5 ml-1"
                         aria-hidden="true"
+                        className="ml-1 h-3.5 w-3.5"
                       />
                     </Link>
                   </Button>

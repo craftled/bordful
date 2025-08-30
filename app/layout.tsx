@@ -1,26 +1,26 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Nav } from "@/components/ui/nav";
-import { Footer } from "@/components/ui/footer";
-import { Toaster } from "@/components/ui/toaster";
-import Script, { ScriptProps } from "next/script";
-import config from "@/config";
-import { WebsiteSchema } from "@/components/ui/website-schema";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { type ReactNode } from "react";
+import './globals.css';
+import type { Metadata } from 'next';
+import Script, { type ScriptProps } from 'next/script';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import type { ReactNode } from 'react';
+import { Footer } from '@/components/ui/footer';
+import { Nav } from '@/components/ui/nav';
+import { Toaster } from '@/components/ui/toaster';
+import { WebsiteSchema } from '@/components/ui/website-schema';
+import config from '@/config';
 import {
   geistMono,
-  getFontClass,
   getBodyClass,
+  getFontClass,
   ibmPlexSerif,
   inter,
-} from "@/lib/utils/fonts";
+} from '@/lib/utils/fonts';
 
-interface CustomScript {
+type CustomScript = {
   src: string;
-  strategy: ScriptProps["strategy"];
+  strategy: ScriptProps['strategy'];
   attributes?: Record<string, string>;
-}
+};
 
 const siteConfig = config;
 
@@ -36,23 +36,23 @@ export const metadata: Metadata = {
       index: true,
       follow: true,
       noimageindex: false,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   },
   alternates: {
     types: {
-      "application/rss+xml": `${siteConfig.url}/feed.xml`,
-      "application/atom+xml": `${siteConfig.url}/atom.xml`,
-      "application/feed+json": `${siteConfig.url}/feed.json`,
+      'application/rss+xml': `${siteConfig.url}/feed.xml`,
+      'application/atom+xml': `${siteConfig.url}/atom.xml`,
+      'application/feed+json': `${siteConfig.url}/feed.json`,
     },
   },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Get the current font family from config
-  const fontFamily = siteConfig?.font?.family || "geist";
+  const fontFamily = siteConfig?.font?.family || 'geist';
 
   // Get font class based on configuration
   const fontClass = getFontClass(fontFamily);
@@ -70,40 +70,40 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   fontClasses.push(ibmPlexSerif.variable);
 
   return (
-    <html lang="en" className={fontClasses.join(" ")} data-font={fontFamily}>
+    <html className={fontClasses.join(' ')} data-font={fontFamily} lang="en">
       <head>
         {/* Add explicit font preloading */}
-        {fontFamily === "ibm-plex-serif" && (
+        {fontFamily === 'ibm-plex-serif' && (
           <>
             <link
-              rel="preconnect"
-              href="https://fonts.googleapis.com"
               crossOrigin="anonymous"
+              href="https://fonts.googleapis.com"
+              rel="preconnect"
             />
             <link
-              rel="preconnect"
-              href="https://fonts.gstatic.com"
               crossOrigin="anonymous"
+              href="https://fonts.gstatic.com"
+              rel="preconnect"
             />
           </>
         )}
         <link
-          rel="alternate"
-          type="application/rss+xml"
-          title={`${siteConfig.nav.title} - RSS Feed`}
           href={`${siteConfig.url}/feed.xml`}
+          rel="alternate"
+          title={`${siteConfig.nav.title} - RSS Feed`}
+          type="application/rss+xml"
         />
         <link
-          rel="alternate"
-          type="application/atom+xml"
-          title={`${siteConfig.nav.title} - Atom Feed`}
           href={`${siteConfig.url}/atom.xml`}
+          rel="alternate"
+          title={`${siteConfig.nav.title} - Atom Feed`}
+          type="application/atom+xml"
         />
         <link
-          rel="alternate"
-          type="application/feed+json"
-          title={`${siteConfig.nav.title} - JSON Feed`}
           href={`${siteConfig.url}/feed.json`}
+          rel="alternate"
+          title={`${siteConfig.nav.title} - JSON Feed`}
+          type="application/feed+json"
         />
 
         {siteConfig.scripts.head.map((script: CustomScript, index: number) => (

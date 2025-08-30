@@ -9,14 +9,14 @@
  * 3. The app will use your custom configuration
  */
 
-import { config as exampleConfig } from "./config.example";
-import type { Config } from "./config.example";
+import type { Config } from './config.example';
+import { config as exampleConfig } from './config.example';
 
 let customConfig: Partial<Config> | undefined;
 
 // Try to load custom config if it exists
 try {
-  customConfig = require("./config").config;
+  customConfig = require('./config').config;
 } catch {
   // No custom config found, will use example config
 }

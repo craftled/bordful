@@ -1,28 +1,28 @@
-import { getJobs, formatSalary } from "@/lib/db/airtable";
-import { formatDate } from "@/lib/utils/formatDate";
-import { generateJobSlug } from "@/lib/utils/slugify";
-import React from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { PostJobBanner } from "@/components/ui/post-job-banner";
-import { JobDetailsSidebar } from "@/components/ui/job-details-sidebar";
-import { SimilarJobs } from "@/components/ui/similar-jobs";
-import { JobSchema } from "@/components/ui/job-schema";
-import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ClipboardList } from "lucide-react";
-import { Metadata } from "next";
-import config from "@/config";
-import { generateMetadata as createMetadata } from "@/lib/utils/metadata";
-import { notFound } from "next/navigation";
-import { ClientBreadcrumb } from "@/components/ui/client-breadcrumb";
-import { resolveColor } from "@/lib/utils/colors";
+import { ArrowUpRight, ClipboardList } from 'lucide-react';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Button } from '@/components/ui/button';
+import { ClientBreadcrumb } from '@/components/ui/client-breadcrumb';
+import { JobDetailsSidebar } from '@/components/ui/job-details-sidebar';
+import { JobSchema } from '@/components/ui/job-schema';
+import { PostJobBanner } from '@/components/ui/post-job-banner';
+import { SimilarJobs } from '@/components/ui/similar-jobs';
+import config from '@/config';
+import { formatSalary, getJobs } from '@/lib/db/airtable';
+import { resolveColor } from '@/lib/utils/colors';
+import { formatDate } from '@/lib/utils/formatDate';
+import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
+import { generateJobSlug } from '@/lib/utils/slugify';
 
 // Generate static params for all active jobs
 export async function generateStaticParams() {
   const jobs = await getJobs();
   // getJobs already filters for active jobs, but we'll explicitly filter here for clarity
   return jobs
-    .filter((job) => job.status === "active")
+    .filter((job) => job.status === 'active')
     .map((job) => ({
       slug: generateJobSlug(job.title, job.company),
     }));
@@ -45,7 +45,7 @@ export async function generateMetadata({
 
   if (!job) {
     return {
-      title: "Job Not Found | " + config.title,
+      title: `Job Not Found | ${config.title}`,
       description: "The job you're looking for could not be found.",
     };
   }
@@ -53,14 +53,14 @@ export async function generateMetadata({
   // Format location for metadata based on workplace type
   const metaLocation = (() => {
     // For Remote jobs, show the region if available
-    if (job.workplace_type === "Remote") {
+    if (job.workplace_type === 'Remote') {
       if (!job.remote_region) {
-        return "Remote position (Worldwide)";
+        return 'Remote position (Worldwide)';
       }
 
       // For Worldwide specifically, don't use "in"
-      if (job.remote_region === "Worldwide") {
-        return "Remote position (Worldwide)";
+      if (job.remote_region === 'Worldwide') {
+        return 'Remote position (Worldwide)';
       }
 
       // For other regions, use "in"
@@ -68,36 +68,40 @@ export async function generateMetadata({
     }
 
     // For Hybrid jobs, show the location with Hybrid prefix
-    if (job.workplace_type === "Hybrid") {
+    if (job.workplace_type === 'Hybrid') {
       const location = [job.workplace_city, job.workplace_country]
         .filter(Boolean)
-        .join(", ");
-      return location ? `Hybrid position in ${location}` : "Hybrid position";
+        .join(', ');
+      return location ? `Hybrid position in ${location}` : 'Hybrid position';
     }
 
     // For On-site jobs, show the location directly
-    if (job.workplace_type === "On-site") {
+    if (job.workplace_type === 'On-site') {
       const location = [job.workplace_city, job.workplace_country]
         .filter(Boolean)
-        .join(", ");
-      return location ? `in ${location}` : "";
+        .join(', ');
+      return location ? `in ${location}` : '';
     }
 
     // Default case (Not specified)
-    return "";
+    return '';
   })();
 
   // Format deadline if available
   const deadlineText = (() => {
-    if (!job.valid_through) return "Apply now";
+    if (!job.valid_through) {
+      return 'Apply now';
+    }
 
     const deadline = new Date(job.valid_through);
-    if (isNaN(deadline.getTime())) return "Apply now";
+    if (Number.isNaN(deadline.getTime())) {
+      return 'Apply now';
+    }
 
-    return `Apply before ${deadline.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return `Apply before ${deadline.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     })}`;
   })();
 
@@ -105,18 +109,18 @@ export async function generateMetadata({
   const parts = [];
 
   // First part - company, job type and title (removing parentheses if present in the title)
-  const cleanTitle = job.title.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  const cleanTitle = job.title.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
 
   // Base description
   let baseDescription = `${job.company} is hiring ${
-    job.type ? job.type.toLowerCase() : ""
+    job.type ? job.type.toLowerCase() : ''
   } ${cleanTitle}`.trim();
   let baseDescriptionAdded = false;
 
   // Add location only if it exists
   if (metaLocation) {
     // For "in X" format, append directly; for other formats, add as new sentence
-    if (metaLocation.startsWith("in ")) {
+    if (metaLocation.startsWith('in ')) {
       baseDescription += ` ${metaLocation}`;
     } else {
       parts.push(baseDescription);
@@ -141,18 +145,18 @@ export async function generateMetadata({
   // Use our utility to generate consistent metadata
   // Join with periods and ensure proper formatting
   const description = parts
-    .join(". ")
+    .join('. ')
     // Fix any double periods
-    .replace(/\.\./g, ".")
+    .replace(/\.\./g, '.')
     // Ensure there's a period at the end
-    .replace(/(\w)$/, "$1.");
+    .replace(/(\w)$/, '$1.');
 
   return createMetadata({
     title: `${job.title} at ${job.company}`,
     description,
     path: `/jobs/${slug}`,
     openGraph: {
-      type: "article",
+      type: 'article',
       images: [
         {
           url: `/api/og/jobs/${slug}`,
@@ -184,7 +188,7 @@ export default async function JobPostPage({
   }
 
   // Return 404 for inactive jobs as per Google's structured data guidelines
-  if (job.status !== "active") {
+  if (job.status !== 'active') {
     notFound();
   }
 
@@ -194,29 +198,29 @@ export default async function JobPostPage({
 
   // Format location based on workplace type
   const location =
-    job.workplace_type === "Remote"
+    job.workplace_type === 'Remote'
       ? job.remote_region
         ? `Remote (${job.remote_region})`
         : null
-      : job.workplace_type === "Hybrid"
-      ? [
-          job.workplace_city,
-          job.workplace_country,
-          job.remote_region ? `Hybrid (${job.remote_region})` : null,
-        ]
-          .filter(Boolean)
-          .join(", ") || null
-      : [job.workplace_city, job.workplace_country]
-          .filter(Boolean)
-          .join(", ") || null;
+      : job.workplace_type === 'Hybrid'
+        ? [
+            job.workplace_city,
+            job.workplace_country,
+            job.remote_region ? `Hybrid (${job.remote_region})` : null,
+          ]
+            .filter(Boolean)
+            .join(', ') || null
+        : [job.workplace_city, job.workplace_country]
+            .filter(Boolean)
+            .join(', ') || null;
 
   return (
     <main className="container py-6">
       <JobSchema job={job} slug={slug} />
 
-      <div className="flex flex-col md:flex-row gap-4 lg:gap-8">
+      <div className="flex flex-col gap-4 md:flex-row lg:gap-8">
         {/* Main content */}
-        <article className="flex-[3] order-1">
+        <article className="order-1 flex-[3]">
           <div className="mb-6">
             <ClientBreadcrumb
               dynamicData={{
@@ -227,10 +231,10 @@ export default async function JobPostPage({
           </div>
           <div className="mb-8">
             <div className="space-y-2">
-              <h1 className="text-2xl font-semibold">{job.title}</h1>
+              <h1 className="font-semibold text-2xl">{job.title}</h1>
               <div className="text-base text-gray-600">{job.company}</div>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm">
                   <span>{job.type}</span>
                   {showSalary && (
                     <>
@@ -247,20 +251,20 @@ export default async function JobPostPage({
                 </div>
                 <Button
                   asChild
+                  className="w-full gap-1.5 text-xs sm:w-auto"
                   size="xs"
-                  className="gap-1.5 text-xs w-full sm:w-auto"
-                  variant="primary"
                   style={{
                     backgroundColor: resolveColor(config.ui.primaryColor),
                   }}
+                  variant="primary"
                 >
                   <a
                     href={job.apply_url}
-                    target="_blank"
                     rel="noopener noreferrer"
+                    target="_blank"
                   >
                     Apply Now
-                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
                   </a>
                 </Button>
               </div>
@@ -268,8 +272,8 @@ export default async function JobPostPage({
           </div>
 
           <div className="prose prose-sm prose-gray max-w-none">
-            <div className="h-px bg-gray-200 my-8" aria-hidden="true" />
-            <div className="markdown-content [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-zinc-800 [&_a]:transition-colors">
+            <div aria-hidden="true" className="my-8 h-px bg-gray-200" />
+            <div className="markdown-content [&_a:hover]:text-zinc-800 [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a]:transition-colors">
               {!job.description && (
                 <p className="text-red-500">No description available</p>
               )}
@@ -278,27 +282,26 @@ export default async function JobPostPage({
               </div>
               {/* Use our custom utility to process Airtable's markdown format */}
               <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
                 components={{
                   // Customize heading styles - consistent with the rest of the app
                   h1: ({ ...props }) => (
-                    <h1 className="text-2xl font-semibold mb-2" {...props} />
+                    <h1 className="mb-2 font-semibold text-2xl" {...props} />
                   ),
                   h2: ({ ...props }) => (
-                    <h2 className="text-xl font-semibold mb-2" {...props} />
+                    <h2 className="mb-2 font-semibold text-xl" {...props} />
                   ),
                   h3: ({ ...props }) => (
-                    <h3 className="text-lg font-semibold mb-2" {...props} />
+                    <h3 className="mb-2 font-semibold text-lg" {...props} />
                   ),
                   h4: ({ ...props }) => (
-                    <h4 className="text-base font-semibold mb-2" {...props} />
+                    <h4 className="mb-2 font-semibold text-base" {...props} />
                   ),
                   // Style links
                   a: ({ ...props }) => (
                     <a
                       className="text-blue-600 hover:text-blue-800"
-                      target="_blank"
                       rel="noopener noreferrer"
+                      target="_blank"
                       {...props}
                     />
                   ),
@@ -307,7 +310,7 @@ export default async function JobPostPage({
                     // Always indent top-level lists; nested lists get natural browser indent
                     return (
                       <ul
-                        className={`list-disc ml-4 my-2 ${className || ""}`}
+                        className={`my-2 ml-4 list-disc ${className || ''}`}
                         {...props}
                       />
                     );
@@ -315,7 +318,7 @@ export default async function JobPostPage({
                   ol: ({ className, ...props }) => {
                     return (
                       <ol
-                        className={`list-decimal ml-4 my-2 ${className || ""}`}
+                        className={`my-2 ml-4 list-decimal ${className || ''}`}
                         {...props}
                       />
                     );
@@ -325,7 +328,7 @@ export default async function JobPostPage({
                   // Style blockquotes (for Airtable quote blocks)
                   blockquote: ({ ...props }) => (
                     <blockquote
-                      className="pl-4 border-l-4 border-gray-200 my-4 italic"
+                      className="my-4 border-gray-200 border-l-4 pl-4 italic"
                       {...props}
                     />
                   ),
@@ -336,7 +339,7 @@ export default async function JobPostPage({
                     if (isInline) {
                       return (
                         <code
-                          className="px-1.5 py-0.5 bg-gray-100 rounded text-sm font-mono"
+                          className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm"
                           {...props}
                         >
                           {children}
@@ -345,8 +348,8 @@ export default async function JobPostPage({
                     }
                     // Block code
                     return (
-                      <pre className="p-4 bg-gray-100 rounded-md overflow-x-auto my-4">
-                        <code className="text-sm font-mono" {...props}>
+                      <pre className="my-4 overflow-x-auto rounded-md bg-gray-100 p-4">
+                        <code className="font-mono text-sm" {...props}>
                           {children}
                         </code>
                       </pre>
@@ -356,19 +359,19 @@ export default async function JobPostPage({
                   li: ({ children, className, ...props }) => {
                     // Check if this is a checkbox item
                     if (
-                      typeof children === "string" &&
-                      (children.startsWith("[x] ") ||
-                        children.startsWith("[ ] "))
+                      typeof children === 'string' &&
+                      (children.startsWith('[x] ') ||
+                        children.startsWith('[ ] '))
                     ) {
-                      const checkedBox = children.startsWith("[x] ");
+                      const checkedBox = children.startsWith('[x] ');
                       const text = children.substring(4);
                       return (
-                        <li className="flex items-start gap-2 my-1" {...props}>
+                        <li className="my-1 flex items-start gap-2" {...props}>
                           <input
-                            type="checkbox"
                             checked={checkedBox}
-                            readOnly
                             className="mt-1"
+                            readOnly
+                            type="checkbox"
                           />
                           <span>{text}</span>
                         </li>
@@ -378,22 +381,22 @@ export default async function JobPostPage({
                     // Check if this is a bold list item (like "**Lifecycle Marketing**")
                     // This is a special case for job descriptions with bold list headers
                     const isBoldListItem =
-                      typeof children === "object" &&
+                      typeof children === 'object' &&
                       React.isValidElement(children) &&
-                      children.type === "strong";
+                      children.type === 'strong';
 
                     if (isBoldListItem) {
                       return (
-                        <li className="font-semibold my-2" {...props}>
+                        <li className="my-2 font-semibold" {...props}>
                           {children}
                         </li>
                       );
                     }
 
                     // Default list item
-                    const listItemClass = className || "";
+                    const listItemClass = className || '';
                     // Use standard padding for list items
-                    const spacingClass = "pl-1";
+                    const spacingClass = 'pl-1';
 
                     return (
                       <li
@@ -405,6 +408,7 @@ export default async function JobPostPage({
                     );
                   },
                 }}
+                remarkPlugins={[remarkGfm]}
               >
                 {job.description}
               </ReactMarkdown>
@@ -413,48 +417,48 @@ export default async function JobPostPage({
 
           {/* Application Requirements - Prominently displayed before apply button */}
           {job.application_requirements && (
-            <div className="mt-6 mb-4 p-2 bg-amber-50 border border-amber-200 rounded-md">
-              <h3 className="text-xs font-semibold flex items-center gap-1 mb-1.5">
+            <div className="mt-6 mb-4 rounded-md border border-amber-200 bg-amber-50 p-2">
+              <h3 className="mb-1.5 flex items-center gap-1 font-semibold text-xs">
                 <ClipboardList className="h-3.5 w-3.5 text-amber-600" />
                 Application Requirements
               </h3>
-              <p className="text-xs text-gray-700">
+              <p className="text-gray-700 text-xs">
                 {job.application_requirements}
               </p>
             </div>
           )}
 
           <div className="mt-8">
-            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
               <Button
                 asChild
+                className="w-full gap-1.5 text-xs sm:w-auto"
                 size="xs"
-                className="gap-1.5 text-xs w-full sm:w-auto"
-                variant="primary"
                 style={{
                   backgroundColor: resolveColor(config.ui.primaryColor),
                 }}
+                variant="primary"
               >
                 <a
                   href={job.apply_url}
-                  target="_blank"
                   rel="noopener noreferrer"
+                  target="_blank"
                 >
                   Apply Now
-                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
                 </a>
               </Button>
               {job.valid_through &&
                 (() => {
                   const deadline = new Date(job.valid_through);
                   return (
-                    !isNaN(deadline.getTime()) && (
-                      <span className="text-xs text-gray-500 text-center sm:text-left w-full sm:w-auto">
-                        Apply before:{" "}
-                        {deadline.toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
+                    !Number.isNaN(deadline.getTime()) && (
+                      <span className="w-full text-center text-gray-500 text-xs sm:w-auto sm:text-left">
+                        Apply before:{' '}
+                        {deadline.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
                         })}
                       </span>
                     )
@@ -465,32 +469,32 @@ export default async function JobPostPage({
         </article>
 
         {/* Sidebar */}
-        <aside className="w-full md:w-[240px] lg:w-[250px] xl:w-[260px] flex flex-col gap-6 order-2">
+        <aside className="order-2 flex w-full flex-col gap-6 md:w-[240px] lg:w-[250px] xl:w-[260px]">
           {/* Job Details - Always show first in sidebar */}
           <JobDetailsSidebar
-            title={job.title}
-            jobUrl={`${config.url}/jobs/${slug}`}
-            fullDate={fullDate}
-            relativeTime={relativeTime}
-            workplace_type={job.workplace_type}
-            remote_region={job.remote_region}
-            timezone_requirements={job.timezone_requirements}
-            workplace_city={job.workplace_city}
-            workplace_country={job.workplace_country}
-            salary={job.salary}
-            career_level={job.career_level}
             apply_url={job.apply_url}
-            visa_sponsorship={job.visa_sponsorship}
-            languages={job.languages}
             benefits={job.benefits}
-            valid_through={job.valid_through || null}
+            career_level={job.career_level}
+            fullDate={fullDate}
             job_identifier={job.job_identifier || null}
             job_source_name={job.job_source_name || null}
+            jobUrl={`${config.url}/jobs/${slug}`}
+            languages={job.languages}
+            relativeTime={relativeTime}
+            remote_region={job.remote_region}
+            salary={job.salary}
+            timezone_requirements={job.timezone_requirements}
+            title={job.title}
+            valid_through={job.valid_through || null}
+            visa_sponsorship={job.visa_sponsorship}
+            workplace_city={job.workplace_city}
+            workplace_country={job.workplace_country}
+            workplace_type={job.workplace_type}
           />
 
           {/* On mobile, Similar Jobs appear before Post Job Banner */}
           <div className="md:order-3">
-            <SimilarJobs currentJob={job} allJobs={jobs} />
+            <SimilarJobs allJobs={jobs} currentJob={job} />
           </div>
           <div className="md:order-2">
             <PostJobBanner />

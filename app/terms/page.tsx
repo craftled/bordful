@@ -1,38 +1,38 @@
-import config from "@/config";
-import { generateMetadata } from "@/lib/utils/metadata";
+import config from '@/config';
+import { generateMetadata } from '@/lib/utils/metadata';
 
 export const metadata = generateMetadata({
   title: `Terms of Service - ${config.nav.title}`,
   description:
-    "Our terms of service outline the rules and guidelines for using our job board platform.",
-  path: "/terms",
+    'Our terms of service outline the rules and guidelines for using our job board platform.',
+  path: '/terms',
 });
 
 // This page will be static
-export const dynamic = "force-static";
+export const dynamic = 'force-static';
 
 export default function TermsPage() {
   return (
     <main className="container py-6">
       {/* Main content - centered */}
-      <article className="max-w-[640px] mx-auto">
+      <article className="mx-auto max-w-[640px]">
         <div className="mb-8">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold">Terms of Service</h1>
-            <div className="text-sm text-gray-500">
-              Last updated:{" "}
-              {new Date().toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
+            <h1 className="font-semibold text-2xl">Terms of Service</h1>
+            <div className="text-gray-500 text-sm">
+              Last updated:{' '}
+              {new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
               })}
             </div>
           </div>
         </div>
 
         <div className="prose prose-sm prose-gray max-w-none">
-          <div className="h-px bg-gray-200 my-8" aria-hidden="true" />
-          <div className="markdown-content [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-zinc-800 [&_a]:transition-colors">
+          <div aria-hidden="true" className="my-8 h-px bg-gray-200" />
+          <div className="markdown-content [&_a:hover]:text-zinc-800 [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a]:transition-colors">
             <h2>Agreement to Terms</h2>
             <p>
               By accessing or using our job board platform, you agree to be

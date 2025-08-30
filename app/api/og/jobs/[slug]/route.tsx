@@ -1,10 +1,10 @@
-import { ImageResponse } from "next/og";
-import config from "@/config";
-import { getJobs } from "@/lib/db/airtable";
-import { generateJobSlug } from "@/lib/utils/slugify";
+import { ImageResponse } from 'next/og';
+import config from '@/config';
+import { getJobs } from '@/lib/db/airtable';
+import { generateJobSlug } from '@/lib/utils/slugify';
 
 // Use the nodejs runtime to ensure full environment variable access
-export const runtime = "nodejs";
+export const runtime = 'nodejs';
 
 // Get job data using the existing getJobs function for consistency
 async function getJobBySlugMinimal(slug: string) {
@@ -15,10 +15,14 @@ async function getJobBySlugMinimal(slug: string) {
     // Find the job with a matching slug
     const job = jobs.find((j) => generateJobSlug(j.title, j.company) === slug);
 
-    if (!job) return null;
+    if (!job) {
+      return null;
+    }
 
     // Check if job is active (though getJobs() should already filter active jobs)
-    if (job.status !== "active") return null;
+    if (job.status !== 'active') {
+      return null;
+    }
 
     // Return only the fields needed for OG image generation
     return {
@@ -27,43 +31,38 @@ async function getJobBySlugMinimal(slug: string) {
       type: job.type,
       workplace_type: job.workplace_type,
     };
-  } catch (error) {
-    console.error(
-      `Error fetching job: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
+  } catch (_error) {
     return null;
   }
 }
 
 // Define TypeScript interfaces to match our configuration
-interface OGLogoPosition {
+type OGLogoPosition = {
   top: number;
   left: number;
-}
+};
 
-interface OGLogoConfig {
+type OGLogoConfig = {
   show?: boolean;
   src?: string;
   width?: number | string;
   height?: number | string;
   position?: OGLogoPosition;
-}
+};
 
-interface OGGradientConfig {
+type OGGradientConfig = {
   enabled?: boolean;
   color?: string | null;
   angle?: number;
   startOpacity?: number;
   endOpacity?: number;
-}
+};
 
-interface OGFontConfig {
+type OGFontConfig = {
   family?: string | null;
-}
+};
 
-interface OGJobConfig {
+type OGJobConfig = {
   enabled?: boolean;
   backgroundColor?: string | null;
   backgroundOpacity?: number;
@@ -73,7 +72,7 @@ interface OGJobConfig {
   companyColor?: string | null;
   font?: OGFontConfig;
   logo?: OGLogoConfig;
-}
+};
 
 // Common style constants
 const SHARED_STYLES = {
@@ -101,7 +100,7 @@ async function loadGoogleFontData(
   fontFamily: string,
   text: string
 ): Promise<ArrayBuffer | null> {
-  const fontNameForUrl = fontFamily.replace(/\s/g, "+");
+  const fontNameForUrl = fontFamily.replace(/\s/g, '+');
   const url = `https://fonts.googleapis.com/css2?family=${fontNameForUrl}&text=${encodeURIComponent(
     text
   )}`;
@@ -109,9 +108,6 @@ async function loadGoogleFontData(
   try {
     const cssResponse = await fetch(url);
     if (!cssResponse.ok) {
-      console.error(
-        `Failed to fetch Google Font CSS (${fontFamily}): ${cssResponse.status} ${cssResponse.statusText}`
-      );
       return null;
     }
     const css = await cssResponse.text();
@@ -120,24 +116,15 @@ async function loadGoogleFontData(
       /src: url\((.+?)\) format\('(opentype|truetype)'\)/
     );
 
-    if (resource && resource[1]) {
+    if (resource?.[1]) {
       const fontDataResponse = await fetch(resource[1]);
       if (fontDataResponse.ok) {
         return await fontDataResponse.arrayBuffer();
-      } else {
-        console.error(
-          `Failed to fetch font data (${fontFamily}): ${fontDataResponse.status} ${fontDataResponse.statusText}`
-        );
-        return null;
       }
-    } else {
-      console.error(
-        `Could not extract compatible (TTF/OTF) font URL from Google CSS (${fontFamily})`
-      );
       return null;
     }
-  } catch (error) {
-    console.error(`Error loading Google Font (${fontFamily}):`, error);
+    return null;
+  } catch (_error) {
     return null;
   }
 }
@@ -145,27 +132,29 @@ async function loadGoogleFontData(
 // Helper function to convert hex color to RGBA
 function hexToRGBA(hex: string, alpha: number): string {
   // Default fallback
-  if (!hex || hex === "null") return `rgba(0, 84, 80, ${alpha})`;
+  if (!hex || hex === 'null') {
+    return `rgba(0, 84, 80, ${alpha})`;
+  }
 
   // Remove the # if present
-  hex = hex.replace("#", "");
+  hex = hex.replace('#', '');
 
   // Parse the hex values
   let r, g, b;
   if (hex.length === 3) {
     // For shorthand hex like #ABC
-    r = parseInt(hex[0] + hex[0], 16);
-    g = parseInt(hex[1] + hex[1], 16);
-    b = parseInt(hex[2] + hex[2], 16);
+    r = Number.parseInt(hex[0] + hex[0], 16);
+    g = Number.parseInt(hex[1] + hex[1], 16);
+    b = Number.parseInt(hex[2] + hex[2], 16);
   } else {
     // For full hex like #AABBCC
-    r = parseInt(hex.substring(0, 2), 16);
-    g = parseInt(hex.substring(2, 4), 16);
-    b = parseInt(hex.substring(4, 6), 16);
+    r = Number.parseInt(hex.substring(0, 2), 16);
+    g = Number.parseInt(hex.substring(2, 4), 16);
+    b = Number.parseInt(hex.substring(4, 6), 16);
   }
 
   // In case of parsing error, use default teal
-  if (isNaN(r) || isNaN(g) || isNaN(b)) {
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
     return `rgba(0, 84, 80, ${alpha})`;
   }
 
@@ -193,7 +182,7 @@ async function fetchImageAsDataURI(
 ): Promise<string> {
   try {
     const imageUrl =
-      typeof imageSrc === "string" && imageSrc.startsWith("http")
+      typeof imageSrc === 'string' && imageSrc.startsWith('http')
         ? imageSrc
         : `${baseUrl}${imageSrc}`;
 
@@ -204,29 +193,28 @@ async function fetchImageAsDataURI(
       );
     }
 
-    const contentType = response.headers.get("content-type") || "";
+    const contentType = response.headers.get('content-type') || '';
 
-    if (contentType.includes("svg")) {
+    if (contentType.includes('svg')) {
       // Handle SVG
       let svgText = await response.text();
       // Remove width and height attributes from SVG for better styling control
       svgText = svgText.replace(
         /<svg(?=\s)([^>]*?)\s+(width|height)="[^"]*"/g,
-        "<svg$1"
+        '<svg$1'
       );
       return `data:image/svg+xml;base64,${Buffer.from(svgText).toString(
-        "base64"
+        'base64'
       )}`;
-    } else {
-      // Handle other image types (PNG, JPG, etc.)
-      const imageData = await response.arrayBuffer();
-      const base64 = Buffer.from(imageData).toString("base64");
-      return `data:${contentType};base64,${base64}`;
     }
+    // Handle other image types (PNG, JPG, etc.)
+    const imageData = await response.arrayBuffer();
+    const base64 = Buffer.from(imageData).toString('base64');
+    return `data:${contentType};base64,${base64}`;
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching or processing image: ${errorMessage}`);
-    return ""; // Return empty string on error
+    const _errorMessage =
+      error instanceof Error ? error.message : String(error);
+    return ''; // Return empty string on error
   }
 }
 
@@ -252,25 +240,25 @@ export async function GET(
 
     // Check if job OG image generation is enabled
     if (ogJobConfig.enabled === false) {
-      return new Response("Job OG image generation is disabled in config", {
+      return new Response('Job OG image generation is disabled in config', {
         status: 404,
       });
     }
 
     // Get config values with fallbacks
     const fontFamily =
-      ogJobConfig.font?.family || config.font.family || "geist";
+      ogJobConfig.font?.family || config.font.family || 'geist';
     const backgroundColor =
-      ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || "#005450";
+      ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
     const backgroundOpacity =
       ogJobConfig.backgroundOpacity !== undefined
         ? ogJobConfig.backgroundOpacity
         : 0.9;
     const backgroundImage = ogJobConfig.backgroundImage || null;
     const titleColor =
-      ogJobConfig.titleColor || config.ui.heroTitleColor || "#FFFFFF";
+      ogJobConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
     const companyColor =
-      ogJobConfig.companyColor || config.ui.heroTitleColor || "#FFFFFF";
+      ogJobConfig.companyColor || config.ui.heroTitleColor || '#FFFFFF';
 
     // Gradient configuration
     const gradientEnabled = ogJobConfig.gradient?.enabled !== false;
@@ -296,7 +284,7 @@ export async function GET(
           gradientStartOpacity,
           gradientEndOpacity
         )
-      : "";
+      : '';
 
     // Convert background color to RGBA for the overlay
     const backgroundColorRGBA = hexToRGBA(backgroundColor, backgroundOpacity);
@@ -309,17 +297,17 @@ export async function GET(
     const textToRender = `${jobTitle} ${companyName}`;
 
     // --- Font Loading & Processing ---
-    let fontFamilyName = ""; // Name to use in ImageResponse fonts array
-    let fontNameToLoad = ""; // Name for Google Fonts API
+    let fontFamilyName = ''; // Name to use in ImageResponse fonts array
+    let fontNameToLoad = ''; // Name for Google Fonts API
 
     switch (fontFamily) {
-      case "inter":
-        fontFamilyName = "Inter";
-        fontNameToLoad = "Inter";
+      case 'inter':
+        fontFamilyName = 'Inter';
+        fontNameToLoad = 'Inter';
         break;
-      case "ibm-plex-serif":
-        fontFamilyName = "IBM Plex Serif";
-        fontNameToLoad = "IBM Plex Serif";
+      case 'ibm-plex-serif':
+        fontFamilyName = 'IBM Plex Serif';
+        fontNameToLoad = 'IBM Plex Serif';
         break;
       default: // geist or others
         break;
@@ -341,19 +329,19 @@ export async function GET(
         name: fontFamilyName,
         data: fontData, // Use the single loaded data buffer
         weight: 400 as const, // Use 'as const' for specific literal type
-        style: "normal" as const, // Use 'as const' for specific literal type
+        style: 'normal' as const, // Use 'as const' for specific literal type
       });
       imageResponseFonts.push({
         name: fontFamilyName,
         data: fontData, // Use the single loaded data buffer
         weight: 600 as const, // Use 'as const' for specific literal type
-        style: "normal" as const, // Use 'as const' for specific literal type
+        style: 'normal' as const, // Use 'as const' for specific literal type
       });
       imageResponseFonts.push({
         name: fontFamilyName,
         data: fontData, // Use the single loaded data buffer
         weight: 800 as const, // Use 'as const' for specific literal type
-        style: "normal" as const, // Use 'as const' for specific literal type
+        style: 'normal' as const, // Use 'as const' for specific literal type
       });
     }
 
@@ -361,23 +349,23 @@ export async function GET(
     const fontFamilyCSS =
       fontFamilyName && imageResponseFonts.length > 0
         ? fontFamilyName
-        : fontFamily === "ibm-plex-serif"
-        ? "serif"
-        : "sans-serif";
+        : fontFamily === 'ibm-plex-serif'
+          ? 'serif'
+          : 'sans-serif';
 
     // --- Background Image Handling ---
-    let bgImageDataUri = "";
+    let bgImageDataUri = '';
     if (backgroundImage) {
       bgImageDataUri = await fetchImageAsDataURI(backgroundImage, config.url);
     }
 
     // --- Logo Handling ---
-    let logoDataUri = ""; // Initialize as empty
+    let logoDataUri = ''; // Initialize as empty
 
     // Get logo configuration with proper type checking
     const logoConfig = ogJobConfig.logo || {};
     const logoEnabled = logoConfig.show !== false; // Default to true if not specified
-    const logoSrc = logoConfig.src || ""; // Get source directly from config
+    const logoSrc = logoConfig.src || ''; // Get source directly from config
 
     // Get logo dimensions
     const logoHeight = logoConfig.height || 56;
@@ -390,132 +378,128 @@ export async function GET(
     }
 
     return new ImageResponse(
-      (
-        <div
-          style={{
-            width: `${SHARED_STYLES.DIMENSIONS.WIDTH}px`,
-            height: `${SHARED_STYLES.DIMENSIONS.HEIGHT}px`,
-            position: "relative",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* Background Image Layer */}
-          {bgImageDataUri && (
-            <img
-              src={bgImageDataUri}
-              alt="Background"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          )}
-
-          {/* Background Color Overlay */}
-          <div
+      <div
+        style={{
+          width: `${SHARED_STYLES.DIMENSIONS.WIDTH}px`,
+          height: `${SHARED_STYLES.DIMENSIONS.HEIGHT}px`,
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* Background Image Layer */}
+        {bgImageDataUri && (
+          <img
+            alt="Background"
+            src={bgImageDataUri}
             style={{
-              position: "absolute",
+              position: 'absolute',
               top: 0,
               left: 0,
-              width: "100%",
-              height: "100%",
-              backgroundColor: backgroundColorRGBA,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
             }}
           />
+        )}
 
-          {/* Gradient Overlay */}
-          {gradientEnabled && (
-            <div
+        {/* Background Color Overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: backgroundColorRGBA,
+          }}
+        />
+
+        {/* Gradient Overlay */}
+        {gradientEnabled && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: gradientCSS,
+            }}
+          />
+        )}
+
+        {/* Content Container */}
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            color: 'white',
+            fontFamily: fontFamilyCSS,
+            textAlign: 'left',
+            padding: `${SHARED_STYLES.DIMENSIONS.PADDING}px`,
+            zIndex: SHARED_STYLES.Z_INDEX.CONTENT, // Use unitless value for zIndex
+          }}
+        >
+          {/* Logo Image */}
+          {logoDataUri && (
+            <img
+              alt={`${config.title} Logo`}
+              src={logoDataUri}
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background: gradientCSS,
+                height:
+                  typeof logoHeight === 'number'
+                    ? `${logoHeight}px`
+                    : logoHeight,
+                width:
+                  typeof logoWidth === 'number' ? `${logoWidth}px` : logoWidth,
+                objectFit: 'contain',
               }}
             />
           )}
 
-          {/* Content Container */}
+          {/* Text container for job details - positioned at bottom */}
           <div
             style={{
-              position: "relative",
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              color: "white",
-              fontFamily: fontFamilyCSS,
-              textAlign: "left",
-              padding: `${SHARED_STYLES.DIMENSIONS.PADDING}px`,
-              zIndex: SHARED_STYLES.Z_INDEX.CONTENT, // Use unitless value for zIndex
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
             }}
           >
-            {/* Logo Image */}
-            {logoDataUri && (
-              <img
-                src={logoDataUri}
-                alt={`${config.title} Logo`}
-                style={{
-                  height:
-                    typeof logoHeight === "number"
-                      ? `${logoHeight}px`
-                      : logoHeight,
-                  width:
-                    typeof logoWidth === "number"
-                      ? `${logoWidth}px`
-                      : logoWidth,
-                  objectFit: "contain",
-                }}
-              />
-            )}
-
-            {/* Text container for job details - positioned at bottom */}
-            <div
+            <h2
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
+                fontSize: `${SHARED_STYLES.FONTS.COMPANY_SIZE}px`,
+                fontWeight: SHARED_STYLES.FONTS.COMPANY_WEIGHT,
+                color: companyColor,
+                margin: '0 0 16px 0',
+                lineHeight: SHARED_STYLES.FONTS.COMPANY_LINE_HEIGHT,
+                textAlign: 'left',
               }}
             >
-              <h2
-                style={{
-                  fontSize: `${SHARED_STYLES.FONTS.COMPANY_SIZE}px`,
-                  fontWeight: SHARED_STYLES.FONTS.COMPANY_WEIGHT,
-                  color: companyColor,
-                  margin: "0 0 16px 0",
-                  lineHeight: SHARED_STYLES.FONTS.COMPANY_LINE_HEIGHT,
-                  textAlign: "left",
-                }}
-              >
-                {companyName}
-              </h2>
-              <h1
-                style={{
-                  fontSize: `${SHARED_STYLES.FONTS.TITLE_SIZE}px`,
-                  fontWeight: SHARED_STYLES.FONTS.TITLE_WEIGHT,
-                  color: titleColor,
-                  margin: "0",
-                  lineHeight: SHARED_STYLES.FONTS.TITLE_LINE_HEIGHT,
-                  textAlign: "left",
-                }}
-              >
-                {jobTitle}
-              </h1>
-            </div>
+              {companyName}
+            </h2>
+            <h1
+              style={{
+                fontSize: `${SHARED_STYLES.FONTS.TITLE_SIZE}px`,
+                fontWeight: SHARED_STYLES.FONTS.TITLE_WEIGHT,
+                color: titleColor,
+                margin: '0',
+                lineHeight: SHARED_STYLES.FONTS.TITLE_LINE_HEIGHT,
+                textAlign: 'left',
+              }}
+            >
+              {jobTitle}
+            </h1>
           </div>
         </div>
-      ),
+      </div>,
       {
         width: SHARED_STYLES.DIMENSIONS.WIDTH,
         height: SHARED_STYLES.DIMENSIONS.HEIGHT,
@@ -524,7 +508,6 @@ export async function GET(
     );
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error(`Error generating job ImageResponse: ${errorMessage}`);
     return new Response(`Failed to generate the job image: ${errorMessage}`, {
       status: 500,
     });

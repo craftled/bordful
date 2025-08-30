@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { Job } from "@/lib/db/airtable";
-import { CompactJobCard } from "@/components/jobs/CompactJobCard";
+import { CompactJobCard } from '@/components/jobs/CompactJobCard';
+import type { Job } from '@/lib/db/airtable';
 
 export function CompactJobCardList({
   jobs,
-  className = "",
+  className = '',
 }: {
   jobs: Job[];
   className?: string;
 }) {
   return (
-    <div className={`border rounded-md overflow-hidden ${className}`}>
+    <div className={`overflow-hidden rounded-md border ${className}`}>
       {jobs.map((job, index) => (
-        <div key={job.id} className={index !== 0 ? "border-t" : ""}>
+        <div className={index !== 0 ? 'border-t' : ''} key={job.id}>
           <CompactJobCard job={job} />
         </div>
       ))}

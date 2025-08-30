@@ -17,14 +17,11 @@ cd bordful
 
 ## 2. Install Dependencies
 
-Install the required dependencies using Bun (recommended) or npm:
+Install the required dependencies using Bun:
 
 ```bash
-# Using Bun (recommended - faster installs)
+# Install dependencies
 bun install
-
-# OR using npm
-npm install
 ```
 
 ## 3. Set Up Airtable
@@ -72,11 +69,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 Run the development server to see your job board in action:
 
 ```bash
-# Using Bun (recommended)
+# Start the development server
 bun run dev
-
-# OR using npm
-npm run dev
 ```
 
 Visit `http://localhost:3000` in your browser to see your job board.

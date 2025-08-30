@@ -3,13 +3,13 @@
  * This component is maintained for backward compatibility.
  */
 
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { Job } from "@/lib/db/airtable";
-import { JobSearchInput } from "@/components/ui/job-search-input";
-import { useJobSearch } from "@/lib/hooks/useJobSearch";
-import { filterJobsBySearch } from "@/lib/utils/filter-jobs";
+import { useEffect } from 'react';
+import { JobSearchInput } from '@/components/ui/job-search-input';
+import type { Job } from '@/lib/db/airtable';
+import { useJobSearch } from '@/lib/hooks/useJobSearch';
+import { filterJobsBySearch } from '@/lib/utils/filter-jobs';
 
 export function JobSearch({
   jobs,
@@ -22,15 +22,15 @@ export function JobSearch({
 
   // Filter jobs when search term changes
   useEffect(() => {
-    const filtered = filterJobsBySearch(jobs, searchTerm || "");
+    const filtered = filterJobsBySearch(jobs, searchTerm || '');
     onSearch(filtered);
   }, [jobs, searchTerm, onSearch]);
 
   return (
     <div className="mb-8">
       <JobSearchInput
+        className="w-full max-w-md rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="Search jobs..."
-        className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
   );

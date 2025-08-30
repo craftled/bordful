@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Job, formatSalary } from "@/lib/db/airtable";
-import { formatDate } from "@/lib/utils/formatDate";
-import { generateJobSlug } from "@/lib/utils/slugify";
-import { JobBadge } from "@/components/ui/job-badge";
+import Link from 'next/link';
+import { JobBadge } from '@/components/ui/job-badge';
+import { formatSalary, type Job } from '@/lib/db/airtable';
+import { formatDate } from '@/lib/utils/formatDate';
+import { generateJobSlug } from '@/lib/utils/slugify';
 
 export function CompactJobCard({ job }: { job: Job }) {
   const { relativeTime } = formatDate(job.posted_date);
@@ -22,7 +22,7 @@ export function CompactJobCard({ job }: { job: Job }) {
   };
 
   // Simplify location to just the type
-  const workplaceType = job.workplace_type || "";
+  const workplaceType = job.workplace_type || '';
 
   // Limit title length to prevent layout issues
   const limitedTitle =
@@ -30,31 +30,31 @@ export function CompactJobCard({ job }: { job: Job }) {
 
   return (
     <Link
-      href={`/jobs/${generateJobSlug(job.title, job.company)}`}
-      className={`block py-2.5 px-3 hover:bg-zinc-50 transition-colors ${
-        job.featured ? "bg-zinc-50" : ""
+      className={`block px-3 py-2.5 transition-colors hover:bg-zinc-50 ${
+        job.featured ? 'bg-zinc-50' : ''
       }`}
+      href={`/jobs/${generateJobSlug(job.title, job.company)}`}
     >
       <div className="flex items-center gap-2">
         {/* Title and badges */}
         <div className="min-w-0 flex-grow">
           <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-medium line-clamp-1 max-w-[calc(100%-70px)]">
+            <h3 className="line-clamp-1 max-w-[calc(100%-70px)] font-medium text-sm">
               {limitedTitle}
             </h3>
-            <div className="flex flex-nowrap gap-1 shrink-0">
+            <div className="flex shrink-0 flex-nowrap gap-1">
               {isNew() && (
                 <JobBadge
+                  className="flex h-4 items-center px-1.5 py-0 text-[10px]"
                   type="new"
-                  className="text-[10px] py-0 px-1.5 h-4 flex items-center"
                 >
                   New
                 </JobBadge>
               )}
               {job.featured && (
                 <JobBadge
+                  className="flex h-4 items-center px-1.5 py-0 text-[9px]"
                   type="featured"
-                  className="text-[9px] py-0 px-1.5 h-4 flex items-center"
                 >
                   Featured
                 </JobBadge>
@@ -63,13 +63,13 @@ export function CompactJobCard({ job }: { job: Job }) {
           </div>
 
           {/* Company */}
-          <div className="text-xs text-gray-600 line-clamp-1">
+          <div className="line-clamp-1 text-gray-600 text-xs">
             {job.company}
           </div>
         </div>
 
         {/* Essential info */}
-        <div className="flex items-center gap-2 text-xs text-gray-500 shrink-0">
+        <div className="flex shrink-0 items-center gap-2 text-gray-500 text-xs">
           <span className="whitespace-nowrap">{job.type}</span>
           {showSalary && (
             <>

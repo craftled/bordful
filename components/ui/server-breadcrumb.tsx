@@ -1,61 +1,61 @@
-import { ServerBreadcrumb } from "@/components/ui/breadcrumb";
-import { formatLocationTitle } from "@/lib/constants/locations";
-import { getDisplayNameFromCode } from "@/lib/constants/languages";
-import { JOB_TYPE_DISPLAY_NAMES } from "@/lib/constants/job-types";
-import { CAREER_LEVEL_DISPLAY_NAMES } from "@/lib/constants/career-levels";
+import { ServerBreadcrumb } from '@/components/ui/breadcrumb';
+import { CAREER_LEVEL_DISPLAY_NAMES } from '@/lib/constants/career-levels';
+import { JOB_TYPE_DISPLAY_NAMES } from '@/lib/constants/job-types';
+import { getDisplayNameFromCode } from '@/lib/constants/languages';
+import { formatLocationTitle } from '@/lib/constants/locations';
 
 // Category-related constants
-const CATEGORY_SECTIONS = ["types", "levels", "languages", "locations"];
-const CATEGORY_TYPES = ["type", "level", "language", "location"];
+const CATEGORY_SECTIONS = ['types', 'levels', 'languages', 'locations'];
+const CATEGORY_TYPES = ['type', 'level', 'language', 'location'];
 
 // Special case mappings for better display names (just for section names)
 const SEGMENT_DISPLAY_NAMES: Record<string, string> = {
   // Main sections
-  jobs: "Jobs",
-  pricing: "Pricing",
-  about: "About",
-  contact: "Contact",
-  faq: "FAQ",
-  "job-alerts": "Job Alerts",
-  changelog: "Changelog",
+  jobs: 'Jobs',
+  pricing: 'Pricing',
+  about: 'About',
+  contact: 'Contact',
+  faq: 'FAQ',
+  'job-alerts': 'Job Alerts',
+  changelog: 'Changelog',
 
   // Job categories
-  types: "Job Types",
-  levels: "Career Levels",
-  languages: "Languages",
-  locations: "Job Locations",
+  types: 'Job Types',
+  levels: 'Career Levels',
+  languages: 'Languages',
+  locations: 'Job Locations',
 
   // Type mapping - match with URL segment
-  type: "Type",
-  level: "Level",
-  language: "Language",
-  location: "Location",
+  type: 'Type',
+  level: 'Level',
+  language: 'Language',
+  location: 'Location',
 };
 
 // Words that should not be capitalized in title case (unless they're the first word)
 const LOWERCASE_WORDS = new Set([
-  "a",
-  "an",
-  "the",
-  "and",
-  "but",
-  "or",
-  "for",
-  "nor",
-  "on",
-  "at",
-  "to",
-  "from",
-  "by",
-  "with",
-  "in",
-  "of",
+  'a',
+  'an',
+  'the',
+  'and',
+  'but',
+  'or',
+  'for',
+  'nor',
+  'on',
+  'at',
+  'to',
+  'from',
+  'by',
+  'with',
+  'in',
+  'of',
 ]);
 
 // Apply standard title casing rules
 const applyTitleCase = (text: string): string => {
   // Split the text into words
-  const words = text.split("-");
+  const words = text.split('-');
 
   // Process each word
   return words
@@ -73,14 +73,14 @@ const applyTitleCase = (text: string): string => {
       // Default: capitalize first letter
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
-    .join(" ");
+    .join(' ');
 };
 
 // Format a segment using existing utility functions and smart title casing
 const formatSegment = (
   segment: string,
   context?: {
-    type?: "jobType" | "careerLevel" | "language" | "location";
+    type?: 'jobType' | 'careerLevel' | 'language' | 'location';
     parentSegment?: string;
   }
 ): string => {
@@ -91,13 +91,13 @@ const formatSegment = (
 
   // Handle based on context if provided
   if (context) {
-    if (context.type === "location" || context.parentSegment === "location") {
+    if (context.type === 'location' || context.parentSegment === 'location') {
       // Handle hyphenated location names by converting to spaces before formatting
-      const formattedLocation = segment.replace(/-/g, " ");
+      const formattedLocation = segment.replace(/-/g, ' ');
       return formatLocationTitle(formattedLocation);
     }
 
-    if (context.type === "language" || context.parentSegment === "language") {
+    if (context.type === 'language' || context.parentSegment === 'language') {
       try {
         return getDisplayNameFromCode(segment as string);
       } catch {
@@ -105,20 +105,24 @@ const formatSegment = (
       }
     }
 
-    if (context.type === "jobType" || context.parentSegment === "type") {
+    if (context.type === 'jobType' || context.parentSegment === 'type') {
       // Check if it matches any of our job types (case-insensitive)
       const match = Object.entries(JOB_TYPE_DISPLAY_NAMES).find(
         ([key]) => key.toLowerCase() === segment.toLowerCase()
       );
-      if (match) return match[1];
+      if (match) {
+        return match[1];
+      }
     }
 
-    if (context.type === "careerLevel" || context.parentSegment === "level") {
+    if (context.type === 'careerLevel' || context.parentSegment === 'level') {
       // Check if it matches any of our career levels (case-insensitive)
       const match = Object.entries(CAREER_LEVEL_DISPLAY_NAMES).find(
         ([key]) => key.toLowerCase() === segment.toLowerCase()
       );
-      if (match) return match[1];
+      if (match) {
+        return match[1];
+      }
     }
   }
 
@@ -128,12 +132,12 @@ const formatSegment = (
 
 // Handle job detail page breadcrumbs (like /jobs/job-title)
 const handleJobDetailPage = (
-  segments: string[],
+  _segments: string[],
   dynamicData: { name: string; url: string }
 ): { name: string; url: string }[] => {
   return [
-    { name: "Home", url: "/" },
-    { name: "Jobs", url: "/jobs" },
+    { name: 'Home', url: '/' },
+    { name: 'Jobs', url: '/jobs' },
     dynamicData,
   ];
 };
@@ -143,8 +147,8 @@ const handleCategoryDetailPage = (
   segments: string[]
 ): { name: string; url: string }[] => {
   const breadcrumbs = [
-    { name: "Home", url: "/" },
-    { name: "Jobs", url: "/jobs" },
+    { name: 'Home', url: '/' },
+    { name: 'Jobs', url: '/jobs' },
   ];
 
   // Add Category segment (Type, Level, etc.)
@@ -173,8 +177,8 @@ const handleCategoryDetailPage = (
 const handleStandardPage = (
   segments: string[]
 ): { name: string; url: string }[] => {
-  const breadcrumbs = [{ name: "Home", url: "/" }];
-  let currentPath = "";
+  const breadcrumbs = [{ name: 'Home', url: '/' }];
+  let currentPath = '';
 
   // Build breadcrumbs for each segment
   for (let i = 0; i < segments.length; i++) {
@@ -198,13 +202,13 @@ const generateBreadcrumbItems = (
   pathname: string,
   dynamicData?: { name: string; url: string }
 ) => {
-  const segments = pathname.split("/").filter(Boolean);
+  const segments = pathname.split('/').filter(Boolean);
 
   // Handle special case for job detail pages
   if (
     dynamicData &&
     segments.length >= 2 &&
-    segments[0] === "jobs" &&
+    segments[0] === 'jobs' &&
     !CATEGORY_SECTIONS.includes(segments[1])
   ) {
     return handleJobDetailPage(segments, dynamicData);
@@ -213,7 +217,7 @@ const generateBreadcrumbItems = (
   // Special handling for job category detail pages (job/type/full-time, etc.)
   if (
     segments.length >= 3 &&
-    segments[0] === "jobs" &&
+    segments[0] === 'jobs' &&
     CATEGORY_TYPES.includes(segments[1])
   ) {
     return handleCategoryDetailPage(segments);
@@ -223,7 +227,7 @@ const generateBreadcrumbItems = (
   return handleStandardPage(segments);
 };
 
-interface PageBreadcrumbProps {
+type PageBreadcrumbProps = {
   /**
    * Current page path
    */
@@ -242,7 +246,7 @@ interface PageBreadcrumbProps {
    * Optional className to apply to the breadcrumb container
    */
   className?: string;
-}
+};
 
 export function PageBreadcrumb({
   pathname,
@@ -252,5 +256,5 @@ export function PageBreadcrumb({
   // Generate breadcrumb items based on the provided path
   const items = generateBreadcrumbItems(pathname, dynamicData);
 
-  return <ServerBreadcrumb items={items} className={className} />;
+  return <ServerBreadcrumb className={className} items={items} />;
 }

@@ -1,5 +1,5 @@
-import type { MetadataRoute } from "next";
-import config from "@/config";
+import type { MetadataRoute } from 'next';
+import config from '@/config';
 
 export default function robots(): MetadataRoute.Robots {
   // Use the URL from config
@@ -7,11 +7,11 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: {
-      userAgent: "*",
+      userAgent: '*',
       // Allow root path and /api/og/* paths for Open Graph images
-      allow: ["/", "/api/og/*"],
+      allow: ['/', '/api/og/*'],
       // Disallow any potential admin or private routes
-      disallow: ["/api/subscribe/*", "/api/encharge-logs/*"],
+      disallow: ['/api/subscribe/*', '/api/encharge-logs/*'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
     host: baseUrl,

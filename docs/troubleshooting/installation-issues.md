@@ -52,38 +52,27 @@ This guide addresses the most common issues you might encounter when installing 
 3. If your version is below v18, install the latest LTS version from [nodejs.org](https://nodejs.org/)
 4. For managing multiple Node.js versions, consider using [nvm](https://github.com/nvm-sh/nvm) (Unix/macOS) or [nvm-windows](https://github.com/coreybutler/nvm-windows) (Windows)
 
-### NPM Dependency Errors
+### Dependency Installation Errors
 
-**Issue:** `npm install` fails with dependency conflicts or missing packages.
+**Issue:** `bun install` fails with dependency conflicts or missing packages.
 
 **Solution:**
 1. Clear the package manager cache:
    ```bash
-   # For Bun
    bun pm cache rm
-   
-   # For npm
-   npm cache clean --force
    ```
 2. Delete dependency files:
    ```bash
-   # For Bun
    rm -rf node_modules bun.lockb
-   
-   # For npm
-   rm -rf node_modules package-lock.json
    ```
 3. Reinstall dependencies:
    ```bash
-   # Using Bun (recommended)
    bun install
-   
-   # OR using npm
-   npm install
    ```
-4. If issues persist, check for global npm configuration problems:
+4. If issues persist, try deleting and recreating the lockfile:
    ```bash
-   npm config list
+   rm bun.lockb
+   bun install
    ```
 
 ## Configuration Issues
@@ -175,13 +164,9 @@ This guide addresses the most common issues you might encounter when installing 
    ```bash
    rm -rf .next
    
-   # Using Bun (recommended)
+   # Test your production build
    bun run build
    bun run start
-   
-   # OR using npm
-   npm run build
-   npm start
    ```
 
 ### Custom Styling Not Working
@@ -224,11 +209,8 @@ If you're experiencing server-side rendering issues:
 
 1. Enable more verbose Next.js logging:
    ```bash
-   # Using Bun
+   # Enable debug logging
    DEBUG=* bun run dev
-   
-   # OR using npm
-   DEBUG=* npm run dev
    ```
 2. Check server-side console logs for errors
 3. Use browser developer tools to inspect network requests and responses
@@ -259,8 +241,8 @@ For deeper Airtable connectivity issues:
    # Using Bun
    bun run test-airtable.ts
    
-   # OR using npx
-   npx ts-node test-airtable.ts
+   # Test with ts-node
+   bunx ts-node test-airtable.ts
    ```
 3. Check the output for specific error messages or data issues
 
@@ -281,7 +263,7 @@ If you're still experiencing issues after trying these solutions:
 | Error Code/Message                                 | Likely Cause                         | Solution                                                |
 | -------------------------------------------------- | ------------------------------------ | ------------------------------------------------------- |
 | "AIRTABLE_ACCESS_TOKEN must be provided"           | Missing environment variable         | Create or update your .env file with the token          |
-| "Cannot find module..."                            | Missing dependency                   | Run `npm install` to reinstall dependencies             |
+| "Cannot find module..."                            | Missing dependency                   | Run `bun install` to reinstall dependencies             |
 | "API rate limit exceeded"                          | Too many Airtable API requests       | Implement caching or reduce request frequency           |
 | "TypeError: Cannot read property 'X' of undefined" | Missing data or wrong data structure | Check your Airtable fields and data format              |
 | "Failed to compile"                                | TypeScript or Next.js build errors   | Check error details and fix the specific file mentioned |
@@ -301,9 +283,7 @@ If you're setting up Bordful on a fresh system and encountering issues:
    node -v  # Should be v18.0.0 or higher
    
    # Check package manager
-   bun --version  # Recommended: v1.0.0 or higher
-   # OR
-   npm -v         # Should be v9.0.0 or higher
+   bun --version  # Required: v1.0.0 or higher
    ```
 
 2. **Installation Order**:
@@ -374,10 +354,10 @@ If your development server won't start:
    rm -rf .next node_modules/.cache
    
    # Reinstall dependencies if needed
-   bun install  # or npm install
-   
+   bun install
+
    # Start with verbose logging
-   bun run dev  # or npm run dev -- --verbose
+   bun run dev
    ```
 
 3. **Last Resort Options**:
@@ -390,7 +370,7 @@ If your development server won't start:
 If you're having issues deploying to production:
 
 1. **Pre-deployment Checklist**:
-   - Verify local build works (`bun run build && bun run start` or `npm run build && npm start`)
+   - Verify local build works (`bun run build && bun run start`)
    - Check environment variables are set in deployment platform
    - Ensure all dependencies are in package.json
 

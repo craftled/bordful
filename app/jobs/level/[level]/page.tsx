@@ -1,21 +1,21 @@
-import { getJobs, CareerLevel } from "@/lib/db/airtable";
-import { HeroSection } from "@/components/ui/hero-section";
-import config from "@/config";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { JobsLayout } from "@/components/jobs/JobsLayout";
-import { CAREER_LEVEL_DISPLAY_NAMES } from "@/lib/constants/career-levels";
-import { generateMetadata as createMetadata } from "@/lib/utils/metadata";
-import { JobSearchInput } from "@/components/ui/job-search-input";
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { JobsLayout } from '@/components/jobs/JobsLayout';
+import { HeroSection } from '@/components/ui/hero-section';
+import { JobSearchInput } from '@/components/ui/job-search-input';
+import config from '@/config';
+import { CAREER_LEVEL_DISPLAY_NAMES } from '@/lib/constants/career-levels';
+import { type CareerLevel, getJobs } from '@/lib/db/airtable';
+import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
 
 // Revalidate page every 5 minutes
 export const revalidate = 300;
 
-interface Props {
+type Props = {
   params: Promise<{
     level: string;
   }>;
-}
+};
 
 /**
  * Convert URL slug to career level
@@ -35,9 +35,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const levelSlug = decodeURIComponent(resolvedParams.level).toLowerCase();
   const careerLevel = getCareerLevelFromSlug(levelSlug);
 
-  if (!careerLevel || careerLevel === "NotSpecified") {
+  if (!careerLevel || careerLevel === 'NotSpecified') {
     return {
-      title: "Career Level Not Found | " + config.title,
+      title: `Career Level Not Found | ${config.title}`,
       description: "The career level you're looking for doesn't exist.",
     };
   }
@@ -58,7 +58,7 @@ export default async function CareerLevelPage({ params }: Props) {
   const levelSlug = decodeURIComponent(resolvedParams.level).toLowerCase();
   const careerLevel = getCareerLevelFromSlug(levelSlug);
 
-  if (!careerLevel || careerLevel === "NotSpecified") {
+  if (!careerLevel || careerLevel === 'NotSpecified') {
     return notFound();
   }
 
@@ -68,17 +68,19 @@ export default async function CareerLevelPage({ params }: Props) {
     job.career_level.includes(careerLevel)
   );
 
-  if (filteredJobs.length === 0) return notFound();
+  if (filteredJobs.length === 0) {
+    return notFound();
+  }
 
   return (
     <>
       <HeroSection
         badge={displayName}
-        title={`${displayName} Jobs`}
         description={`Browse ${filteredJobs.length.toLocaleString()} ${
-          filteredJobs.length === 1 ? "position" : "positions"
+          filteredJobs.length === 1 ? 'position' : 'positions'
         } for ${displayName.toLowerCase()} roles. Find opportunities that match your career stage.`}
         heroImage={config.jobsPages?.dynamicPages?.level?.heroImage}
+        title={`${displayName} Jobs`}
       >
         {/* Search Bar */}
         <div className="max-w-[480px]">

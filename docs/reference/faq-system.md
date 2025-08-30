@@ -123,7 +123,7 @@ Example markdown in an FAQ answer:
 To get started with Bordful:
 
 1. Clone the repository
-2. Install dependencies with `bun install` or `npm install`
+2. Install dependencies with `bun install`
 3. Configure your environment variables
 
 For more detailed instructions, see our [Installation Guide](/docs/getting-started).

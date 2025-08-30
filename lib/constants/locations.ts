@@ -1,13 +1,13 @@
-import { RemoteRegion, WorkplaceType } from "./workplace";
-import { Country, countries } from "./countries";
+import { type Country, countries } from './countries';
+import type { RemoteRegion, WorkplaceType } from './workplace';
 
-export type LocationType = "remote" | Country;
+export type LocationType = 'remote' | Country;
 
-export interface LocationCounts {
+export type LocationCounts = {
   countries: Partial<Record<Country, number>>;
   cities: Record<string, number>;
   remote: number;
-}
+};
 
 /**
  * Formats a location string for display
@@ -16,7 +16,9 @@ export interface LocationCounts {
  */
 export function formatLocationTitle(location: string): string {
   // Handle remote case
-  if (location.toLowerCase() === "remote") return "Remote";
+  if (location.toLowerCase() === 'remote') {
+    return 'Remote';
+  }
 
   // For countries, ensure we use the official name from our countries list
   const matchedCountry = countries.find(
@@ -30,9 +32,9 @@ export function formatLocationTitle(location: string): string {
   // For cities or other locations, use title case
   return location
     .toLowerCase()
-    .split(" ")
+    .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(' ');
 }
 
 /**
@@ -41,13 +43,15 @@ export function formatLocationTitle(location: string): string {
  * @returns URL-friendly slug
  */
 export function createLocationSlug(location: string): string {
-  if (!location) return "";
+  if (!location) {
+    return '';
+  }
 
   return location
     .toLowerCase()
-    .replace(/[^\w\s-]/g, "") // Remove special characters
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/-+/g, "-"); // Replace multiple hyphens with single hyphen
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
 }
 
 /**
@@ -56,10 +60,14 @@ export function createLocationSlug(location: string): string {
  * @returns Matched country or null if not found
  */
 export function getCountryFromSlug(slug: string): Country | null {
-  if (!slug) return null;
+  if (!slug) {
+    return null;
+  }
 
   // Handle remote case
-  if (slug.toLowerCase() === "remote") return null;
+  if (slug.toLowerCase() === 'remote') {
+    return null;
+  }
 
   // Find matching country by comparing slugs
   const matchedCountry = countries.find(
@@ -84,8 +92,8 @@ export function formatLocation({
   workplace_country: string | null;
 }): string {
   // Handle remote work
-  if (workplace_type === "Remote") {
-    return `Remote (${remote_region || "Worldwide"})`;
+  if (workplace_type === 'Remote') {
+    return `Remote (${remote_region || 'Worldwide'})`;
   }
 
   // Build location string
@@ -95,12 +103,12 @@ export function formatLocation({
   ].filter(Boolean);
 
   const locationString =
-    locationParts.length > 0 ? locationParts.join(", ") : "Not specified";
+    locationParts.length > 0 ? locationParts.join(', ') : 'Not specified';
 
   // Add hybrid indicator if applicable
-  if (workplace_type === "Hybrid") {
+  if (workplace_type === 'Hybrid') {
     return `${locationString} - Hybrid${
-      remote_region ? ` (${remote_region})` : ""
+      remote_region ? ` (${remote_region})` : ''
     }`;
   }
 

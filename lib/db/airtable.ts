@@ -1,63 +1,63 @@
-import Airtable from "airtable";
-import { WorkplaceType, RemoteRegion } from "@/lib/constants/workplace";
+import Airtable from 'airtable';
 import {
-  LanguageCode,
+  CURRENCY_CODES,
+  CURRENCY_RATES,
+  type CurrencyCode,
+  formatCurrencySymbol,
+  getCurrencyByName,
+} from '@/lib/constants/currencies';
+import {
   getLanguageByName,
   LANGUAGE_CODES,
-} from "@/lib/constants/languages";
-import {
-  CurrencyCode,
-  CURRENCY_RATES,
-  CURRENCY_CODES,
-  getCurrencyByName,
-  formatCurrencySymbol,
-} from "@/lib/constants/currencies";
-import { normalizeMarkdown } from "@/lib/utils/markdown";
+  type LanguageCode,
+} from '@/lib/constants/languages';
+import type { RemoteRegion, WorkplaceType } from '@/lib/constants/workplace';
+import { normalizeMarkdown } from '@/lib/utils/markdown';
 
 // Initialize Airtable with Personal Access Token
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_ACCESS_TOKEN,
-  endpointUrl: "https://api.airtable.com",
-}).base(process.env.AIRTABLE_BASE_ID || "");
+  endpointUrl: 'https://api.airtable.com',
+}).base(process.env.AIRTABLE_BASE_ID || '');
 
 // Get table name from environment variables with fallback
-const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || "Jobs";
+const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Jobs';
 
 export type CareerLevel =
-  | "Internship"
-  | "EntryLevel"
-  | "Associate"
-  | "Junior"
-  | "MidLevel"
-  | "Senior"
-  | "Staff"
-  | "Principal"
-  | "Lead"
-  | "Manager"
-  | "SeniorManager"
-  | "Director"
-  | "SeniorDirector"
-  | "VP"
-  | "SVP"
-  | "EVP"
-  | "CLevel"
-  | "Founder"
-  | "NotSpecified";
+  | 'Internship'
+  | 'EntryLevel'
+  | 'Associate'
+  | 'Junior'
+  | 'MidLevel'
+  | 'Senior'
+  | 'Staff'
+  | 'Principal'
+  | 'Lead'
+  | 'Manager'
+  | 'SeniorManager'
+  | 'Director'
+  | 'SeniorDirector'
+  | 'VP'
+  | 'SVP'
+  | 'EVP'
+  | 'CLevel'
+  | 'Founder'
+  | 'NotSpecified';
 
-export type SalaryUnit = "hour" | "day" | "week" | "month" | "year" | "project";
+export type SalaryUnit = 'hour' | 'day' | 'week' | 'month' | 'year' | 'project';
 
-export interface Salary {
+export type Salary = {
   min: number | null;
   max: number | null;
   currency: CurrencyCode;
   unit: SalaryUnit;
-}
+};
 
-export interface Job {
+export type Job = {
   id: string;
   title: string;
   company: string;
-  type: "Full-time" | "Part-time" | "Contract" | "Freelance";
+  type: 'Full-time' | 'Part-time' | 'Contract' | 'Freelance';
   salary: Salary | null;
   description: string;
   benefits: string | null;
@@ -67,9 +67,9 @@ export interface Job {
   valid_through?: string | null;
   job_identifier?: string | null;
   job_source_name?: string | null;
-  status: "active" | "inactive";
+  status: 'active' | 'inactive';
   career_level: CareerLevel[];
-  visa_sponsorship: "Yes" | "No" | "Not specified";
+  visa_sponsorship: 'Yes' | 'No' | 'Not specified';
   featured: boolean;
   workplace_type: WorkplaceType;
   remote_region: RemoteRegion;
@@ -86,39 +86,45 @@ export interface Job {
   industry?: string | null;
   occupational_category?: string | null;
   responsibilities?: string | null;
-}
+};
 
 // Format salary for display
 export function formatSalary(
   salary: Salary | null,
-  showCurrencyCode: boolean = false
+  showCurrencyCode = false
 ): string {
-  if (!salary || (!salary.min && !salary.max)) return "Not specified";
+  if (!salary || !(salary.min || salary.max)) {
+    return 'Not specified';
+  }
 
   const formattedSymbol = formatCurrencySymbol(salary.currency);
 
   const formatNumber = (
     num: number | null,
-    currency: CurrencyCode,
-    forceScale?: "k" | "M"
+    _currency: CurrencyCode,
+    forceScale?: 'k' | 'M'
   ): string => {
-    if (!num) return "";
+    if (!num) {
+      return '';
+    }
 
     // Define consistent thresholds for all currencies
-    const kThreshold = 10000;
-    const mThreshold = 1000000;
+    const kThreshold = 10_000;
+    const mThreshold = 1_000_000;
 
     // Apply forced scale if provided (for consistent range formatting)
-    if (forceScale === "M") {
-      return `${(num / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
-    } else if (forceScale === "k") {
+    if (forceScale === 'M') {
+      return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (forceScale === 'k') {
       return `${(num / 1000).toFixed(0)}k`;
     }
 
     // Format with appropriate scale based on magnitude
     if (num >= mThreshold) {
-      return `${(num / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
-    } else if (num >= kThreshold) {
+      return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (num >= kThreshold) {
       return `${(num / 1000).toFixed(0)}k`;
     }
 
@@ -130,13 +136,13 @@ export function formatSalary(
   let range;
   if (salary.min && salary.max) {
     // Determine the appropriate scale for both values based on the larger number
-    let forceScale: "k" | "M" | undefined = undefined;
+    let forceScale: 'k' | 'M' | undefined;
 
     // Use consistent thresholds for all currencies
-    if (Math.max(salary.min, salary.max) >= 1000000) {
-      forceScale = "M"; // Force both values to use millions
-    } else if (Math.max(salary.min, salary.max) >= 10000) {
-      forceScale = "k"; // Force both values to use thousands
+    if (Math.max(salary.min, salary.max) >= 1_000_000) {
+      forceScale = 'M'; // Force both values to use millions
+    } else if (Math.max(salary.min, salary.max) >= 10_000) {
+      forceScale = 'k'; // Force both values to use thousands
     }
 
     range =
@@ -153,23 +159,23 @@ export function formatSalary(
 
   // Use full words with slash
   const unitDisplay = {
-    hour: "/hour",
-    day: "/day",
-    week: "/week",
-    month: "/month",
-    year: "/year",
-    project: "/project",
+    hour: '/hour',
+    day: '/day',
+    week: '/week',
+    month: '/month',
+    year: '/year',
+    project: '/project',
   }[salary.unit];
 
   // Add currency code in parentheses if requested
-  const currencyCode = showCurrencyCode ? ` (${salary.currency})` : "";
+  const currencyCode = showCurrencyCode ? ` (${salary.currency})` : '';
 
   return `${formattedSymbol}${range}${unitDisplay}${currencyCode}`;
 }
 
 // Format USD approximation for non-USD salaries
 export function formatUSDApproximation(salary: Salary | null): string | null {
-  if (!salary || (!salary.min && !salary.max) || salary.currency === "USD") {
+  if (!salary || !(salary.min || salary.max) || salary.currency === 'USD') {
     return null;
   }
 
@@ -177,7 +183,7 @@ export function formatUSDApproximation(salary: Salary | null): string | null {
   const usdSalary: Salary = {
     min: salary.min ? salary.min * CURRENCY_RATES[salary.currency] : null,
     max: salary.max ? salary.max * CURRENCY_RATES[salary.currency] : null,
-    currency: "USD",
+    currency: 'USD',
     unit: salary.unit,
   };
 
@@ -188,7 +194,9 @@ export function formatUSDApproximation(salary: Salary | null): string | null {
 
 // Normalize salary for comparison (convert to annual USD)
 export function normalizeAnnualSalary(salary: Salary | null): number {
-  if (!salary || (!salary.min && !salary.max)) return -1;
+  if (!salary || !(salary.min || salary.max)) {
+    return -1;
+  }
 
   // Use the conversion rates from the currency constants
   const exchangeRate = CURRENCY_RATES[salary.currency] || 1;
@@ -213,49 +221,49 @@ export function normalizeAnnualSalary(salary: Salary | null): number {
 // Ensure career level is always returned as an array
 function normalizeCareerLevel(value: unknown): CareerLevel[] {
   if (!value) {
-    return ["NotSpecified"];
+    return ['NotSpecified'];
   }
 
   if (Array.isArray(value)) {
     // Convert Airtable's display values to our enum values
     return value.map((level) => {
       // Handle Airtable's display format (e.g., "Entry Level" -> "EntryLevel")
-      const normalized = level.replace(/\s+/g, "");
+      const normalized = level.replace(/\s+/g, '');
       return normalized as CareerLevel;
     });
   }
 
   // Handle single value
-  const normalized = (value as string).replace(/\s+/g, "");
+  const normalized = (value as string).replace(/\s+/g, '');
   return [normalized as CareerLevel];
 }
 
 function normalizeWorkplaceType(value: unknown): WorkplaceType {
   if (
-    typeof value === "string" &&
-    ["On-site", "Hybrid", "Remote"].includes(value)
+    typeof value === 'string' &&
+    ['On-site', 'Hybrid', 'Remote'].includes(value)
   ) {
     return value as WorkplaceType;
   }
   // If the value is undefined or invalid, check if there's a remote_region
   // If there is, it's probably a remote job
   if (value === undefined || value === null) {
-    return "Not specified";
+    return 'Not specified';
   }
-  return "Not specified";
+  return 'Not specified';
 }
 
 function normalizeRemoteRegion(value: unknown): RemoteRegion {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const validRegions = [
-      "Worldwide",
-      "Americas Only",
-      "Europe Only",
-      "Asia-Pacific Only",
-      "US Only",
-      "EU Only",
-      "UK/EU Only",
-      "US/Canada Only",
+      'Worldwide',
+      'Americas Only',
+      'Europe Only',
+      'Asia-Pacific Only',
+      'US Only',
+      'EU Only',
+      'UK/EU Only',
+      'US/Canada Only',
     ];
     if (validRegions.includes(value)) {
       return value as RemoteRegion;
@@ -270,7 +278,9 @@ function normalizeRemoteRegion(value: unknown): RemoteRegion {
 // - "Language Name (code)" format: "English (en)", "French (fr)"
 // - Language names: "English", "French" (via lookup)
 function normalizeLanguages(value: unknown): LanguageCode[] {
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
 
   if (!Array.isArray(value)) {
     return [];
@@ -278,10 +288,10 @@ function normalizeLanguages(value: unknown): LanguageCode[] {
 
   return value
     .map((item) => {
-      if (typeof item === "string") {
+      if (typeof item === 'string') {
         // Format 1: Extract code from "Language Name (code)" format
         const languageCodeMatch = /.*?\(([a-z]{2})\)$/i.exec(item);
-        if (languageCodeMatch && languageCodeMatch[1]) {
+        if (languageCodeMatch?.[1]) {
           const extractedCode = languageCodeMatch[1].toLowerCase();
 
           // Verify the extracted code is valid
@@ -316,12 +326,14 @@ function normalizeLanguages(value: unknown): LanguageCode[] {
 // - "Currency Code (Name)" format: "USD (United States Dollar)", "USDT (Tether USD)"
 // - Currency names: "United States Dollar", "Tether USD" (via lookup)
 function normalizeCurrency(value: unknown): CurrencyCode {
-  if (!value) return "USD"; // Default to USD if no currency specified
+  if (!value) {
+    return 'USD'; // Default to USD if no currency specified
+  }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     // Format 1: Extract code from "USD (United States Dollar)" or "USDT (Tether USD)" format
     const currencyCodeMatch = /^([A-Z]{2,5})\s*\(.*?\)$/i.exec(value);
-    if (currencyCodeMatch && currencyCodeMatch[1]) {
+    if (currencyCodeMatch?.[1]) {
       const extractedCode = currencyCodeMatch[1].toUpperCase();
 
       // Verify the extracted code is valid
@@ -344,18 +356,22 @@ function normalizeCurrency(value: unknown): CurrencyCode {
   }
 
   // Default to USD if we can't determine the currency
-  return "USD";
+  return 'USD';
 }
 
 // Function to normalize benefits text with a maximum length
 function normalizeBenefits(value: unknown): string | null {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
 
   // Convert to string if it's not already
   const benefitsText = String(value).trim();
 
   // If empty after trimming, return null
-  if (!benefitsText) return null;
+  if (!benefitsText) {
+    return null;
+  }
 
   // Trim to maximum 1000 characters for safety
   const MAX_BENEFITS_LENGTH = 1000;
@@ -368,13 +384,17 @@ function normalizeBenefits(value: unknown): string | null {
 
 // Function to normalize application requirements with a maximum length
 function normalizeApplicationRequirements(value: unknown): string | null {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
 
   // Convert to string if it's not already
   const requirementsText = String(value).trim();
 
   // If empty after trimming, return null
-  if (!requirementsText) return null;
+  if (!requirementsText) {
+    return null;
+  }
 
   // Trim to maximum 1000 characters for safety
   const MAX_REQUIREMENTS_LENGTH = 1000;
@@ -388,35 +408,35 @@ function normalizeApplicationRequirements(value: unknown): string | null {
 // Function to normalize visa sponsorship field
 function normalizeVisaSponsorship(
   value: unknown
-): "Yes" | "No" | "Not specified" {
-  if (!value) return "Not specified";
+): 'Yes' | 'No' | 'Not specified' {
+  if (!value) {
+    return 'Not specified';
+  }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const normalizedValue = value.trim();
 
     // Case-insensitive check for yes
     if (/^yes$/i.test(normalizedValue)) {
-      return "Yes";
+      return 'Yes';
     }
 
     // Case-insensitive check for no
     if (/^no$/i.test(normalizedValue)) {
-      return "No";
+      return 'No';
     }
   }
 
-  return "Not specified";
+  return 'Not specified';
 }
 
 export async function getJobs(): Promise<Job[]> {
   try {
-    console.log("Fetching jobs from Airtable...");
-
     // Fetch all active jobs
     const records = await base(TABLE_NAME)
       .select({
         filterByFormula: "{status} = 'active'",
-        sort: [{ field: "posted_date", direction: "desc" }],
+        sort: [{ field: 'posted_date', direction: 'desc' }],
       })
       .all();
 
@@ -428,7 +448,7 @@ export async function getJobs(): Promise<Job[]> {
         id: record.id,
         title: fields.title as string,
         company: fields.company as string,
-        type: fields.type as Job["type"],
+        type: fields.type as Job['type'],
         salary:
           fields.salary_min || fields.salary_max
             ? {
@@ -449,10 +469,10 @@ export async function getJobs(): Promise<Job[]> {
         valid_through: (fields.valid_through as string) || null,
         job_identifier: (fields.job_identifier as string) || null,
         job_source_name: (fields.job_source_name as string) || null,
-        status: fields.status as Job["status"],
+        status: fields.status as Job['status'],
         career_level: normalizeCareerLevel(fields.career_level),
         visa_sponsorship: normalizeVisaSponsorship(fields.visa_sponsorship),
-        featured: fields.featured ? true : false,
+        featured: !!fields.featured,
         workplace_type: normalizeWorkplaceType(fields.workplace_type),
         remote_region: normalizeRemoteRegion(fields.remote_region),
         timezone_requirements: (fields.timezone_requirements as string) || null,
@@ -474,8 +494,7 @@ export async function getJobs(): Promise<Job[]> {
     });
 
     return jobs;
-  } catch (error) {
-    console.error("Error fetching jobs from Airtable:", error);
+  } catch (_error) {
     return [];
   }
 }
@@ -486,8 +505,7 @@ export async function getJob(id: string): Promise<Job | null> {
     const fields = record.fields;
 
     // Return null for inactive jobs - consistent with Google's guidelines to return 404
-    if (fields.status !== "active") {
-      console.log(`Job ${id} is inactive, not returning data`);
+    if (fields.status !== 'active') {
       return null;
     }
 
@@ -495,7 +513,7 @@ export async function getJob(id: string): Promise<Job | null> {
       id: record.id,
       title: fields.title as string,
       company: fields.company as string,
-      type: fields.type as Job["type"],
+      type: fields.type as Job['type'],
       salary:
         fields.salary_min || fields.salary_max
           ? {
@@ -516,10 +534,10 @@ export async function getJob(id: string): Promise<Job | null> {
       valid_through: (fields.valid_through as string) || null,
       job_identifier: (fields.job_identifier as string) || null,
       job_source_name: (fields.job_source_name as string) || null,
-      status: fields.status as Job["status"],
+      status: fields.status as Job['status'],
       career_level: normalizeCareerLevel(fields.career_level),
       visa_sponsorship: normalizeVisaSponsorship(fields.visa_sponsorship),
-      featured: fields.featured ? true : false,
+      featured: !!fields.featured,
       workplace_type: normalizeWorkplaceType(fields.workplace_type),
       remote_region: normalizeRemoteRegion(fields.remote_region),
       timezone_requirements: (fields.timezone_requirements as string) || null,
@@ -537,29 +555,20 @@ export async function getJob(id: string): Promise<Job | null> {
       occupational_category: (fields.occupational_category as string) || null,
       responsibilities: (fields.responsibilities as string) || null,
     };
-  } catch (error) {
-    console.error(`Error fetching job with ID ${id}:`, error);
+  } catch (_error) {
     return null;
   }
 }
 
 export async function testConnection() {
   try {
-    const records = await base(TABLE_NAME)
+    const _records = await base(TABLE_NAME)
       .select({
         maxRecords: 1, // Just get one record to test
       })
       .all();
-
-    console.log(
-      "Connected to Airtable successfully.",
-      `Found ${records.length} records in ${TABLE_NAME} table.`
-    );
     return true;
-  } catch (error) {
-    console.error("Airtable connection test failed:", {
-      message: (error as Error).message,
-    });
+  } catch (_error) {
     return false;
   }
 }

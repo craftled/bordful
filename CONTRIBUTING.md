@@ -12,7 +12,7 @@ git checkout -b feature/your-feature-name
 ```
 
 4. Make your changes
-5. Run linting: `bun run lint` or `npm run lint`
+5. Run linting: `bun run lint`
 6. Commit your changes: `git commit -m 'Add some feature'`
 7. Push to the branch: `git push origin feature/your-feature-name`
 8. Submit a pull request
@@ -21,11 +21,8 @@ git checkout -b feature/your-feature-name
 
 1. Install dependencies:
 ```bash
-# Using Bun (recommended - faster)
+# Install dependencies
 bun install
-
-# OR using npm
-npm install
 ```
 
 2. Set up Airtable:
@@ -41,11 +38,8 @@ AIRTABLE_BASE_ID=your_base_id_here
 
 4. Run the development server:
 ```bash
-# Using Bun (recommended)
+# Start the development server
 bun run dev
-
-# OR using npm
-npm run dev
 ```
 
 ## Project Structure
@@ -71,7 +65,7 @@ components/
 ## Code Style
 
 - Use TypeScript
-- Follow ESLint rules
+- Follow Ultracite rules
 - Use double quotes for strings
 - Use semicolons
 - Write meaningful commit messages

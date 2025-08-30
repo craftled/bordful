@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Select,
@@ -6,17 +6,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useSortOrder } from "@/lib/hooks/useSortOrder";
-import config from "@/config";
+} from '@/components/ui/select';
+import config from '@/config';
+import { useSortOrder } from '@/lib/hooks/useSortOrder';
 
-type SortOption = "newest" | "oldest" | "salary";
+type SortOption = 'newest' | 'oldest' | 'salary';
 
 // Sort option labels mapping
 const sortOptionLabels: Record<SortOption, string> = {
-  newest: "Newest first",
-  oldest: "Oldest first",
-  salary: "Highest salary",
+  newest: 'Newest first',
+  oldest: 'Oldest first',
+  salary: 'Highest salary',
 };
 
 export function SortOrderSelect() {
@@ -24,35 +24,34 @@ export function SortOrderSelect() {
 
   // Get available sort options from config or use default
   const availableSortOptions = config.jobListings?.sortOptions || [
-    "newest",
-    "oldest",
-    "salary",
+    'newest',
+    'oldest',
+    'salary',
   ];
 
   // Get default sort order from config or use "newest"
   const defaultSortOrder =
-    (config.jobListings?.defaultSortOrder as SortOption) || "newest";
+    (config.jobListings?.defaultSortOrder as SortOption) || 'newest';
 
   // Get label configuration with fallbacks
   const showLabel = config.jobListings?.labels?.sortOrder?.show ?? true;
-  const labelText = config.jobListings?.labels?.sortOrder?.text || "Sort by:";
+  const labelText = config.jobListings?.labels?.sortOrder?.text || 'Sort by:';
 
   // Adjust width based on whether label is shown
-  const triggerWidth = "w-[130px] sm:w-[110px]";
+  const triggerWidth = 'w-[130px] sm:w-[110px]';
 
   return (
     <div className="flex items-center gap-2">
       {/* Only show label if configured */}
       {showLabel && (
         <label
+          className="hidden whitespace-nowrap text-muted-foreground text-sm sm:inline"
           htmlFor="sort-order-trigger"
-          className="hidden sm:inline text-sm text-muted-foreground whitespace-nowrap"
         >
           {labelText}
         </label>
       )}
       <Select
-        value={sortOrder}
         onValueChange={(value: SortOption) => {
           // Only pass null if it's the default value
           if (value === defaultSortOrder) {
@@ -61,11 +60,12 @@ export function SortOrderSelect() {
             setSortOrder(value);
           }
         }}
+        value={sortOrder}
       >
         <SelectTrigger
-          id="sort-order-trigger"
-          className={`${triggerWidth} h-7 text-xs`}
           aria-label="Select sort order for job listings"
+          className={`${triggerWidth} h-7 text-xs`}
+          id="sort-order-trigger"
         >
           <SelectValue
             placeholder={
@@ -76,7 +76,7 @@ export function SortOrderSelect() {
         </SelectTrigger>
         <SelectContent className="bg-white" position="popper">
           {availableSortOptions.map((option) => (
-            <SelectItem key={option} value={option} className="text-xs">
+            <SelectItem className="text-xs" key={option} value={option}>
               {sortOptionLabels[option as SortOption]}
             </SelectItem>
           ))}

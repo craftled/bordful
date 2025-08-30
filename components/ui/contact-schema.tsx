@@ -1,53 +1,53 @@
-"use client";
+'use client';
 
-import { FC } from "react";
-import type { ContactPage, WithContext } from "schema-dts";
-import config from "@/config";
+import type { FC } from 'react';
+import type { ContactPage, WithContext } from 'schema-dts';
+import config from '@/config';
 
-interface ContactSchemaProps {
+type ContactSchemaProps = {
   companyName?: string;
   email?: string;
   phone?: string;
   address?: string;
   url?: string;
   description?: string;
-}
+};
 
 export const ContactSchema: FC<ContactSchemaProps> = ({
   companyName = config.contact?.contactInfo?.companyName || config.title,
-  email = config.contact?.contactInfo?.email || "contact@example.com",
-  phone = config.contact?.contactInfo?.phone || "+1-555-123-4567",
+  email = config.contact?.contactInfo?.email || 'contact@example.com',
+  phone = config.contact?.contactInfo?.phone || '+1-555-123-4567',
   address = config.contact?.contactInfo?.address ||
-    "123 Main St, Anytown, AN 12345",
-  url = `${config.url}/contact` || "https://example.com/contact",
+    '123 Main St, Anytown, AN 12345',
+  url = `${config.url}/contact` || 'https://example.com/contact',
   description = config.contact?.schema?.description ||
     config.contact?.description ||
-    "Get in touch with our team for any questions or support needs.",
+    'Get in touch with our team for any questions or support needs.',
 }) => {
   // Create type-safe schema using schema-dts
   const contactSchema: WithContext<ContactPage> = {
-    "@context": "https://schema.org",
-    "@type": "ContactPage",
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
     name: `Contact ${companyName}`,
-    description: description,
+    description,
     mainEntity: {
-      "@type": "Organization",
+      '@type': 'Organization',
       name: companyName,
-      email: email,
+      email,
       telephone: phone,
       address: {
-        "@type": "PostalAddress",
+        '@type': 'PostalAddress',
         streetAddress: address,
       },
       url: config.url,
     },
-    url: url,
+    url,
   };
 
   return (
     <script
-      type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
+      type="application/ld+json"
     />
   );
 };

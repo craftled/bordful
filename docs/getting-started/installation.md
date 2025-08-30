@@ -12,8 +12,8 @@ This guide provides detailed instructions for installing and setting up your Bor
 
 Before you begin, ensure you have the following:
 
-- [Node.js](https://nodejs.org/) (v18 or later) OR [Bun](https://bun.sh/) (v1.0 or later)
-- Package manager: [Bun](https://bun.sh/) (recommended) or [npm](https://www.npmjs.com/)
+- [Bun](https://bun.sh/) (v1.0 or later) - includes Node.js runtime
+- Package manager: [Bun](https://bun.sh/)
 - An [Airtable](https://airtable.com/invite/r/y2hcMqpl) account
 - Basic knowledge of JavaScript/TypeScript and React
 - Git installed on your system
@@ -29,14 +29,11 @@ cd bordful
 
 ## Step 2: Install Dependencies
 
-Install the required dependencies using Bun (recommended) or npm:
+Install the required dependencies using Bun:
 
 ```bash
-# Using Bun (recommended - faster installs)
+# Install dependencies
 bun install
-
-# OR using npm
-npm install
 ```
 
 This will install all the necessary packages defined in the `package.json` file, including Next.js, Tailwind CSS, and other dependencies.
@@ -161,11 +158,8 @@ For detailed information about setting up Airtable, see [Airtable Setup Guide](/
 Now that you've set up your environment and configuration, start the development server:
 
 ```bash
-# Using Bun (recommended)
+# Start the development server
 bun run dev
-
-# OR using npm
-npm run dev
 ```
 
 Visit `http://localhost:3000` in your browser to see your job board in action!
@@ -197,13 +191,9 @@ Now that your Bordful job board is up and running, you might want to:
 Before deploying to production, it's recommended to verify your build locally:
 
 ```bash
-# Using Bun (recommended)
+# Test your production build
 bun run build
 bun run start
-
-# OR using npm
-npm run build
-npm start
 ```
 
 This ensures that your changes work correctly in a production environment before deploying to a hosting service like Vercel or Netlify.

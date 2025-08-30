@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Select,
@@ -6,9 +6,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { usePagination } from "@/lib/hooks/usePagination";
-import config from "@/config";
+} from '@/components/ui/select';
+import config from '@/config';
+import { usePagination } from '@/lib/hooks/usePagination';
 
 export function JobsPerPageSelect() {
   const { perPage, setPerPage } = usePagination();
@@ -20,7 +20,7 @@ export function JobsPerPageSelect() {
   // Get label configuration with fallbacks
   const showLabel = config.jobListings?.labels?.perPage?.show ?? true;
   const labelText =
-    config.jobListings?.labels?.perPage?.text || "Jobs per page:";
+    config.jobListings?.labels?.perPage?.text || 'Jobs per page:';
 
   // Ensure perPage is a valid option
   const validPerPage = perPageOptions.includes(perPage)
@@ -28,45 +28,45 @@ export function JobsPerPageSelect() {
     : defaultPerPage;
 
   // Adjust width based on whether label is shown
-  const triggerWidth = "w-[80px] sm:w-[90px]";
+  const triggerWidth = 'w-[80px] sm:w-[90px]';
 
   return (
     <div className="flex items-center gap-2">
       {/* Only show label if configured */}
       {showLabel && (
         <label
+          className="hidden whitespace-nowrap text-muted-foreground text-sm sm:inline"
           htmlFor="per-page-trigger"
-          className="hidden sm:inline text-sm text-muted-foreground whitespace-nowrap"
         >
           {labelText}
         </label>
       )}
       <Select
-        value={validPerPage.toString()}
         onValueChange={(value) => {
-          const newValue = parseInt(value, 10);
+          const newValue = Number.parseInt(value, 10);
           setPerPage(newValue === defaultPerPage ? null : newValue);
         }}
+        value={validPerPage.toString()}
       >
         <SelectTrigger
-          id="per-page-trigger"
-          className={`${triggerWidth} h-7 text-xs`}
           aria-label="Select number of jobs to display per page"
+          className={`${triggerWidth} h-7 text-xs`}
+          id="per-page-trigger"
         >
           <SelectValue
             placeholder={showLabel ? validPerPage : `${validPerPage} per page`}
           />
         </SelectTrigger>
         <SelectContent
-          className="bg-white min-w-[90px]"
-          position="popper"
           aria-label="Jobs per page options"
+          className="min-w-[90px] bg-white"
+          position="popper"
         >
           {perPageOptions.map((option) => (
             <SelectItem
+              className="text-xs"
               key={option}
               value={option.toString()}
-              className="text-xs"
             >
               {showLabel ? option : `${option} per page`}
             </SelectItem>

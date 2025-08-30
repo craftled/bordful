@@ -1,25 +1,25 @@
-import { getJobs } from "@/lib/db/airtable";
-import { HeroSection } from "@/components/ui/hero-section";
-import config from "@/config";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { JobsLayout } from "@/components/jobs/JobsLayout";
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { JobsLayout } from '@/components/jobs/JobsLayout';
+import { HeroSection } from '@/components/ui/hero-section';
+import { JobSearchInput } from '@/components/ui/job-search-input';
+import config from '@/config';
 import {
-  LanguageCode,
-  LANGUAGE_CODES,
   getDisplayNameFromCode,
-} from "@/lib/constants/languages";
-import { generateMetadata as createMetadata } from "@/lib/utils/metadata";
-import { JobSearchInput } from "@/components/ui/job-search-input";
+  LANGUAGE_CODES,
+  type LanguageCode,
+} from '@/lib/constants/languages';
+import { getJobs } from '@/lib/db/airtable';
+import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
 
 // Revalidate page every 5 minutes
 export const revalidate = 300;
 
-interface Props {
+type Props = {
   params: Promise<{
     language: string;
   }>;
-}
+};
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Check if valid language code
   if (!LANGUAGE_CODES.includes(languageCode as LanguageCode)) {
     return {
-      title: "Language Not Found | " + config.title,
+      title: `Language Not Found | ${config.title}`,
       description: "The language you're looking for doesn't exist.",
     };
   }
@@ -62,17 +62,19 @@ export default async function LanguagePage({ params }: Props) {
     job.languages?.includes(languageCode as LanguageCode)
   );
 
-  if (filteredJobs.length === 0) return notFound();
+  if (filteredJobs.length === 0) {
+    return notFound();
+  }
 
   return (
     <>
       <HeroSection
         badge={displayName}
-        title={`${displayName} Jobs`}
         description={`Browse ${filteredJobs.length.toLocaleString()} ${
-          filteredJobs.length === 1 ? "position" : "positions"
+          filteredJobs.length === 1 ? 'position' : 'positions'
         } requiring ${displayName} language skills. Find the perfect role that matches your language abilities.`}
         heroImage={config.jobsPages?.dynamicPages?.language?.heroImage}
+        title={`${displayName} Jobs`}
       >
         {/* Search Bar */}
         <div className="max-w-[480px]">

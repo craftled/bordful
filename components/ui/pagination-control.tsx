@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Pagination,
   PaginationContent,
@@ -9,14 +9,14 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { usePagination } from "@/lib/hooks/usePagination";
+} from '@/components/ui/pagination';
+import { usePagination } from '@/lib/hooks/usePagination';
 
-interface PaginationControlProps {
+type PaginationControlProps = {
   totalItems: number;
   itemsPerPage: number;
   className?: string;
-}
+};
 
 export function PaginationControl({
   totalItems,
@@ -25,7 +25,7 @@ export function PaginationControl({
 }: PaginationControlProps) {
   const { page, setPage } = usePagination();
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Don't render pagination if there's only one page
@@ -55,7 +55,7 @@ export function PaginationControl({
         if (i - l === 2) {
           rangeWithDots.push(l + 1);
         } else if (i - l !== 1) {
-          rangeWithDots.push("...");
+          rangeWithDots.push('...');
         }
       }
       rangeWithDots.push(i);
@@ -67,11 +67,13 @@ export function PaginationControl({
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages || newPage === page) return;
-    
+    if (newPage < 1 || newPage > totalPages || newPage === page) {
+      return;
+    }
+
     setIsUpdating(true);
     setPage(newPage);
-    
+
     // Add a small delay to show loading state
     setTimeout(() => setIsUpdating(false), 300);
   };
@@ -83,42 +85,44 @@ export function PaginationControl({
   }
 
   return (
-    <div className={`mt-8 flex justify-center sm:justify-start ${className || ""}`}>
+    <div
+      className={`mt-8 flex justify-center sm:justify-start ${className || ''}`}
+    >
       {isUpdating ? (
-        <div className="text-center py-2">
-          <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-gray-900 border-r-transparent"></div>
+        <div className="py-2 text-center">
+          <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-gray-900 border-r-transparent" />
         </div>
       ) : (
         <Pagination>
           <PaginationContent className="flex gap-2">
             <PaginationItem>
               <PaginationPrevious
+                className={`transition-colors hover:bg-gray-100 ${
+                  page === 1 ? 'pointer-events-none opacity-50' : ''
+                }`}
                 href={`?page=${page - 1}`}
                 onClick={(e) => {
                   e.preventDefault();
                   handlePageChange(page - 1);
                 }}
-                className={`hover:bg-gray-100 transition-colors ${
-                  page === 1 ? "pointer-events-none opacity-50" : ""
-                }`}
               />
             </PaginationItem>
 
             {getPaginationRange(page, totalPages).map((pageNum, idx) =>
-              pageNum === "..." ? (
+              pageNum === '...' ? (
                 <PaginationItem key={`ellipsis-${idx}`}>
                   <PaginationEllipsis />
                 </PaginationItem>
               ) : (
                 <PaginationItem key={pageNum}>
                   <PaginationLink
+                    className="transition-colors hover:bg-gray-100"
                     href={`?page=${pageNum}`}
+                    isActive={page === pageNum}
                     onClick={(e) => {
                       e.preventDefault();
                       handlePageChange(pageNum as number);
                     }}
-                    isActive={page === pageNum}
-                    className="hover:bg-gray-100 transition-colors"
                   >
                     {pageNum}
                   </PaginationLink>
@@ -128,14 +132,14 @@ export function PaginationControl({
 
             <PaginationItem>
               <PaginationNext
+                className={`transition-colors hover:bg-gray-100 ${
+                  page === totalPages ? 'pointer-events-none opacity-50' : ''
+                }`}
                 href={`?page=${page + 1}`}
                 onClick={(e) => {
                   e.preventDefault();
                   handlePageChange(page + 1);
                 }}
-                className={`hover:bg-gray-100 transition-colors ${
-                  page === totalPages ? "pointer-events-none opacity-50" : ""
-                }`}
               />
             </PaginationItem>
           </PaginationContent>
