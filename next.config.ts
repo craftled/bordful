@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID,
     AIRTABLE_TABLE_NAME: process.env.AIRTABLE_TABLE_NAME,
   },
-  async headers() {
+  headers() {
     return [
       {
         // Apply these headers to all routes

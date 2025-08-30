@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import config from '@/config';
+import { RATE_LIMIT_WINDOW_MS } from '@/lib/constants/defaults';
 import { emailProvider } from '@/lib/email';
 
 // Prevent caching
@@ -18,7 +19,9 @@ const rateLimitMap = new Map<string, RateLimitInfo>();
 
 // Rate limit configuration
 const RATE_LIMIT_MAX = 5; // Maximum requests per window
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+
+// Email validation regex
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // Rate limiting function
 function isRateLimited(ip: string): boolean {
@@ -79,8 +82,7 @@ export async function POST(request: Request) {
     const { name, email } = await request.json();
 
     // Validate email format with a more comprehensive check
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!(email && emailRegex.test(email))) {
+    if (!(email && EMAIL_REGEX.test(email))) {
       return NextResponse.json(
         { error: 'Valid email address is required' },
         { status: 400 }

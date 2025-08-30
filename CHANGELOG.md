@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.57] - 2025-08-30
+
+### Changed
+- Centralized magic number constants into `lib/constants/defaults.ts` for better maintainability
+- Moved regex literals to top-level constants for improved performance optimization
+- Enhanced type annotations with explicit types for better code clarity and type safety
+- Simplified parameter assignment by using local variables instead of mutating function parameters
+- Improved code structure with more DRY (Don't Repeat Yourself) patterns and pragmatic simplifications
+
+### Fixed
+- Fixed regex literal performance issues by moving to module-level constants
+- Resolved parameter assignment warnings with proper local variable usage
+- Eliminated implicit any type warnings with explicit type annotations
+- Fixed import organization and formatting issues
+
 ## [0.1.56] - 2025-08-30
 
 ### Changed

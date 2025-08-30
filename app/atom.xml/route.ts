@@ -1,5 +1,6 @@
 import { Feed } from 'feed';
 import config from '@/config';
+import { DEFAULT_DESCRIPTION_LENGTH } from '@/lib/constants/defaults';
 import { formatSalary, getJobs } from '@/lib/db/airtable';
 import { generateJobSlug } from '@/lib/utils/slugify';
 
@@ -36,8 +37,9 @@ export async function GET() {
     // Get jobs and add them to the feed
     const jobs = await getJobs();
 
-    // Use the configured description length or default to 500
-    const descriptionLength = config.rssFeed?.descriptionLength || 500;
+    // Use the configured description length or default
+    const descriptionLength =
+      config.rssFeed?.descriptionLength || DEFAULT_DESCRIPTION_LENGTH;
 
     jobs.forEach((job) => {
       // Only include active jobs

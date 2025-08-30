@@ -93,7 +93,7 @@ export function formatSalary(
   salary: Salary | null,
   showCurrencyCode = false
 ): string {
-  if (!salary || !(salary.min || salary.max)) {
+  if (!(salary && (salary.min || salary.max))) {
     return 'Not specified';
   }
 
@@ -175,7 +175,7 @@ export function formatSalary(
 
 // Format USD approximation for non-USD salaries
 export function formatUSDApproximation(salary: Salary | null): string | null {
-  if (!salary || !(salary.min || salary.max) || salary.currency === 'USD') {
+  if (!(salary && (salary.min || salary.max)) || salary.currency === 'USD') {
     return null;
   }
 
@@ -194,7 +194,7 @@ export function formatUSDApproximation(salary: Salary | null): string | null {
 
 // Normalize salary for comparison (convert to annual USD)
 export function normalizeAnnualSalary(salary: Salary | null): number {
-  if (!salary || !(salary.min || salary.max)) {
+  if (!(salary && (salary.min || salary.max))) {
     return -1;
   }
 

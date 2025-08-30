@@ -1,5 +1,14 @@
 import { ImageResponse } from 'next/og';
 import config from '@/config';
+import {
+  DEFAULT_BACKGROUND_OPACITY,
+  DEFAULT_LOGO_HEIGHT,
+  DEFAULT_LOGO_WIDTH,
+  FONT_URL_REGEX,
+  HEX_COLOR_COMPONENT_LENGTH,
+  HEX_COLOR_SHORTHAND_LENGTH,
+  HEXADECIMAL_BASE,
+} from '@/lib/constants/defaults';
 
 // Specify that this route should run on Vercel's edge runtime
 export const runtime = 'edge';
@@ -85,9 +94,7 @@ async function loadGoogleFontData(
     const css = await cssResponse.text();
 
     // Extract the first compatible (TTF/OTF) font URL
-    const resource = css.match(
-      /src: url\((.+?)\) format\('(opentype|truetype)'\)/
-    );
+    const resource = css.match(FONT_URL_REGEX);
 
     if (resource?.[1]) {
       const fontDataResponse = await fetch(resource[1]);
@@ -110,20 +117,29 @@ function hexToRGBA(hex: string, alpha: number): string {
   }
 
   // Remove the # if present
-  hex = hex.replace('#', '');
+  const cleanHex = hex.replace('#', '');
 
   // Parse the hex values
-  let r, g, b;
-  if (hex.length === 3) {
+  let r: number, g: number, b: number;
+  if (cleanHex.length === HEX_COLOR_SHORTHAND_LENGTH) {
     // For shorthand hex like #ABC
-    r = Number.parseInt(hex[0] + hex[0], 16);
-    g = Number.parseInt(hex[1] + hex[1], 16);
-    b = Number.parseInt(hex[2] + hex[2], 16);
+    r = Number.parseInt(cleanHex[0] + cleanHex[0], HEXADECIMAL_BASE);
+    g = Number.parseInt(cleanHex[1] + cleanHex[1], HEXADECIMAL_BASE);
+    b = Number.parseInt(cleanHex[2] + cleanHex[2], HEXADECIMAL_BASE);
   } else {
     // For full hex like #AABBCC
-    r = Number.parseInt(hex.substring(0, 2), 16);
-    g = Number.parseInt(hex.substring(2, 4), 16);
-    b = Number.parseInt(hex.substring(4, 6), 16);
+    r = Number.parseInt(cleanHex.substring(0, 2), HEXADECIMAL_BASE);
+    g = Number.parseInt(
+      cleanHex.substring(HEX_COLOR_COMPONENT_LENGTH, HEX_COLOR_COMPONENT_LENGTH * 2),
+      HEXADECIMAL_BASE
+    );
+    b = Number.parseInt(
+      cleanHex.substring(
+        HEX_COLOR_COMPONENT_LENGTH * 2,
+        HEX_COLOR_COMPONENT_LENGTH * 3
+      ),
+      HEXADECIMAL_BASE
+    );
   }
 
   // In case of parsing error, use default teal
@@ -213,7 +229,9 @@ export async function GET(): Promise<ImageResponse | Response> {
   const backgroundColor =
     ogConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
   const backgroundOpacity =
-    ogConfig.backgroundOpacity !== undefined ? ogConfig.backgroundOpacity : 0.9;
+    ogConfig.backgroundOpacity !== undefined
+      ? ogConfig.backgroundOpacity
+      : DEFAULT_BACKGROUND_OPACITY;
   const backgroundImage = ogConfig.backgroundImage || null;
   const titleColor =
     ogConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
@@ -274,7 +292,12 @@ export async function GET(): Promise<ImageResponse | Response> {
   }
 
   // Prepare fonts array for ImageResponse
-  const imageResponseFonts = [];
+  const imageResponseFonts: Array<{
+    name: string;
+    data: ArrayBuffer | Uint8Array;
+    weight: number;
+    style: string;
+  }> = [];
   // If font data was loaded successfully, add entries for both weights
   // using the SAME font data buffer.
   if (fontFamilyName && fontData) {
@@ -293,12 +316,14 @@ export async function GET(): Promise<ImageResponse | Response> {
   }
 
   // Use the font family name for CSS if loaded, otherwise fallback
-  const fontFamilyCSS =
-    fontFamilyName && imageResponseFonts.length > 0
-      ? fontFamilyName
-      : fontFamily === 'ibm-plex-serif'
-        ? 'serif'
-        : 'sans-serif';
+  let fontFamilyCSS: string;
+  if (fontFamilyName && imageResponseFonts.length > 0) {
+    fontFamilyCSS = fontFamilyName;
+  } else if (fontFamily === 'ibm-plex-serif') {
+    fontFamilyCSS = 'serif';
+  } else {
+    fontFamilyCSS = 'sans-serif';
+  }
 
   // --- Background Image Handling ---
   let bgImageDataUri = '';
@@ -315,9 +340,9 @@ export async function GET(): Promise<ImageResponse | Response> {
   const logoSrc = logoConfig.src || ''; // Get source directly from config
 
   // Get logo dimensions
-  const logoHeight = logoConfig.height || 56;
+  const logoHeight = logoConfig.height || DEFAULT_LOGO_HEIGHT;
   // NOTE: Always use a fixed width (number) value - "auto" doesn't work reliably with Satori
-  const logoWidth = logoConfig.width || 185; // Default fixed width if not specified
+  const logoWidth = logoConfig.width || DEFAULT_LOGO_WIDTH; // Default fixed width if not specified
 
   // Only try to load the logo if it's enabled and has a source
   if (logoEnabled && logoSrc) {

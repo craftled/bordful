@@ -116,7 +116,7 @@ export default function ContactPage() {
               buttonText={channel.buttonText}
               description={channel.description}
               icon={channel.icon}
-              key={index}
+              key={channel.title || index}
               title={channel.title}
             />
           ))}

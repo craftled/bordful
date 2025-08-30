@@ -27,7 +27,7 @@ function formatEmploymentType(type: string): string {
 }
 
 function formatSalaryForSchema(salary: Salary | null): MonetaryAmount | null {
-  if (!salary || !(salary.min || salary.max)) {
+  if (!(salary && (salary.min || salary.max))) {
     return null;
   }
 

@@ -37,14 +37,14 @@ export const metadata: Metadata = {
 // This page will be static
 export const dynamic = 'force-static';
 
-async function getChangelogContent() {
+function getChangelogContent() {
   const filePath = path.join(process.cwd(), 'CHANGELOG.md');
   const content = fs.readFileSync(filePath, 'utf8');
   return content;
 }
 
-export default async function ChangelogPage() {
-  const content = await getChangelogContent();
+export default function ChangelogPage() {
+  const content = getChangelogContent();
 
   return (
     <main className="container py-8">
