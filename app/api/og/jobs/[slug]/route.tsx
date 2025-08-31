@@ -6,8 +6,10 @@ import {
   DEFAULT_LOGO_WIDTH,
   FONT_URL_REGEX,
   HEX_COLOR_COMPONENT_LENGTH,
+  HEX_COLOR_FULL_LENGTH,
   HEX_COLOR_SHORTHAND_LENGTH,
   HEXADECIMAL_BASE,
+  WHITESPACE_REGEX,
 } from '@/lib/constants/defaults';
 import { getJobs } from '@/lib/db/airtable';
 import { generateJobSlug } from '@/lib/utils/slugify';
@@ -15,8 +17,89 @@ import { generateJobSlug } from '@/lib/utils/slugify';
 // Use the nodejs runtime to ensure full environment variable access
 export const runtime = 'nodejs';
 
+// Define minimal job type for OG image generation
+type MinimalJob = {
+  title: string;
+  company: string;
+  type: string;
+  workplace_type: string;
+};
+
+// Helper function to validate parameters and fetch job
+async function validateJobAndParams(
+  context: { params: { slug: string } }
+): Promise<{ job: MinimalJob } | Response> {
+  try {
+    const params = await context.params;
+    const { slug } = params;
+
+    const job = await getJobBySlugMinimal(slug);
+    if (!job) {
+      return new Response(`Job not found: ${slug}`, { status: 404 });
+    }
+
+    return { job };
+  } catch (_error) {
+    return new Response('Invalid request parameters', { status: 400 });
+  }
+}
+
+// Helper function to get OG configuration
+function getOGConfig(_job: MinimalJob): OGJobConfig {
+  const ogJobConfig: OGJobConfig = config.og?.jobs || {};
+
+  // Check if job OG image generation is enabled
+  if (ogJobConfig.enabled === false) {
+    throw new Error('Job OG image generation is disabled in config');
+  }
+
+  return ogJobConfig;
+}
+
+// Helper function to get display configuration
+function getDisplayConfig(ogJobConfig: OGJobConfig) {
+  const fontFamily = ogJobConfig.font?.family || config.font.family || 'geist';
+  const backgroundColor = ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
+  const backgroundOpacity = ogJobConfig.backgroundOpacity !== undefined
+    ? ogJobConfig.backgroundOpacity
+    : DEFAULT_BACKGROUND_OPACITY;
+  const backgroundImage = ogJobConfig.backgroundImage || null;
+  const titleColor = ogJobConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
+  const companyColor = ogJobConfig.companyColor || config.ui.heroTitleColor || '#FFFFFF';
+
+  return {
+    fontFamily,
+    backgroundColor,
+    backgroundOpacity,
+    backgroundImage,
+    titleColor,
+    companyColor,
+  };
+}
+
+// Helper function to get gradient configuration
+function getGradientConfig(ogJobConfig: OGJobConfig, backgroundColor: string) {
+  const gradientEnabled = ogJobConfig.gradient?.enabled !== false;
+  const gradientColor = ogJobConfig.gradient?.color || backgroundColor;
+  const gradientAngle = ogJobConfig.gradient?.angle !== undefined
+    ? ogJobConfig.gradient.angle
+    : 0;
+  const gradientStartOpacity = ogJobConfig.gradient?.startOpacity !== undefined
+    ? ogJobConfig.gradient.startOpacity
+    : 0;
+  const gradientEndOpacity = ogJobConfig.gradient?.endOpacity !== undefined
+    ? ogJobConfig.gradient.endOpacity
+    : 1;
+
+  const gradientCSS = gradientEnabled
+    ? createLinearGradient(gradientColor, gradientAngle, gradientStartOpacity, gradientEndOpacity)
+    : '';
+
+  return { gradientCSS };
+}
+
 // Get job data using the existing getJobs function for consistency
-async function getJobBySlugMinimal(slug: string) {
+async function getJobBySlugMinimal(slug: string): Promise<MinimalJob | null> {
   try {
     // Get all jobs using the existing getJobs function
     const jobs = await getJobs();
@@ -109,7 +192,7 @@ async function loadGoogleFontData(
   fontFamily: string,
   text: string
 ): Promise<ArrayBuffer | null> {
-  const fontNameForUrl = fontFamily.replace(/\s/g, '+');
+  const fontNameForUrl = fontFamily.replace(WHITESPACE_REGEX, '+');
   const url = `https://fonts.googleapis.com/css2?family=${fontNameForUrl}&text=${encodeURIComponent(
     text
   )}`;
@@ -144,27 +227,27 @@ function hexToRGBA(hex: string, alpha: number): string {
   }
 
   // Remove the # if present
-  hex = hex.replace('#', '');
+  const cleanHex = hex.replace('#', '');
 
   // Parse the hex values
   let r: number, g: number, b: number;
-  if (hex.length === HEX_COLOR_SHORTHAND_LENGTH) {
+  if (cleanHex.length === HEX_COLOR_SHORTHAND_LENGTH) {
     // For shorthand hex like #ABC
-    r = Number.parseInt(hex[0] + hex[0], HEXADECIMAL_BASE);
-    g = Number.parseInt(hex[1] + hex[1], HEXADECIMAL_BASE);
-    b = Number.parseInt(hex[2] + hex[2], HEXADECIMAL_BASE);
+    r = Number.parseInt(cleanHex[0] + cleanHex[0], HEXADECIMAL_BASE);
+    g = Number.parseInt(cleanHex[1] + cleanHex[1], HEXADECIMAL_BASE);
+    b = Number.parseInt(cleanHex[2] + cleanHex[2], HEXADECIMAL_BASE);
   } else {
     // For full hex like #AABBCC
-    r = Number.parseInt(hex.substring(0, 2), HEXADECIMAL_BASE);
+    r = Number.parseInt(cleanHex.substring(0, 2), HEXADECIMAL_BASE);
     g = Number.parseInt(
-      hex.substring(HEX_COLOR_COMPONENT_LENGTH, HEX_COLOR_COMPONENT_LENGTH * 2),
+      cleanHex.substring(
+        HEX_COLOR_COMPONENT_LENGTH,
+        HEX_COLOR_COMPONENT_LENGTH * 2
+      ),
       HEXADECIMAL_BASE
     );
     b = Number.parseInt(
-      hex.substring(
-        HEX_COLOR_COMPONENT_LENGTH * 2,
-        HEX_COLOR_COMPONENT_LENGTH * 3
-      ),
+      cleanHex.substring(HEX_COLOR_COMPONENT_LENGTH * 2, HEX_COLOR_FULL_LENGTH),
       HEXADECIMAL_BASE
     );
   }
@@ -242,65 +325,22 @@ export async function GET(
   context: { params: { slug: string } }
 ): Promise<ImageResponse | Response> {
   try {
-    // Get the job slug and fetch job data
-    const params = await context.params;
-    const { slug } = params;
-
-    const job = await getJobBySlugMinimal(slug);
-    if (!job) {
-      return new Response(`Job not found: ${slug}`, { status: 404 });
+    // Validate parameters and fetch job
+    const validationResult = await validateJobAndParams(context);
+    if (validationResult instanceof Response) {
+      return validationResult;
     }
+    const { job } = validationResult;
 
-    // Continue with OG configuration using job data
-    const ogJobConfig: OGJobConfig = config.og?.jobs || {};
+    // Get OG configuration
+    const ogJobConfig = getOGConfig(job);
 
-    // Check if job OG image generation is enabled
-    if (ogJobConfig.enabled === false) {
-      return new Response('Job OG image generation is disabled in config', {
-        status: 404,
-      });
-    }
+    // Get display configuration
+    const displayConfig = getDisplayConfig(ogJobConfig);
+    const { fontFamily, backgroundColor, backgroundOpacity, backgroundImage, titleColor, companyColor } = displayConfig;
 
-    // Get config values with fallbacks
-    const fontFamily =
-      ogJobConfig.font?.family || config.font.family || 'geist';
-    const backgroundColor =
-      ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
-    const backgroundOpacity =
-      ogJobConfig.backgroundOpacity !== undefined
-        ? ogJobConfig.backgroundOpacity
-        : DEFAULT_BACKGROUND_OPACITY;
-    const backgroundImage = ogJobConfig.backgroundImage || null;
-    const titleColor =
-      ogJobConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
-    const companyColor =
-      ogJobConfig.companyColor || config.ui.heroTitleColor || '#FFFFFF';
-
-    // Gradient configuration
-    const gradientEnabled = ogJobConfig.gradient?.enabled !== false;
-    const gradientColor = ogJobConfig.gradient?.color || backgroundColor;
-    const gradientAngle =
-      ogJobConfig.gradient?.angle !== undefined
-        ? ogJobConfig.gradient.angle
-        : 0;
-    const gradientStartOpacity =
-      ogJobConfig.gradient?.startOpacity !== undefined
-        ? ogJobConfig.gradient.startOpacity
-        : 0;
-    const gradientEndOpacity =
-      ogJobConfig.gradient?.endOpacity !== undefined
-        ? ogJobConfig.gradient.endOpacity
-        : 1;
-
-    // Create gradient if enabled
-    const gradientCSS = gradientEnabled
-      ? createLinearGradient(
-          gradientColor,
-          gradientAngle,
-          gradientStartOpacity,
-          gradientEndOpacity
-        )
-      : '';
+    // Get gradient configuration
+    const { gradientCSS } = getGradientConfig(ogJobConfig, backgroundColor);
 
     // Convert background color to RGBA for the overlay
     const backgroundColorRGBA = hexToRGBA(backgroundColor, backgroundOpacity);
@@ -367,12 +407,14 @@ export async function GET(
     }
 
     // Use the font family name for CSS if loaded, otherwise fallback
-    const fontFamilyCSS =
-      fontFamilyName && imageResponseFonts.length > 0
-        ? fontFamilyName
-        : fontFamily === 'ibm-plex-serif'
-          ? 'serif'
-          : 'sans-serif';
+    let fontFamilyCSS: string;
+    if (fontFamilyName && imageResponseFonts.length > 0) {
+      fontFamilyCSS = fontFamilyName;
+    } else if (fontFamily === 'ibm-plex-serif') {
+      fontFamilyCSS = 'serif';
+    } else {
+      fontFamilyCSS = 'sans-serif';
+    }
 
     // --- Background Image Handling ---
     let bgImageDataUri = '';
@@ -414,6 +456,8 @@ export async function GET(
           <img
             alt="Background"
             src={bgImageDataUri}
+            width={SHARED_STYLES.DIMENSIONS.WIDTH}
+            height={SHARED_STYLES.DIMENSIONS.HEIGHT}
             style={{
               position: 'absolute',
               top: 0,
@@ -473,6 +517,8 @@ export async function GET(
             <img
               alt={`${config.title} Logo`}
               src={logoDataUri}
+              width={typeof logoWidth === 'number' ? logoWidth : DEFAULT_LOGO_WIDTH}
+              height={typeof logoHeight === 'number' ? logoHeight : DEFAULT_LOGO_HEIGHT}
               style={{
                 height:
                   typeof logoHeight === 'number'

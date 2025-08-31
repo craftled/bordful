@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import config from '@/config';
+import { SORT_TRIGGER_WIDTH, SORT_TRIGGER_WIDTH_SM } from '@/lib/constants/defaults';
 import { useSortOrder } from '@/lib/hooks/useSortOrder';
 
 type SortOption = 'newest' | 'oldest' | 'salary';
@@ -38,7 +39,7 @@ export function SortOrderSelect() {
   const labelText = config.jobListings?.labels?.sortOrder?.text || 'Sort by:';
 
   // Adjust width based on whether label is shown
-  const triggerWidth = 'w-[130px] sm:w-[110px]';
+  const triggerWidth = `w-[${SORT_TRIGGER_WIDTH}px] sm:w-[${SORT_TRIGGER_WIDTH_SM}px]`;
 
   return (
     <div className="flex items-center gap-2">

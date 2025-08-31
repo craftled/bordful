@@ -1,3 +1,10 @@
+import {
+  SECONDS_PER_MINUTE,
+  SECONDS_PER_HOUR,
+  SECONDS_PER_DAY,
+  SECONDS_PER_MONTH,
+} from '@/lib/constants/defaults';
+
 export function formatDate(dateString: string | null | undefined) {
   // Handle null, undefined, or empty date strings
   if (!dateString) {
@@ -26,16 +33,16 @@ export function formatDate(dateString: string | null | undefined) {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   let relativeTime;
-  if (diffInSeconds < 60) {
+  if (diffInSeconds < SECONDS_PER_MINUTE) {
     relativeTime = 'just now';
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
+  } else if (diffInSeconds < SECONDS_PER_HOUR) {
+    const minutes = Math.floor(diffInSeconds / SECONDS_PER_MINUTE);
     relativeTime = `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
-  } else if (diffInSeconds < 86_400) {
-    const hours = Math.floor(diffInSeconds / 3600);
+  } else if (diffInSeconds < SECONDS_PER_DAY) {
+    const hours = Math.floor(diffInSeconds / SECONDS_PER_HOUR);
     relativeTime = `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-  } else if (diffInSeconds < 2_592_000) {
-    const days = Math.floor(diffInSeconds / 86_400);
+  } else if (diffInSeconds < SECONDS_PER_MONTH) {
+    const days = Math.floor(diffInSeconds / SECONDS_PER_DAY);
     relativeTime = `${days} ${days === 1 ? 'day' : 'days'} ago`;
   } else {
     relativeTime = fullDate;

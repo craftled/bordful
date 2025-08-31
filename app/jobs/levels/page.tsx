@@ -51,11 +51,11 @@ export default async function CareerLevelsPage() {
   // Aggregate job counts by career level
   const levelCounts = jobs.reduce<Partial<Record<CareerLevel, number>>>(
     (acc, job) => {
-      job.career_level.forEach((level) => {
+      for (const level of job.career_level) {
         if (level !== 'NotSpecified') {
           acc[level] = (acc[level] || 0) + 1;
         }
-      });
+      }
       return acc;
     },
     {}

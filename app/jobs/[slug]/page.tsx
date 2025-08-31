@@ -16,6 +16,7 @@ import { resolveColor } from '@/lib/utils/colors';
 import { formatDate } from '@/lib/utils/formatDate';
 import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
 import { generateJobSlug } from '@/lib/utils/slugify';
+import { PARENTHESIS_CONTENT_REGEX } from '@/lib/constants/defaults';
 
 // Generate static params for all active jobs
 export async function generateStaticParams() {
@@ -109,7 +110,7 @@ export async function generateMetadata({
   const parts = [];
 
   // First part - company, job type and title (removing parentheses if present in the title)
-  const cleanTitle = job.title.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+  const cleanTitle = job.title.replace(PARENTHESIS_CONTENT_REGEX, ' ').trim();
 
   // Base description
   let baseDescription = `${job.company} is hiring ${

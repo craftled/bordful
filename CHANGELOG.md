@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.58] - 2025-08-31
+
+### Fixed
+- Added explicit width/height attributes to all `<img>` elements for better Core Web Vitals
+- Converted `forEach` loops to `for...of` loops for improved performance
+- Resolved all type safety issues from previous phases
+- Fixed build warnings related to config file loading
+
+### Changed
+- Enhanced image performance by preventing layout shifts with explicit dimensions
+- Improved array iteration performance with modern loop constructs
+- Optimized static generation with 49/49 pages successfully generated
+
 ## [0.1.57] - 2025-08-30
 
 ### Changed

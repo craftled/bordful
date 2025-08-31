@@ -8,14 +8,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import config from '@/config';
+import {
+  DEFAULT_PER_PAGE,
+  PER_PAGE_OPTIONS,
+  TRIGGER_WIDTH_SM,
+  TRIGGER_WIDTH_MD,
+  TRIGGER_HEIGHT,
+  MIN_WIDTH_SELECT
+} from '@/lib/constants/defaults';
 import { usePagination } from '@/lib/hooks/usePagination';
 
 export function JobsPerPageSelect() {
   const { perPage, setPerPage } = usePagination();
-  const defaultPerPage = config.jobListings?.defaultPerPage || 10;
+  const defaultPerPage = config.jobListings?.defaultPerPage || DEFAULT_PER_PAGE;
 
   // Options for per page
-  const perPageOptions = [5, 10, 25, 50, 100];
+  const perPageOptions = PER_PAGE_OPTIONS;
 
   // Get label configuration with fallbacks
   const showLabel = config.jobListings?.labels?.perPage?.show ?? true;
@@ -28,7 +36,7 @@ export function JobsPerPageSelect() {
     : defaultPerPage;
 
   // Adjust width based on whether label is shown
-  const triggerWidth = 'w-[80px] sm:w-[90px]';
+  const triggerWidth = `w-[${TRIGGER_WIDTH_SM}px] sm:w-[${TRIGGER_WIDTH_MD}px]`;
 
   return (
     <div className="flex items-center gap-2">
@@ -50,7 +58,7 @@ export function JobsPerPageSelect() {
       >
         <SelectTrigger
           aria-label="Select number of jobs to display per page"
-          className={`${triggerWidth} h-7 text-xs`}
+          className={`${triggerWidth} h-${TRIGGER_HEIGHT} text-xs`}
           id="per-page-trigger"
         >
           <SelectValue
@@ -59,7 +67,7 @@ export function JobsPerPageSelect() {
         </SelectTrigger>
         <SelectContent
           aria-label="Jobs per page options"
-          className="min-w-[90px] bg-white"
+          className={`min-w-[${MIN_WIDTH_SELECT}px] bg-white`}
           position="popper"
         >
           {perPageOptions.map((option) => (

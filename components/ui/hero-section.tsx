@@ -54,8 +54,8 @@ export function HeroSection({
   const heroImageConfig = heroImage || config?.ui?.heroImage;
 
   // Create background style based on image, gradient, or solid color (in order of precedence)
-  let heroStyle = {};
-  let overlayStyle = {};
+  let heroStyle: React.CSSProperties = {};
+  let overlayStyle: React.CSSProperties = {};
   let hasOverlay = false;
 
   // Image background takes precedence over gradient and solid color

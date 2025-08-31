@@ -5,6 +5,7 @@ import { CompactJobCardList } from '@/components/jobs/CompactJobCardList';
 import { HeroSection } from '@/components/ui/hero-section';
 import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
 import config from '@/config';
+import { LATEST_JOBS_COUNT } from '@/lib/constants/defaults';
 import { getJobs } from '@/lib/db/airtable';
 
 // Add metadata for SEO
@@ -50,7 +51,7 @@ export default async function JobAlertsPage() {
 
   // Fetch the latest jobs
   const allJobs = await getJobs();
-  const latestJobs = allJobs.slice(0, 7); // Show 10 jobs
+  const latestJobs = allJobs.slice(0, LATEST_JOBS_COUNT); // Show latest jobs
 
   return (
     <main className="min-h-screen bg-background">

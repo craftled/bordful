@@ -51,7 +51,7 @@
         "postcss": "^8.5.6",
         "tailwindcss": "^3.4.17",
         "typescript": "^5.9.2",
-        "ultracite": "^5.2.14",
+        "ultracite": "^5.2.17",
       },
     },
   },
@@ -964,7 +964,7 @@
 
     "typescript": ["typescript@5.9.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A=="],
 
-    "ultracite": ["ultracite@5.2.14", "", { "dependencies": { "@clack/prompts": "^0.11.0", "deepmerge": "^4.3.1", "jsonc-parser": "^3.3.1", "nypm": "^0.6.1", "trpc-cli": "^0.10.2", "vitest": "^3.2.4", "zod": "^4.1.5" }, "bin": { "ultracite": "dist/index.js" } }, "sha512-gVisASeIzEU/7hGu28ClFKELw0CVSZhkO0WLL+B5gs7BVVDDQy3NMWcCcM4JifNa+4reWhO8OKUyScdaSCAIxQ=="],
+    "ultracite": ["ultracite@5.2.17", "", { "dependencies": { "@clack/prompts": "^0.11.0", "deepmerge": "^4.3.1", "jsonc-parser": "^3.3.1", "nypm": "^0.6.1", "trpc-cli": "^0.10.2", "vitest": "^3.2.4", "zod": "^4.1.5" }, "bin": { "ultracite": "dist/index.js" } }, "sha512-NQoChSZhY1eAcujTyz/h+dYR3XKv7b8SDNWM0HVO0zPFw9/WkjNCYqpyh8NSa4YLJYPrnDPCjiaQJvLtFMrbVw=="],
 
     "undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
 

@@ -10,6 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { PAGINATION_DELTA, LOADING_STATE_DELAY } from '@/lib/constants/defaults';
 import { usePagination } from '@/lib/hooks/usePagination';
 
 type PaginationControlProps = {
@@ -35,7 +36,7 @@ export function PaginationControl({
 
   // Calculate pagination range
   const getPaginationRange = (current: number, total: number) => {
-    const delta = 2;
+    const delta = PAGINATION_DELTA;
     const range = [];
     const rangeWithDots = [];
     let l;
@@ -52,7 +53,7 @@ export function PaginationControl({
 
     for (const i of range) {
       if (l) {
-        if (i - l === 2) {
+        if (i - l === PAGINATION_DELTA + 1) {
           rangeWithDots.push(l + 1);
         } else if (i - l !== 1) {
           rangeWithDots.push('...');
@@ -75,7 +76,7 @@ export function PaginationControl({
     setPage(newPage);
 
     // Add a small delay to show loading state
-    setTimeout(() => setIsUpdating(false), 300);
+    setTimeout(() => setIsUpdating(false), LOADING_STATE_DELAY);
   };
 
   // Ensure current page is valid

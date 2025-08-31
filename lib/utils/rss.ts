@@ -1,7 +1,7 @@
 import { Feed } from 'feed';
+import { DEFAULT_DESCRIPTION_LENGTH } from '@/lib/constants/defaults';
 import { getJobs } from '@/lib/db/airtable';
 import { generateJobSlug } from '@/lib/utils/slugify';
-import { DEFAULT_DESCRIPTION_LENGTH } from '@/lib/constants/defaults';
 
 export interface RSSFeedOptions {
   baseUrl: string;
@@ -17,7 +17,7 @@ export async function generateRSSFeed(options: RSSFeedOptions): Promise<Feed> {
     feedTitle,
     feedDescription,
     feedLink,
-    descriptionLength = DEFAULT_DESCRIPTION_LENGTH
+    descriptionLength = DEFAULT_DESCRIPTION_LENGTH,
   } = options;
 
   const feed = new Feed({

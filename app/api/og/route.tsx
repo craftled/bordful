@@ -6,8 +6,10 @@ import {
   DEFAULT_LOGO_WIDTH,
   FONT_URL_REGEX,
   HEX_COLOR_COMPONENT_LENGTH,
+  HEX_COLOR_FULL_LENGTH,
   HEX_COLOR_SHORTHAND_LENGTH,
   HEXADECIMAL_BASE,
+  WHITESPACE_REGEX,
 } from '@/lib/constants/defaults';
 
 // Specify that this route should run on Vercel's edge runtime
@@ -80,7 +82,7 @@ async function loadGoogleFontData(
   text: string
 ): Promise<ArrayBuffer | null> {
   // Replace spaces for URL compatibility
-  const fontNameForUrl = fontFamily.replace(/\s/g, '+');
+  const fontNameForUrl = fontFamily.replace(WHITESPACE_REGEX, '+');
   // Fetch CSS for the family, subset by text, WITHOUT specifying weight
   const url = `https://fonts.googleapis.com/css2?family=${fontNameForUrl}&text=${encodeURIComponent(
     text
@@ -130,14 +132,14 @@ function hexToRGBA(hex: string, alpha: number): string {
     // For full hex like #AABBCC
     r = Number.parseInt(cleanHex.substring(0, 2), HEXADECIMAL_BASE);
     g = Number.parseInt(
-      cleanHex.substring(HEX_COLOR_COMPONENT_LENGTH, HEX_COLOR_COMPONENT_LENGTH * 2),
+      cleanHex.substring(
+        HEX_COLOR_COMPONENT_LENGTH,
+        HEX_COLOR_COMPONENT_LENGTH * 2
+      ),
       HEXADECIMAL_BASE
     );
     b = Number.parseInt(
-      cleanHex.substring(
-        HEX_COLOR_COMPONENT_LENGTH * 2,
-        HEX_COLOR_COMPONENT_LENGTH * 3
-      ),
+      cleanHex.substring(HEX_COLOR_COMPONENT_LENGTH * 2, HEX_COLOR_FULL_LENGTH),
       HEXADECIMAL_BASE
     );
   }
@@ -366,6 +368,8 @@ export async function GET(): Promise<ImageResponse | Response> {
           <img
             alt="Background"
             src={bgImageDataUri}
+            width={SHARED_STYLES.DIMENSIONS.WIDTH}
+            height={SHARED_STYLES.DIMENSIONS.HEIGHT}
             style={{
               position: 'absolute',
               top: 0,
@@ -425,6 +429,8 @@ export async function GET(): Promise<ImageResponse | Response> {
             <img
               alt={`${config.title} Logo`}
               src={logoDataUri}
+              width={typeof logoWidth === 'number' ? logoWidth : DEFAULT_LOGO_WIDTH}
+              height={typeof logoHeight === 'number' ? logoHeight : DEFAULT_LOGO_HEIGHT}
               style={{
                 height:
                   typeof logoHeight === 'number'

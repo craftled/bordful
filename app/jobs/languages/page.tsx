@@ -52,9 +52,9 @@ export default async function LanguagesPage() {
   const languageCounts = jobs.reduce<Record<LanguageCode, number>>(
     (acc, job) => {
       if (job.languages) {
-        job.languages.forEach((langCode) => {
+        for (const langCode of job.languages) {
           acc[langCode] = (acc[langCode] || 0) + 1;
-        });
+        }
       }
       return acc;
     },

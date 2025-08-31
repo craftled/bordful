@@ -41,7 +41,7 @@ export async function GET() {
     const descriptionLength =
       config.rssFeed?.descriptionLength || DEFAULT_DESCRIPTION_LENGTH;
 
-    jobs.forEach((job) => {
+    for (const job of jobs) {
       // Only include active jobs
       if (job.status === 'active') {
         const jobSlug = generateJobSlug(job.title, job.company);
@@ -107,7 +107,7 @@ ${job.description.substring(0, descriptionLength)}...
           ],
         });
       }
-    });
+    }
 
     // Return the feed as RSS XML with proper headers
     return new Response(feed.rss2(), {
