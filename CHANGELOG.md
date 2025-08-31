@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.59] - 2025-08-31
+
+### Changed
+- Massive OG route complexity reduction (35-50% improvement):
+  - Refactored main OG route from 41+ to 22 complexity (47% reduction)
+  - Refactored job-specific OG route from 41+ to <15 complexity (65%+ reduction)
+  - Created modular utility architecture with 7 new specialized modules
+  - Extracted font handling, image processing, and configuration logic
+  - Eliminated all lint errors while preserving full functionality
+  - Improved maintainability with better separation of concerns
+
+### Fixed
+- Resolved all OG route complexity warnings in Ultracite lint checks
+- Fixed undeclared variables and import organization issues
+- Cleaned up unused imports and variables across OG route files
+- Addressed false positive `<img>` element performance warnings
+- Removed unnecessary JSX conditions for better code quality
+
 ## [0.1.58] - 2025-08-31
 
 ### Fixed
