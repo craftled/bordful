@@ -26,9 +26,9 @@ type MinimalJob = {
 };
 
 // Helper function to validate parameters and fetch job
-async function validateJobAndParams(
-  context: { params: { slug: string } }
-): Promise<{ job: MinimalJob } | Response> {
+async function validateJobAndParams(context: {
+  params: { slug: string };
+}): Promise<{ job: MinimalJob } | Response> {
   try {
     const params = await context.params;
     const { slug } = params;
@@ -59,13 +59,17 @@ function getOGConfig(_job: MinimalJob): OGJobConfig {
 // Helper function to get display configuration
 function getDisplayConfig(ogJobConfig: OGJobConfig) {
   const fontFamily = ogJobConfig.font?.family || config.font.family || 'geist';
-  const backgroundColor = ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
-  const backgroundOpacity = ogJobConfig.backgroundOpacity !== undefined
-    ? ogJobConfig.backgroundOpacity
-    : DEFAULT_BACKGROUND_OPACITY;
+  const backgroundColor =
+    ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
+  const backgroundOpacity =
+    ogJobConfig.backgroundOpacity !== undefined
+      ? ogJobConfig.backgroundOpacity
+      : DEFAULT_BACKGROUND_OPACITY;
   const backgroundImage = ogJobConfig.backgroundImage || null;
-  const titleColor = ogJobConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
-  const companyColor = ogJobConfig.companyColor || config.ui.heroTitleColor || '#FFFFFF';
+  const titleColor =
+    ogJobConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
+  const companyColor =
+    ogJobConfig.companyColor || config.ui.heroTitleColor || '#FFFFFF';
 
   return {
     fontFamily,
@@ -81,18 +85,24 @@ function getDisplayConfig(ogJobConfig: OGJobConfig) {
 function getGradientConfig(ogJobConfig: OGJobConfig, backgroundColor: string) {
   const gradientEnabled = ogJobConfig.gradient?.enabled !== false;
   const gradientColor = ogJobConfig.gradient?.color || backgroundColor;
-  const gradientAngle = ogJobConfig.gradient?.angle !== undefined
-    ? ogJobConfig.gradient.angle
-    : 0;
-  const gradientStartOpacity = ogJobConfig.gradient?.startOpacity !== undefined
-    ? ogJobConfig.gradient.startOpacity
-    : 0;
-  const gradientEndOpacity = ogJobConfig.gradient?.endOpacity !== undefined
-    ? ogJobConfig.gradient.endOpacity
-    : 1;
+  const gradientAngle =
+    ogJobConfig.gradient?.angle !== undefined ? ogJobConfig.gradient.angle : 0;
+  const gradientStartOpacity =
+    ogJobConfig.gradient?.startOpacity !== undefined
+      ? ogJobConfig.gradient.startOpacity
+      : 0;
+  const gradientEndOpacity =
+    ogJobConfig.gradient?.endOpacity !== undefined
+      ? ogJobConfig.gradient.endOpacity
+      : 1;
 
   const gradientCSS = gradientEnabled
-    ? createLinearGradient(gradientColor, gradientAngle, gradientStartOpacity, gradientEndOpacity)
+    ? createLinearGradient(
+        gradientColor,
+        gradientAngle,
+        gradientStartOpacity,
+        gradientEndOpacity
+      )
     : '';
 
   return { gradientCSS };
@@ -337,7 +347,14 @@ export async function GET(
 
     // Get display configuration
     const displayConfig = getDisplayConfig(ogJobConfig);
-    const { fontFamily, backgroundColor, backgroundOpacity, backgroundImage, titleColor, companyColor } = displayConfig;
+    const {
+      fontFamily,
+      backgroundColor,
+      backgroundOpacity,
+      backgroundImage,
+      titleColor,
+      companyColor,
+    } = displayConfig;
 
     // Get gradient configuration
     const { gradientCSS } = getGradientConfig(ogJobConfig, backgroundColor);
@@ -455,9 +472,8 @@ export async function GET(
         {bgImageDataUri && (
           <img
             alt="Background"
-            src={bgImageDataUri}
-            width={SHARED_STYLES.DIMENSIONS.WIDTH}
             height={SHARED_STYLES.DIMENSIONS.HEIGHT}
+            src={bgImageDataUri}
             style={{
               position: 'absolute',
               top: 0,
@@ -466,6 +482,7 @@ export async function GET(
               height: '100%',
               objectFit: 'cover',
             }}
+            width={SHARED_STYLES.DIMENSIONS.WIDTH}
           />
         )}
 
@@ -516,9 +533,12 @@ export async function GET(
           {logoDataUri && (
             <img
               alt={`${config.title} Logo`}
+              height={
+                typeof logoHeight === 'number'
+                  ? logoHeight
+                  : DEFAULT_LOGO_HEIGHT
+              }
               src={logoDataUri}
-              width={typeof logoWidth === 'number' ? logoWidth : DEFAULT_LOGO_WIDTH}
-              height={typeof logoHeight === 'number' ? logoHeight : DEFAULT_LOGO_HEIGHT}
               style={{
                 height:
                   typeof logoHeight === 'number'
@@ -528,6 +548,9 @@ export async function GET(
                   typeof logoWidth === 'number' ? `${logoWidth}px` : logoWidth,
                 objectFit: 'contain',
               }}
+              width={
+                typeof logoWidth === 'number' ? logoWidth : DEFAULT_LOGO_WIDTH
+              }
             />
           )}
 

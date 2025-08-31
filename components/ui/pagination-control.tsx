@@ -10,7 +10,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { PAGINATION_DELTA, LOADING_STATE_DELAY } from '@/lib/constants/defaults';
+import {
+  LOADING_STATE_DELAY,
+  PAGINATION_DELTA,
+} from '@/lib/constants/defaults';
 import { usePagination } from '@/lib/hooks/usePagination';
 
 type PaginationControlProps = {

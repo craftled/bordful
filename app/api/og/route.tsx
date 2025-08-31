@@ -367,9 +367,8 @@ export async function GET(): Promise<ImageResponse | Response> {
         {bgImageDataUri && (
           <img
             alt="Background"
-            src={bgImageDataUri}
-            width={SHARED_STYLES.DIMENSIONS.WIDTH}
             height={SHARED_STYLES.DIMENSIONS.HEIGHT}
+            src={bgImageDataUri}
             style={{
               position: 'absolute',
               top: 0,
@@ -378,6 +377,7 @@ export async function GET(): Promise<ImageResponse | Response> {
               height: '100%',
               objectFit: 'cover',
             }}
+            width={SHARED_STYLES.DIMENSIONS.WIDTH}
           />
         )}
 
@@ -428,9 +428,12 @@ export async function GET(): Promise<ImageResponse | Response> {
           {logoDataUri && (
             <img
               alt={`${config.title} Logo`}
+              height={
+                typeof logoHeight === 'number'
+                  ? logoHeight
+                  : DEFAULT_LOGO_HEIGHT
+              }
               src={logoDataUri}
-              width={typeof logoWidth === 'number' ? logoWidth : DEFAULT_LOGO_WIDTH}
-              height={typeof logoHeight === 'number' ? logoHeight : DEFAULT_LOGO_HEIGHT}
               style={{
                 height:
                   typeof logoHeight === 'number'
@@ -440,6 +443,9 @@ export async function GET(): Promise<ImageResponse | Response> {
                   typeof logoWidth === 'number' ? `${logoWidth}px` : logoWidth,
                 objectFit: 'contain',
               }}
+              width={
+                typeof logoWidth === 'number' ? logoWidth : DEFAULT_LOGO_WIDTH
+              }
             />
           )}
 

@@ -8,7 +8,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import config from '@/config';
-import { SORT_TRIGGER_WIDTH, SORT_TRIGGER_WIDTH_SM } from '@/lib/constants/defaults';
+import {
+  SORT_TRIGGER_WIDTH,
+  SORT_TRIGGER_WIDTH_SM,
+} from '@/lib/constants/defaults';
 import { useSortOrder } from '@/lib/hooks/useSortOrder';
 
 type SortOption = 'newest' | 'oldest' | 'salary';

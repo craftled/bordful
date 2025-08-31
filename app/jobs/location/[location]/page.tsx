@@ -16,7 +16,7 @@ type Props = {
   };
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export function generateMetadata({ params }: Props): Metadata {
   const locationSlug = decodeURIComponent(params.location).toLowerCase();
 
   // Handle remote case

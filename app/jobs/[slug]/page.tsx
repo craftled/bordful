@@ -11,12 +11,12 @@ import { JobSchema } from '@/components/ui/job-schema';
 import { PostJobBanner } from '@/components/ui/post-job-banner';
 import { SimilarJobs } from '@/components/ui/similar-jobs';
 import config from '@/config';
+import { PARENTHESIS_CONTENT_REGEX } from '@/lib/constants/defaults';
 import { formatSalary, getJobs } from '@/lib/db/airtable';
 import { resolveColor } from '@/lib/utils/colors';
 import { formatDate } from '@/lib/utils/formatDate';
 import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
 import { generateJobSlug } from '@/lib/utils/slugify';
-import { PARENTHESIS_CONTENT_REGEX } from '@/lib/constants/defaults';
 
 // Generate static params for all active jobs
 export async function generateStaticParams() {

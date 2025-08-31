@@ -1,20 +1,20 @@
-import React, { forwardRef } from 'react';
+import type React from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
-const Card = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    className={cn(
-      'rounded-xl border bg-card text-card-foreground shadow',
-      className
-    )}
-    ref={ref}
-    {...props}
-  />
-));
+const Card = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      className={cn(
+        'rounded-xl border bg-card text-card-foreground shadow',
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+);
 Card.displayName = 'Card';
 
 const CardHeader = forwardRef<

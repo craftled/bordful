@@ -10,11 +10,11 @@ import {
 import config from '@/config';
 import {
   DEFAULT_PER_PAGE,
+  MIN_WIDTH_SELECT,
   PER_PAGE_OPTIONS,
-  TRIGGER_WIDTH_SM,
-  TRIGGER_WIDTH_MD,
   TRIGGER_HEIGHT,
-  MIN_WIDTH_SELECT
+  TRIGGER_WIDTH_MD,
+  TRIGGER_WIDTH_SM,
 } from '@/lib/constants/defaults';
 import { usePagination } from '@/lib/hooks/usePagination';
 

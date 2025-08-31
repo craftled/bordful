@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
-import React, { forwardRef } from 'react';
+import type React from 'react';
+import { forwardRef } from 'react';
 import { type ButtonProps, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -24,12 +25,11 @@ const PaginationContent = forwardRef<
 ));
 PaginationContent.displayName = 'PaginationContent';
 
-const PaginationItem = forwardRef<
-  HTMLLIElement,
-  React.ComponentProps<'li'>
->(({ className, ...props }, ref) => (
-  <li className={cn('', className)} ref={ref} {...props} />
-));
+const PaginationItem = forwardRef<HTMLLIElement, React.ComponentProps<'li'>>(
+  ({ className, ...props }, ref) => (
+    <li className={cn('', className)} ref={ref} {...props} />
+  )
+);
 PaginationItem.displayName = 'PaginationItem';
 
 type PaginationLinkProps = {

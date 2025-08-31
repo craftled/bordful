@@ -1,7 +1,7 @@
 import {
-  SECONDS_PER_MINUTE,
-  SECONDS_PER_HOUR,
   SECONDS_PER_DAY,
+  SECONDS_PER_HOUR,
+  SECONDS_PER_MINUTE,
   SECONDS_PER_MONTH,
 } from '@/lib/constants/defaults';
 
