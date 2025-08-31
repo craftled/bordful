@@ -173,10 +173,8 @@ export async function createOGImageResponse(
       )
 }
 
-{
-  /* Background Color Overlay */
-}
-<div
+      {/* Background Color Overlay */}
+      <div
         style={{
           position: 'absolute',
           top: 0,
@@ -184,15 +182,11 @@ export async function createOGImageResponse(
           width: '100%',
           height: '100%',
           backgroundColor: backgroundColorRGBA,
-        }
-}
+        }}
       />
 
-{
-  /* Gradient Overlay */
-}
-{
-  parsedConfig.gradientEnabled && (
+      {/* Gradient Overlay */}
+      {parsedConfig.gradientEnabled && (
         <div
           style={{
             position: 'absolute',
@@ -201,15 +195,12 @@ export async function createOGImageResponse(
             width: '100%',
             height: '100%',
             background: gradientCSS,
-          }
-}
-/>;
-)}
+          }}
+        />
+      )}
 
-{
-  /* Content Container */
-}
-<div
+      {/* Content Container */}
+      <div
         style={{
           position: 'relative',
           width: '100%',
@@ -223,20 +214,17 @@ export async function createOGImageResponse(
           textAlign: 'left',
           padding: `${SHARED_STYLES.DIMENSIONS.PADDING}px`,
           zIndex: SHARED_STYLES.Z_INDEX.CONTENT,
-        }
-}
+        }}
       >
-{
-  /* Logo Image */
-}
-{Boolean(logoConfig.dataUri) && (
+        {/* Logo Image */}
+        {Boolean(logoConfig.dataUri) && (
           <img
             alt={`${config.title} Logo`}
             height={logoConfig.height}
             src={logoConfig.dataUri}
             style={{
-              height: `$logoConfig.heightpx`,
-              width: `$logoConfig.widthpx`,
+              height: `${logoConfig.height}px`,
+              width: `${logoConfig.width}px`,
               objectFit: 'contain',
             }}
             width={logoConfig.width}
@@ -253,23 +241,23 @@ export async function createOGImageResponse(
         >
           <h1
             style={{
-              fontSize: `$SHARED_STYLES.FONTS.TITLE_SIZEpx`,
+              fontSize: `${SHARED_STYLES.FONTS.TITLE_SIZE}px`,
               fontWeight: SHARED_STYLES.FONTS.TITLE_WEIGHT,
               color: parsedConfig.titleColor,
               margin: '0 0 20px 0',
               lineHeight: SHARED_STYLES.FONTS.TITLE_LINE_HEIGHT,
               textAlign: 'left',
-              maxWidth: `$SHARED_STYLES.DIMENSIONS.CONTENT_WIDTHpx`,
+              maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
             }}
           >
             {parsedConfig.siteTitle}
           </h1>
           <p
             style={{
-              fontSize: `$SHARED_STYLES.FONTS.DESCRIPTION_SIZEpx`,
+              fontSize: `${SHARED_STYLES.FONTS.DESCRIPTION_SIZE}px`,
               fontWeight: SHARED_STYLES.FONTS.DESCRIPTION_WEIGHT,
               color: parsedConfig.descriptionColor,
-              maxWidth: `$SHARED_STYLES.DIMENSIONS.CONTENT_WIDTHpx`,
+              maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
               margin: 0,
               lineHeight: SHARED_STYLES.FONTS.DESCRIPTION_LINE_HEIGHT,
               textAlign: 'left',

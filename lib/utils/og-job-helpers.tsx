@@ -134,13 +134,10 @@ export async function createJobOGImageResponse(
           }}
           width={SHARED_STYLES.DIMENSIONS.WIDTH}
         />
-      )
-}
+      )}
 
-{
-  /* Background Color Overlay */
-}
-<div
+      {/* Background Color Overlay */}
+      <div
         style={{
           position: 'absolute',
           top: 0,
@@ -148,15 +145,11 @@ export async function createJobOGImageResponse(
           width: '100%',
           height: '100%',
           backgroundColor: backgroundColorRGBA,
-        }
-}
+        }}
       />
 
-{
-  /* Gradient Overlay */
-}
-{
-  config.gradientEnabled && (
+      {/* Gradient Overlay */}
+      {config.gradientEnabled && (
         <div
           style={{
             position: 'absolute',
@@ -165,15 +158,12 @@ export async function createJobOGImageResponse(
             width: '100%',
             height: '100%',
             background: gradientCSS,
-          }
-}
-/>;
-)}
+          }}
+        />
+      )}
 
-{
-  /* Content Container */
-}
-<div
+      {/* Content Container */}
+      <div
         style={{
           position: 'relative',
           width: '100%',
@@ -187,13 +177,10 @@ export async function createJobOGImageResponse(
           textAlign: 'left',
           padding: `${SHARED_STYLES.DIMENSIONS.PADDING}px`,
           zIndex: SHARED_STYLES.Z_INDEX.CONTENT,
-        }
-}
+        }}
       >
-{
-  /* Logo Image */
-}
-{Boolean(logoDataUri) && (
+        {/* Logo Image */}
+        {Boolean(logoDataUri) && (
           <img
             alt={`${config.siteTitle} Logo`}
             height={100}
@@ -217,36 +204,36 @@ export async function createJobOGImageResponse(
         >
           <h1
             style={{
-              fontSize: `$SHARED_STYLES.FONTS.TITLE_SIZEpx`,
+              fontSize: `${SHARED_STYLES.FONTS.TITLE_SIZE}px`,
               fontWeight: SHARED_STYLES.FONTS.TITLE_WEIGHT,
               color: config.titleColor,
               margin: '0 0 10px 0',
               lineHeight: SHARED_STYLES.FONTS.TITLE_LINE_HEIGHT,
               textAlign: 'left',
-              maxWidth: `$SHARED_STYLES.DIMENSIONS.CONTENT_WIDTHpx`,
+              maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
             }}
           >
             {config.jobTitle}
           </h1>
           <p
             style={{
-              fontSize: `$SHARED_STYLES.FONTS.DESCRIPTION_SIZEpx`,
+              fontSize: `${SHARED_STYLES.FONTS.DESCRIPTION_SIZE}px`,
               fontWeight: SHARED_STYLES.FONTS.DESCRIPTION_WEIGHT,
               color: config.titleColor,
               margin: '0 0 20px 0',
               lineHeight: SHARED_STYLES.FONTS.DESCRIPTION_LINE_HEIGHT,
               textAlign: 'left',
-              maxWidth: `$SHARED_STYLES.DIMENSIONS.CONTENT_WIDTHpx`,
+              maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
             }}
           >
             at {config.companyName}
           </p>
           <p
             style={{
-              fontSize: `$SHARED_STYLES.FONTS.DESCRIPTION_SIZEpx`,
+              fontSize: `${SHARED_STYLES.FONTS.DESCRIPTION_SIZE}px`,
               fontWeight: SHARED_STYLES.FONTS.DESCRIPTION_WEIGHT,
               color: config.descriptionColor,
-              maxWidth: `$SHARED_STYLES.DIMENSIONS.CONTENT_WIDTHpx`,
+              maxWidth: `${SHARED_STYLES.DIMENSIONS.CONTENT_WIDTH}px`,
               margin: 0,
               lineHeight: SHARED_STYLES.FONTS.DESCRIPTION_LINE_HEIGHT,
               textAlign: 'left',
