@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const bodyClass = getBodyClass(fontFamily);
 
   // Determine which font variable classes to include
-  const fontClasses = [];
+  const fontClasses: string[] = [];
   // Always add the selected font class first for CSS specificity
   fontClasses.push(fontClass);
   // Then add the other fonts
@@ -106,9 +106,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           type="application/feed+json"
         />
 
-        {siteConfig.scripts.head.map((script: CustomScript, index: number) => (
+        {siteConfig.scripts.head.map((script: CustomScript) => (
           <Script
-            key={`head-script-${index}`}
+            key={`head-script-${script.src || 'inline'}`}
             src={script.src}
             strategy={script.strategy}
             {...script.attributes}
@@ -124,9 +124,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Footer />
         </div>
         <Toaster />
-        {siteConfig.scripts.body.map((script: CustomScript, index: number) => (
+        {siteConfig.scripts.body.map((script: CustomScript) => (
           <Script
-            key={`body-script-${index}`}
+            key={`body-script-${script.src || 'inline'}`}
             src={script.src}
             strategy={script.strategy}
             {...script.attributes}

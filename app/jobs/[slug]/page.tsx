@@ -18,6 +18,12 @@ import { formatDate } from '@/lib/utils/formatDate';
 import { generateMetadata as createMetadata } from '@/lib/utils/metadata';
 import { generateJobSlug } from '@/lib/utils/slugify';
 
+// Constants for checkbox text extraction
+const CHECKBOX_MARKER_LENGTH = 4;
+
+// Regex constants for performance
+const FINAL_WORD_REGEX = /(\w)$/;
+
 // Generate static params for all active jobs
 export async function generateStaticParams() {
   const jobs = await getJobs();
@@ -107,7 +113,7 @@ export async function generateMetadata({
   })();
 
   // Build description parts dynamically
-  const parts = [];
+  const parts: string[] = [];
 
   // First part - company, job type and title (removing parentheses if present in the title)
   const cleanTitle = job.title.replace(PARENTHESIS_CONTENT_REGEX, ' ').trim();
@@ -150,7 +156,7 @@ export async function generateMetadata({
     // Fix any double periods
     .replace(/\.\./g, '.')
     // Ensure there's a period at the end
-    .replace(/(\w)$/, '$1.');
+    .replace(FINAL_WORD_REGEX, '$1.');
 
   return createMetadata({
     title: `${job.title} at ${job.company}`,
@@ -198,22 +204,25 @@ export default async function JobPostPage({
     job.salary && (job.salary.min !== null || job.salary.max !== null);
 
   // Format location based on workplace type
-  const location =
-    job.workplace_type === 'Remote'
-      ? job.remote_region
-        ? `Remote (${job.remote_region})`
-        : null
-      : job.workplace_type === 'Hybrid'
-        ? [
-            job.workplace_city,
-            job.workplace_country,
-            job.remote_region ? `Hybrid (${job.remote_region})` : null,
-          ]
-            .filter(Boolean)
-            .join(', ') || null
-        : [job.workplace_city, job.workplace_country]
-            .filter(Boolean)
-            .join(', ') || null;
+  let location: string | null = null;
+
+  if (job.workplace_type === 'Remote') {
+    location = job.remote_region ? `Remote (${job.remote_region})` : null;
+  } else if (job.workplace_type === 'Hybrid') {
+    const hybridParts = [
+      job.workplace_city,
+      job.workplace_country,
+      job.remote_region ? `Hybrid (${job.remote_region})` : null,
+    ].filter(Boolean);
+
+    location = hybridParts.length > 0 ? hybridParts.join(', ') : null;
+  } else {
+    // On-site or other types
+    const onsiteParts = [job.workplace_city, job.workplace_country].filter(
+      Boolean
+    );
+    location = onsiteParts.length > 0 ? onsiteParts.join(', ') : null;
+  }
 
   return (
     <main className="container py-6">
@@ -298,14 +307,18 @@ export default async function JobPostPage({
                     <h4 className="mb-2 font-semibold text-base" {...props} />
                   ),
                   // Style links
-                  a: ({ ...props }) => (
-                    <a
-                      className="text-blue-600 hover:text-blue-800"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                      {...props}
-                    />
-                  ),
+                  a: ({ href, ...props }) =>
+                    href ? (
+                      <a
+                        className="text-blue-600 hover:text-blue-800"
+                        href={href}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        {...props}
+                      />
+                    ) : (
+                      <span className="text-blue-600" {...props} />
+                    ),
                   // Style lists with better nesting support
                   ul: ({ className, ...props }) => {
                     // Always indent top-level lists; nested lists get natural browser indent
@@ -365,7 +378,7 @@ export default async function JobPostPage({
                         children.startsWith('[ ] '))
                     ) {
                       const checkedBox = children.startsWith('[x] ');
-                      const text = children.substring(4);
+                      const text = children.substring(CHECKBOX_MARKER_LENGTH);
                       return (
                         <li className="my-1 flex items-start gap-2" {...props}>
                           <input

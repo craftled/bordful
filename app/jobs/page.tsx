@@ -29,6 +29,12 @@ import { getJobs } from '@/lib/db/airtable';
 import { resolveColor } from '@/lib/utils/colors';
 import { generateMetadata } from '@/lib/utils/metadata';
 
+// Constants for display limits
+const MAX_CATEGORIES_DISPLAY = 12;
+const MAX_JOB_TYPES_DISPLAY = 6;
+const MAX_COUNTRIES_DISPLAY = 5;
+const MAX_CAREER_LEVELS_DISPLAY = 6;
+
 // Generate metadata for SEO
 export const metadata: Metadata = generateMetadata({
   title: `Browse All Job Categories | ${config.title}`,
@@ -108,11 +114,11 @@ export default async function JobsDirectoryPage() {
       }
 
       // Count by career level (skip NotSpecified)
-      job.career_level.forEach((level) => {
+      for (const level of job.career_level) {
         if (level !== 'NotSpecified') {
           acc.careerLevels[level] = (acc.careerLevels[level] || 0) + 1;
         }
-      });
+      }
 
       // Count by location
       if (job.workplace_country) {
@@ -130,9 +136,9 @@ export default async function JobsDirectoryPage() {
 
       // Count by language
       if (job.languages) {
-        job.languages.forEach((lang) => {
+        for (const lang of job.languages) {
           acc.languages[lang] = (acc.languages[lang] || 0) + 1;
-        });
+        }
       }
 
       return acc;
@@ -170,7 +176,7 @@ export default async function JobsDirectoryPage() {
       const nameB = getDisplayNameFromCode(b[0] as LanguageCode);
       return nameA.localeCompare(nameB);
     })
-    .slice(0, 12);
+    .slice(0, MAX_CATEGORIES_DISPLAY);
 
   // Generate ItemList schema for job categories
   const generateItemListSchema = () => {
@@ -260,14 +266,16 @@ export default async function JobsDirectoryPage() {
                     </h2>
                   </div>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-                    {sortedJobTypes.slice(0, 6).map(([type, count]) => (
-                      <CategoryCard
-                        count={count}
-                        href={`/jobs/type/${type.toLowerCase()}`}
-                        key={type}
-                        title={type}
-                      />
-                    ))}
+                    {sortedJobTypes
+                      .slice(0, MAX_JOB_TYPES_DISPLAY)
+                      .map(([type, count]) => (
+                        <CategoryCard
+                          count={count}
+                          href={`/jobs/type/${type.toLowerCase()}`}
+                          key={type}
+                          title={type}
+                        />
+                      ))}
                   </div>
                   <div>
                     <Button
@@ -317,7 +325,7 @@ export default async function JobsDirectoryPage() {
                     {/* Top Countries */}
                     {Object.entries(jobCounts.locations.countries)
                       .sort((a, b) => b[1] - a[1])
-                      .slice(0, 5)
+                      .slice(0, MAX_COUNTRIES_DISPLAY)
                       .map(([country, count]) => (
                         <CategoryCard
                           count={count}
@@ -366,14 +374,18 @@ export default async function JobsDirectoryPage() {
                     </h2>
                   </div>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-                    {sortedCareerLevels.slice(0, 6).map(([level, count]) => (
-                      <CategoryCard
-                        count={count}
-                        href={`/jobs/level/${level.toLowerCase()}`}
-                        key={level}
-                        title={CAREER_LEVEL_DISPLAY_NAMES[level as CareerLevel]}
-                      />
-                    ))}
+                    {sortedCareerLevels
+                      .slice(0, MAX_CAREER_LEVELS_DISPLAY)
+                      .map(([level, count]) => (
+                        <CategoryCard
+                          count={count}
+                          href={`/jobs/level/${level.toLowerCase()}`}
+                          key={level}
+                          title={
+                            CAREER_LEVEL_DISPLAY_NAMES[level as CareerLevel]
+                          }
+                        />
+                      ))}
                   </div>
                   <div>
                     <Button
