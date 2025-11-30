@@ -11,7 +11,7 @@ import { PostJobBanner } from '@/components/ui/post-job-banner';
 import { SortOrderSelect } from '@/components/ui/sort-order-select';
 import type { JobType } from '@/lib/constants/job-types';
 import type { LanguageCode } from '@/lib/constants/languages';
-import type { CareerLevel, Job } from '@/lib/db/airtable';
+import type { CareerLevel, Job } from '@/lib/db/apitable';
 import { useJobSearch } from '@/lib/hooks/useJobSearch';
 import { usePagination } from '@/lib/hooks/usePagination';
 import { useSortOrder } from '@/lib/hooks/useSortOrder';

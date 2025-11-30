@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { Job } from '@/lib/db/airtable';
+import type { Job } from '@/lib/db/apitable';
 import { generateJobSlug } from '@/lib/utils/slugify';
 
 type SimilarJobsProps = {

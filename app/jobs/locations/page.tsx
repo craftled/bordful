@@ -10,7 +10,7 @@ import {
   createLocationSlug,
   formatLocationTitle,
 } from '@/lib/constants/locations';
-import { getJobs } from '@/lib/db/airtable';
+import { getJobs } from '@/lib/db/apitable';
 import { generateMetadata } from '@/lib/utils/metadata';
 
 // Generate metadata for SEO

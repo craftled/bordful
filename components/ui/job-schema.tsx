@@ -9,7 +9,7 @@ import type {
   WithContext,
 } from 'schema-dts';
 import config from '@/config';
-import type { Job, Salary } from '@/lib/db/airtable';
+import type { Job, Salary } from '@/lib/db/apitable';
 
 // Utility functions for schema formatting
 function formatJobLocationType(job: Job): string | null {

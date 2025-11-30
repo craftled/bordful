@@ -22,7 +22,7 @@ import {
   type CareerLevel,
   type Job,
   normalizeAnnualSalary,
-} from '@/lib/db/airtable';
+} from '@/lib/db/apitable';
 
 type FilterType =
   | 'type'

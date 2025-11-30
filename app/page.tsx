@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { HomePage } from '@/components/home/HomePage';
 import config from '@/config';
-import { getJobs } from '@/lib/db/airtable';
+import { getJobs } from '@/lib/db/apitable';
 import { generateMetadata } from '@/lib/utils/metadata';
 
 // Add metadata for SEO

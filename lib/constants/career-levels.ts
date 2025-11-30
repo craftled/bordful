@@ -1,4 +1,4 @@
-import type { CareerLevel } from '@/lib/db/airtable';
+import type { CareerLevel } from '@/lib/db/apitable';
 
 export const CAREER_LEVEL_DISPLAY_NAMES: Record<CareerLevel, string> = {
   Internship: 'Internship',

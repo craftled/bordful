@@ -6,7 +6,7 @@ import { HeroSection } from '@/components/ui/hero-section';
 import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
 import config from '@/config';
 import { LATEST_JOBS_COUNT } from '@/lib/constants/defaults';
-import { getJobs } from '@/lib/db/airtable';
+import { getJobs } from '@/lib/db/apitable';
 
 // Add metadata for SEO
 export const metadata: Metadata = {

@@ -7,7 +7,7 @@
 
 import { useEffect } from 'react';
 import { JobSearchInput } from '@/components/ui/job-search-input';
-import type { Job } from '@/lib/db/airtable';
+import type { Job } from '@/lib/db/apitable';
 import { useJobSearch } from '@/lib/hooks/useJobSearch';
 import { filterJobsBySearch } from '@/lib/utils/filter-jobs';
 

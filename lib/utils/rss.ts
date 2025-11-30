@@ -1,6 +1,6 @@
 import { Feed } from 'feed';
 import { DEFAULT_DESCRIPTION_LENGTH } from '@/lib/constants/defaults';
-import { getJobs } from '@/lib/db/airtable';
+import { getJobs } from '@/lib/db/apitable';
 import { generateJobSlug } from '@/lib/utils/slugify';
 
 export type RSSFeedOptions = {

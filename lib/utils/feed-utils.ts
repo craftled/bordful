@@ -1,7 +1,7 @@
 import { Feed } from 'feed';
 import config from '@/config';
 import { DEFAULT_DESCRIPTION_LENGTH } from '@/lib/constants/defaults';
-import { formatSalary, getJobs } from '@/lib/db/airtable';
+import { formatSalary, getJobs } from '@/lib/db/apitable';
 import { generateJobSlug } from '@/lib/utils/slugify';
 
 export type FeedConfig = {

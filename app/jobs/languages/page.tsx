@@ -8,7 +8,7 @@ import {
   getDisplayNameFromCode,
   type LanguageCode,
 } from '@/lib/constants/languages';
-import { getJobs } from '@/lib/db/airtable';
+import { getJobs } from '@/lib/db/apitable';
 import { generateMetadata } from '@/lib/utils/metadata';
 
 // Generate metadata for SEO
