@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+*.md
+!README.md
+.vscode
+.idea
+dist
+coverage
+.DS_Store
+apitable
+docs

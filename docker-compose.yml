@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  # Bordful Next.js Application
+  bordful:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bordful-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Apitable Configuration
+      - APITABLE_API_URL=http://gateway/api/v1
+      - APITABLE_TOKEN=${APITABLE_TOKEN}
+      - APITABLE_DATASHEET_ID=${APITABLE_DATASHEET_ID}
+      # Application Configuration
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-encharge}
+      - ENCHARGE_WRITE_KEY=${ENCHARGE_WRITE_KEY}
+    networks:
+      - apitable_default
+    depends_on:
+      - apitable-gateway
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:3000 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Apitable Gateway (from apitable/docker-compose.yaml)
+  apitable-gateway:
+    extends:
+      file: ./apitable/docker-compose.yaml
+      service: gateway
+    container_name: apitable-gateway
+
+networks:
+  apitable_default:
+    external: true
