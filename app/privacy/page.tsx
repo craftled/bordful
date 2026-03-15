@@ -1,3 +1,4 @@
+import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
 import config from '@/config';
 import { generateMetadata } from '@/lib/utils/metadata';
 
@@ -16,6 +17,16 @@ export default function PrivacyPage() {
     <main className="container py-6">
       {/* Main content - centered */}
       <article className="mx-auto max-w-[640px]">
+        <div className="mb-6">
+          <MetadataBreadcrumb
+            items={[
+              { name: 'Home', url: '/' },
+              { name: 'Privacy & Cookies', url: '/privacy' },
+            ]}
+            metadata={metadata}
+            pathname="/privacy"
+          />
+        </div>
         <div className="mb-8">
           <div className="space-y-2">
             <h1 className="font-semibold text-2xl">Privacy & Cookies Policy</h1>

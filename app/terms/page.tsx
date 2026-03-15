@@ -1,3 +1,4 @@
+import { MetadataBreadcrumb } from '@/components/ui/metadata-breadcrumb';
 import config from '@/config';
 import { generateMetadata } from '@/lib/utils/metadata';
 
@@ -16,6 +17,16 @@ export default function TermsPage() {
     <main className="container py-6">
       {/* Main content - centered */}
       <article className="mx-auto max-w-[640px]">
+        <div className="mb-6">
+          <MetadataBreadcrumb
+            items={[
+              { name: 'Home', url: '/' },
+              { name: 'Terms of Service', url: '/terms' },
+            ]}
+            metadata={metadata}
+            pathname="/terms"
+          />
+        </div>
         <div className="mb-8">
           <div className="space-y-2">
             <h1 className="font-semibold text-2xl">Terms of Service</h1>

@@ -3,7 +3,7 @@
 import { ArrowRight, Link as LinkIcon, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
@@ -45,6 +45,11 @@ type FAQContentProps = {
   }>;
 };
 
+// Generate a stable ID for each FAQ item – pure function, no component dependencies
+const getItemId = (categoryTitle: string, question: string) => {
+  return `${slugify(categoryTitle)}-${slugify(question)}`;
+};
+
 export function FAQContent({ categories }: FAQContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,24 +57,68 @@ export function FAQContent({ categories }: FAQContentProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Generate a stable ID for each FAQ item
-  const getItemId = (categoryTitle: string, question: string) => {
-    return `${slugify(categoryTitle)}-${slugify(question)}`;
-  };
+  // Apply search – updates state only, no URL side-effect.
+  // Used by the URL-sync effect to avoid triggering a URL write during init.
+  const applySearch = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
 
-  // Get the search query from URL if it exists
+      if (!value.trim()) {
+        setExpandedItems([]);
+        return;
+      }
+
+      const matchingItems: string[] = [];
+
+      for (const category of categories) {
+        for (const item of category.items) {
+          const questionMatch = item.question
+            .toLowerCase()
+            .includes(value.toLowerCase());
+          const answerMatch = item.answer
+            .toLowerCase()
+            .includes(value.toLowerCase());
+
+          if (questionMatch || answerMatch) {
+            matchingItems.push(getItemId(category.title, item.question));
+          }
+        }
+      }
+
+      setExpandedItems(matchingItems);
+    },
+    [categories]
+  );
+
+  // Handle search triggered by user input – updates state AND the URL.
+  const handleSearch = useCallback(
+    (value: string) => {
+      applySearch(value);
+
+      if (value.trim()) {
+        router.replace(`/faq?q=${encodeURIComponent(value)}`, {
+          scroll: false,
+        });
+      } else {
+        router.replace('/faq', { scroll: false });
+      }
+    },
+    [applySearch, router]
+  );
+
+  // Sync state from URL params on mount / when search params change.
+  // Uses applySearch (no URL write) to avoid a write-then-read render loop.
   useEffect(() => {
     const query = searchParams.get('q');
     if (query) {
-      setSearchTerm(query);
-      handleSearch(query);
+      applySearch(query);
     }
 
     // Check for hash in URL for anchor links
     const hash = window.location.hash;
     if (hash) {
       const categoryId = hash.substring(1); // Remove the # character
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         const element = document.getElementById(categoryId);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
@@ -87,48 +136,10 @@ export function FAQContent({ categories }: FAQContentProps) {
           }
         }
       }, 100);
+
+      return () => clearTimeout(timerId);
     }
-    // biome-ignore lint/react-hooks/exhaustive-deps: Stable dependencies for FAQ functionality
-  }, [searchParams, categories, getItemId, handleSearch]);
-
-  // Handle search
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-
-    // If search is empty, collapse all items
-    if (!value.trim()) {
-      setExpandedItems([]);
-      return;
-    }
-
-    // Find items that match the search term
-    const matchingItems: string[] = [];
-
-    categories.forEach((category) => {
-      category.items.forEach((item) => {
-        const questionMatch = item.question
-          .toLowerCase()
-          .includes(value.toLowerCase());
-        const answerMatch = item.answer
-          .toLowerCase()
-          .includes(value.toLowerCase());
-
-        if (questionMatch || answerMatch) {
-          matchingItems.push(getItemId(category.title, item.question));
-        }
-      });
-    });
-
-    // Expand matching items
-    setExpandedItems(matchingItems);
-
-    // Update URL with search query
-    if (value.trim()) {
-      router.replace(`/faq?q=${encodeURIComponent(value)}`, { scroll: false });
-    } else {
-      router.replace('/faq', { scroll: false });
-    }
-  };
+  }, [searchParams, categories, applySearch]);
 
   // Handle keyboard navigation
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
