@@ -1,4 +1,5 @@
-import { GeistMono, GeistSans } from 'geist/font';
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 import { IBM_Plex_Serif, Inter } from 'next/font/google';
 
 // Export Geist fonts (self-hosted)
