@@ -57,40 +57,6 @@ export function FAQContent({ categories }: FAQContentProps) {
     return `${slugify(categoryTitle)}-${slugify(question)}`;
   };
 
-  // Get the search query from URL if it exists
-  useEffect(() => {
-    const query = searchParams.get('q');
-    if (query) {
-      setSearchTerm(query);
-      handleSearch(query);
-    }
-
-    // Check for hash in URL for anchor links
-    const hash = window.location.hash;
-    if (hash) {
-      const categoryId = hash.substring(1); // Remove the # character
-      setTimeout(() => {
-        const element = document.getElementById(categoryId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-
-          // Find and expand the items in this category
-          const categoryIndex = categories.findIndex(
-            (cat) => slugify(cat.title) === categoryId
-          );
-          if (categoryIndex !== -1) {
-            const category = categories[categoryIndex];
-            const itemIds = category.items.map((item) =>
-              getItemId(category.title, item.question)
-            );
-            setExpandedItems(itemIds);
-          }
-        }
-      }, 100);
-    }
-    // biome-ignore lint/react-hooks/exhaustive-deps: Stable dependencies for FAQ functionality
-  }, [searchParams, categories, getItemId, handleSearch]);
-
   // Handle search
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -129,6 +95,40 @@ export function FAQContent({ categories }: FAQContentProps) {
       router.replace('/faq', { scroll: false });
     }
   };
+
+  // Get the search query from URL if it exists
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query) {
+      setSearchTerm(query);
+      handleSearch(query);
+    }
+
+    // Check for hash in URL for anchor links
+    const hash = window.location.hash;
+    if (hash) {
+      const categoryId = hash.substring(1); // Remove the # character
+      setTimeout(() => {
+        const element = document.getElementById(categoryId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+
+          // Find and expand the items in this category
+          const categoryIndex = categories.findIndex(
+            (cat) => slugify(cat.title) === categoryId
+          );
+          if (categoryIndex !== -1) {
+            const category = categories[categoryIndex];
+            const itemIds = category.items.map((item) =>
+              getItemId(category.title, item.question)
+            );
+            setExpandedItems(itemIds);
+          }
+        }
+      }, 100);
+    }
+    // biome-ignore lint/react-hooks/exhaustive-deps: Stable dependencies for FAQ functionality
+  }, [searchParams, categories, getItemId, handleSearch]);
 
   // Handle keyboard navigation
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
