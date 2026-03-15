@@ -42,7 +42,7 @@ export async function getJobBySlugMinimal(
  * Validate job parameters and fetch job data
  */
 export async function validateJobAndParams(context: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<{ job: MinimalJob } | Response> {
   try {
     const params = await context.params;

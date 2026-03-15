@@ -21,7 +21,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(
   _request: Request,
-  context: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
     // Validate parameters and fetch job

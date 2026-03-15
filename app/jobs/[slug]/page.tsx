@@ -40,7 +40,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   // Get all jobs first and resolve params
   const [allJobs, { slug }] = await Promise.all([getJobs(), params]);
@@ -183,7 +183,7 @@ export const revalidate = 300;
 export default async function JobPostPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const [jobs, { slug }] = await Promise.all([getJobs(), params]);
   const job = jobs.find((j) => generateJobSlug(j.title, j.company) === slug);
