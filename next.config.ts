@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  headers() {
+  async headers() {
     return [
       {
         // Apply these headers to all routes

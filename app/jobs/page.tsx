@@ -1,7 +1,7 @@
 import {
   ArrowUpRight,
   Briefcase,
-  Globe2,
+  Globe,
   GraduationCap,
   Languages,
 } from 'lucide-react';
@@ -301,7 +301,7 @@ export default async function JobsDirectoryPage() {
                   className="space-y-4 sm:space-y-6"
                 >
                   <div className="flex items-center gap-2">
-                    <Globe2
+                    <Globe
                       aria-hidden="true"
                       className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
                     />

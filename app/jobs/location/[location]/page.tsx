@@ -11,13 +11,14 @@ import { getJobs } from '@/lib/db/airtable.server';
 export const revalidate = 300;
 
 type Props = {
-  params: {
+  params: Promise<{
     location: string;
-  };
+  }>;
 };
 
-export function generateMetadata({ params }: Props): Metadata {
-  const locationSlug = decodeURIComponent(params.location).toLowerCase();
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { location } = await params;
+  const locationSlug = decodeURIComponent(location).toLowerCase();
 
   // Handle remote case
   if (locationSlug === 'remote') {
@@ -47,8 +48,8 @@ export function generateMetadata({ params }: Props): Metadata {
 }
 
 export default async function JobLocationPage({ params }: Props) {
-  const jobs = await getJobs();
-  const locationSlug = decodeURIComponent(params.location).toLowerCase();
+  const [jobs, { location }] = await Promise.all([getJobs(), params]);
+  const locationSlug = decodeURIComponent(location).toLowerCase();
 
   // Handle remote jobs
   if (locationSlug === 'remote') {

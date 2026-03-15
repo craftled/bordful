@@ -1,4 +1,4 @@
-import { Globe2 } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HeroSection } from '@/components/ui/hero-section';
@@ -124,7 +124,7 @@ export default async function LocationsPage() {
           {locationCounts.remote > 0 && (
             <section className="mb-10">
               <div className="mb-4 flex items-center gap-2">
-                <Globe2
+                <Globe
                   aria-hidden="true"
                   className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
                 />
@@ -145,7 +145,7 @@ export default async function LocationsPage() {
           {/* Countries Section */}
           <section>
             <div className="mb-4 flex items-center gap-2">
-              <Globe2
+              <Globe
                 aria-hidden="true"
                 className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
               />

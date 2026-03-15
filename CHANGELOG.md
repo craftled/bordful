@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.60] - 2026-03-15
+
+### Fixed
+- Fix async params in location page to prevent Next.js 16 breakage
+- Fix params type annotations to use Promise types across dynamic routes
+- Fix deprecated Geist font import path (`geist/font` → `geist/font/sans` + `geist/font/mono`)
+- Fix deprecated `Globe2` icon renamed to `Globe` in lucide-react
+- Fix deprecated `React.ElementRef` → `React.ComponentRef` in 8 UI components
+- Fix `headers()` in next.config.ts to be async per Next.js 15 API
+- Fix job-validation params type to match async Next.js 15 API
+
 ## [0.1.59] - 2025-08-31
 
 ### Changed
