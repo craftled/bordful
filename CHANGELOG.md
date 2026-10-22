@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.61] - 2026-10-23
+
+Final release of the Airtable version. Forks should update to this release for security fixes.
+
+### Security
+- Upgrade Next.js to 15.5.28 (fixes GHSA-2464-fhr4-w9xw, GHSA-p3m5-59mp-jv5r, GHSA-2xp9-vwfh-vxw4 and other 15.5.x advisories)
+- Force sharp 0.35.5 via overrides to pick up patched libvips, libheif and librsvg
+- Remove axios (and the unused node-fetch); the Encharge provider now uses the built-in `fetch`
+- Upgrade ultracite to 5.6.4, which drops the vitest, vite and rollup dev dependency chain
+- Add overrides for patched transitive versions: postcss, @trpc/server, lodash, nanoid, mdast-util-to-hast, browserslist, source-map-js, postcss-selector-parser
+- Add security headers: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy
+- Explicitly disable SVG processing in the Next.js image optimizer
+- Add a CI workflow (install, typecheck, lint, test, build, OSV scan) with actions pinned to commit SHAs, and Dependabot for npm and GitHub Actions
+
+### Added
+- `typecheck` and `test` scripts, plus a behavior test for the Encharge provider
+- `osv-scanner.toml` documenting the two remaining build-time advisories that have no fix in the current major
+
+### Changed
+- Update dependencies to the latest minor and patch versions within their current major
+- Pin Biome to 2.2.7 and keep single-quote formatting
+- Custom integration docs now use `fetch` instead of axios
+
+### Note
+- If you added third-party scripts in `config.scripts`, add their origins to the CSP in `next.config.ts`
+
 ## [0.1.60] - 2026-03-15
 
 ### Fixed

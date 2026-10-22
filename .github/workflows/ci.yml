@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Install, check, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Non-secret placeholders so `next build` can collect page data.
+      AIRTABLE_ACCESS_TOKEN: ci-placeholder
+      AIRTABLE_BASE_ID: appCIplaceholder000
+      AIRTABLE_TABLE_NAME: Jobs
+      ENCHARGE_WRITE_KEY: ci-placeholder
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Pre-existing type errors on main; non-blocking for the legacy release.
+      - name: Typecheck
+        run: bun run typecheck
+        continue-on-error: true
+
+      - name: Lint files changed in the security release
+        run: bunx biome check next.config.ts lib/email/providers/encharge.ts lib/email/providers/encharge.test.ts
+
+      # Pre-existing lint errors on main; non-blocking for the legacy release.
+      - name: Lint
+        run: bun run lint
+        continue-on-error: true
+
+      - name: Test
+        run: bun run test
+
+      - name: Build
+        run: bun run build
+
+  osv-scanner:
+    name: OSV vulnerability scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan bun.lock
+        uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+        with:
+          scan-args: |-
+            --config=osv-scanner.toml
+            --lockfile=bun.lock

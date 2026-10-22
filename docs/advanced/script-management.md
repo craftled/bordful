@@ -247,6 +247,7 @@ export function ScriptLoader() {
 3. **Use Empty String for Boolean Attributes**: For attributes like `async` or `defer`, use empty string (`""`)
 4. **Separate Head and Body Scripts**: Place critical scripts in `head` array, non-critical in `body` array
 5. **Include Version Numbers**: For scripts that support versioning, include the version in the URL for better caching
+- **Content Security Policy:** Bordful sends a strict CSP from `next.config.ts`. When you add a script from a new domain (for example Google Analytics or Plausible), add that origin to `script-src` and `connect-src` in `next.config.ts`, otherwise the browser will block it.
 
 ## Advanced Usage
 

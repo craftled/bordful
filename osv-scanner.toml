@@ -1,0 +1,12 @@
+# Advisories reviewed for the final legacy release. Each entry expires so it
+# is re-evaluated by the CI scan.
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2027-04-30
+reason = "braces 3.0.3 has no patched release. Build-time only (tailwindcss 3 via chokidar and micromatch); it only expands the developer-controlled content globs in tailwind.config.ts, never user input."
+
+[[IgnoredVulns]]
+id = "GHSA-rj75-hqrm-r3gf"
+ignoreUntil = 2027-04-30
+reason = "postcss-selector-parser is only fixed in 7.x and tailwindcss 3 requires ^6.1.2. Build-time only; it parses the project's own CSS and Tailwind classes, never user input."
