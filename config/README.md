@@ -29,6 +29,10 @@ cp config/config.example.ts config/config.ts
 
 Then modify the values in `config.ts` to match your requirements.
 
+## Content Security Policy
+
+`next.config.ts` reads this configuration to add the origins of scripts in `config.scripts` to the Content Security Policy. Keep `config.ts` free of value imports that use the `@/` path alias (type-only imports and relative imports are fine). If `config.ts` fails to load while `next.config.ts` is compiled, the example configuration is used for the CSP and your script origins will be missing.
+
 ## Configuration Options
 
 See `config.example.ts` for a complete list of configuration options and their descriptions. 
