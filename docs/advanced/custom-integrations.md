@@ -73,7 +73,6 @@ Create a new file in `lib/email/providers/` (e.g., `custom-provider.ts`) that im
 
 ```typescript
 // lib/email/providers/custom-provider.ts
-import axios from "axios";
 import { EmailProvider, SubscriberData, EmailProviderError } from "../types";
 import config from "@/config";
 
@@ -120,23 +119,21 @@ export class CustomProvider implements EmailProvider {
       };
 
       // Make the API call to your custom provider
-      const response = await axios.post(
-        this.endpoint,
-        payload,
-        { 
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${this.apiKey}`
-          } 
-        }
-      );
+      const response = await fetch(this.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
       // Check for successful response
-      if (response.status >= 200 && response.status < 300) {
-        return { success: true };
-      } else {
-        throw new Error(`API returned status ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Request failed with status code ${response.status}`);
       }
+
+      return { success: true };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Subscription failed";
@@ -473,7 +470,6 @@ export interface NotificationProvider {
 
 ```typescript
 // lib/notifications/providers/custom-notification.ts
-import axios from "axios";
 import { NotificationProvider, NotificationData } from "../types";
 import config from "@/config";
 
@@ -515,13 +511,13 @@ export class CustomNotificationProvider implements NotificationProvider {
       };
       
       // Send the notification
-      const response = await axios.post(
-        this.webhookUrl,
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-      
-      return { success: response.status >= 200 && response.status < 300 };
+      const response = await fetch(this.webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      return { success: response.ok };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Notification failed";
       return { success: false, error: errorMessage };
@@ -574,24 +570,21 @@ export async function notifyNewJob(jobData: any) {
 
 ### Unit Testing
 
-Create unit tests for your integration in the `__tests__` directory:
+Create unit tests next to your provider and run them with `bun test`:
 
 ```typescript
-// __tests__/lib/email/providers/custom-provider.test.ts
+// lib/email/providers/custom-provider.test.ts
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { CustomProvider } from "@/lib/email/providers/custom-provider";
-import axios from "axios";
-
-// Mock axios
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("CustomProvider", () => {
   beforeEach(() => {
-    jest.resetModules();
     process.env.NODE_ENV = "production";
     process.env.CUSTOM_PROVIDER_API_KEY = "test-api-key";
     process.env.CUSTOM_PROVIDER_ENDPOINT = "https://api.example.com/subscribe";
   });
+
+  afterEach(() => mock.restore());
   
   it("should initialize with environment variables", () => {
     const provider = new CustomProvider();
@@ -599,7 +592,7 @@ describe("CustomProvider", () => {
   });
   
   it("should successfully subscribe a user", async () => {
-    mockedAxios.post.mockResolvedValueOnce({ status: 200, data: { success: true } });
+    const fetchSpy = spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}", { status: 200 }));
     
     const provider = new CustomProvider();
     const result = await provider.subscribe({
@@ -608,18 +601,17 @@ describe("CustomProvider", () => {
     });
     
     expect(result.success).toBe(true);
-    expect(mockedAxios.post).toHaveBeenCalledWith(
-      "https://api.example.com/subscribe",
-      expect.objectContaining({
-        email: "test@example.com",
-        name: "Test User"
-      }),
-      expect.any(Object)
-    );
+    expect(fetchSpy).toHaveBeenCalledWith("https://api.example.com/subscribe", expect.objectContaining({ method: "POST" }));
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body).toEqual(expect.objectContaining({
+      email: "test@example.com",
+      name: "Test User"
+    }));
   });
   
   it("should handle API errors", async () => {
-    mockedAxios.post.mockRejectedValueOnce(new Error("API Error"));
+    spyOn(globalThis, "fetch").mockRejectedValue(new Error("API Error"));
     
     const provider = new CustomProvider();
     
