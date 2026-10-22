@@ -1,17 +1,49 @@
 import type { NextConfig } from 'next';
+import config from './config';
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// Origins of scripts in config.scripts are added automatically. Other
+// third-party resources (iframes, remote fonts, etc.) need manual additions.
+function scriptOrigins(): string[] {
+  const scripts = [
+    ...(config.scripts?.head ?? []),
+    ...(config.scripts?.body ?? []),
+  ];
+  const origins = new Set<string>();
+
+  for (const script of scripts) {
+    const src = script?.src;
+    if (typeof src !== 'string') {
+      continue;
+    }
+    if (!(src.startsWith('https://') || src.startsWith('http://'))) {
+      continue;
+    }
+    try {
+      origins.add(new URL(src).origin);
+    } catch {
+      // Skip relative or invalid src values.
+    }
+  }
+
+  return [...origins];
+}
+
+const thirdPartyScriptOrigins = scriptOrigins().join(' ');
+const scriptOriginSuffix = thirdPartyScriptOrigins
+  ? ` ${thirdPartyScriptOrigins}`
+  : '';
+
 // Content Security Policy. Next.js App Router without nonces needs
-// 'unsafe-inline' for scripts and styles. If you add analytics or other
-// third-party scripts in config.scripts, add their origins here.
+// 'unsafe-inline' for scripts and styles.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://umami.craftled.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}${scriptOriginSuffix}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' https://umami.craftled.com${isDev ? ' ws: wss:' : ''}`,
+  `connect-src 'self'${scriptOriginSuffix}${isDev ? ' ws: wss:' : ''}`,
   "frame-src 'none'",
   "frame-ancestors 'none'",
   "object-src 'none'",
@@ -19,14 +51,14 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "manifest-src 'self'",
   "worker-src 'self' blob:",
-  ...(isDev ? [] : ['upgrade-insecure-requests']),
 ].join('; ');
 
 const securityHeaders = [
   { key: 'Content-Security-Policy', value: contentSecurityPolicy },
   {
     key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload',
+    // includeSubDomains; preload can be added once every subdomain serves HTTPS.
+    value: 'max-age=63072000',
   },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },

@@ -1,6 +1,6 @@
 {
   "name": "bordful",
-  "version": "0.1.0",
+  "version": "0.1.61",
   "private": true,
   "scripts": {
     "dev": "TURBOPACK=1 bun --bun next dev --turbopack",

@@ -6,8 +6,8 @@ This repository is the Airtable version of Bordful. Version 0.1.x is its final r
 
 | Version | Supported                        |
 | ------- | -------------------------------- |
-| 0.1.x (final legacy release, Airtable) | :white_check_mark: Security fixes only |
-| < 0.1.61 | :x: Update to the latest 0.1.x |
+| 0.1.61 (final legacy release, Airtable) | :white_check_mark: Security fixes only |
+| < 0.1.61 | :x: Unsupported. Update to 0.1.61 |
 
 Bordful 1.0, built on Payload, is in development and will replace this version.
 

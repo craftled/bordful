@@ -602,7 +602,7 @@ describe("CustomProvider", () => {
     
     expect(result.success).toBe(true);
     expect(fetchSpy).toHaveBeenCalledWith("https://api.example.com/subscribe", expect.objectContaining({ method: "POST" }));
-    const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit]; const body = JSON.parse(init.body as string);
     expect(body).toEqual(expect.objectContaining({
       email: "test@example.com",
       name: "Test User"

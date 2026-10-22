@@ -63,6 +63,8 @@ export class EnchargeProvider implements EmailProvider {
         }
       );
 
+      await response.body?.cancel();
+
       if (!response.ok) {
         throw new Error(`Request failed with status code ${response.status}`);
       }

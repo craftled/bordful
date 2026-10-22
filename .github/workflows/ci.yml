@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -68,6 +68,7 @@ jobs:
         with:
           persist-credentials: false
 
+      # The action runs a tagged Docker image (ghcr.io/google/osv-scanner-action:v2.7.0), so the SHA pin does not pin the image.
       - name: Scan bun.lock
         uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
         with:
