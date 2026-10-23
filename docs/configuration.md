@@ -18,17 +18,17 @@ export default defineBordfulConfig({
 
 | Option | Default | Rules |
 | --- | --- | --- |
-| `bordfeed.baseUrl` | `https://bordfeed.com` | `https` only. No trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock. |
+| `bordfeed.baseUrl` | `https://bordfeed.com` | `https` only. Use the origin only, for example `https://bordfeed.com`. The schema does not reject a trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock. |
 | `bordfeed.syncCron` | `0 6 * * *` | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Editing it does not change `vercel.json`. |
 | `telemetry.clientHeader` | `true` | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md). |
 | `board.defaultTemplateId` | `engineering-it` | Template used for sample jobs and for the feed created at connect. |
 | `alerts.provider` | `resend` | Only `resend`. |
-| `csp.extraScriptOrigins` | `[]` | Extra `script-src` origins. `https` origins only. |
-| `csp.extraConnectOrigins` | `[]` | Extra `connect-src` origins. `https` origins only. |
+| `csp.extraScriptOrigins` | `[]` | Intended extra `script-src` origins. `https` origins only. Not applied yet. |
+| `csp.extraConnectOrigins` | `[]` | Intended extra `connect-src` origins. `https` origins only. Not applied yet. |
 
 Live Bordfeed template ids (23 Oct 2026): `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
 
-An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is valid. A path, a quote, a semicolon, a space, or a comma is rejected. One leading wildcard label is allowed (`https://*.example.com`).
+An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the shape `buildCsp` accepts. A path, a quote, a semicolon, a space, or a comma is rejected by `buildCsp`. One leading wildcard label is allowed (`https://*.example.com`). Those checks run only when the lists are passed in. Today they are not: `src/proxy.ts` calls `buildCsp({ isDev, nonce })` and ignores `bordful.config.ts`. An origin you add stays blocked until that call passes `csp.extraScriptOrigins` and `csp.extraConnectOrigins`.
 
 ## Site settings
 

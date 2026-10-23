@@ -28,7 +28,7 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `PAYLOAD_SECRET` | Yes | You | 32+ random characters. Mark Sensitive. Production uses one value. Preview uses a different value and its own Neon branch. |
 | `CRON_SECRET` | Yes | You | Bearer secret for `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`. |
 | `NEXT_PUBLIC_SERVER_URL` | No | You | Public origin, no trailing slash. Optional on Vercel (falls back to the production URL). Inlined at build time. |
-| `BLOB_READ_WRITE_TOKEN` | No locally | Blob integration on Vercel | Empty locally. Required when you upload media. |
+| `BLOB_READ_WRITE_TOKEN` | No locally | Blob integration on Vercel | On Vercel, uploads need Blob (the Deploy button provisions it). Without this token, Payload stores uploads in the local `media/` directory, which needs a persistent disk. Serverless and other read-only hosts cannot use that directory. |
 | `BORDFUL_MARKETING` | No | You, only on bordful.com | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`. |
 | `RESEND_API_KEY` | No | You | Job alerts stay off without it. See [Job alerts](alerts.md). |
 | `RESEND_BASE_URL` | No | You | Resend API origin. Empty uses the SDK default. |
@@ -59,7 +59,7 @@ Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never com
 
 ## Self-hosting outside Vercel
 
-Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. Media uploads still use Vercel Blob, so set `BLOB_READ_WRITE_TOKEN` when you need uploads. Run migrations once:
+Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. Without `BLOB_READ_WRITE_TOKEN`, media uploads go to the local `media/` directory, so the host needs a persistent disk. Blob is required on Vercel and on other read-only or serverless hosts: `payload.config.ts` enables the Blob adapter only when the token is set. Run migrations once:
 
 ```bash
 bun run payload migrate

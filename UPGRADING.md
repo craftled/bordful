@@ -8,11 +8,28 @@ Stay on the [legacy-airtable branch](https://github.com/craftled/bordful/tree/le
 
 ## Within 1.x
 
+Read [Changelog](CHANGELOG.md) before you merge. Breaking notes are listed there.
+
 Add the upstream remote once:
 
 ```bash
 git remote add upstream https://github.com/craftled/bordful.git
 git fetch upstream
+```
+
+### First upgrade of a Deploy button project
+
+The Deploy button creates a new Git repository and pushes the source files into it. That repository has its own initial commit. It does not share history with `craftled/bordful`, so a plain `git merge upstream/v1` stops with "refusing to merge unrelated histories".
+
+For that first merge:
+
+```bash
+git merge upstream/v1 --allow-unrelated-histories
+```
+
+Unchanged files merge cleanly. Resolve any conflicts, then commit. After that commit the histories are related, and later upgrades use a plain merge:
+
+```bash
 git merge upstream/v1
 bun install
 bun run check
@@ -20,7 +37,9 @@ bun run check
 
 Later releases merge `upstream/main` instead of `upstream/v1`.
 
-Then deploy. Migrations run on deploy. Read [Changelog](CHANGELOG.md) before you merge. Breaking notes are listed there.
+If you have not deployed yet and you plan to pull upgrades, fork `craftled/bordful` and import that fork in Vercel. A fork shares history, so the first merge does not need `--allow-unrelated-histories`.
+
+Then deploy. Migrations run on deploy.
 
 The admin update notice links here. It appears when GitHub has a newer release than the version this board is running.
 
