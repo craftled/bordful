@@ -12,68 +12,82 @@ import {
 } from "./queries";
 import { companyTag, jobTag, READ_TAGS } from "./tags";
 
+// `next build` renders with the build machine's database. Caching that result
+// would serve it to real requests for five minutes after the deploy starts.
+function cachedRead<T>(
+  load: () => Promise<T>,
+  keyParts: string[],
+  tags: string[]
+): Promise<T> {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return load();
+  }
+
+  return unstable_cache(load, keyParts, { revalidate: 300, tags })();
+}
+
 export function listPublishedJobs(input: { page: number; limit: number }) {
-  return unstable_cache(
+  return cachedRead(
     async () => {
       const payload = await getPayload({ config });
       return queryPublishedJobs(payload, input);
     },
     ["listPublishedJobs", String(input.page), String(input.limit)],
-    { revalidate: 300, tags: [READ_TAGS.jobs] }
-  )();
+    [READ_TAGS.jobs]
+  );
 }
 
 export function getJobBySlug(slug: string) {
-  return unstable_cache(
+  return cachedRead(
     async () => {
       const payload = await getPayload({ config });
       return queryJobBySlug(payload, slug);
     },
     ["getJobBySlug", slug],
-    { revalidate: 300, tags: [READ_TAGS.jobs, jobTag(slug)] }
-  )();
+    [READ_TAGS.jobs, jobTag(slug)]
+  );
 }
 
 export function listCompanies(input: { page: number; limit: number }) {
-  return unstable_cache(
+  return cachedRead(
     async () => {
       const payload = await getPayload({ config });
       return queryCompanies(payload, input);
     },
     ["listCompanies", String(input.page), String(input.limit)],
-    { revalidate: 300, tags: [READ_TAGS.companies] }
-  )();
+    [READ_TAGS.companies]
+  );
 }
 
 export function getCompanyBySlug(slug: string) {
-  return unstable_cache(
+  return cachedRead(
     async () => {
       const payload = await getPayload({ config });
       return queryCompanyBySlug(payload, slug);
     },
     ["getCompanyBySlug", slug],
-    { revalidate: 300, tags: [READ_TAGS.companies, companyTag(slug)] }
-  )();
+    [READ_TAGS.companies, companyTag(slug)]
+  );
 }
 
 export function getSiteSettings() {
-  return unstable_cache(
+  return cachedRead(
     async () => {
       const payload = await getPayload({ config });
       return querySiteSettings(payload);
     },
     ["getSiteSettings"],
-    { revalidate: 300, tags: [READ_TAGS.siteSettings] }
-  )();
+    [READ_TAGS.siteSettings]
+  );
 }
 
 export function getBordfeedConnectionPublic() {
-  return unstable_cache(
+  return cachedRead(
     async () => {
       const payload = await getPayload({ config });
       return queryBordfeedConnectionPublic(payload);
     },
     ["getBordfeedConnectionPublic"],
-    { revalidate: 300, tags: [READ_TAGS.bordfeedConnection] }
-  )();
+    [READ_TAGS.bordfeedConnection]
+  );
 }
