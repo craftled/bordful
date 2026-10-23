@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BoardList, jobCountLabel } from "@/components/board/board-list";
 import { BoardShell } from "@/components/board/board-shell";
+import { httpUrl } from "@/lib/board/apply";
 import { loadCompanyPage } from "@/lib/board/companies";
 import { editorState } from "@/lib/board/plaintext";
 
@@ -36,6 +37,7 @@ export default async function CompanyPage({
 
   const description = editorState(loaded.company.description);
   const now = Date.now();
+  const website = httpUrl(loaded.company.website?.trim() ?? "");
 
   return (
     <BoardShell>
@@ -50,9 +52,9 @@ export default async function CompanyPage({
           <p className="text-muted-foreground">
             {jobCountLabel(loaded.jobs.length)}
           </p>
-          {loaded.company.website ? (
-            <a href={loaded.company.website} rel="noopener noreferrer">
-              {loaded.company.website}
+          {website ? (
+            <a href={website} rel="noopener noreferrer">
+              {website}
             </a>
           ) : null}
         </header>

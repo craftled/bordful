@@ -1,6 +1,6 @@
 const UNSAFE_EMAIL_RE = /[\s"<>]/;
 
-function httpUrl(value: string): string | null {
+export function httpUrl(value: string): string | null {
   try {
     const url = new URL(value);
     if (url.protocol === "https:" || url.protocol === "http:") {

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 
 import { BoardShell } from "@/components/board/board-shell";
-import { TaxonomyArchive } from "@/components/board/taxonomy-archive";
-import { taxonomyTitle } from "@/lib/board/taxonomy";
+import {
+  redirectTaxonomyAlias,
+  TaxonomyArchive,
+} from "@/components/board/taxonomy-archive";
+import { taxonomyArchiveMetadata } from "@/lib/board/taxonomy";
 
 export async function generateMetadata({
   params,
@@ -10,7 +13,7 @@ export async function generateMetadata({
   params: Promise<{ value: string }>;
 }): Promise<Metadata> {
   const { value } = await params;
-  return { title: taxonomyTitle("location", value) };
+  return taxonomyArchiveMetadata("location", value);
 }
 
 export default async function LocationArchivePage({
@@ -19,6 +22,8 @@ export default async function LocationArchivePage({
   params: Promise<{ value: string }>;
 }) {
   const { value } = await params;
+  redirectTaxonomyAlias("location", value, 1);
+
   return (
     <BoardShell>
       <TaxonomyArchive kind="location" page={1} value={value} />

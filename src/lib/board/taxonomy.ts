@@ -1,3 +1,6 @@
+import type { Metadata } from "next";
+
+import { resolveServerUrl } from "@/config/server-url";
 import {
   CAREER_LEVELS,
   JOB_EMPLOYMENT_LABELS,
@@ -13,6 +16,11 @@ import {
   slugifyTaxonomyValue,
   type TaxonomyKind,
 } from "./paths";
+import {
+  type BoardQuery,
+  type BoardQueryOptions,
+  parseBoardQuery,
+} from "./query";
 
 export type { TaxonomyKind } from "./paths";
 
@@ -106,10 +114,7 @@ export function taxonomyLabel(kind: TaxonomyKind, slug: string): string {
     return slug;
   }
   if (kind === "level") {
-    const match = CAREER_LEVELS.find(
-      (level) => slugifyTaxonomyValue(level) === slug
-    );
-    return match ?? slug;
+    return levelLabel(slug) ?? slug;
   }
   if (kind === "location") {
     return slug === "remote" ? "Remote" : countryLabel(slug);
@@ -119,7 +124,46 @@ export function taxonomyLabel(kind: TaxonomyKind, slug: string): string {
 }
 
 export function taxonomyTitle(kind: TaxonomyKind, value: string): string {
-  return `${taxonomyLabel(kind, value.trim().toLowerCase())} jobs`;
+  return `${taxonomyLabel(kind, slugifyTaxonomyValue(value))} jobs`;
+}
+
+export function taxonomyArchiveMetadata(
+  kind: TaxonomyKind,
+  value: string,
+  page = 1
+): Metadata {
+  const path = buildTaxonomyArchivePath(kind, value, page);
+  return {
+    alternates: {
+      canonical: `${resolveServerUrl()}${path}`,
+    },
+    title: taxonomyTitle(kind, value),
+  };
+}
+
+export function taxonomySearchQuery(
+  kind: TaxonomyKind,
+  rawSlug: string,
+  page: number,
+  options: BoardQueryOptions
+): BoardQuery | null {
+  const slug = slugifyTaxonomyValue(rawSlug);
+  if (slug.length === 0) {
+    return null;
+  }
+
+  const base = parseBoardQuery(new URLSearchParams(""), options);
+  if (kind === "type" && isEmploymentType(slug)) {
+    return { ...base, page, types: [slug] };
+  }
+  if (kind === "location" && slug === "remote") {
+    return { ...base, page, remote: true };
+  }
+  if (kind === "language") {
+    return { ...base, languages: [slug], page };
+  }
+
+  return null;
 }
 
 function bump(
@@ -193,12 +237,29 @@ function isEmploymentType(slug: string): slug is JobEmploymentType {
   return (JOB_EMPLOYMENT_TYPES as readonly string[]).includes(slug);
 }
 
+function levelLabel(slug: string): JobCareerLevel | null {
+  return (
+    CAREER_LEVELS.find((level) => slugifyTaxonomyValue(level) === slug) ?? null
+  );
+}
+
+function cardMatchesLevel(card: JobListItem, label: JobCareerLevel): boolean {
+  if (card.careerLevel.includes(label)) {
+    return true;
+  }
+  if (card.seniority === null) {
+    return false;
+  }
+
+  return SENIORITY_LEVEL[card.seniority] === label;
+}
+
 export function filterByTaxonomy(
   cards: readonly JobListItem[],
   kind: TaxonomyKind,
   rawSlug: string
 ): JobListItem[] | null {
-  const slug = rawSlug.trim().toLowerCase();
+  const slug = slugifyTaxonomyValue(rawSlug);
   if (slug.length === 0) {
     return null;
   }
@@ -211,13 +272,11 @@ export function filterByTaxonomy(
   }
 
   if (kind === "level") {
-    const label = CAREER_LEVELS.find(
-      (level) => slugifyTaxonomyValue(level) === slug
-    );
+    const label = levelLabel(slug);
     if (!label) {
       return null;
     }
-    return cards.filter((card) => card.careerLevel.includes(label));
+    return cards.filter((card) => cardMatchesLevel(card, label));
   }
 
   if (kind === "language") {

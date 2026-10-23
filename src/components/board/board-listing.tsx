@@ -22,6 +22,7 @@ export function BoardListing({
   marketing,
   options,
   query,
+  showControls = true,
   showFilters = true,
 }: {
   archiveKind?: TaxonomyKind;
@@ -33,6 +34,7 @@ export function BoardListing({
   marketing: boolean;
   options: BoardQueryOptions;
   query: BoardQuery;
+  showControls?: boolean;
   showFilters?: boolean;
 }) {
   const view = buildBoardView(cards, query);
@@ -56,8 +58,16 @@ export function BoardListing({
         </h1>
         {intro ? <p className="text-muted-foreground">{intro}</p> : null}
       </div>
-      <BoardSearchForm options={options} query={query} />
-      <div className="grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)]">
+      {showControls ? (
+        <BoardSearchForm options={options} query={query} />
+      ) : null}
+      <div
+        className={
+          showFilters
+            ? "grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)]"
+            : undefined
+        }
+      >
         {showFilters ? (
           <BoardFilters
             facets={view.facets}
@@ -71,24 +81,32 @@ export function BoardListing({
             <p data-count={view.matchCount} data-testid="job-count">
               {jobCountLabel(view.matchCount)}
             </p>
-            <SortLinks marketing={marketing} options={options} query={query} />
+            {showControls ? (
+              <SortLinks
+                marketing={marketing}
+                options={options}
+                query={query}
+              />
+            ) : null}
           </div>
-          <div className="flex flex-wrap gap-3 text-sm">
-            {perPageChoices.map((choice) => (
-              <a
-                aria-current={query.perPage === choice ? "true" : undefined}
-                data-active={query.perPage === choice ? "true" : undefined}
-                href={boardStateHref(
-                  { ...query, page: 1, perPage: choice },
-                  options,
-                  marketing
-                )}
-                key={choice}
-              >
-                {choice} per page
-              </a>
-            ))}
-          </div>
+          {showControls ? (
+            <div className="flex flex-wrap gap-3 text-sm">
+              {perPageChoices.map((choice) => (
+                <a
+                  aria-current={query.perPage === choice ? "true" : undefined}
+                  data-active={query.perPage === choice ? "true" : undefined}
+                  href={boardStateHref(
+                    { ...query, page: 1, perPage: choice },
+                    options,
+                    marketing
+                  )}
+                  key={choice}
+                >
+                  {choice} per page
+                </a>
+              ))}
+            </div>
+          ) : null}
           {view.docs.length > 0 ? (
             <BoardList jobs={view.docs} now={now} />
           ) : (

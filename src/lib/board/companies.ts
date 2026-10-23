@@ -1,9 +1,7 @@
-import { getCompanyBySlug } from "@/lib/read";
 import type { CompanyDetail, JobListItem } from "@/lib/read/types";
 
 import { sortBoard } from "./filter";
 import { isPublicCompanySlug } from "./paths";
-import { loadBoardPool } from "./pool";
 
 export interface CompanyPageData {
   company: CompanyDetail;
@@ -56,6 +54,12 @@ export async function loadCompanyPage(
     return null;
   }
 
+  // Static imports of the read layer evaluate Payload config.
+  // Unit tests do not boot Payload, so load it only when a page asks.
+  const [{ getCompanyBySlug }, { loadBoardPool }] = await Promise.all([
+    import("@/lib/read"),
+    import("./pool"),
+  ]);
   const [company, cards] = await Promise.all([
     getCompanyBySlug(slug),
     loadBoardPool(),

@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { BoardShell } from "@/components/board/board-shell";
-import { TaxonomyArchive } from "@/components/board/taxonomy-archive";
+import {
+  redirectTaxonomyAlias,
+  TaxonomyArchive,
+} from "@/components/board/taxonomy-archive";
 import { buildTaxonomyArchivePath, parsePathPage } from "@/lib/board/paths";
-import { taxonomyTitle } from "@/lib/board/taxonomy";
+import { taxonomyArchiveMetadata } from "@/lib/board/taxonomy";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ n: string; value: string }>;
 }): Promise<Metadata> {
-  const { value } = await params;
-  return { title: taxonomyTitle("language", value) };
+  const { n, value } = await params;
+  return taxonomyArchiveMetadata("language", value, parsePathPage(n) ?? 1);
 }
 
 export default async function LanguageArchivePagedPage({
@@ -25,6 +28,7 @@ export default async function LanguageArchivePagedPage({
   if (page === null) {
     notFound();
   }
+  redirectTaxonomyAlias("language", value, page);
   if (page === 1) {
     permanentRedirect(buildTaxonomyArchivePath("language", value, 1));
   }

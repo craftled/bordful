@@ -18,6 +18,15 @@ import type { JobListItem } from "@/lib/read/types";
 export function JobRow({ job, now }: { job: JobListItem; now: number }) {
   const Extra = customSlots["job-card-extra"];
   const salary = formatSalary(job);
+  const location = formatLocation(job);
+  const workplace = job.workplaceType
+    ? JOB_WORKPLACE_LABELS[job.workplaceType]
+    : null;
+  const showWorkplace =
+    workplace !== null &&
+    location !== workplace &&
+    !location.startsWith(`${workplace} `) &&
+    !location.startsWith(`${workplace},`);
   const posted = job.publishedAt
     ? formatRelativePosted(job.publishedAt, now)
     : "";
@@ -50,10 +59,8 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
             {job.employmentType ? (
               <span>{JOB_EMPLOYMENT_LABELS[job.employmentType]}</span>
             ) : null}
-            {job.workplaceType ? (
-              <span>{JOB_WORKPLACE_LABELS[job.workplaceType]}</span>
-            ) : null}
-            <span>{formatLocation(job)}</span>
+            {showWorkplace ? <span>{workplace}</span> : null}
+            <span>{location}</span>
             {salary ? <span>{salary}</span> : null}
             {job.publishedAt && posted ? (
               <RelativeTime iso={job.publishedAt} label={posted} />

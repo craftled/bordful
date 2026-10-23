@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { isMarketingEnabled } from "@/config/flags";
 import { loadBoardPool } from "@/lib/board/pool";
 import { countTaxonomy, type TaxonomyFacet } from "@/lib/board/taxonomy";
 import { getSiteSettings } from "@/lib/read";
@@ -32,7 +31,6 @@ export async function TaxonomyHub() {
     loadBoardPool(),
   ]);
   const counts = countTaxonomy(cards);
-  const marketing = isMarketingEnabled();
 
   return (
     <div className="space-y-8" data-testid="taxonomy-hub">
@@ -43,11 +41,9 @@ export async function TaxonomyHub() {
         {settings.board.description ? (
           <p className="text-muted-foreground">{settings.board.description}</p>
         ) : null}
-        {marketing ? null : (
-          <p className="text-muted-foreground text-sm">
-            Open roles grouped by type, level, location, and language.
-          </p>
-        )}
+        <p className="text-muted-foreground text-sm">
+          Open roles grouped by type, level, location, and language.
+        </p>
       </div>
       <Group facets={counts.types} title="Job types" />
       <Group facets={counts.levels} title="Levels" />

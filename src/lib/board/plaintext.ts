@@ -2,8 +2,20 @@ import type { RichText } from "@payloadcms/richtext-lexical/react";
 import type { ComponentProps } from "react";
 
 const WHITESPACE_RE = /\s+/g;
+const BLOCK_TYPES = new Set(["heading", "listitem", "paragraph"]);
 
 type EditorState = ComponentProps<typeof RichText>["data"];
+
+function lexicalRoot(value: unknown): unknown {
+  if (value !== null && typeof value === "object" && "root" in value) {
+    const { root } = value as { root?: unknown };
+    if (root !== undefined) {
+      return root;
+    }
+  }
+
+  return value;
+}
 
 function walk(node: unknown, parts: string[]): void {
   if (typeof node === "string") {
@@ -21,6 +33,13 @@ function walk(node: unknown, parts: string[]): void {
   if (record.type === "linebreak") {
     parts.push(" ");
   }
+
+  const isBlock =
+    typeof record.type === "string" && BLOCK_TYPES.has(record.type);
+  if (isBlock && parts.length > 0) {
+    parts.push(" ");
+  }
+
   if (!Array.isArray(record.children)) {
     return;
   }
@@ -32,8 +51,8 @@ function walk(node: unknown, parts: string[]): void {
 
 export function plainTextFromLexical(value: unknown): string {
   const parts: string[] = [];
-  walk(value, parts);
-  return parts.join(" ").replace(WHITESPACE_RE, " ").trim();
+  walk(lexicalRoot(value), parts);
+  return parts.join("").replace(WHITESPACE_RE, " ").trim();
 }
 
 export function metaDescription(value: unknown): string {

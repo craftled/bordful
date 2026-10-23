@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { JobFacts } from "@/components/board/job-facts";
 import { StickyApply } from "@/components/board/sticky-apply";
-import { jobApplyHref } from "@/lib/board/apply";
+import { httpUrl, jobApplyHref } from "@/lib/board/apply";
 import { buildCompanyPath } from "@/lib/board/paths";
 import { editorState } from "@/lib/board/plaintext";
 import type { JobDetail, PublicDetailField } from "@/lib/read/types";
@@ -21,6 +21,7 @@ export function JobPosting({
 }) {
   const applyHref = jobApplyHref(job);
   const description = editorState(job.description);
+  const website = httpUrl(job.company?.website?.trim() ?? "");
   const companyHref = job.companySlug
     ? buildCompanyPath(job.companySlug)
     : null;
@@ -60,9 +61,9 @@ export function JobPosting({
       {applyHref ? <StickyApply href={applyHref} /> : null}
       <section className="space-y-2 border-border border-t pt-6">
         <h2 className="font-semibold text-lg">About {job.companyName}</h2>
-        {job.company?.website ? (
-          <a href={job.company.website} rel="noopener noreferrer">
-            {job.company.website}
+        {website ? (
+          <a href={website} rel="noopener noreferrer">
+            {website}
           </a>
         ) : null}
         {companyHref ? <Link href={companyHref}>View company</Link> : null}
