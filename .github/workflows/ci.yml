@@ -117,7 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL -o osv-scanner_linux_amd64 "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64"
-          echo "160c6253e2922e9e0a6e9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b  osv-scanner_linux_amd64" | sha256sum -c
+          echo "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b  osv-scanner_linux_amd64" | sha256sum -c
           mkdir -p "$HOME/.local/bin"
           install -m 0755 osv-scanner_linux_amd64 "$HOME/.local/bin/osv-scanner"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
