@@ -63,7 +63,7 @@ Keep your changes in admin settings, `bordful.config.ts`, and `src/custom/**`. S
 
 ## Upgrading
 
-See [Upgrading](UPGRADING.md). A project created with the Deploy button does not share git history with this repo, so the first merge is `git merge upstream/v1 --allow-unrelated-histories`. The admin update notice links to Upgrading. Breaking notes are in [Changelog](CHANGELOG.md).
+See [Upgrading](UPGRADING.md). A project created with the Deploy button does not share git history with this repo, so the first upgrade needs a one-time base step. The admin update notice links to Upgrading. Breaking notes are in [Changelog](CHANGELOG.md).
 
 ## Security
 
