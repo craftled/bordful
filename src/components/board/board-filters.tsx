@@ -1,3 +1,4 @@
+import { Check, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { BoardFacets } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
@@ -17,6 +18,7 @@ import {
   type SalaryBandId,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
+import { cn } from "@/lib/utils";
 
 const SENIORITY_LABELS: Record<JobSeniority, string> = {
   c_level: "C-level",
@@ -30,36 +32,101 @@ const SENIORITY_LABELS: Record<JobSeniority, string> = {
   vp: "VP",
 };
 
-function FilterLink({
-  active,
-  count,
-  href,
-  label,
-  testId,
-}: {
+// Longer groups show this many options, the rest sit behind "Show more".
+const GROUP_PREVIEW = 5;
+
+const ROW_FOCUS =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
+interface FacetOption {
   active: boolean;
   count: number;
   href: string;
   label: string;
   testId: string;
-}) {
+}
+
+interface FacetGroup {
+  options: FacetOption[];
+  title: string;
+}
+
+function FilterLink({ active, count, href, label, testId }: FacetOption) {
   return (
     <Link
       aria-current={active ? "true" : undefined}
-      className={
-        active
-          ? "flex items-center justify-between gap-2 rounded-[var(--radius)] bg-primary px-2 py-1 text-primary-foreground text-sm"
-          : "flex items-center justify-between gap-2 rounded-[var(--radius)] px-2 py-1 text-sm hover:bg-muted"
-      }
+      className={cn(
+        "flex items-center gap-2 rounded-[var(--radius)] px-2 py-1 text-sm hover:underline",
+        ROW_FOCUS
+      )}
       data-active={active ? "true" : undefined}
       data-testid={testId}
       href={href}
     >
-      <span>{label}</span>
-      <span data-count={count} data-testid="facet-count">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex size-4 shrink-0 items-center justify-center rounded-sm border",
+          active
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-input bg-background"
+        )}
+      >
+        {active ? <Check className="size-3" /> : null}
+      </span>
+      <span className="min-w-0 flex-1">
+        {label}
+        {active ? <span className="sr-only"> (selected)</span> : null}
+      </span>
+      <span
+        className="rounded-full bg-background px-2 text-muted-foreground text-xs tabular-nums"
+        data-count={count}
+        data-testid="facet-count"
+      >
         {count}
       </span>
     </Link>
+  );
+}
+
+// Options with no results are dropped, but an active one stays so the user
+// can always clear it.
+function FilterGroupView({ group }: { group: FacetGroup }) {
+  const visible = group.options.filter(
+    (option) => option.active || option.count > 0
+  );
+  if (visible.length === 0) {
+    return null;
+  }
+
+  const shown = visible.slice(0, GROUP_PREVIEW);
+  const more = visible.slice(GROUP_PREVIEW);
+
+  return (
+    <fieldset className="space-y-1">
+      <legend className="mb-2 font-semibold text-sm">{group.title}</legend>
+      {shown.map((option) => (
+        <FilterLink {...option} key={option.testId} />
+      ))}
+      {more.length > 0 ? (
+        <details className="group" open={more.some((option) => option.active)}>
+          <summary
+            className={cn(
+              "w-fit cursor-pointer list-none rounded-[var(--radius)] px-2 py-1 text-sm underline underline-offset-4 [&::-webkit-details-marker]:hidden",
+              ROW_FOCUS
+            )}
+          >
+            <span className="group-open:hidden">Show more</span>
+            <span className="hidden group-open:inline">Show less</span>
+          </summary>
+          <div className="space-y-1">
+            {more.map((option) => (
+              <FilterLink {...option} key={option.testId} />
+            ))}
+          </div>
+        </details>
+      ) : null}
+    </fieldset>
   );
 }
 
@@ -98,122 +165,143 @@ export function BoardFilters({
     facets.salary.map((facet) => [facet.value, facet.count])
   );
 
+  const activeCount =
+    query.types.length +
+    query.seniority.length +
+    query.salary.length +
+    query.languages.length +
+    (query.remote ? 1 : 0) +
+    (query.visa ? 1 : 0);
+
+  const groups: FacetGroup[] = [
+    {
+      options: facets.types.map((facet) => {
+        const value = facet.value as JobEmploymentType;
+        const active = query.types.includes(value);
+        return {
+          active,
+          count: typeCounts.get(value) ?? 0,
+          href: hrefFor({
+            ...query,
+            types: toggleValue(query.types, value, active),
+          }),
+          label: JOB_EMPLOYMENT_LABELS[value],
+          testId: `filter-type-${value}`,
+        };
+      }),
+      title: "Job type",
+    },
+    {
+      options: [
+        {
+          active: query.remote,
+          count: facets.remote,
+          href: hrefFor({ ...query, remote: !query.remote }),
+          label: "Remote only",
+          testId: "filter-remote",
+        },
+      ],
+      title: "Workplace",
+    },
+    {
+      options: SENIORITIES.map((level) => {
+        const active = query.seniority.includes(level);
+        return {
+          active,
+          count: levelCounts.get(level) ?? 0,
+          href: hrefFor({
+            ...query,
+            seniority: toggleValue(query.seniority, level, active),
+          }),
+          label: SENIORITY_LABELS[level],
+          testId: `filter-level-${level}`,
+        };
+      }),
+      title: "Level",
+    },
+    {
+      options: SALARY_BAND_IDS.map((band, index) => {
+        const active = query.salary.includes(band);
+        return {
+          active,
+          count: salaryCounts.get(band) ?? 0,
+          href: hrefFor({
+            ...query,
+            salary: toggleValue<SalaryBandId>(query.salary, band, active),
+          }),
+          label: band,
+          testId: `filter-salary-${index}`,
+        };
+      }),
+      title: "Salary range",
+    },
+    {
+      options: [
+        {
+          active: query.visa,
+          count: facets.visa,
+          href: hrefFor({ ...query, visa: !query.visa }),
+          label: "Visa sponsorship",
+          testId: "filter-visa",
+        },
+      ],
+      title: "Visa sponsorship",
+    },
+    {
+      options: facets.languages.map((facet) => {
+        const active = query.languages.includes(facet.value);
+        return {
+          active,
+          count: facet.count,
+          href: hrefFor({
+            ...query,
+            languages: toggleValue(query.languages, facet.value, active),
+          }),
+          label: languageLabel(facet.value),
+          testId: `filter-language-${facet.value}`,
+        };
+      }),
+      title: "Language",
+    },
+  ];
+
+  // One DOM tree for both breakpoints: the groups are folded behind a
+  // disclosure below md and forced visible above it (see the details class).
   return (
-    <aside className="space-y-6">
+    <aside aria-label="Filters" className="rounded-lg border bg-muted p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-semibold text-sm">Filters</h2>
         {boardQueryHasFilters(query) ? (
           <Link
+            className={cn("text-sm underline underline-offset-4", ROW_FOCUS)}
             data-testid="filter-clear"
             href={boardStateHref(clearBoardFilters(query), options, marketing)}
           >
-            Clear
+            Clear all
           </Link>
         ) : null}
       </div>
-      <fieldset className="space-y-1">
-        <legend className="mb-2 font-semibold text-sm">Job type</legend>
-        {facets.types.map((facet) => {
-          const value = facet.value as JobEmploymentType;
-          const active = query.types.includes(value);
-          return (
-            <FilterLink
-              active={active}
-              count={typeCounts.get(value) ?? 0}
-              href={hrefFor({
-                ...query,
-                types: toggleValue(query.types, value, active),
-              })}
-              key={value}
-              label={JOB_EMPLOYMENT_LABELS[value]}
-              testId={`filter-type-${value}`}
-            />
-          );
-        })}
-      </fieldset>
-      <fieldset className="space-y-1">
-        <legend className="mb-2 font-semibold text-sm">Workplace</legend>
-        <FilterLink
-          active={query.remote}
-          count={facets.remote}
-          href={hrefFor({ ...query, remote: !query.remote })}
-          label="Remote"
-          testId="filter-remote"
-        />
-      </fieldset>
-      <fieldset className="space-y-1">
-        <legend className="mb-2 font-semibold text-sm">Salary</legend>
-        {SALARY_BAND_IDS.map((band, index) => {
-          const active = query.salary.includes(band);
-          return (
-            <FilterLink
-              active={active}
-              count={salaryCounts.get(band) ?? 0}
-              href={hrefFor({
-                ...query,
-                salary: toggleValue<SalaryBandId>(query.salary, band, active),
-              })}
-              key={band}
-              label={band}
-              testId={`filter-salary-${index}`}
-            />
-          );
-        })}
-      </fieldset>
-      <fieldset className="space-y-1">
-        <legend className="mb-2 font-semibold text-sm">Level</legend>
-        {SENIORITIES.map((level) => {
-          const count = levelCounts.get(level) ?? 0;
-          if (count === 0 && !query.seniority.includes(level)) {
-            return null;
-          }
-          const active = query.seniority.includes(level);
-          return (
-            <FilterLink
-              active={active}
-              count={count}
-              href={hrefFor({
-                ...query,
-                seniority: toggleValue(query.seniority, level, active),
-              })}
-              key={level}
-              label={SENIORITY_LABELS[level]}
-              testId={`filter-level-${level}`}
-            />
-          );
-        })}
-      </fieldset>
-      {facets.languages.length > 0 ? (
-        <fieldset className="space-y-1">
-          <legend className="mb-2 font-semibold text-sm">Language</legend>
-          {facets.languages.map((facet) => {
-            const active = query.languages.includes(facet.value);
-            return (
-              <FilterLink
-                active={active}
-                count={facet.count}
-                href={hrefFor({
-                  ...query,
-                  languages: toggleValue(query.languages, facet.value, active),
-                })}
-                key={facet.value}
-                label={languageLabel(facet.value)}
-                testId={`filter-language-${facet.value}`}
-              />
-            );
-          })}
-        </fieldset>
-      ) : null}
-      <fieldset className="space-y-1">
-        <legend className="mb-2 font-semibold text-sm">Visa</legend>
-        <FilterLink
-          active={query.visa}
-          count={facets.visa}
-          href={hrefFor({ ...query, visa: !query.visa })}
-          label="Visa sponsorship"
-          testId="filter-visa"
-        />
-      </fieldset>
+      <details className="group mt-4 md:[&::details-content]:content-visible">
+        <summary
+          className={cn(
+            "flex cursor-pointer list-none items-center justify-between rounded-[var(--radius)] border border-input bg-background px-3 py-2 text-sm md:hidden [&::-webkit-details-marker]:hidden",
+            ROW_FOCUS
+          )}
+        >
+          <span>
+            Show filters{activeCount > 0 ? ` (${activeCount} active)` : ""}
+          </span>
+          <ChevronDown
+            aria-hidden="true"
+            className="size-4 transition-transform group-open:rotate-180"
+          />
+        </summary>
+        <div className="mt-4 space-y-6 md:mt-0">
+          {groups.map((group) => (
+            <FilterGroupView group={group} key={group.title} />
+          ))}
+        </div>
+      </details>
     </aside>
   );
 }
