@@ -15,7 +15,7 @@ export function renderConfirmEmail(input: {
     bodyHtml: `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;">Confirm your job alerts for ${safeName}.</p>
 <p style="margin:0;font-size:16px;line-height:1.5;"><a href="${safeUrl}" style="color:#18181b;">Confirm your job alerts</a></p>`,
     footerHtml: `You received this because someone entered this address on ${safeName}.`,
-    title: subject,
+    title: escapeHtml(subject),
   });
   const text = [
     subject,

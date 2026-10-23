@@ -27,7 +27,11 @@ export function TokenActionForm({
   const [state, formAction, pending] = useActionState(action, null);
 
   if (state?.ok) {
-    return <p data-testid={doneTestId}>{state.message}</p>;
+    return (
+      <p data-testid={doneTestId} role="status">
+        {state.message}
+      </p>
+    );
   }
 
   return (
@@ -42,7 +46,9 @@ export function TokenActionForm({
         {submitLabel}
       </button>
       {state && !state.ok ? (
-        <p data-testid="alerts-invalid-token">{invalidText}</p>
+        <p data-testid="alerts-invalid-token" role="alert">
+          {invalidText}
+        </p>
       ) : null}
     </form>
   );

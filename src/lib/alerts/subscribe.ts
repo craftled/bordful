@@ -128,33 +128,77 @@ async function sendConfirmation(
   );
 }
 
+async function deleteSubscriber(payload: Payload, id: number): Promise<void> {
+  await payload.delete({
+    collection: "alert-subscribers",
+    depth: 0,
+    id,
+    overrideAccess: true,
+  });
+}
+
+function logConfirmationFailure(payload: Payload, id: number): void {
+  payload.logger.error(
+    { subscriberId: String(id) },
+    "Alert confirmation send failed"
+  );
+}
+
 export async function subscribeToAlerts(
   payload: Payload,
   input: SubscribeInput,
   deps: SubscribeDeps
 ): Promise<SubscribeResult> {
   const existing = await findByEmail(payload, input.email);
+  // updatedAt also moves on unsubscribe and on a failed attempt. Only a
+  // pending row means a confirmation email was just stored.
   const cooling =
-    existing !== null && confirmationIsRecent(existing.updatedAt, input.now);
+    existing?.status === "pending" &&
+    confirmationIsRecent(existing.updatedAt, input.now);
   if (existing?.status === "active" || cooling) {
     return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
   }
 
   const confirmToken = newConfirmToken();
   const confirmTokenHash = hashToken(confirmToken);
-  const id = await savePending(payload, existing, input, confirmTokenHash);
-  await storeUnsubscribeHash(payload, id, input.email, deps.secret);
 
+  if (existing === null) {
+    const id = await savePending(payload, null, input, confirmTokenHash);
+    try {
+      await storeUnsubscribeHash(payload, id, input.email, deps.secret);
+      await sendConfirmation(deps, input, id, confirmToken, confirmTokenHash);
+    } catch {
+      try {
+        await deleteSubscriber(payload, id);
+      } catch {
+        payload.logger.error(
+          { subscriberId: String(id) },
+          "Alert confirmation cleanup failed"
+        );
+      }
+      logConfirmationFailure(payload, id);
+      return { message: SUBSCRIBE_SEND_FAILED_MESSAGE, ok: false };
+    }
+    return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
+  }
+
+  // Persist after a successful send. Writing first would refresh updatedAt
+  // and the pending cooldown would hide the retry when the send failed.
   try {
-    await sendConfirmation(deps, input, id, confirmToken, confirmTokenHash);
-  } catch {
-    payload.logger.error(
-      { subscriberId: String(id) },
-      "Alert confirmation send failed"
+    await sendConfirmation(
+      deps,
+      input,
+      existing.id,
+      confirmToken,
+      confirmTokenHash
     );
+  } catch {
+    logConfirmationFailure(payload, existing.id);
     return { message: SUBSCRIBE_SEND_FAILED_MESSAGE, ok: false };
   }
 
+  await savePending(payload, existing, input, confirmTokenHash);
+  await storeUnsubscribeHash(payload, existing.id, input.email, deps.secret);
   return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
 }
 
@@ -217,6 +261,9 @@ export async function confirmSubscription(
     data: {
       confirmedAt: stamp,
       confirmTokenHash: null,
+      // isDue anchors on lastSentAt before confirmedAt. A returning
+      // subscriber would otherwise be due on the old cadence immediately.
+      lastSentAt: null,
       status: "active",
       watermark: stamp,
     },

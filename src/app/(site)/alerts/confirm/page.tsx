@@ -33,7 +33,7 @@ export default async function ConfirmAlertPage({
 
   return (
     <BoardShell>
-      <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
+      <section className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
         <h1 className="font-semibold text-2xl">Confirm your job alerts</h1>
         {pending ? (
           <>
@@ -52,7 +52,7 @@ export default async function ConfirmAlertPage({
             This confirmation link is not valid.
           </p>
         )}
-      </main>
+      </section>
     </BoardShell>
   );
 }

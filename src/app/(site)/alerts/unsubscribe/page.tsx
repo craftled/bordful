@@ -33,7 +33,7 @@ export default async function UnsubscribePage({
 
   return (
     <BoardShell>
-      <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
+      <section className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
         <h1 className="font-semibold text-2xl">Unsubscribe from job alerts</h1>
         {subscriber ? (
           <>
@@ -52,7 +52,7 @@ export default async function UnsubscribePage({
             This unsubscribe link is not valid.
           </p>
         )}
-      </main>
+      </section>
     </BoardShell>
   );
 }

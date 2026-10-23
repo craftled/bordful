@@ -211,14 +211,58 @@ test("subscribe, confirm, digest, and unsubscribe", async () => {
     overrideAccess: true,
   });
   expect(unsubscribed.status).toBe("unsubscribed");
+  expect(unsubscribed.lastSentAt).toBeTruthy();
+
+  await payload.create({
+    collection: "jobs",
+    data: {
+      _status: "published",
+      companyName: "Example Co",
+      description: exampleDescription as NonNullable<Job["description"]>,
+      employmentType: "full-time",
+      origin: "manual",
+      publishedAt: new Date(digestNow.getTime() + 60 * 60 * 1000).toISOString(),
+      slug: "example-remote-alert-role-after-unsubscribe",
+      title: "Example Remote Alert Role After Unsubscribe",
+      workplaceType: "remote",
+    },
+    depth: 0,
+    overrideAccess: true,
+  });
 
   const later = new Date(digestNow.getTime() + 8 * 24 * 60 * 60 * 1000);
   const after = await runAlertDigests(payload, {
     now: later,
     sender: digestSender,
   });
-  expect(after).toMatchObject({ sent: 0 });
+  expect(after).toMatchObject({ due: 0, sent: 0 });
   expect(digests).toHaveLength(1);
+
+  const resubscribed = await subscribeToAlerts(
+    payload,
+    { ...input, now: new Date() },
+    deps
+  );
+  expect(resubscribed).toEqual({ message: INBOX_MESSAGE, ok: true });
+  expect(captured).toHaveLength(2);
+
+  const secondMessage = captured[1]?.message;
+  if (!secondMessage) {
+    throw new Error("resubscribe confirmation email was not captured");
+  }
+  const reconfirmedAt = new Date("2026-11-01T08:00:00.000Z");
+  expect(
+    await confirmSubscription(payload, tokenFrom(secondMessage), reconfirmedAt)
+  ).toBe(true);
+  const reconfirmed = await payload.findByID({
+    collection: "alert-subscribers",
+    depth: 0,
+    id: subscriberId,
+    overrideAccess: true,
+  });
+  expect(reconfirmed.status).toBe("active");
+  expect(reconfirmed.lastSentAt ?? null).toBeNull();
+  expect(await unsubscribeByToken(payload, unsubscribeToken)).toBe(true);
 });
 
 test("one thousand due subscribers finish within 60 seconds", async () => {

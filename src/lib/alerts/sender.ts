@@ -14,10 +14,13 @@ export interface AlertSender {
 }
 
 export function resendSender(apiKey: string): AlertSender {
-  const resend = new Resend(apiKey);
+  // The SDK throws on an empty key at construction time. Alerts stay off
+  // until a key exists, so the client is built on the first real send.
+  let resend: Resend | null = null;
 
   return {
     async send(message, idempotencyKey) {
+      resend ??= new Resend(apiKey);
       const result = await resend.emails.send(
         {
           from: message.from,

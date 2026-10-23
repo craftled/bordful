@@ -86,3 +86,15 @@ test("renderConfirmEmail uses the confirm subject", () => {
     }).subject
   ).toBe("Confirm your job alerts on Example Board");
 });
+
+test("renderConfirmEmail escapes the site name in the heading", () => {
+  const rendered = renderConfirmEmail({
+    confirmUrl: "https://board.example/alerts/confirm?token=t",
+    siteName: "R&D <Jobs>",
+  });
+
+  expect(rendered.subject).toBe("Confirm your job alerts on R&D <Jobs>");
+  expect(rendered.html).toContain("R&amp;D &lt;Jobs&gt;");
+  expect(rendered.html).not.toContain("<Jobs>");
+  expect(rendered.text).toContain("R&D <Jobs>");
+});

@@ -273,10 +273,15 @@ async function deliverDigest(
   try {
     await markSent(payload, subscriber, now);
   } catch {
-    payload.logger.error(
-      { subscriberId: String(subscriber.id) },
-      "Alert digest watermark update failed"
-    );
+    try {
+      await markSent(payload, subscriber, now);
+    } catch {
+      // The email is already out. Without this write the next cron sends it again.
+      payload.logger.fatal(
+        { subscriberId: String(subscriber.id) },
+        "Alert digest bookkeeping failed after the email was sent"
+      );
+    }
   }
 
   return "sent";
