@@ -39,7 +39,7 @@
     {
       "id": "E5",
       "file": "e05-feeds-and-sitemaps.spec.ts",
-      "requires": ["L2"],
+      "requires": ["L2", "L3a"],
       "enabled": false
     },
     {

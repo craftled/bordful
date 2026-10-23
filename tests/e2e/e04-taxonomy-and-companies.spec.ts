@@ -78,6 +78,8 @@ test.describe("E4 taxonomy-and-companies", { tag: ["@E4"] }, () => {
     ).toBeVisible();
     const companyPage = await page.goto(`/companies/${companySlug}`);
     expect(companyPage?.status()).toBe(200);
-    expect(await page.getByTestId("job-row").count()).toBeGreaterThan(0);
+    await expect(
+      page.getByTestId("job-row").filter({ hasText: "E4zq Senior Role" })
+    ).toHaveCount(1);
   });
 });

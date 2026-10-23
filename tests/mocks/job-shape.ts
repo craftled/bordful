@@ -192,5 +192,15 @@ export function buildMockJob(input: {
   job.locations = [`Example City, ${country}`];
   job.language = "en";
   job.description_html = input.descriptionHtml;
+  // OpenAPI requires a non-null enrichment object on every Job.
+  job.enrichment = {
+    enriched_at: null,
+    fields_from_source: [],
+    model: null,
+    monitor_checked_at: null,
+    monitor_status: null,
+    revision: null,
+    salary_normalized_at: null,
+  };
   return job;
 }

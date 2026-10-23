@@ -7,6 +7,10 @@ import { createJob, docString, readGlobal, updateGlobal } from "./support/seed";
 
 const DAY_MS = 86_400_000;
 
+function sentTo(email: StoredEmail, recipient: string): boolean {
+  return [email.to].flat().includes(recipient);
+}
+
 function emailSource(email: StoredEmail): string {
   return `${email.text}\n${email.html}`.replaceAll("&amp;", "&");
 }
@@ -54,8 +58,8 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
       "Check your inbox to confirm your job alerts."
     );
 
-    const confirmEmails = (await resendEmails()).filter(
-      (email) => email.to === "ada@example.com"
+    const confirmEmails = (await resendEmails()).filter((email) =>
+      sentTo(email, "ada@example.com")
     );
     expect(confirmEmails).toHaveLength(1);
     expect(confirmEmails[0]?.subject).toBe(
@@ -81,8 +85,8 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
     const digestRun = await runCron(request, "alerts", later);
     expect(digestRun.ok()).toBe(true);
 
-    const emails = (await resendEmails()).filter(
-      (email) => email.to === "ada@example.com"
+    const emails = (await resendEmails()).filter((email) =>
+      sentTo(email, "ada@example.com")
     );
     expect(emails).toHaveLength(2);
     const [, digest] = emails;
@@ -100,9 +104,17 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
     await page.getByTestId("alerts-unsubscribe-button").click();
     await expect(page.getByTestId("alerts-unsubscribed")).toBeVisible();
 
+    await createJob(admin, {
+      _status: "published",
+      companyName: "E8zq Example Co",
+      origin: "manual",
+      title: "E8zq Remote Role 2",
+      workplaceType: "remote",
+    });
     const before = (await resendEmails()).length;
     const muchLater = new Date(Date.now() + 16 * DAY_MS).toISOString();
-    await runCron(request, "alerts", muchLater);
+    const quiet = await runCron(request, "alerts", muchLater);
+    expect(quiet.ok()).toBe(true);
     expect(await resendEmails()).toHaveLength(before);
     await admin.dispose();
   });

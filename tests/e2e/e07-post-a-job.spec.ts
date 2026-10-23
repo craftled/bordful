@@ -58,7 +58,8 @@ test.describe("E7 post-a-job", { tag: ["@E7"] }, () => {
     const early = new Date(
       new Date(validThrough).getTime() - 60_000
     ).toISOString();
-    await runCron(request, "expire", early);
+    const stillLive = await runCron(request, "expire", early);
+    expect(stillLive.ok()).toBe(true);
     await page.goto("/jobs/search?q=E7zq");
     await expect(page.getByTestId("job-row")).toHaveCount(1);
 

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import type { BordfeedRequestLog } from "../mocks/bordfeed";
 import { loginInBrowser } from "./support/admin";
 import { bordfeedRequests, resetMock } from "./support/mock";
@@ -12,6 +12,41 @@ function queryValues(value: string | string[] | undefined): string[] {
     return [];
   }
   return Array.isArray(value) ? value : [value];
+}
+
+async function setShowAttribution(page: Page, show: boolean): Promise<void> {
+  await page.goto("/admin");
+  const toggle = page.getByTestId("bordfeed-show-attribution");
+  await expect(toggle).toBeEnabled();
+  if (show) {
+    await toggle.check();
+  } else {
+    await toggle.uncheck();
+  }
+
+  // setAttributionAction is a useActionState form action. Submitting the
+  // nearest form saves the checkbox. Waiting for that POST before leaving
+  // the page keeps a navigation from aborting the save.
+  const form = toggle.locator("xpath=ancestor::form[1]");
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      response.request().headers()["next-action"] !== undefined
+  );
+  await form.evaluate((node) => {
+    if (!(node instanceof HTMLFormElement)) {
+      throw new Error("attribution toggle is not inside a form");
+    }
+    node.requestSubmit();
+  });
+  expect((await saved).ok()).toBe(true);
+  await page.reload();
+  const stored = page.getByTestId("bordfeed-show-attribution");
+  if (show) {
+    await expect(stored).toBeChecked();
+  } else {
+    await expect(stored).not.toBeChecked();
+  }
 }
 
 function registerBodies(
@@ -96,25 +131,12 @@ test.describe("E6 bordfeed-connect", { tag: ["@E6"] }, () => {
     await page.goto("/jobs/search?q=Sample+Platform+Engineer");
     await expect(page.getByTestId("board-empty")).toBeVisible();
 
-    await page.goto("/admin");
-    const toggle = page.getByTestId("bordfeed-show-attribution");
-    await toggle.uncheck();
-    const attributionForm = page
-      .locator("form")
-      .filter({ has: page.getByTestId("bordfeed-show-attribution") });
-    if ((await attributionForm.locator("button[type='submit']").count()) > 0) {
-      await attributionForm.locator("button[type='submit']").click();
-    }
+    await setShowAttribution(page, false);
     await page.goto("/");
     await expect(page.getByTestId("bordfeed-credit")).toHaveCount(0);
 
-    await page.goto("/admin");
-    await page.getByTestId("bordfeed-show-attribution").check();
-    const restoreForm = page
-      .locator("form")
-      .filter({ has: page.getByTestId("bordfeed-show-attribution") });
-    if ((await restoreForm.locator("button[type='submit']").count()) > 0) {
-      await restoreForm.locator("button[type='submit']").click();
-    }
+    await setShowAttribution(page, true);
+    await page.goto("/");
+    await expect(page.getByTestId("bordfeed-credit")).toHaveCount(1);
   });
 });

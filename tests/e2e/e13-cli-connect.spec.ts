@@ -17,7 +17,13 @@ function runBordful(args: string[], input?: string) {
       BORDFEED_BASE_URL: mockOrigin(),
     },
     input,
+    // spawnSync blocks the worker, so a hung CLI would never hit the test timeout.
+    timeout: 120_000,
   });
+}
+
+function assertNoFullKey(output: string | null | undefined): void {
+  expect((output ?? "").includes(FULL_KEY)).toBe(false);
 }
 
 test.describe("E13 cli-connect", { tag: ["@E13"] }, () => {
@@ -27,6 +33,8 @@ test.describe("E13 cli-connect", { tag: ["@E13"] }, () => {
     test.setTimeout(180_000);
     const sample = runBordful(["sample"]);
     expect(sample.status).toBe(0);
+    assertNoFullKey(sample.stdout);
+    assertNoFullKey(sample.stderr);
 
     const connect = runBordful(
       [
@@ -42,7 +50,8 @@ test.describe("E13 cli-connect", { tag: ["@E13"] }, () => {
     const stdout = connect.stdout ?? "";
     expect(stdout).toContain("Connected");
     expect(stdout).toContain("bf_...0001");
-    expect(stdout.includes(FULL_KEY)).toBe(false);
+    assertNoFullKey(connect.stdout);
+    assertNoFullKey(connect.stderr);
 
     const admin = await ensureAdmin(request);
     const connection = await readGlobal(admin, "bordfeed-connection");

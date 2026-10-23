@@ -39,6 +39,15 @@ test("preview default gives 10 jobs and limit=20 gives 20", async () => {
   expect(body.data).toHaveLength(10);
   expect(body.data[0]?.title).toBe("Sample Platform Engineer 01");
   expect(body.data[0]?.description_html).toBeNull();
+  expect(body.data[0]?.enrichment).toEqual({
+    enriched_at: null,
+    fields_from_source: [],
+    model: null,
+    monitor_checked_at: null,
+    monitor_status: null,
+    revision: null,
+    salary_normalized_at: null,
+  });
   expect(Object.keys(body.data[0] ?? {}).sort()).toEqual(
     [...JOB_PROPERTIES].sort()
   );

@@ -59,6 +59,7 @@ test.describe("E5 feeds-and-sitemaps", { tag: ["@E5"] }, () => {
     const sampleSlugs = (sampleBody.docs ?? [])
       .map((doc) => doc.slug)
       .filter((value): value is string => typeof value === "string");
+    expect(sampleSlugs).toHaveLength(20);
 
     const feed = await request.get("/feed.xml");
     expect(feed.status()).toBe(200);

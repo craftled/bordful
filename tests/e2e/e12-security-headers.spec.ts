@@ -61,6 +61,7 @@ async function documentOf(response: APIResponse): Promise<{
 
 async function openQuietly(page: Page, path: string): Promise<void> {
   await page.goto(path);
+  await page.waitForLoadState("networkidle");
   expect(await readCspViolations(page)).toEqual([]);
 }
 
@@ -82,7 +83,9 @@ test.describe("E12 security-headers", { tag: ["@E12"] }, () => {
 
     const home = await documentOf(await request.get("/"));
     const job = await documentOf(await request.get(jobPath));
-    const adminPage = await documentOf(await request.get("/admin"));
+    const adminPage = await documentOf(
+      await request.get("/admin", { maxRedirects: 0 })
+    );
     const login = await documentOf(await request.get("/admin/login"));
     expectSecurityHeaders(home.headers);
     expectSecurityHeaders(job.headers);

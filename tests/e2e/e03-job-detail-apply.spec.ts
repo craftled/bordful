@@ -76,7 +76,8 @@ test.describe("E3 job-detail-apply", { tag: ["@E3"] }, () => {
     await expect(apply).toHaveAttribute("href", "https://apply.example/e3zq");
     await expect(apply).toHaveAttribute("target", "_blank");
     await expect(apply).toHaveAttribute("rel", "noopener noreferrer");
-    await page.route("https://apply.example/**", async (route) => {
+    // page.route does not see a target=_blank popup. The context route does.
+    await page.context().route("https://apply.example/**", async (route) => {
       await route.fulfill({ body: "ok", status: 200 });
     });
     const popupPromise = page.waitForEvent("popup");

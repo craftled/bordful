@@ -59,8 +59,16 @@ export async function ensureAdmin(
 }
 
 export async function loginInBrowser(page: Page): Promise<void> {
-  const api = await ensureAdmin(page.request);
-  await api.dispose();
+  // first-register and login set payload-token. Doing that on page.request
+  // shares the cookie jar with the browser, so /admin/login redirects away
+  // from the form. A separate API context keeps the browser logged out.
+  const setup = await playwrightRequest.newContext({ baseURL: appBaseUrl() });
+  try {
+    await adminToken(setup);
+  } finally {
+    await setup.dispose();
+  }
+
   await page.goto("/admin/login");
   await page.getByLabel("Email").fill(ADMIN_EMAIL);
   await page.locator("input[name='password']").fill(ADMIN_PASSWORD);
