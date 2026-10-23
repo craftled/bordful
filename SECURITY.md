@@ -2,9 +2,10 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
+| Version | Supported |
+| --- | --- |
+| 1.0.x beta | Supported |
+| 0.1.x (legacy-airtable) | Critical fixes, best effort |
 
 ## Reporting a Vulnerability
 
@@ -24,3 +25,11 @@ We will:
 - Keep you updated on the progress
 
 Thank you for helping keep Bordful secure!
+
+## Hardening for self-hosters
+
+- Set `PAYLOAD_SECRET` to 32+ random characters. Mark it Sensitive in your host. Use a different value on each environment.
+- Set `CRON_SECRET` and send it as `Authorization: Bearer` on `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`. See [Deploy](docs/deploy.md).
+- The Bordfeed API key is encrypted at rest with `PAYLOAD_SECRET` and hidden from every API read. Alert confirm and unsubscribe tokens are stored as hashes.
+- CSP uses a new nonce on each request. No third-party scripts are allowed by default. Extra script or connect origins, if you add them, must be `https` origins in `bordful.config.ts`.
+- Keep `.env` out of git. `.env.example` holds placeholders only, such as `replace-with-32-plus-random-chars`.
