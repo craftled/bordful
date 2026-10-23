@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { BoardListing } from "@/components/board/board-listing";
@@ -60,6 +61,13 @@ export async function TaxonomyArchive({
 
   return (
     <div className="space-y-6">
+      <nav aria-label="Breadcrumb" className="text-muted-foreground text-sm">
+        <Link className="hover:underline" href="/jobs">
+          All jobs
+        </Link>
+        <span aria-hidden="true"> / </span>
+        <span>{taxonomyTitle(kind, value)}</span>
+      </nav>
       <BoardListing
         archiveKind={kind}
         archiveValue={value}
