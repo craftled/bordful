@@ -1,28 +1,30 @@
 import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
-import { getNav } from "@/config/nav";
 
 import { Container } from "./container";
 import { MarketingImage } from "./marketing-image";
+import { MARKETING_FOOTER_COLUMNS } from "./nav-links";
 import { SOCIAL_LINKS } from "./site";
 
-const marketingNav = getNav({
-  alertsEnabled: false,
-  marketing: true,
-  postJobEnabled: false,
-});
+const linkClass =
+  "text-muted-foreground hover:text-foreground focus-visible:rounded-sm focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4";
 
 export function MarketingFooter() {
+  const year = new Date().getFullYear();
+
   return (
     <footer
       className="border-border border-t bg-secondary/50"
       data-testid="marketing-footer"
     >
-      <Container className="flex flex-col gap-8 py-8 md:py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-4 sm:col-span-2">
-            <Link className="flex items-center gap-2" href="/">
+      <Container className="flex flex-col gap-10 py-10 md:py-12">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-4">
+            <Link
+              className="flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+              href="/"
+            >
               <MarketingImage
                 alt=""
                 className="marketing-mono h-5 w-5"
@@ -36,50 +38,52 @@ export function MarketingFooter() {
               Open-source job board template. Deploy to Vercel and start with
               real jobs from Bordfeed.
             </p>
-            <ul className="flex flex-wrap gap-4 text-sm">
+            <ul className="flex flex-wrap items-center gap-4">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.href}>
                   <a
-                    className="text-muted-foreground hover:text-foreground"
+                    aria-label={link.name}
+                    className="inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
                     href={link.href}
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    {link.label}
+                    <MarketingImage
+                      alt=""
+                      className="marketing-mono h-4 w-4 opacity-80 hover:opacity-100"
+                      height={16}
+                      src={link.icon}
+                      width={16}
+                    />
                   </a>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="space-y-3">
-            <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-              Product
-            </h2>
-            <ul className="space-y-2.5 text-sm">
-              {marketingNav.footer.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    className="text-muted-foreground hover:text-foreground"
-                    href={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {MARKETING_FOOTER_COLUMNS.map((column) => (
+            <nav aria-label={column.title} key={column.title}>
+              <h2 className="mb-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+                {column.title}
+              </h2>
+              <ul className="space-y-2.5 text-sm">
+                {column.items.map((item) => (
+                  <li key={item.href}>
+                    <Link className={linkClass} href={item.href}>
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
         <Separator />
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-muted-foreground text-xs">
-            Bordful is MIT licensed. Standing on the shoulders of giants.
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-xs">
-              A Craftled product
-            </span>
+        <div className="flex flex-col gap-4 text-muted-foreground text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; {year} Bordful</p>
+          <p className="flex items-center gap-2">
+            Built by
             <a
-              className="inline-flex items-center gap-1 font-medium text-xs"
+              className="inline-flex items-center gap-1 rounded-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
               href="https://craftled.com/"
               rel="noopener noreferrer"
               target="_blank"
@@ -93,7 +97,7 @@ export function MarketingFooter() {
               />
               Craftled
             </a>
-          </div>
+          </p>
         </div>
       </Container>
     </footer>

@@ -38,7 +38,7 @@ const features = [
 
 export function Features() {
   return (
-    <Section variant="secondary">
+    <Section id="features" variant="secondary">
       <Container>
         <SectionHeader
           description="Payload, Postgres, and the pieces a job board needs on day one."

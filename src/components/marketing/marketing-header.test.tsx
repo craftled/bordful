@@ -4,12 +4,15 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
 import { MarketingHeader } from "./marketing-header";
+import { MARKETING_HEADER_LINKS } from "./nav-links";
+
+const MARKETING_HEADER_HREFS = MARKETING_HEADER_LINKS.map((link) => link.href);
 
 afterEach(() => {
   cleanup();
 });
 
-test("marketing header nav links stay in contract order", () => {
+test("marketing header nav links keep the old order", () => {
   render(<MarketingHeader />);
 
   const nav = screen.getByRole("navigation", { name: "Primary" });
@@ -17,7 +20,7 @@ test("marketing header nav links stay in contract order", () => {
     .getAllByRole("link")
     .map((link) => link.getAttribute("href"));
 
-  expect(hrefs).toEqual(["/jobs", "/pricing", "/showcase", "/changelog"]);
+  expect(hrefs).toEqual(MARKETING_HEADER_HREFS);
 });
 
 test("mobile nav links use the same hrefs", () => {
@@ -28,5 +31,5 @@ test("mobile nav links use the same hrefs", () => {
     .getAllByRole("link")
     .map((link) => link.getAttribute("href"));
 
-  expect(hrefs).toEqual(["/jobs", "/pricing", "/showcase", "/changelog"]);
+  expect(hrefs).toEqual(MARKETING_HEADER_HREFS);
 });
