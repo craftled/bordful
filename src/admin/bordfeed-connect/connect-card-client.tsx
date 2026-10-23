@@ -7,6 +7,7 @@ import {
   useActionState,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -23,6 +24,8 @@ import {
   ALREADY_ISSUED_MESSAGE,
   ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   CONNECT_LIMIT_MESSAGE,
+  CREDIT_HIDDEN_MESSAGE,
+  CREDIT_SHOWN_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
   NEED_CODE_MESSAGE,
@@ -63,6 +66,11 @@ const ERROR_MESSAGES = new Set([
   WRONG_CODE_MESSAGE,
 ]);
 
+const CREDIT_SAVED_MESSAGES = new Set([
+  CREDIT_HIDDEN_MESSAGE,
+  CREDIT_SHOWN_MESSAGE,
+]);
+
 function isProblem(result: ConnectStepResult): boolean {
   return (
     result.fallback === "paste_key" ||
@@ -80,11 +88,15 @@ function usePublish(
   refreshOnSameState: boolean
 ): void {
   const router = useRouter();
+  const published = useRef<ConnectStepResult | null>(null);
   useEffect(() => {
-    if (!result) {
+    // A state change re-runs this effect with the same result. Publish each
+    // action result once, so an old one cannot replace the banner again.
+    if (!result || result === published.current) {
       return;
     }
 
+    published.current = result;
     onResult(result);
     if (result.state !== serverState || refreshOnSameState) {
       router.refresh();
@@ -322,11 +334,13 @@ function PasteForm({
 
 function AttributionField({
   action,
+  creditResult,
   pending,
   showAttribution,
   state,
 }: {
   action: (payload: FormData) => void;
+  creditResult: ConnectStepResult | null;
   pending: boolean;
   showAttribution: boolean;
   state: ConnectCardView["state"];
@@ -337,6 +351,13 @@ function AttributionField({
   useEffect(() => {
     setChecked(showAttribution);
   }, [showAttribution]);
+  // A save that was refused leaves the saved value as it was, so the box
+  // goes back to it. A successful save is left to the refresh above.
+  useEffect(() => {
+    if (creditResult && !CREDIT_SAVED_MESSAGES.has(creditResult.message)) {
+      setChecked(showAttribution);
+    }
+  }, [creditResult, showAttribution]);
   const onCreditChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const { form } = event.currentTarget;
     setChecked(event.currentTarget.checked);
@@ -570,6 +591,7 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
       />
       <AttributionField
         action={creditAction}
+        creditResult={creditResult}
         pending={creditPending}
         showAttribution={view.showAttribution}
         state={view.state}
