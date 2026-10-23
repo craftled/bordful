@@ -44,6 +44,15 @@ test("rejects an http bordfeed URL and a step cron", () => {
   ).toThrow(STEP_CRON);
 });
 
+test("rejects non-https social profile URLs", () => {
+  expect(() =>
+    defineBordfulConfig({ social: { github: "http://github.com/x" } })
+  ).toThrow();
+  expect(() =>
+    defineBordfulConfig({ social: { x: "javascript:alert(1)" } })
+  ).toThrow();
+});
+
 test("the parsed config is frozen", () => {
   const config = defineBordfulConfig({});
   expect(Object.isFrozen(config)).toBe(true);

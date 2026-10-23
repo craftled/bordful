@@ -31,7 +31,7 @@ export function SiteHeader({
 
   return (
     <header
-      className="relative border-border border-b bg-background"
+      className="relative z-30 border-border border-b bg-background"
       data-testid="site-header"
     >
       <div className="mx-auto flex h-14 w-full max-w-board items-center gap-3 px-4">
@@ -55,31 +55,29 @@ export function SiteHeader({
           )}
           <span className="truncate">{name}</span>
         </Link>
-        <nav
-          aria-label="Primary"
-          className="ml-auto flex items-center gap-4"
-          data-testid="site-nav"
-        >
-          <ul className="hidden items-center gap-4 text-sm md:flex">
-            {navItems.map((item) => {
-              const active = isActivePath(pathname, item.href);
-              return (
-                <li key={item.id}>
-                  <Link
-                    aria-current={active ? "page" : undefined}
-                    className={
-                      active
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }
-                    href={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        <div className="ml-auto flex items-center gap-4" data-testid="site-nav">
+          <nav aria-label="Primary">
+            <ul className="hidden items-center gap-4 text-sm md:flex">
+              {navItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <li key={item.id}>
+                    <Link
+                      aria-current={active ? "page" : undefined}
+                      className={
+                        active
+                          ? "text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }
+                      href={item.href}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
           <div className="hidden md:block">
             <SocialLinks links={social} />
           </div>
@@ -92,7 +90,7 @@ export function SiteHeader({
             </Link>
           ) : null}
           <MobileNav items={navItems} social={social} />
-        </nav>
+        </div>
       </div>
     </header>
   );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useId } from "react";
 
 // Callers render this only when Site settings enable Post a Job.
 export function PostJobCard({
@@ -8,12 +9,14 @@ export function PostJobCard({
   priceLabel: string;
   durationDays: number;
 }) {
+  const titleId = useId();
+
   return (
     <section
-      aria-labelledby="post-job-card-title"
+      aria-labelledby={titleId}
       className="rounded-lg border border-border bg-background p-4"
     >
-      <h2 className="font-semibold text-base" id="post-job-card-title">
+      <h2 className="font-semibold text-base" id={titleId}>
         Hiring? Post your job
       </h2>
       <p className="mt-1 text-muted-foreground text-sm">

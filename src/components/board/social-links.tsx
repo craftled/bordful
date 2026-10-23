@@ -75,11 +75,15 @@ const NETWORK_ICONS: Record<SocialNetwork, JSX.Element> = {
   ),
 };
 
+const DEFAULT_LINK_CLASS = "text-muted-foreground hover:text-foreground";
+
 export function SocialLinks({
   className = "",
+  linkClassName = DEFAULT_LINK_CLASS,
   links,
 }: {
   className?: string;
+  linkClassName?: string;
   links: SocialProfiles;
 }) {
   const networks = (Object.keys(NETWORK_LABELS) as SocialNetwork[]).filter(
@@ -92,7 +96,7 @@ export function SocialLinks({
         {/* Plain anchor: feeds are route handlers, and next/link would prefetch them. */}
         <a
           aria-label="RSS feed"
-          className="text-muted-foreground transition-colors hover:text-foreground"
+          className={`transition-colors ${linkClassName}`}
           href="/feed.xml"
         >
           <Rss aria-hidden="true" className="size-4" />
@@ -101,8 +105,8 @@ export function SocialLinks({
       {networks.map((network) => (
         <li key={network}>
           <a
-            aria-label={NETWORK_LABELS[network]}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={`${NETWORK_LABELS[network]} (opens in new tab)`}
+            className={`transition-colors ${linkClassName}`}
             href={links[network]}
             rel="noopener noreferrer"
             target="_blank"

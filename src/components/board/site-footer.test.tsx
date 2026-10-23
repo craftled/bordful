@@ -63,6 +63,21 @@ test("lists feed formats and omits marketing pages in board-only mode", () => {
   expect(screen.queryByRole("link", { name: "About" })).toBeNull();
 });
 
+test("footer text uses opacity-free colors and social links match the footer", () => {
+  const { container } = renderFooter({
+    social: { github: "https://github.com/craftled/bordful" },
+  });
+
+  expect(
+    container.querySelectorAll('[class*="text-background/"]')
+  ).toHaveLength(0);
+  const github = screen.getByRole("link", {
+    name: "GitHub (opens in new tab)",
+  });
+  expect(github.className).toContain("text-background");
+  expect(github.className).not.toContain("text-muted-foreground");
+});
+
 test("shows the Bordfeed credit only when attribution is on", () => {
   const { unmount } = renderFooter({ showAttribution: false });
   expect(screen.queryByTestId("bordfeed-credit")).toBeNull();
