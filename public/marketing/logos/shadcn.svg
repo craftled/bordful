@@ -1,0 +1,11 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <title>shadcn/ui</title>
+  <path
+    d="M208 128l-80 80M192 40L40 192"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="32"
+  />
+</svg>
