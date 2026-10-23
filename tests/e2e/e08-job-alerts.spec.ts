@@ -108,6 +108,9 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
       _status: "published",
       companyName: "E8zq Example Co",
       origin: "manual",
+      // The +8 day digest sets watermark to that faked now. This publishedAt
+      // sits in (+8d, +16d], so a still-subscribed Ada would be mailed.
+      publishedAt: new Date(Date.now() + 12 * DAY_MS).toISOString(),
       title: "E8zq Remote Role 2",
       workplaceType: "remote",
     });

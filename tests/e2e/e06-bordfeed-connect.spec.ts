@@ -25,14 +25,17 @@ async function setShowAttribution(page: Page, show: boolean): Promise<void> {
   }
 
   // setAttributionAction is a useActionState form action. Submitting the
-  // nearest form saves the checkbox. Waiting for that POST before leaving
-  // the page keeps a navigation from aborting the save.
+  // nearest form saves the checkbox. The body must name showAttribution so a
+  // Payload admin next-action cannot resolve this wait before the save.
   const form = toggle.locator("xpath=ancestor::form[1]");
-  const saved = page.waitForResponse(
-    (response) =>
-      response.request().method() === "POST" &&
-      response.request().headers()["next-action"] !== undefined
-  );
+  const saved = page.waitForResponse((response) => {
+    const actionRequest = response.request();
+    return (
+      actionRequest.method() === "POST" &&
+      actionRequest.headers()["next-action"] !== undefined &&
+      (actionRequest.postData() ?? "").includes("showAttribution")
+    );
+  });
   await form.evaluate((node) => {
     if (!(node instanceof HTMLFormElement)) {
       throw new Error("attribution toggle is not inside a form");
