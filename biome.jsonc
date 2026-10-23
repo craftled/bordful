@@ -1,11 +1,31 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
-  "extends": ["ultracite"],
-  "linter": {
-    "rules": {
-      "suspicious": {
-        "noUnknownAtRules": "off"
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
+  "files": {
+    "includes": [
+      "!!**/node_modules",
+      "!!**/.next",
+      "!src/payload-types.ts",
+      "!src/app/(payload)/admin/importMap.js",
+      "!src/migrations",
+      "!playwright-report",
+      "!test-results"
+    ]
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          }
+        }
       }
     }
-  }
+  ]
 }

@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules
 
 # lockfiles
 package-lock.json
@@ -10,8 +10,8 @@ pnpm-lock.yaml
 bun.lockb
 
 # next.js
-/.next/
-/out/
+.next
+out
 
 # misc
 .DS_Store
@@ -31,3 +31,11 @@ npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# tests and coverage
+coverage
+playwright-report
+test-results
+
+# local media uploads
+media/

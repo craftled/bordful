@@ -1,0 +1,7 @@
+# Transitive advisories with no safe upgrade inside the Payload 4 beta pin.
+# The scanner still fails on every other finding.
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2027-04-23
+reason = "braces 3.0.3 is the newest npm release and the advisory lists no patched version. It arrives through micromatch (ultracite, sass, payload cloud storage). Revisit when braces publishes a fix."

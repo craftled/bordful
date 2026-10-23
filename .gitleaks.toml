@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+# No path allowlists: .env.example placeholders do not trip the default rules, and an allowlisted
+# path would hide a real key committed there. The historical Airtable token in legacy commit
+# 9116f2f is ignored by fingerprint in .gitleaksignore pending revocation confirmation.
