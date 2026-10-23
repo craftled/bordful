@@ -91,9 +91,16 @@ export function SiteFooter({
               <ul className="mt-3 space-y-2 text-background/75 text-sm">
                 {column.items.map((item) => (
                   <li className="flex items-center gap-2" key={item.id}>
-                    <Link className="hover:text-background" href={item.href}>
-                      {item.label}
-                    </Link>
+                    {FEED_PILLS[item.id] ? (
+                      // Feeds are route handlers, not pages. next/link would prefetch them with ?_rsc, which never settles.
+                      <a className="hover:text-background" href={item.href}>
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link className="hover:text-background" href={item.href}>
+                        {item.label}
+                      </Link>
+                    )}
                     {FEED_PILLS[item.id] ? (
                       <span className="rounded border border-background/30 px-1.5 text-[10px] uppercase leading-4">
                         {FEED_PILLS[item.id]}
