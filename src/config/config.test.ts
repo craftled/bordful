@@ -11,6 +11,7 @@ const defaults = {
   board: { defaultTemplateId: "engineering-it" },
   bordfeed: { baseUrl: "https://bordfeed.com", syncCron: "0 6 * * *" },
   csp: { extraConnectOrigins: [], extraScriptOrigins: [] },
+  social: {},
   telemetry: { clientHeader: true },
 };
 
