@@ -45,6 +45,7 @@ export interface JobListItem {
   slug: string;
   title: string;
   validThrough: string | null;
+  visaSponsorship: string | null;
   workplaceType: JobWorkplaceType | null;
 }
 
@@ -72,7 +73,6 @@ export interface JobDetail extends JobListItem {
   locality: string | null;
   region: string | null;
   sourceListingUrl: string | null;
-  visaSponsorship: string | null;
 }
 
 export interface CompanyDetail extends CompanySummary {

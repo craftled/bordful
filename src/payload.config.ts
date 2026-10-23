@@ -14,6 +14,7 @@ import { globals } from "./globals";
 import { bordfeedSyncTask } from "./jobs/bordfeed-sync";
 import { expireJobsTask } from "./jobs/expire-job";
 import { sendAlertsTask } from "./jobs/send-alerts";
+import { ensureSampleJobs } from "./lib/bordfeed/sample";
 import { stripDashes } from "./lib/codegen/strip-dashes";
 import { ensureInstallId } from "./lib/install/install-id";
 import { migrations } from "./migrations";
@@ -38,6 +39,12 @@ async function ensureInstallIdSafely(payload: Payload): Promise<void> {
 export default buildConfig({
   admin: {
     avatar: "default",
+    components: {
+      beforeDashboard: [
+        "/admin/bordfeed-connect/connect-card#BordfeedConnectCard",
+        "/admin/components/update-notice#UpdateNotice",
+      ],
+    },
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: " | Bordful" },
     user: "users",
@@ -67,6 +74,14 @@ export default buildConfig({
   maxDepth: 3,
   onInit: async (payload) => {
     await ensureInstallIdSafely(payload);
+    try {
+      await ensureSampleJobs(payload, { signal: AbortSignal.timeout(8000) });
+    } catch (error) {
+      payload.logger.warn(
+        { err: error },
+        "Could not ensure sample jobs. The board will retry on the next boot."
+      );
+    }
   },
   secret,
   serverURL,

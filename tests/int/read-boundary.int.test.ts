@@ -195,7 +195,7 @@ test("the public bordfeed connection is the sample default", async () => {
     lastSyncAt: null,
     showAttribution: true,
     state: "sample",
-    templateId: "remote-engineering",
+    templateId: "engineering-it",
   });
 });
 

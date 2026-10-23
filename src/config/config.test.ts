@@ -8,7 +8,7 @@ import { bordfulConfig } from "./index";
 
 const defaults = {
   alerts: { provider: "resend" },
-  board: { defaultTemplateId: "remote-engineering" },
+  board: { defaultTemplateId: "engineering-it" },
   bordfeed: { baseUrl: "https://bordfeed.com", syncCron: "0 6 * * *" },
   csp: { extraConnectOrigins: [], extraScriptOrigins: [] },
   telemetry: { clientHeader: true },
