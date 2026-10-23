@@ -1,7 +1,7 @@
 const BASE64_NONCE =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/;
-const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*]+$/;
+const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*.]+\.[^*]+$/;
 
 export function buildCsp({
   nonce,

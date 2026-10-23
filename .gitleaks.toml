@@ -1,16 +1,6 @@
 [extend]
 useDefault = true
 
-# Historical Airtable token in legacy commit 9116f2f is ignored by fingerprint in .gitleaksignore pending revocation confirmation.
-
-[[allowlists]]
-description = "Placeholder values in the env example and test fixtures"
-condition = "AND"
-paths = [
-  '''(?:^|/)\.env\.example$''',
-  '''(?:^|/)tests/fixtures/''',
-]
-regexTarget = "line"
-regexes = [
-  '''=(?:|replace-[A-Za-z0-9-]+|postgres://postgres:postgres@127\.0\.0\.1:5432/bordful|http://localhost:3000)$''',
-]
+# No path allowlists: .env.example placeholders do not trip the default rules, and an allowlisted
+# path would hide a real key committed there. The historical Airtable token in legacy commit
+# 9116f2f is ignored by fingerprint in .gitleaksignore pending revocation confirmation.

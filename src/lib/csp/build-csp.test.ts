@@ -135,6 +135,16 @@ test("rejects a bare wildcard origin", () => {
   ).toThrow(httpsError);
 });
 
+test("rejects a wildcard over a single-label suffix", () => {
+  expect(() =>
+    buildCsp({
+      extraScriptOrigins: ["https://*.com"],
+      isDev: false,
+      nonce,
+    })
+  ).toThrow(httpsError);
+});
+
 test("rejects an http origin", () => {
   expect(() =>
     buildCsp({
