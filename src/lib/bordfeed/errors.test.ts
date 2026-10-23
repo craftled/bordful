@@ -143,6 +143,9 @@ test("toSafeError maps each Bordfeed failure to a fixed sentence", () => {
   const secret = `bf_${"test_key_0001"}`;
   const thrown = new TypeError(`fetch failed for Bearer ${secret}`);
   const safe = toSafeError(thrown, now);
-  expect(JSON.stringify(thrown)).not.toContain(secret);
+  expect(JSON.stringify({ ...thrown, message: thrown.message })).toContain(
+    secret
+  );
   expect(JSON.stringify(safe)).not.toContain(secret);
+  expect(safe.message).not.toContain(secret);
 });

@@ -79,14 +79,17 @@ const KEYS = [
   "workplaceType",
 ] as const satisfies readonly (keyof ComparableFields)[];
 
-export function comparableJobFields(job: MappedJob): ComparableFields {
+export function comparableJobFields(
+  job: MappedJob,
+  companyIds?: ReadonlyMap<string, number>
+): ComparableFields {
   return orderFields({
     applyEmail: job.applyEmail,
     applyMethod: job.applyMethod,
     applyUrl: job.applyUrl,
     careerLevel: job.careerLevel,
     categories: job.categories.map((item) => item.value),
-    companyKey: companyKey(job.company),
+    companyKey: relationKey(job, companyIds),
     countryCode: job.countryCode,
     employmentType: job.employmentType,
     languages: job.languages.map((item) => item.value),
@@ -133,18 +136,64 @@ function sameFields(left: ComparableFields, right: ComparableFields): boolean {
   );
 }
 
+export function companyRelationKey(id: number): string {
+  return `rel:${id}`;
+}
+
+function relationKey(
+  job: MappedJob,
+  companyIds: ReadonlyMap<string, number> | undefined
+): string | null {
+  const key = companyKey(job.company);
+  if (!companyIds) {
+    return key;
+  }
+
+  if (!key) {
+    return null;
+  }
+
+  const id = companyIds.get(key);
+  // Domain reuse can attach two Bordfeed company ids to one row. Compare that row.
+  return typeof id === "number" ? companyRelationKey(id) : null;
+}
+
+function isOwnedSlug(slug: string, desired: string, suffix: string): boolean {
+  if (slug === desired) {
+    return true;
+  }
+
+  const marker = suffix.length > 0 ? `-${suffix}` : "-2";
+  if (!slug.startsWith(desired)) {
+    return false;
+  }
+
+  let rest = slug.slice(desired.length);
+  while (rest.startsWith(marker)) {
+    rest = rest.slice(marker.length);
+  }
+
+  return rest.length === 0 && slug.length > desired.length;
+}
+
 function allocateSlug(
   desired: string,
   jobId: string,
   ownSlug: string | null,
   taken: Set<string>
 ): string {
-  if (ownSlug !== null && desired === ownSlug) {
-    return desired;
+  const suffix = jobId.slice(0, 8);
+  if (ownSlug !== null) {
+    taken.delete(ownSlug);
+  }
+
+  // Keeping this row in `taken` makes the suffix grow on every sync.
+  if (ownSlug !== null && isOwnedSlug(ownSlug, desired, suffix)) {
+    taken.add(ownSlug);
+    return ownSlug;
   }
 
   let slug = desired;
-  const suffix = jobId.slice(0, 8);
   while (taken.has(slug)) {
     slug = suffix.length > 0 ? `${slug}-${suffix}` : `${slug}-2`;
     if (slug.length > 180) {
@@ -195,7 +244,8 @@ function placeIncoming(
   incoming: MappedJob[],
   matches: Map<string, ExistingRow>,
   blocked: Set<string>,
-  taken: Set<string>
+  taken: Set<string>,
+  companyIds: ReadonlyMap<string, number> | undefined
 ) {
   const create: MappedJob[] = [];
   const update: SyncPlan["update"] = [];
@@ -224,7 +274,7 @@ function placeIncoming(
 
     const changed =
       (match.hash ?? null) !== planned.bordfeedDescriptionHash ||
-      !sameFields(match.fields, comparableJobFields(planned));
+      !sameFields(match.fields, comparableJobFields(planned, companyIds));
     const republish = match.status === "draft";
     if (changed || republish) {
       update.push({
@@ -288,6 +338,7 @@ function removals(
 }
 
 export function planSync(input: {
+  companyIds?: ReadonlyMap<string, number>;
   existing: ExistingRow[];
   incoming: MappedJob[];
   mode: "feed" | "sample";
@@ -295,7 +346,13 @@ export function planSync(input: {
 }): SyncPlan {
   const taken = new Set(input.takenSlugs);
   const { blocked, matches } = indexRows(input.existing, input.mode);
-  const placed = placeIncoming(input.incoming, matches, blocked, taken);
+  const placed = placeIncoming(
+    input.incoming,
+    matches,
+    blocked,
+    taken,
+    input.companyIds
+  );
   const removed = removals(input.existing, input.mode, placed.seen);
   return {
     create: placed.create,

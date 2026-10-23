@@ -133,7 +133,7 @@ function unused<T>(): Promise<T> {
   return Promise.reject(new Error("unused"));
 }
 
-function sampleClient(): BordfeedClient {
+function sampleClient(jobs: BordfeedJob[] = sampleJobs()): BordfeedClient {
   return {
     createFeed: () => Promise.resolve({ id: FEED_ID }),
     async *listFeedJobs() {
@@ -141,7 +141,7 @@ function sampleClient(): BordfeedClient {
       yield [];
     },
     listTemplates: unused,
-    previewTemplate: () => Promise.resolve(previewBody(sampleJobs())),
+    previewTemplate: () => Promise.resolve(previewBody(jobs)),
     register: unused,
     verify: unused,
   };
@@ -234,17 +234,33 @@ describe("bordfeed sync", () => {
   });
 
   test("feed sync publishes, unpublishes missing rows, and guards an empty feed", async () => {
+    await runSampleSync(payload, { client: sampleClient() });
+    const [sampleBefore] = sampleJobs();
+    if (!sampleBefore?.slug) {
+      throw new Error("sample fixture is missing a slug");
+    }
+
     await connectFeed();
     const stored = await readConnection(payload);
     expect(isEncryptedEnvelope(stored.apiKeyEncrypted ?? "")).toBe(true);
     expect(JSON.stringify(stored).includes(API_KEY)).toBe(false);
 
+    const connectedJobs = feedJobs(25).map((job, index) =>
+      index === 0
+        ? { ...job, id: sampleBefore.id, slug: sampleBefore.slug }
+        : job
+    );
     const first = await runFeedSync(payload, {
-      client: feedClient(feedJobs(25)),
+      client: feedClient(connectedJobs),
     });
     const connection = await readConnection(payload);
     const sampleJobsLeft = await payload.count({
       collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    const sampleCompaniesLeft = await payload.count({
+      collection: "companies",
       overrideAccess: true,
       where: { origin: { equals: "bordfeed_sample" } },
     });
@@ -253,17 +269,33 @@ describe("bordfeed sync", () => {
       overrideAccess: true,
       where: { origin: { equals: "bordfeed" } },
     });
+    const overlapped = await payload.find({
+      collection: "jobs",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { bordfeedJobId: { equals: sampleBefore.id } },
+    });
     const summary = connection.lastSyncSummary;
 
     expect(first.created).toBe(25);
     expect(first.pages).toBe(3);
     expect(bordfeedJobs.totalDocs).toBe(25);
     expect(sampleJobsLeft.totalDocs).toBe(0);
+    expect(sampleCompaniesLeft.totalDocs).toBe(0);
+    expect(overlapped.docs[0]?.origin).toBe("bordfeed");
+    expect(overlapped.docs[0]?.slug).toBe(sampleBefore.slug);
     expect(connection.state).toBe("connected");
     expect(summary).toMatchObject({ created: 25 });
 
+    const rerun = await runFeedSync(payload, {
+      client: feedClient(connectedJobs),
+    });
+    expect(rerun.created).toBe(0);
+    expect(rerun.updated).toBe(0);
+
     const second = await runFeedSync(payload, {
-      client: feedClient(feedJobs(23)),
+      client: feedClient(connectedJobs.slice(0, 23)),
     });
     const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
     expect(second.unpublished).toBe(2);
@@ -280,6 +312,140 @@ describe("bordfeed sync", () => {
     expect(afterGuard.state).toBe("error");
     expect(afterGuard.previousState).toBe("connected");
     expect(stillPublished.totalDocs).toBe(23);
+  });
+
+  test("reusing a manual company by domain does not rewrite jobs", async () => {
+    await payload.create({
+      collection: "companies",
+      data: {
+        domain: "example.com",
+        name: "Example Co",
+        origin: "manual",
+        slug: "example-co",
+      },
+      depth: 0,
+      overrideAccess: true,
+    });
+    await connectFeed();
+    const jobs = feedJobs(2);
+    const first = await runFeedSync(payload, { client: feedClient(jobs) });
+    expect(first.created).toBe(2);
+
+    const example = await payload.find({
+      collection: "companies",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { domain: { equals: "example.com" } },
+    });
+    expect(example.docs[0]?.origin).toBe("manual");
+    expect(example.docs[0]?.bordfeedCompanyId ?? null).toBeNull();
+    expect(example.totalDocs).toBe(1);
+
+    const second = await runFeedSync(payload, { client: feedClient(jobs) });
+    expect(second.created).toBe(0);
+    expect(second.updated).toBe(0);
+  });
+
+  test("feed sync updates a bordfeed company and then stays quiet", async () => {
+    await connectFeed();
+    const original = feedJobs(1);
+    await runFeedSync(payload, { client: feedClient(original) });
+    const renamed = original.map((job) => ({
+      ...job,
+      company: {
+        ...exampleCompany,
+        logo_url: "https://cdn.example.com/logo.png",
+        name: "Example Co Renamed",
+      },
+    }));
+    const second = await runFeedSync(payload, { client: feedClient(renamed) });
+    expect(second.created).toBe(0);
+    expect(second.updated).toBe(0);
+
+    const company = await payload.find({
+      collection: "companies",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { domain: { equals: "example.com" } },
+    });
+    expect(company.docs[0]?.name).toBe("Example Co Renamed");
+    expect(company.docs[0]?.logoUrl).toBe("https://cdn.example.com/logo.png");
+    expect(company.docs[0]?.origin).toBe("bordfeed");
+
+    const listed = await payload.find({
+      collection: "jobs",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed" } },
+    });
+    expect(listed.docs[0]?.companyName).toBe("Example Co Renamed");
+
+    const third = await runFeedSync(payload, { client: feedClient(renamed) });
+    expect(third.created).toBe(0);
+    expect(third.updated).toBe(0);
+  });
+
+  test("an empty sample preview keeps the jobs already on the board", async () => {
+    await runSampleSync(payload, { client: sampleClient() });
+    await expect(
+      runSampleSync(payload, { client: sampleClient([]) })
+    ).rejects.toBeInstanceOf(SyncGuardError);
+    const jobs = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    const connection = await readConnection(payload);
+    expect(jobs.totalDocs).toBe(3);
+    expect(connection.state).toBe("error");
+    expect(connection.previousState).toBe("sample");
+  });
+
+  test("ensureSampleJobs retries a failed first boot when the board is empty", async () => {
+    await dispatchConnectionEvent(payload, {
+      error: {
+        at: "2026-10-23T09:00:00.000Z",
+        code: "network",
+        message: "Could not reach Bordfeed.",
+      },
+      type: "sync_failed",
+    });
+    await ensureSampleJobs(payload);
+    expect(previewCalls).toHaveLength(1);
+    const jobs = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    const connection = await readConnection(payload);
+    expect(jobs.totalDocs).toBe(3);
+    expect(connection.state).toBe("sample");
+  });
+
+  test("a feed sync that loses the connection does not publish jobs", async () => {
+    await connectFeed();
+    const jobs = feedJobs(2);
+    const client = feedClient(jobs);
+    const { listFeedJobs } = client;
+    client.listFeedJobs = async function* listFeedJobsAfterReset(feedId) {
+      await dispatchConnectionEvent(payload, { type: "reset" });
+      yield* listFeedJobs.call(client, feedId);
+    };
+
+    const summary = await runFeedSync(payload, { client });
+    const bordfeedJobs = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed" } },
+    });
+    const connection = await readConnection(payload);
+    expect(summary.created).toBe(0);
+    expect(bordfeedJobs.totalDocs).toBe(0);
+    expect(connection.state).toBe("sample");
+    expect(connection.feedId).toBeNull();
   });
 
   test("cron rejects a missing bearer and runs a sample sync when authorized", async () => {

@@ -20,6 +20,7 @@ import { companyKey, type MappedCompany } from "./map-company";
 import { type MappedJob, mapBordfeedJob } from "./map-job";
 import {
   type ComparableFields,
+  companyRelationKey,
   type ExistingRow,
   orderFields,
   planSync,
@@ -154,36 +155,19 @@ function num(value: number | null | undefined): number | null {
   return value ?? null;
 }
 
-function companyOf(
-  job: Job,
-  companies: Map<number, Company>
-): MappedCompany | null {
-  const company = relationId(job.company);
-  const doc = company === null ? null : (companies.get(company) ?? null);
-  if (!doc) {
-    return null;
-  }
-
-  return {
-    bordfeedCompanyId: text(doc.bordfeedCompanyId),
-    domain: text(doc.domain),
-    logoUrl: text(doc.logoUrl),
-    name: doc.name,
-    slug: doc.slug,
-  };
+function storedCompanyKey(job: Job): string | null {
+  const id = relationId(job.company);
+  return id === null ? null : companyRelationKey(id);
 }
 
-function fieldsFromJob(
-  job: Job,
-  companies: Map<number, Company>
-): ComparableFields {
+function fieldsFromJob(job: Job): ComparableFields {
   return orderFields({
     applyEmail: text(job.applyEmail),
     applyMethod: text(job.applyMethod),
     applyUrl: text(job.applyUrl),
     careerLevel: job.careerLevel ?? [],
     categories: stringList(job.categories),
-    companyKey: companyKey(companyOf(job, companies)),
+    companyKey: storedCompanyKey(job),
     countryCode: text(job.countryCode),
     employmentType: text(job.employmentType),
     languages: stringList(job.languages),
@@ -207,11 +191,10 @@ function fieldsFromJob(
   });
 }
 
-function rowsFromJobs(jobs: Job[], companies: Company[]): ExistingRow[] {
-  const byId = new Map(companies.map((company) => [company.id, company]));
+function rowsFromJobs(jobs: Job[]): ExistingRow[] {
   return jobs.map((job) => ({
     bordfeedJobId: job.bordfeedJobId ?? null,
-    fields: fieldsFromJob(job, byId),
+    fields: fieldsFromJob(job),
     hash: job.bordfeedDescriptionHash ?? null,
     id: String(job.id),
     origin: job.origin,
@@ -360,6 +343,119 @@ function knownCompany(
   );
 }
 
+function sameText(
+  left: string | null | undefined,
+  right: string | null
+): boolean {
+  return (left ?? null) === right;
+}
+
+function companyPatch(
+  found: Company,
+  company: MappedCompany,
+  index: CompanyIndex,
+  origin: SyncOrigin
+): Partial<Pick<Company, "domain" | "logoUrl" | "name" | "origin">> | null {
+  const syncOwned =
+    found.origin === "bordfeed" || found.origin === "bordfeed_sample";
+  if (
+    !syncOwned ||
+    (origin === "bordfeed_sample" && found.origin === "bordfeed")
+  ) {
+    return null;
+  }
+
+  const data: Partial<Pick<Company, "domain" | "logoUrl" | "name" | "origin">> =
+    {};
+  if (found.name !== company.name) {
+    data.name = company.name;
+  }
+
+  if (!sameText(found.logoUrl, company.logoUrl)) {
+    data.logoUrl = company.logoUrl;
+  }
+
+  if (!sameText(found.domain, company.domain)) {
+    const owner = company.domain
+      ? index.byDomain.get(company.domain)
+      : undefined;
+    if (!(owner && owner.id !== found.id)) {
+      data.domain = company.domain;
+    }
+  }
+
+  if (origin === "bordfeed" && found.origin === "bordfeed_sample") {
+    data.origin = "bordfeed";
+  }
+
+  return Object.keys(data).length > 0 ? data : null;
+}
+
+function rememberCompany(
+  index: CompanyIndex,
+  before: Company,
+  after: Company
+): void {
+  if (before.domain && before.domain !== after.domain) {
+    index.byDomain.delete(before.domain);
+  }
+
+  if (after.bordfeedCompanyId) {
+    index.byFeedId.set(after.bordfeedCompanyId, after);
+  }
+
+  if (after.domain) {
+    index.byDomain.set(after.domain, after);
+  }
+}
+
+async function refreshCompanyJobs(
+  payload: Payload,
+  company: Company,
+  patch: Partial<Pick<Company, "domain" | "name">>
+): Promise<void> {
+  if (patch.name === undefined && patch.domain === undefined) {
+    return;
+  }
+
+  await payload.update({
+    collection: "jobs",
+    data: {
+      ...(patch.domain === undefined ? {} : { companyDomain: patch.domain }),
+      ...(patch.name === undefined
+        ? {}
+        : { companyName: patch.name, companySlug: company.slug }),
+    },
+    depth: 0,
+    overrideAccess: true,
+    where: { company: { equals: company.id } },
+  });
+}
+
+async function reuseCompany(
+  payload: Payload,
+  found: Company,
+  company: MappedCompany,
+  index: CompanyIndex,
+  origin: SyncOrigin
+): Promise<Company> {
+  const patch = companyPatch(found, company, index, origin);
+  if (!patch) {
+    return found;
+  }
+
+  const updated = await payload.update({
+    collection: "companies",
+    data: patch,
+    depth: 0,
+    id: found.id,
+    overrideAccess: true,
+  });
+  rememberCompany(index, found, updated);
+  await refreshCompanyJobs(payload, updated, patch);
+  return updated;
+}
+
 async function ensureCompany(
   payload: Payload,
   job: MappedJob,
@@ -375,7 +471,8 @@ async function ensureCompany(
 
   const found = knownCompany(index, company);
   if (found) {
-    ids.set(key, found.id);
+    const current = await reuseCompany(payload, found, company, index, origin);
+    ids.set(key, current.id);
     return;
   }
 
@@ -539,13 +636,99 @@ async function deleteOrphanCompanies(
   });
 }
 
+interface SyncStamp {
+  feedId: string | null;
+  mode: "feed" | "sample";
+}
+
+function syncMode(record: ConnectionRecord): "feed" | "sample" {
+  const feed =
+    record.state === "connected" ||
+    (record.state === "error" && record.previousState === "connected");
+  return feed ? "feed" : "sample";
+}
+
+async function connectionStillMatches(
+  payload: Payload,
+  stamp: SyncStamp
+): Promise<boolean> {
+  const current = await readConnection(payload);
+  return (
+    syncMode(current) === stamp.mode &&
+    (current.feedId ?? null) === stamp.feedId
+  );
+}
+
+function idleSummary(
+  mode: "feed" | "sample",
+  pages: number,
+  started: Date,
+  deps: SyncDeps | undefined
+): SyncSummary {
+  return {
+    created: 0,
+    deletedSamples: 0,
+    durationMs: clockOf(deps)().getTime() - started.getTime(),
+    mode,
+    pages,
+    skipped: 0,
+    unpublished: 0,
+    updated: 0,
+  };
+}
+
+function slugStillReserved(
+  job: Job,
+  mode: "feed" | "sample",
+  incomingIds: ReadonlySet<string>
+): boolean {
+  if (job.origin !== "bordfeed_sample") {
+    return true;
+  }
+
+  if (mode === "feed") {
+    return false;
+  }
+
+  return Boolean(job.bordfeedJobId && incomingIds.has(job.bordfeedJobId));
+}
+
+function guardedSlugs(
+  jobs: Job[],
+  mode: "feed" | "sample",
+  incomingIds: ReadonlySet<string>
+): Set<string> {
+  const slugs = new Set<string>();
+  for (const job of jobs) {
+    if (slugStillReserved(job, mode, incomingIds)) {
+      slugs.add(job.slug);
+    }
+  }
+
+  return slugs;
+}
+
+function emptyFeedWouldUnpublish(jobs: Job[], incomingCount: number): boolean {
+  return (
+    incomingCount === 0 &&
+    jobs.some((job) => job.origin === "bordfeed" && job._status !== "draft")
+  );
+}
+
+function emptySampleWouldDelete(jobs: Job[], incomingCount: number): boolean {
+  return (
+    incomingCount === 0 && jobs.some((job) => job.origin === "bordfeed_sample")
+  );
+}
+
 async function runSync(
   payload: Payload,
   deps: SyncDeps | undefined,
   mode: "feed" | "sample",
   incomingJobs: BordfeedJob[],
   pages: number,
-  origin: SyncOrigin
+  origin: SyncOrigin,
+  stamp: SyncStamp
 ): Promise<SyncSummary> {
   const started = clockOf(deps)();
   const jobs = incomingJobs.map((job) => mapBordfeedJob(job, origin));
@@ -554,27 +737,36 @@ async function runSync(
     loadCompanies(payload),
   ]);
 
-  if (mode === "feed") {
-    const publishedFeedJobs = existingJobs.filter(
-      (job) => job.origin === "bordfeed" && job._status !== "draft"
-    );
-    if (incomingJobs.length === 0 && publishedFeedJobs.length > 0) {
-      throw new SyncGuardError();
-    }
+  // A connect or reset can land while the feed is downloading.
+  if (!(await connectionStillMatches(payload, stamp))) {
+    return idleSummary(mode, pages, started, deps);
+  }
+
+  if (
+    (mode === "feed" &&
+      emptyFeedWouldUnpublish(existingJobs, incomingJobs.length)) ||
+    (mode === "sample" &&
+      emptySampleWouldDelete(existingJobs, incomingJobs.length))
+  ) {
+    throw new SyncGuardError();
   }
 
   const companyIds = await upsertCompanies(payload, jobs, companies, origin);
-  const existing = rowsFromJobs(existingJobs, companies);
+  if (!(await connectionStillMatches(payload, stamp))) {
+    return idleSummary(mode, pages, started, deps);
+  }
+
+  const incomingIds = new Set(jobs.map((job) => job.bordfeedJobId));
+  const existing = rowsFromJobs(existingJobs);
   const plan = planSync({
+    companyIds,
     existing,
     incoming: jobs,
     mode,
-    takenSlugs: new Set(existingJobs.map((job) => job.slug)),
+    takenSlugs: guardedSlugs(existingJobs, mode, incomingIds),
   });
   await applyPlan(payload, plan, companyIds);
-  if (mode === "sample") {
-    await deleteOrphanCompanies(payload, "bordfeed_sample");
-  }
+  await deleteOrphanCompanies(payload, "bordfeed_sample");
 
   const deletedSamples = plan.deleteIds.filter((id) =>
     existing.some((row) => row.id === id && row.origin === "bordfeed_sample")
@@ -629,7 +821,15 @@ export function runSampleSync(
       record.templateId,
       previewQuerySchema.parse({ limit: 20 })
     );
-    return runSync(payload, deps, "sample", preview.data, 1, "bordfeed_sample");
+    return runSync(
+      payload,
+      deps,
+      "sample",
+      preview.data,
+      1,
+      "bordfeed_sample",
+      { feedId: record.feedId, mode: "sample" }
+    );
   });
 }
 
@@ -655,7 +855,10 @@ export function runFeedSync(
       incoming.push(...page);
     }
 
-    return runSync(payload, deps, "feed", incoming, pages, "bordfeed");
+    return runSync(payload, deps, "feed", incoming, pages, "bordfeed", {
+      feedId: record.feedId,
+      mode: "feed",
+    });
   });
 }
 
@@ -664,8 +867,7 @@ export async function runBordfeedSync(
   deps?: SyncDeps
 ): Promise<SyncSummary> {
   const record = await readConnection(payload);
-  const feed =
-    record.state === "connected" ||
-    (record.state === "error" && record.previousState === "connected");
-  return feed ? runFeedSync(payload, deps) : runSampleSync(payload, deps);
+  return syncMode(record) === "feed"
+    ? runFeedSync(payload, deps)
+    : runSampleSync(payload, deps);
 }

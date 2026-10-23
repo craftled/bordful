@@ -323,3 +323,49 @@ test("preview retries a 400 once with no query string", async () => {
   ]);
   expect(preview.data.map((item) => item.id)).toEqual(["job-1"]);
 });
+
+test("a thrown fetch becomes a network error that omits the key", async () => {
+  const time = clock();
+  const fetchImpl: typeof fetch = () => {
+    throw new TypeError(`fetch failed for Bearer ${KEY}`);
+  };
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+  await expect(api.listTemplates()).rejects.toSatisfy((error: unknown) => {
+    expect(error).toBeInstanceOf(BordfeedApiError);
+    if (!(error instanceof BordfeedApiError)) {
+      return false;
+    }
+
+    expect(error.code).toBe("network");
+    expect(error.message).toBe("Could not reach Bordfeed.");
+    expect(JSON.stringify({ ...error, message: error.message })).not.toContain(
+      KEY
+    );
+    return true;
+  });
+});
+
+test("503 waits 1000ms and then accepts the retry", async () => {
+  const time = clock();
+  let fetches = 0;
+  const fetchImpl: typeof fetch = () => {
+    fetches += 1;
+    if (fetches === 1) {
+      return Promise.resolve(
+        jsonResponse({ error: { code: "server_error" } }, 503)
+      );
+    }
+
+    return Promise.resolve(
+      jsonResponse({ data: [], request_id: "req_templates" })
+    );
+  };
+  await client({
+    fetch: fetchImpl,
+    now: time.now,
+    sleep: time.sleep,
+  }).listTemplates();
+  expect(fetches).toBe(2);
+  expect(time.sleeps).toEqual([1000]);
+});

@@ -11,17 +11,19 @@ export async function ensureSampleJobs(
     overrideAccess: true,
     slug: "bordfeed-connection",
   });
+  const failedFirstBoot =
+    connection.state === "error" && connection.previousState === "sample";
+  const firstBoot = connection.state === "sample" && !connection.lastSyncAt;
+  if (!(failedFirstBoot || firstBoot)) {
+    return;
+  }
+
   const existing = await payload.count({
     collection: "jobs",
     overrideAccess: true,
     where: { origin: { equals: "bordfeed_sample" } },
   });
-
-  if (
-    connection.state !== "sample" ||
-    connection.lastSyncAt ||
-    existing.totalDocs > 0
-  ) {
+  if (existing.totalDocs > 0) {
     return;
   }
 

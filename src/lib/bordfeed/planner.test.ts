@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 
 import type { LexicalRoot } from "./html-to-lexical";
+import type { MappedCompany } from "./map-company";
 import type { MappedJob } from "./map-job";
 import { comparableJobFields, type ExistingRow, planSync } from "./planner";
 
@@ -169,4 +170,94 @@ test("sample mode leaves bordfeed rows alone", () => {
   expect(plan.unpublish).toEqual([]);
   expect(plan.update.map((item) => item.id)).not.toContain("id-b");
   expect(plan.create.map((item) => item.bordfeedJobId)).toEqual(["s2"]);
+});
+
+test("a persistent slug collision plans once and then stays empty", () => {
+  const incoming = job("abcdef12-0000-4000-8000-000000000001", "h1");
+  incoming.slug = "engineer";
+  const manual = job("manual", "hm");
+  manual.slug = "engineer";
+  const existing = [
+    row("id-manual", null, "manual", "published", null, manual),
+  ];
+  const first = planSync({
+    existing,
+    incoming: [incoming],
+    mode: "feed",
+    takenSlugs: new Set(existing.map((item) => item.slug)),
+  });
+  expect(first.create.map((item) => item.slug)).toEqual(["engineer-abcdef12"]);
+  expect(first.update).toEqual([]);
+
+  const created = first.create[0] as MappedJob;
+  const applied = [
+    existing[0] as ExistingRow,
+    row(
+      "id-job",
+      created.bordfeedJobId,
+      "bordfeed",
+      "published",
+      "h1",
+      created
+    ),
+  ];
+  expect(
+    planSync({
+      existing: applied,
+      incoming: [incoming],
+      mode: "feed",
+      takenSlugs: new Set(applied.map((item) => item.slug)),
+    })
+  ).toEqual({
+    create: [],
+    deleteIds: [],
+    skipped: 0,
+    unpublish: [],
+    update: [],
+  });
+});
+
+test("a doubled collision slug is not rewritten on the next plan", () => {
+  const incoming = job("abcdef12-0000-4000-8000-000000000001", "h1");
+  incoming.slug = "engineer";
+  const stored = { ...incoming, slug: "engineer-abcdef12-abcdef12" };
+  const manual = job("manual", "hm");
+  manual.slug = "engineer";
+  const existing = [
+    row("id-manual", null, "manual", "published", null, manual),
+    row("id-job", stored.bordfeedJobId, "bordfeed", "published", "h1", stored),
+  ];
+  const plan = planSync({
+    existing,
+    incoming: [incoming],
+    mode: "feed",
+    takenSlugs: new Set(existing.map((item) => item.slug)),
+  });
+
+  expect(plan.create).toEqual([]);
+  expect(plan.update).toEqual([]);
+});
+
+test("reused company rows compare by relation id", () => {
+  const company: MappedCompany = {
+    bordfeedCompanyId: "company-x",
+    domain: "example.com",
+    logoUrl: null,
+    name: "Example Co",
+    slug: "example-co",
+  };
+  const incoming = job("j1", "h1");
+  incoming.company = company;
+  const existing = row("id-j1", "j1", "bordfeed", "published", "h1", incoming);
+  existing.fields = { ...existing.fields, companyKey: "rel:7" };
+  const plan = planSync({
+    companyIds: new Map([["id:company-x", 7]]),
+    existing: [existing],
+    incoming: [incoming],
+    mode: "feed",
+    takenSlugs: new Set([incoming.slug]),
+  });
+
+  expect(plan.update).toEqual([]);
+  expect(plan.create).toEqual([]);
 });
