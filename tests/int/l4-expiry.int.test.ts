@@ -37,7 +37,7 @@ const { GET } = await import("@/app/api/cron/expire/route");
 const payload = await getPayload({ config });
 
 const DAY_MS = 86_400_000;
-const SWEEP_AT = "2026-11-19T09:00:01.000Z";
+const SWEEP_AT = "2098-06-01T09:00:01.000Z";
 
 function plusDays(iso: string, days: number): string {
   return new Date(new Date(iso).getTime() + days * DAY_MS).toISOString();
@@ -182,7 +182,7 @@ test("expireJobs unpublishes only listings due at the sweep instant", async () =
     publishedAt: "2026-10-20T09:00:00.000Z",
     slug: "example-manual-due",
     title: "Example Manual Due",
-    validThrough: "2026-11-19T09:00:00.000Z",
+    validThrough: "2098-06-01T09:00:00.000Z",
   });
   const later = await createJob({
     _status: "published",
@@ -190,7 +190,7 @@ test("expireJobs unpublishes only listings due at the sweep instant", async () =
     publishedAt: "2026-10-20T09:00:00.000Z",
     slug: "example-manual-later",
     title: "Example Manual Later",
-    validThrough: "2026-11-19T09:00:02.000Z",
+    validThrough: "2098-06-01T09:00:02.000Z",
   });
 
   const first = await expireJobs(payload, new Date(SWEEP_AT));

@@ -1,5 +1,5 @@
 import config from "@payload-config";
-import { getPayload } from "payload";
+import { getPayload, type Payload } from "payload";
 
 import { countDuePublishedJobs } from "@/jobs/expire-job";
 import { isAuthorizedCronRequest } from "@/lib/cron/authorize";
@@ -13,9 +13,10 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  let payload: Payload | undefined;
   try {
     const now = resolveCronNow(request);
-    const payload = await getPayload({ config });
+    payload = await getPayload({ config });
     const dueBefore = await countDuePublishedJobs(payload, now);
     const queued = await payload.jobs.queue({
       input: { now: now.toISOString() },
@@ -28,6 +29,10 @@ export async function GET(request: Request): Promise<Response> {
     });
     const status = ran.jobStatus?.[String(queued.id)]?.status;
     if (status !== "success") {
+      payload.logger.error(
+        { jobId: queued.id, status: status ?? null },
+        "expire cron job failed"
+      );
       return Response.json({ ok: false }, { status: 500 });
     }
 
@@ -37,7 +42,12 @@ export async function GET(request: Request): Promise<Response> {
       ok: true,
       unpublished: dueBefore - dueAfter,
     });
-  } catch {
+  } catch (error) {
+    if (payload) {
+      payload.logger.error({ err: error }, "expire cron failed");
+    } else {
+      console.error("expire cron failed", error);
+    }
     return Response.json({ ok: false }, { status: 500 });
   }
 }

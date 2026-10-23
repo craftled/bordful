@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { BoardShell } from "@/components/board/board-shell";
 import { buildPostJobView } from "@/components/post/post-job-view";
+import { isMarketingEnabled } from "@/config/flags";
+import { boardHomePath } from "@/config/nav";
 import { getSiteSettings } from "@/lib/read";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -36,6 +38,12 @@ export default async function PostJobThanksPage() {
           The board owner will collect the job details and publish the listing,
           usually within one business day.
         </p>
+        <a
+          className="font-medium text-sm underline underline-offset-4"
+          href={boardHomePath(isMarketingEnabled())}
+        >
+          Back to the board
+        </a>
       </article>
     </BoardShell>
   );
