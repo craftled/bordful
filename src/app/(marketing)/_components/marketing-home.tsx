@@ -1,8 +1,9 @@
-export function MarketingHome() {
-  return (
-    <main>
-      <h1>Bordful</h1>
-      <p>Coming soon</p>
-    </main>
-  );
+import { assertMarketingEnabled } from "@/config/marketing-guard";
+
+export async function MarketingHome() {
+  assertMarketingEnabled();
+
+  const { MarketingHomeView } = await import("./marketing-home-view");
+
+  return <MarketingHomeView />;
 }
