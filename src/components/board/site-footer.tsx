@@ -8,12 +8,17 @@ import {
 } from "@/components/board/social-links";
 import type { FooterColumn } from "@/config/nav";
 
-// Sub-labels that say which format each feed link serves.
+const FEED_IDS = new Set(["feed-atom", "feed-json", "feed-rss"]);
+
+// Sub-labels for feed links whose label does not already name the format.
 const FEED_PILLS: Record<string, string> = {
   "feed-atom": "XML",
-  "feed-json": "Feed",
   "feed-rss": "XML",
 };
+
+// Footer text stays opacity-free so it keeps the contrast the theme tests.
+const FOOTER_LINK_CLASS = "text-background hover:underline underline-offset-4";
+const FOOTER_ICON_CLASS = "text-background hover:opacity-80";
 
 export function SiteFooter({
   columns,
@@ -47,7 +52,7 @@ export function SiteFooter({
               <h2 className="font-semibold text-xl">
                 Post a Job for {durationDays} Days
               </h2>
-              <p className="mt-1 text-background/75 text-sm">
+              <p className="mt-1 text-background text-sm">
                 {priceLabel
                   ? `${priceLabel} per listing. Reach candidates browsing this board.`
                   : "Reach candidates browsing this board."}
@@ -81,23 +86,23 @@ export function SiteFooter({
               <span>{name}</span>
             </div>
             {tagline ? (
-              <p className="text-background/75 text-sm">{tagline}</p>
+              <p className="text-background text-sm">{tagline}</p>
             ) : null}
-            <SocialLinks className="text-background/75" links={social} />
+            <SocialLinks linkClassName={FOOTER_ICON_CLASS} links={social} />
           </div>
           {columns.map((column) => (
             <nav aria-label={column.title} key={column.id}>
               <h2 className="font-semibold text-sm">{column.title}</h2>
-              <ul className="mt-3 space-y-2 text-background/75 text-sm">
+              <ul className="mt-3 space-y-2 text-background text-sm">
                 {column.items.map((item) => (
                   <li className="flex items-center gap-2" key={item.id}>
-                    {FEED_PILLS[item.id] ? (
+                    {FEED_IDS.has(item.id) ? (
                       // Feeds are route handlers, not pages. next/link would prefetch them with ?_rsc, which never settles.
-                      <a className="hover:text-background" href={item.href}>
+                      <a className={FOOTER_LINK_CLASS} href={item.href}>
                         {item.label}
                       </a>
                     ) : (
-                      <Link className="hover:text-background" href={item.href}>
+                      <Link className={FOOTER_LINK_CLASS} href={item.href}>
                         {item.label}
                       </Link>
                     )}
@@ -112,7 +117,7 @@ export function SiteFooter({
             </nav>
           ))}
         </div>
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-background/20 border-t pt-6 text-background/75 text-sm">
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-background/20 border-t pt-6 text-background text-sm">
           <p>
             © {year} {name}
           </p>

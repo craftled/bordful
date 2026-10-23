@@ -79,7 +79,9 @@ test("always offers RSS and any configured social profile with a label", () => {
     screen.getByRole("link", { name: "RSS feed" }).getAttribute("href")
   ).toBe("/feed.xml");
   expect(
-    screen.getByRole("link", { name: "GitHub" }).getAttribute("href")
+    screen
+      .getByRole("link", { name: "GitHub (opens in new tab)" })
+      .getAttribute("href")
   ).toBe("https://github.com/craftled/bordful");
   expect(screen.queryByRole("link", { name: "X" })).toBeNull();
 });
@@ -87,7 +89,7 @@ test("always offers RSS and any configured social profile with a label", () => {
 test("mobile menu toggles aria-expanded and closes on Escape", () => {
   renderHeader();
 
-  const toggle = screen.getByRole("button", { name: "Open menu" });
+  const toggle = screen.getByRole("button", { name: "Menu" });
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
   const panelId = toggle.getAttribute("aria-controls");
   expect(panelId).toBeTruthy();
@@ -108,7 +110,7 @@ test("mobile menu toggles aria-expanded and closes on Escape", () => {
 test("mobile menu closes when a link is chosen and items are links", () => {
   renderHeader();
 
-  const toggle = screen.getByRole("button", { name: "Open menu" });
+  const toggle = screen.getByRole("button", { name: "Menu" });
   fireEvent.click(toggle);
 
   const mobile = screen.getByRole("navigation", { name: "Mobile" });
@@ -116,5 +118,18 @@ test("mobile menu closes when a link is chosen and items are links", () => {
   expect(within(mobile).getByRole("link", { name: "Companies" })).toBeTruthy();
 
   fireEvent.click(within(mobile).getByRole("link", { name: "Companies" }));
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+});
+
+test("mobile menu closes when focus leaves it", () => {
+  renderHeader();
+
+  const toggle = screen.getByRole("button", { name: "Menu" });
+  fireEvent.click(toggle);
+  const mobile = screen.getByRole("navigation", { name: "Mobile" });
+
+  fireEvent.focusOut(within(mobile).getByRole("link", { name: "Jobs" }), {
+    relatedTarget: document.body,
+  });
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
 });

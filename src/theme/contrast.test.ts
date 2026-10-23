@@ -29,10 +29,3 @@ test("every default contrast pair passes WCAG AA for normal text", () => {
     expect(ratio, `${left} on ${right}`).toBeGreaterThanOrEqual(4.5);
   }
 });
-
-test("default footer text on the dark foreground band passes 4.5:1", () => {
-  // Footer secondary text is text-background at 75% over the foreground band.
-  const band = DEFAULT_THEME_TOKENS.colors.foreground;
-  const blended = "#c5c5c6";
-  expect(contrastRatio(blended, band)).toBeGreaterThanOrEqual(4.5);
-});

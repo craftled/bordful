@@ -168,11 +168,17 @@ textarea:focus-visible {
   table {
     @apply mb-4 w-full border-collapse text-sm;
   }
+  thead {
+    @apply bg-muted;
+  }
   th,
   td {
-    @apply border-border border-b px-2 py-1.5 text-left;
+    @apply border border-border px-3 py-2 text-left;
   }
   th {
-    @apply font-semibold;
+    @apply font-medium text-foreground;
+  }
+  tr:nth-child(even) {
+    @apply bg-muted;
   }
 }
