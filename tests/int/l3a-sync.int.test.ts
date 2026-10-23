@@ -123,6 +123,11 @@ if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
 
 process.env.DATABASE_URL = databaseUrl;
 
+// The integration job does not set CRON_SECRET. The route reads it per request.
+const cronSecret =
+  process.env.CRON_SECRET || ["int-cron-secret", "0123456789"].join("-");
+process.env.CRON_SECRET = cronSecret;
+
 const { getPayload } = await import("payload");
 const { default: config } = await import("@payload-config");
 const { GET } = await import("@/app/api/cron/bordfeed/route");
@@ -569,11 +574,6 @@ describe("bordfeed sync", () => {
   });
 
   test("cron rejects a missing bearer and runs a sample sync when authorized", async () => {
-    const secret = process.env.CRON_SECRET;
-    if (!secret) {
-      throw new Error("CRON_SECRET is required for test:int");
-    }
-
     const denied = await GET(
       new Request("http://localhost:4130/api/cron/bordfeed")
     );
@@ -582,7 +582,7 @@ describe("bordfeed sync", () => {
 
     const allowed = await GET(
       new Request("http://localhost:4130/api/cron/bordfeed", {
-        headers: { authorization: `Bearer ${secret}` },
+        headers: { authorization: `Bearer ${cronSecret}` },
       })
     );
     expect(allowed.status).toBe(200);
