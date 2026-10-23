@@ -9,16 +9,16 @@ const httpsError = /https/;
 const base64Value = /^[A-Za-z0-9+/]+=*$/;
 
 const prod =
-  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
+  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
 
 const dev =
-  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self' ws:; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com";
+  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM=' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self' ws:; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com";
 
 const prodWithExtras =
-  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' https://cdn.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self' https://api.example.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
+  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM=' https://cdn.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self' https://api.example.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
 
 const devWithExtras =
-  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'unsafe-eval' https://cdn.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self' https://api.example.com ws:; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com";
+  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM=' 'unsafe-eval' https://cdn.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self' https://api.example.com ws:; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com";
 
 test("builds the production policy for a fixed nonce", () => {
   expect(buildCsp({ isDev: false, nonce })).toBe(prod);
@@ -73,7 +73,7 @@ test("rejects an origin that contains a semicolon or a quote", () => {
 });
 
 const prodWithWildcard =
-  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' https://*.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
+  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM=' https://*.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
 
 test("rejects an origin that contains a double quote", () => {
   expect(() =>
