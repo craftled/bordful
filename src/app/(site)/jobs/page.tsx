@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function JobsPage() {
   if (isMarketingEnabled()) {
     return (
-      <BoardShell>
+      <BoardShell fullBleed>
         <BoardHome />
       </BoardShell>
     );

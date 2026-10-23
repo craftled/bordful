@@ -1,3 +1,4 @@
+import { BoardHero } from "@/components/board/board-hero";
 import { BoardListing } from "@/components/board/board-listing";
 import { isMarketingEnabled } from "@/config/flags";
 import { loadBoardPool } from "@/lib/board/pool";
@@ -10,15 +11,29 @@ export async function BoardHome() {
     loadBoardPool(),
   ]);
   const options = { defaultPerPage: settings.board.jobsPerPage };
+  const query = parseBoardQuery(new URLSearchParams(""), options);
 
   return (
-    <BoardListing
-      cards={cards}
-      heading={settings.board.title || "Latest jobs"}
-      intro={settings.board.description}
-      marketing={isMarketingEnabled()}
-      options={options}
-      query={parseBoardQuery(new URLSearchParams(""), options)}
-    />
+    <>
+      <BoardHero
+        badge={settings.name}
+        cards={cards}
+        intro={settings.board.description}
+        options={options}
+        query={query}
+        title={settings.board.title}
+      />
+      <div className="mx-auto w-full max-w-board px-4 py-8">
+        <BoardListing
+          cards={cards}
+          marketing={isMarketingEnabled()}
+          options={options}
+          postJob={settings.postJob.enabled ? settings.postJob : null}
+          query={query}
+          showHeading={false}
+          showSearch={false}
+        />
+      </div>
+    </>
   );
 }
