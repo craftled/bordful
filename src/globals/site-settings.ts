@@ -41,6 +41,11 @@ const paymentLinkUrl: TextFieldSingleValidation = (value, { siblingData }) => {
 };
 
 const colorFields = THEME_COLOR_KEYS.map((name) => ({
+  admin: {
+    components: {
+      Field: "/admin/components/color-field#ColorField",
+    },
+  },
   name,
   type: "text" as const,
   validate: hexColor,

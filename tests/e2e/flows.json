@@ -1,0 +1,16 @@
+{
+  "flows": [
+    {
+      "id": "S0-smoke",
+      "file": "smoke.spec.ts",
+      "requires": [],
+      "enabled": true
+    },
+    {
+      "id": "S0-admin-login",
+      "file": "admin-login.spec.ts",
+      "requires": [],
+      "enabled": true
+    }
+  ]
+}

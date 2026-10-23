@@ -177,6 +177,7 @@ export function toJobListItem(doc: unknown): JobListItem {
     slug: stringOrNull(row.slug) ?? "",
     title: stringOrNull(row.title) ?? "",
     validThrough: dateOrNull(row.validThrough),
+    visaSponsorship: stringOrNull(row.visaSponsorship),
     workplaceType: oneOf(JOB_WORKPLACE_TYPES, row.workplaceType),
   };
 }
@@ -284,6 +285,6 @@ export function toBordfeedConnectionPublic(
     lastSyncAt: dateOrNull(row.lastSyncAt),
     showAttribution: state !== "connected" || row.showAttribution !== false,
     state,
-    templateId: stringOrNull(row.templateId) ?? "remote-engineering",
+    templateId: stringOrNull(row.templateId) ?? "engineering-it",
   };
 }

@@ -44,6 +44,7 @@ test("toJobListItem maps a populated card logo and language values", () => {
       slug: "example-senior-backend-engineer",
       title: "Example Senior Backend Engineer",
       validThrough: null,
+      visaSponsorship: "Offered",
       workplaceType: "remote",
     })
   ).toEqual({
@@ -71,6 +72,7 @@ test("toJobListItem maps a populated card logo and language values", () => {
     slug: "example-senior-backend-engineer",
     title: "Example Senior Backend Engineer",
     validThrough: null,
+    visaSponsorship: "Offered",
     workplaceType: "remote",
   });
 });
@@ -81,14 +83,18 @@ test("sample attribution stays visible until the board is connected", () => {
       lastSyncAt: null,
       showAttribution: false,
       state: "sample",
-      templateId: "remote-engineering",
+      templateId: "engineering-it",
     })
   ).toEqual({
     lastSyncAt: null,
     showAttribution: true,
     state: "sample",
-    templateId: "remote-engineering",
+    templateId: "engineering-it",
   });
+
+  expect(toBordfeedConnectionPublic({ templateId: null }).templateId).toBe(
+    "engineering-it"
+  );
 });
 
 test("empty site settings resolve to the documented defaults", () => {

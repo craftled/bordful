@@ -118,6 +118,9 @@ jobs:
       - name: Migrate
         run: bun run payload migrate
 
+      - name: Build
+        run: bun run build
+
       - name: Playwright
         run: bun run test:e2e
 
