@@ -1,5 +1,4 @@
 import { Rss } from "lucide-react";
-import Link from "next/link";
 import type { JSX } from "react";
 
 import type { BordfulConfig } from "@/config/define-config";
@@ -90,13 +89,14 @@ export function SocialLinks({
   return (
     <ul className={`flex items-center gap-3 ${className}`}>
       <li>
-        <Link
+        {/* Plain anchor: feeds are route handlers, and next/link would prefetch them. */}
+        <a
           aria-label="RSS feed"
           className="text-muted-foreground transition-colors hover:text-foreground"
           href="/feed.xml"
         >
           <Rss aria-hidden="true" className="size-4" />
-        </Link>
+        </a>
       </li>
       {networks.map((network) => (
         <li key={network}>
