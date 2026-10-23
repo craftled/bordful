@@ -104,7 +104,7 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
     await page.getByTestId("alerts-unsubscribe-button").click();
     await expect(page.getByTestId("alerts-unsubscribed")).toBeVisible();
 
-    await createJob(admin, {
+    const ahead = await createJob(admin, {
       _status: "published",
       companyName: "E8zq Example Co",
       origin: "manual",
@@ -119,6 +119,10 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
     const quiet = await runCron(request, "alerts", muchLater);
     expect(quiet.ok()).toBe(true);
     expect(await resendEmails()).toHaveLength(before);
+    // publishedAt is twelve days ahead, so this row would sort first on /
+    // for every later flow. Remove it once the quiet digest has been checked.
+    const removed = await admin.delete(`/api/jobs/${docString(ahead, "id")}`);
+    expect(removed.ok()).toBe(true);
     await admin.dispose();
   });
 });

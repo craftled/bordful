@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 import type { BordfeedRequestLog } from "../mocks/bordfeed";
 import { loginInBrowser } from "./support/admin";
 import { bordfeedRequests, resetMock } from "./support/mock";
+import { readGlobal } from "./support/seed";
 
 const INSTALL_ID = /^[a-f0-9]{64}$/;
 const CONNECTED_MESSAGE = /^Connected\. Synced 25 jobs/;
@@ -24,25 +25,27 @@ async function setShowAttribution(page: Page, show: boolean): Promise<void> {
     await toggle.uncheck();
   }
 
-  // setAttributionAction is a useActionState form action. Submitting the
-  // nearest form saves the checkbox. The body must name showAttribution so a
-  // Payload admin next-action cannot resolve this wait before the save.
+  // An unchecked checkbox is left out of FormData, so the action body does
+  // not contain the field name. The global is what the board reads.
   const form = toggle.locator("xpath=ancestor::form[1]");
-  const saved = page.waitForResponse((response) => {
-    const actionRequest = response.request();
-    return (
-      actionRequest.method() === "POST" &&
-      actionRequest.headers()["next-action"] !== undefined &&
-      (actionRequest.postData() ?? "").includes("showAttribution")
-    );
-  });
   await form.evaluate((node) => {
     if (!(node instanceof HTMLFormElement)) {
       throw new Error("attribution toggle is not inside a form");
     }
     node.requestSubmit();
   });
-  expect((await saved).ok()).toBe(true);
+  await expect
+    .poll(
+      async () => {
+        const connection = await readGlobal(
+          page.request,
+          "bordfeed-connection"
+        );
+        return connection.showAttribution;
+      },
+      { timeout: 30_000 }
+    )
+    .toBe(show);
   await page.reload();
   const stored = page.getByTestId("bordfeed-show-attribution");
   if (show) {
