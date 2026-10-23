@@ -2,9 +2,9 @@ export const FONT_IDS = ["system", "sans", "serif", "mono"] as const;
 export type FontId = (typeof FONT_IDS)[number];
 
 export const FONT_STACKS: Record<FontId, string> = {
-  mono: "ui-monospace, Menlo, monospace",
-  sans: "ui-sans-serif, system-ui, sans-serif",
-  serif: "ui-serif, Georgia, serif",
+  mono: "var(--font-geist-mono), ui-monospace, Menlo, monospace",
+  sans: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
+  serif: "var(--font-ibm-plex-serif), Georgia, serif",
   system: "system-ui, sans-serif",
 };
 
@@ -31,20 +31,20 @@ export interface ThemeTokens {
 
 export const DEFAULT_THEME_TOKENS: ThemeTokens = {
   colors: {
-    accent: "#f5f5f5",
-    accentForeground: "#171717",
+    accent: "#f4f4f5",
+    accentForeground: "#18181b",
     background: "#ffffff",
-    border: "#e5e5e5",
-    foreground: "#0a0a0a",
-    muted: "#f5f5f5",
-    mutedForeground: "#737373",
-    primary: "#171717",
-    primaryForeground: "#fafafa",
-    ring: "#a3a3a3",
+    border: "#e4e4e7",
+    foreground: "#18181b",
+    muted: "#f9fafb",
+    mutedForeground: "#52525b",
+    primary: "#164e63",
+    primaryForeground: "#ffffff",
+    ring: "#164e63",
   },
-  fontBody: "system",
-  fontHeading: "system",
-  radius: 0.625,
+  fontBody: "sans",
+  fontHeading: "sans",
+  radius: 0.5,
 };
 
 const COLOR_CSS: Record<ThemeColorKey, string> = {
