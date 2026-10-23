@@ -5,17 +5,20 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "bordful": "payload bordful",
     "build": "next build",
-    "check": "bun run typecheck && bun run lint && bun run test",
+    "check": "bun run typecheck && bun run lint && bun run test && bun run lint:payload",
     "dev": "next dev",
     "format": "ultracite fix",
     "generate:importmap": "payload generate:importmap",
     "generate:types": "payload generate:types",
     "lint": "ultracite check",
+    "lint:payload": "bun scripts/check-override-access.ts",
     "payload": "payload",
     "start": "next start",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:int": "vitest run --config vitest.int.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "overrides": {

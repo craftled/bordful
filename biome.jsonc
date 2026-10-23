@@ -11,6 +11,7 @@
       "!!**/.next",
       "!src/payload-types.ts",
       "!src/app/(payload)/admin/importMap.js",
+      "!src/app/(payload)/custom.css",
       "!src/migrations",
       "!playwright-report",
       "!test-results"

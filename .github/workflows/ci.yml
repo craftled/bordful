@@ -44,6 +44,9 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Lint Payload access
+        run: bun run lint:payload
+
       - name: Test
         run: bun run test
 
@@ -99,6 +102,20 @@ jobs:
 
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
+
+      - name: Create integration database
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=postgres createdb -h localhost -U postgres bordful_int
+
+      - name: Integration tests
+        run: bun run test:int
+        env:
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/bordful_int
+
+      - name: Migrate
+        run: bun run payload migrate
 
       - name: Playwright
         run: bun run test:e2e
