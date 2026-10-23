@@ -5,7 +5,7 @@ import type {
   TextFieldSingleValidation,
 } from "payload";
 
-import { anyone, isAdmin, isAdminField } from "@/access/roles";
+import { anyone, denyAll, isAdmin, isAdminField } from "@/access/roles";
 import { bordfulConfig } from "@/config";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { revalidateReadTags } from "@/lib/read/revalidate";
@@ -28,22 +28,25 @@ const envelopeOrEmpty: TextFieldSingleValidation = (value) => {
     : "Bordfeed keys must be stored as an encrypted envelope.";
 };
 
-const attributionGuard: CheckboxFieldValidation = (value, { siblingData }) => {
+const attributionGuard: CheckboxFieldValidation = (
+  value,
+  { previousValue, siblingData }
+) => {
   const { state } = siblingData as { state?: string };
 
-  if (value === false && state !== "connected") {
+  if (value === false && previousValue !== false && state !== "connected") {
     return "The Jobs by Bordfeed credit can be hidden only when Bordfeed is connected.";
   }
 
   return true;
 };
 
-function readOnlyText(name: string, extra?: Record<string, unknown>) {
+function readOnlyText(name: string) {
   return {
+    access: { update: denyAll },
     admin: { readOnly: true },
     name,
     type: "text" as const,
-    ...extra,
   };
 }
 
@@ -56,6 +59,7 @@ export const BordfeedConnection: GlobalConfig = {
   authorship: false,
   fields: [
     {
+      access: { update: denyAll },
       admin: { readOnly: true },
       defaultValue: "sample",
       name: "state",
@@ -64,13 +68,14 @@ export const BordfeedConnection: GlobalConfig = {
       type: "select",
     },
     {
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
       admin: { readOnly: true },
       name: "previousState",
       options: PREVIOUS_STATES.map((value) => ({ label: value, value })),
       type: "select",
     },
     {
+      access: { update: denyAll },
       admin: { readOnly: true },
       defaultValue: bordfulConfig.board.defaultTemplateId,
       name: "templateId",
@@ -78,22 +83,23 @@ export const BordfeedConnection: GlobalConfig = {
       type: "text",
     },
     {
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
       admin: { readOnly: true },
       name: "filters",
       type: "json",
     },
     {
       ...readOnlyText("registrationId"),
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
     },
     {
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
       admin: { readOnly: true },
       name: "registrationExpiresAt",
       type: "date",
     },
     {
+      access: { update: denyAll },
       admin: { readOnly: true },
       hidden: true,
       name: "apiKeyEncrypted",
@@ -102,25 +108,26 @@ export const BordfeedConnection: GlobalConfig = {
     },
     {
       ...readOnlyText("keyHint"),
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
     },
     {
       ...readOnlyText("feedId"),
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
     },
     {
+      access: { update: denyAll },
       admin: { readOnly: true },
       name: "lastSyncAt",
       type: "date",
     },
     {
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
       admin: { readOnly: true },
       name: "lastSyncSummary",
       type: "json",
     },
     {
-      access: { read: isAdminField },
+      access: { read: isAdminField, update: denyAll },
       admin: { readOnly: true },
       name: "lastError",
       type: "json",

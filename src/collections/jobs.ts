@@ -1,9 +1,4 @@
-import type {
-  CollectionAfterChangeHook,
-  CollectionAfterDeleteHook,
-  CollectionBeforeChangeHook,
-  CollectionConfig,
-} from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { jobsRead } from "@/access/jobs";
 import { isAdmin, isStaff, isStaffField } from "@/access/roles";
 import { syncOwnedFieldUpdate } from "@/access/sync-owned";
@@ -19,12 +14,10 @@ import {
 } from "@/lib/domain/job-vocab";
 import { toOptions } from "@/lib/domain/options";
 import { isReservedJobSlug } from "@/lib/domain/reserved-slugs";
-import { revalidateReadTags } from "@/lib/read/revalidate";
-import { jobTag } from "@/lib/read/tags";
-
 import { emptyToNull } from "./shared/empty-to-null";
 import { owned } from "./shared/owned";
 import { relationId } from "./shared/relation-id";
+import { revalidateJobs, revalidateJobsDelete } from "./shared/revalidate";
 import { stringListField } from "./shared/string-list";
 import {
   httpUrl,
@@ -32,24 +25,6 @@ import {
   iso4217,
   syncOriginValidate,
 } from "./shared/validators";
-
-function slugOf(doc: unknown): string {
-  if (doc !== null && typeof doc === "object" && "slug" in doc) {
-    return typeof doc.slug === "string" ? doc.slug : "";
-  }
-
-  return "";
-}
-
-const revalidateJobs: CollectionAfterChangeHook = ({ doc }) => {
-  revalidateReadTags(["jobs", jobTag(slugOf(doc))]);
-  return doc;
-};
-
-const revalidateJobsDelete: CollectionAfterDeleteHook = ({ doc }) => {
-  revalidateReadTags(["jobs", jobTag(slugOf(doc))]);
-  return doc;
-};
 
 function durationDaysOf(settings: unknown): number {
   if (
@@ -302,6 +277,7 @@ export const Jobs: CollectionConfig = {
       validate: syncOriginValidate,
     }),
     owned({
+      access: { create: ({ req }) => !req.user },
       admin: { position: "sidebar", readOnly: true },
       hooks: { beforeValidate: [emptyToNull] },
       index: true,
@@ -310,6 +286,10 @@ export const Jobs: CollectionConfig = {
       unique: true,
     }),
     owned({
+      access: {
+        create: ({ req }) => !req.user,
+        read: isStaffField,
+      },
       admin: { hidden: true, readOnly: true },
       name: "bordfeedDescriptionHash",
       type: "text",

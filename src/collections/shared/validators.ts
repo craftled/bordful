@@ -65,9 +65,12 @@ export const hexColor: TextFieldSingleValidation = (value) => {
 
 export const syncOriginValidate: SelectFieldSingleValidation = (
   value,
-  { req }
+  { operation, previousValue, req }
 ) => {
-  if (req.user && (value === "bordfeed" || value === "bordfeed_sample")) {
+  const isSyncOrigin = value === "bordfeed" || value === "bordfeed_sample";
+  const settingOrigin = operation === "create" || value !== previousValue;
+
+  if (req.user && isSyncOrigin && settingOrigin) {
     return "Only the Bordfeed sync can set this origin.";
   }
 

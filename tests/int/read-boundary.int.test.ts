@@ -16,7 +16,7 @@ import {
   queryPublishedJobs,
   querySiteSettings,
 } from "@/lib/read/queries";
-import type { Job } from "@/payload-types";
+import type { Job, User } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
 import { loadBoardFixture } from "../fixtures/load";
 
@@ -41,9 +41,34 @@ const { default: config } = await import("@payload-config");
 
 const payload = await getPayload({ config });
 
+const STAFF_PASSWORD = "Example-Passw0rd-123";
+
+let adminUser: User;
+let editorUser: User;
+
 beforeAll(async () => {
   await payload.db.migrateFresh({ forceAcceptWarning: true });
   await loadBoardFixture(payload);
+  adminUser = await payload.create({
+    collection: "users",
+    data: {
+      email: "admin@example.com",
+      password: STAFF_PASSWORD,
+      roles: ["admin"],
+    },
+    depth: 0,
+    overrideAccess: true,
+  });
+  editorUser = await payload.create({
+    collection: "users",
+    data: {
+      email: "editor@example.com",
+      password: STAFF_PASSWORD,
+      roles: ["editor"],
+    },
+    depth: 0,
+    overrideAccess: true,
+  });
   await payload.create({
     collection: "jobs",
     data: {
@@ -101,7 +126,43 @@ test("payment references stay off the public job document", async () => {
     overrideAccess: false,
     where: { slug: { equals: "example-product-designer" } },
   });
+  expect(result.docs).toHaveLength(1);
   expect(result.docs[0]?.paymentReference).toBeUndefined();
+});
+
+test("an editor can feature a sample job and cannot retitle it", async () => {
+  const found = await payload.find({
+    collection: "jobs",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: { slug: { equals: "sample-remote-data-analyst" } },
+  });
+  expect(found.docs).toHaveLength(1);
+  const [sample] = found.docs;
+  if (!sample) {
+    throw new Error("missing sample job");
+  }
+
+  const featured = await payload.update({
+    collection: "jobs",
+    data: { featured: true },
+    depth: 0,
+    id: sample.id,
+    overrideAccess: false,
+    user: editorUser,
+  });
+  expect(featured.featured).toBe(true);
+
+  const retitled = await payload.update({
+    collection: "jobs",
+    data: { title: "Changed Sample Title" },
+    depth: 0,
+    id: sample.id,
+    overrideAccess: false,
+    user: editorUser,
+  });
+  expect(retitled.title).toBe("Sample Remote Data Analyst");
 });
 
 test("anonymous callers cannot read versions or alert subscribers", async () => {
@@ -110,6 +171,14 @@ test("anonymous callers cannot read versions or alert subscribers", async () => 
       collection: "jobs",
       depth: 0,
       overrideAccess: false,
+    })
+  ).rejects.toThrow();
+  await expect(
+    payload.findVersions({
+      collection: "jobs",
+      depth: 0,
+      overrideAccess: false,
+      user: editorUser,
     })
   ).rejects.toThrow();
   await expect(
@@ -173,6 +242,71 @@ test("attribution cannot be hidden and plaintext keys are refused", async () => 
     slug: "bordfeed-connection",
   });
   expect(publicDoc).not.toHaveProperty("apiKeyEncrypted");
+
+  await payload.updateGlobal({
+    data: { previousState: "sample", state: "connected" },
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+  await payload.updateGlobal({
+    data: { showAttribution: false },
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+
+  const connected = await payload.findGlobal({
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+  expect(connected.state).toBe("connected");
+  expect(connected.showAttribution).toBe(false);
+
+  await payload.updateGlobal({
+    data: {
+      lastError: { message: "example sync failure" },
+      previousState: "connected",
+      state: "error",
+    },
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+
+  const errored = await payload.findGlobal({
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+  expect(errored.state).toBe("error");
+  expect(errored.previousState).toBe("connected");
+  expect(errored.showAttribution).toBe(false);
+});
+
+test("an admin cannot write bordfeed connection machine fields", async () => {
+  await payload.updateGlobal({
+    data: { showAttribution: true, state: "sample" },
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+
+  await payload.updateGlobal({
+    data: { state: "connected" },
+    depth: 0,
+    overrideAccess: false,
+    slug: "bordfeed-connection",
+    user: adminUser,
+  });
+
+  const doc = await payload.findGlobal({
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  });
+  expect(doc.state).toBe("sample");
 });
 
 test("ensureInstallId is stable", async () => {

@@ -7,7 +7,7 @@ import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { sharpTransformer } from "@payloadcms/transformer-sharp";
 import { buildConfig, type Payload } from "payload";
 import sharp from "sharp";
-
+import { stripDashes } from "../scripts/strip-dashes";
 import { collections } from "./collections";
 import { resolvePayloadSecret } from "./config/payload-secret";
 import { resolveServerUrl } from "./config/server-url";
@@ -78,7 +78,10 @@ export default buildConfig({
     }),
   ],
   telemetry: false,
-  typescript: { outputFile: path.resolve(dirname, "payload-types.ts") },
+  typescript: {
+    outputFile: path.resolve(dirname, "payload-types.ts"),
+    postProcess: [({ compiledTypes }) => stripDashes(compiledTypes)],
+  },
   upload: {
     limits: { fileSize: 5_000_000 },
     transformers: [

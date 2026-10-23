@@ -1,36 +1,16 @@
-import type {
-  CollectionAfterChangeHook,
-  CollectionAfterDeleteHook,
-  CollectionConfig,
-} from "payload";
+import type { CollectionConfig } from "payload";
 
 import { anyone, isStaff } from "@/access/roles";
 import { JOB_ORIGINS } from "@/lib/domain/job-vocab";
 import { toOptions } from "@/lib/domain/options";
-import { revalidateReadTags } from "@/lib/read/revalidate";
-import { companyTag } from "@/lib/read/tags";
 
 import { emptyToNull } from "./shared/empty-to-null";
 import { owned } from "./shared/owned";
+import {
+  revalidateCompanies,
+  revalidateCompaniesDelete,
+} from "./shared/revalidate";
 import { hostname, httpUrl, syncOriginValidate } from "./shared/validators";
-
-function slugOf(doc: unknown): string {
-  if (doc !== null && typeof doc === "object" && "slug" in doc) {
-    return typeof doc.slug === "string" ? doc.slug : "";
-  }
-
-  return "";
-}
-
-const revalidateCompanies: CollectionAfterChangeHook = ({ doc }) => {
-  revalidateReadTags(["companies", companyTag(slugOf(doc)), "jobs"]);
-  return doc;
-};
-
-const revalidateCompaniesDelete: CollectionAfterDeleteHook = ({ doc }) => {
-  revalidateReadTags(["companies", companyTag(slugOf(doc)), "jobs"]);
-  return doc;
-};
 
 export const Companies: CollectionConfig = {
   access: {
@@ -76,6 +56,7 @@ export const Companies: CollectionConfig = {
       validate: syncOriginValidate,
     }),
     owned({
+      access: { create: ({ req }) => !req.user },
       admin: { readOnly: true },
       hooks: { beforeValidate: [emptyToNull] },
       index: true,
