@@ -418,6 +418,7 @@ async function refreshCompanyJobs(
     return;
   }
 
+  // companyName is owner text on manual and paid jobs. A company rename must not version those rows.
   await payload.update({
     collection: "jobs",
     data: {
@@ -428,7 +429,12 @@ async function refreshCompanyJobs(
     },
     depth: 0,
     overrideAccess: true,
-    where: { company: { equals: company.id } },
+    where: {
+      and: [
+        { company: { equals: company.id } },
+        { origin: { in: ["bordfeed", "bordfeed_sample"] } },
+      ],
+    },
   });
 }
 

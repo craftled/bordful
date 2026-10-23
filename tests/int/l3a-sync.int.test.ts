@@ -388,6 +388,99 @@ describe("bordfeed sync", () => {
     expect(third.updated).toBe(0);
   });
 
+  test("renaming a bordfeed company leaves manual and paid jobs alone", async () => {
+    await connectFeed();
+    const original = feedJobs(1);
+    await runFeedSync(payload, { client: feedClient(original) });
+    const company = await payload.find({
+      collection: "companies",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { domain: { equals: "example.com" } },
+    });
+    const companyId = company.docs[0]?.id;
+    if (companyId === undefined) {
+      throw new Error("missing bordfeed company");
+    }
+
+    const owned = {
+      company: companyId,
+      companyDomain: "owner.example",
+      companyName: "Owner Label",
+      companySlug: "owner-label",
+    };
+    const manual = await payload.create({
+      collection: "jobs",
+      data: {
+        ...owned,
+        _status: "published",
+        origin: "manual",
+        slug: "owner-manual-role",
+        title: "Owner Manual Role",
+      },
+      depth: 0,
+      overrideAccess: true,
+    });
+    const paid = await payload.create({
+      collection: "jobs",
+      data: {
+        ...owned,
+        _status: "published",
+        origin: "paid",
+        slug: "owner-paid-role",
+        title: "Owner Paid Role",
+      },
+      depth: 0,
+      overrideAccess: true,
+    });
+
+    const renamed = original.map((job) => ({
+      ...job,
+      company: {
+        ...exampleCompany,
+        domain: "renamed.example",
+        name: "Example Co Renamed",
+      },
+    }));
+    const second = await runFeedSync(payload, { client: feedClient(renamed) });
+    expect(second.updated).toBe(0);
+
+    const manualAfter = await payload.findByID({
+      collection: "jobs",
+      depth: 0,
+      id: manual.id,
+      overrideAccess: true,
+    });
+    const paidAfter = await payload.findByID({
+      collection: "jobs",
+      depth: 0,
+      id: paid.id,
+      overrideAccess: true,
+    });
+    const feedAfter = await payload.find({
+      collection: "jobs",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed" } },
+    });
+
+    expect(manual.companyName).toBe("Owner Label");
+    expect(manual.companyDomain).toBe("example.com");
+    expect(manualAfter.companyName).toBe("Owner Label");
+    expect(manualAfter.companySlug).toBe(manual.companySlug);
+    expect(manualAfter.companyDomain).toBe("example.com");
+    expect(manualAfter.updatedAt).toBe(manual.updatedAt);
+    expect(paid.companyName).toBe("Owner Label");
+    expect(paidAfter.companyName).toBe("Owner Label");
+    expect(paidAfter.companySlug).toBe(paid.companySlug);
+    expect(paidAfter.companyDomain).toBe(paid.companyDomain);
+    expect(paidAfter.updatedAt).toBe(paid.updatedAt);
+    expect(feedAfter.docs[0]?.companyName).toBe("Example Co Renamed");
+    expect(feedAfter.docs[0]?.companyDomain).toBe("renamed.example");
+  });
+
   test("an empty sample preview keeps the jobs already on the board", async () => {
     await runSampleSync(payload, { client: sampleClient() });
     await expect(
@@ -423,6 +516,33 @@ describe("bordfeed sync", () => {
     const connection = await readConnection(payload);
     expect(jobs.totalDocs).toBe(3);
     expect(connection.state).toBe("sample");
+  });
+
+  test("ensureSampleJobs skips a failed sample after a sync has already landed", async () => {
+    await runSampleSync(payload, { client: sampleClient() });
+    await payload.delete({
+      collection: "jobs",
+      depth: 0,
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    await dispatchConnectionEvent(payload, {
+      error: {
+        at: "2026-10-23T10:00:00.000Z",
+        code: "network",
+        message: "Could not reach Bordfeed.",
+      },
+      type: "sync_failed",
+    });
+
+    await ensureSampleJobs(payload);
+    const jobs = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    expect(previewCalls).toHaveLength(0);
+    expect(jobs.totalDocs).toBe(0);
   });
 
   test("a feed sync that loses the connection does not publish jobs", async () => {

@@ -11,8 +11,11 @@ export async function ensureSampleJobs(
     overrideAccess: true,
     slug: "bordfeed-connection",
   });
+  // A failed cron after a successful sample must not preview on every cold start.
   const failedFirstBoot =
-    connection.state === "error" && connection.previousState === "sample";
+    connection.state === "error" &&
+    connection.previousState === "sample" &&
+    !connection.lastSyncAt;
   const firstBoot = connection.state === "sample" && !connection.lastSyncAt;
   if (!(failedFirstBoot || firstBoot)) {
     return;
