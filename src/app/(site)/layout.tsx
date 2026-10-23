@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
-
 import { getSiteSettings } from "@/lib/read";
+import { FONT_VARIABLE_CLASSES } from "@/theme/fonts";
 import { resolveThemeTokens, tokensToCssVariables } from "@/theme/tokens";
 
 import "../globals.css";
@@ -29,7 +29,7 @@ export default async function SiteLayout({
   const css = tokensToCssVariables(resolveThemeTokens(settings.theme));
 
   return (
-    <html lang="en">
+    <html className={FONT_VARIABLE_CLASSES} lang="en">
       <head>
         <style nonce={nonce}>{`:root{${css}}`}</style>
       </head>
