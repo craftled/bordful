@@ -8,6 +8,10 @@ declare const Bun: {
 };
 
 const port = Number(process.env.MOCK_PORT ?? "4999");
+if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+  process.stderr.write("MOCK_PORT must be an integer port\n");
+  process.exit(1);
+}
 
 Bun.serve({
   fetch(request) {

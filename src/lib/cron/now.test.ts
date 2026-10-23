@@ -31,6 +31,29 @@ test("a true test clock returns the now instant", () => {
   ).toBe(FIXED);
 });
 
+test("a test clock other than true ignores now", () => {
+  const before = Date.now();
+  const resolved = resolveCronNow(requestWith(FIXED), {
+    BORDFUL_TEST_CLOCK: "1",
+  });
+  const after = Date.now();
+
+  expect(resolved.toISOString()).not.toBe(FIXED);
+  expect(resolved.getTime()).toBeGreaterThanOrEqual(before);
+  expect(resolved.getTime()).toBeLessThanOrEqual(after);
+});
+
+test("a true test clock without now returns real time", () => {
+  const before = Date.now();
+  const resolved = resolveCronNow(requestWith(), {
+    BORDFUL_TEST_CLOCK: "true",
+  });
+  const after = Date.now();
+
+  expect(resolved.getTime()).toBeGreaterThanOrEqual(before);
+  expect(resolved.getTime()).toBeLessThanOrEqual(after);
+});
+
 test("an invalid ISO falls back to real time", () => {
   const before = Date.now();
   const resolved = resolveCronNow(requestWith("not-a-date"), {

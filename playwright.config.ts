@@ -24,6 +24,33 @@ for (const flow of registry.flows) {
   }
 }
 
+// Local runs select flows here. CI never sets E2E_FLOWS, and L9 cannot edit this file.
+const flowSelector = process.env.E2E_FLOWS?.trim();
+const wanted =
+  flowSelector && flowSelector !== "all"
+    ? new Set(flowSelector.split(",").map((id) => id.trim()))
+    : null;
+
+if (wanted) {
+  for (const id of wanted) {
+    if (!registry.flows.some((flow) => flow.id === id)) {
+      throw new Error(`E2E_FLOWS lists unknown flow ${id}`);
+    }
+  }
+}
+
+const activeFlows = registry.flows.filter((flow) => {
+  if (flowSelector === "all") {
+    return true;
+  }
+
+  if (wanted) {
+    return wanted.has(flow.id);
+  }
+
+  return flow.enabled;
+});
+
 function port(name: string, fallback: string): string {
   const value = process.env[name] ?? fallback;
   if (!NUMERIC_PORT.test(value)) {
@@ -68,9 +95,7 @@ export default defineConfig({
   ],
   retries: process.env.CI ? 2 : 0,
   testDir: "tests/e2e",
-  testMatch: registry.flows
-    .filter((flow) => flow.enabled)
-    .map((flow) => flow.file),
+  testMatch: activeFlows.map((flow) => flow.file),
   use: {
     baseURL,
     trace: "on-first-retry",
@@ -88,6 +113,8 @@ export default defineConfig({
       command: `bun run start -- -p ${appPort}`,
       env: {
         ...e2eEnv,
+        // Playwright forwards the shell. An inherited true would serve marketing on the fork port.
+        BORDFUL_MARKETING: "false",
         NEXT_PUBLIC_SERVER_URL: appOrigin,
       },
       name: "app",
