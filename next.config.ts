@@ -1,3 +1,4 @@
+import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
 const securityHeaders = [
@@ -24,6 +25,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    globalNotFound: true,
+  },
   async headers() {
     return [
       {
@@ -32,7 +36,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // withPayload lands in S0b, once src/payload.config.ts exists.
   images: {
     contentDispositionType: "attachment",
     dangerouslyAllowSVG: false,
@@ -60,4 +63,4 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-export default nextConfig;
+export default withPayload(nextConfig, { devBundleServerPackages: false });
