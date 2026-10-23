@@ -64,9 +64,9 @@ export default function PrivacyPage() {
                 collect:
               </p>
               <ul className="ml-4 space-y-2">
+                <Item>Job listings stored in the database you deploy</Item>
                 <Item>
-                  Job listings and applications stored in the database you
-                  deploy
+                  Email addresses of job alert subscribers (if enabled)
                 </Item>
                 <Item>Usage analytics (if you implement them)</Item>
                 <Item>User submitted information</Item>
@@ -90,6 +90,11 @@ export default function PrivacyPage() {
               </p>
               <ul className="ml-4 space-y-2">
                 <Item>Vercel: hosting</Item>
+                <Item>
+                  Bordfeed: jobs feed and Connect Bordfeed (if connected)
+                </Item>
+                <Item>Resend: job alert emails (if enabled)</Item>
+                <Item>Stripe: Post a Job payments (if enabled)</Item>
               </ul>
               <p>
                 Please review their respective privacy policies to understand

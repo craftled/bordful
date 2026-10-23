@@ -4,7 +4,6 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +69,7 @@ function PricingCards() {
             key={plan.name}
           >
             <CardHeader className="px-6">
-              <CardTitle className="font-medium text-lg">{plan.name}</CardTitle>
+              <h3 className="font-medium text-lg leading-none">{plan.name}</h3>
               <p className="text-muted-foreground text-sm">
                 {plan.description}
               </p>

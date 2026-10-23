@@ -14,17 +14,28 @@ const marketingNav = getNav({
   postJobEnabled: false,
 });
 
-function NavLinks({ items }: { items: typeof marketingNav.header }) {
+function NavLinks({
+  items,
+  native = false,
+}: {
+  items: typeof marketingNav.header;
+  native?: boolean;
+}) {
+  const className = "text-[13px] text-muted-foreground hover:text-foreground";
+
   return (
     <ul className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-6">
       {items.map((item) => (
         <li key={item.id}>
-          <Link
-            className="text-[13px] text-muted-foreground hover:text-foreground"
-            href={item.href}
-          >
-            {item.label}
-          </Link>
+          {native ? (
+            <a className={className} href={item.href}>
+              {item.label}
+            </a>
+          ) : (
+            <Link className={className} href={item.href}>
+              {item.label}
+            </Link>
+          )}
         </li>
       ))}
     </ul>
@@ -87,7 +98,8 @@ export function MarketingHeader() {
             </summary>
             <div className="absolute right-0 mt-3 w-64 rounded-lg border border-border bg-background p-4">
               <nav aria-label="Mobile">
-                <NavLinks items={marketingNav.header} />
+                {/* A full load closes this disclosure. Client navigation leaves it open. */}
+                <NavLinks items={marketingNav.header} native />
               </nav>
               <div className="mt-4">
                 <HeaderActions />

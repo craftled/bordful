@@ -108,10 +108,13 @@ export default function TermsPage() {
             </Block>
             <Block title="6. Third-Party Services">
               <p>
-                Bordful can connect to third-party services such as your host.
-                Your use of these services is subject to their respective terms
-                of service and privacy policies. We are not responsible for the
-                practices or policies of these third-party services.
+                Bordful can connect to third-party services such as your host,
+                Bordfeed (jobs feed and Connect Bordfeed, if connected), Resend
+                (job alert emails, if enabled), and Stripe (Post a Job payments,
+                if enabled). Your use of these services is subject to their
+                respective terms of service and privacy policies. We are not
+                responsible for the practices or policies of these third-party
+                services.
               </p>
             </Block>
             <Block title="7. Revisions">

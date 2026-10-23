@@ -17,5 +17,6 @@ export const SOCIAL_LINKS = [
   { href: "https://twitter.com/bordful", label: "X" },
   { href: "https://linkedin.com/company/bordful", label: "LinkedIn" },
   { href: "https://bsky.app/profile/bordful.com", label: "Bluesky" },
+  // r/bordful still had posts on 2026-10-23, so the source link stays.
   { href: "https://www.reddit.com/r/bordful/", label: "Reddit" },
 ] as const;

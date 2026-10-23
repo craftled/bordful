@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 
-import { changelogEntries } from "@/components/marketing/changelog-entries";
+import {
+  changelogDateLabel,
+  changelogEntries,
+} from "@/components/marketing/changelog-entries";
 import { Container } from "@/components/marketing/container";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
@@ -41,7 +44,7 @@ export default function ChangelogPage() {
                   )}
                 </h2>
                 <p className="text-muted-foreground text-sm">
-                  {entry.date ?? "Beta"}
+                  {changelogDateLabel(entry)}
                 </p>
                 <ul className="list-disc space-y-2 pl-5 text-muted-foreground text-sm">
                   {entry.bullets.map((bullet) => (

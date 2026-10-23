@@ -6,6 +6,18 @@ export interface ChangelogEntry {
   version: string;
 }
 
+export function changelogDateLabel(entry: ChangelogEntry): string {
+  if (entry.date) {
+    return entry.date;
+  }
+
+  if (entry.version.includes("beta")) {
+    return "Beta";
+  }
+
+  return "Legacy";
+}
+
 export const changelogEntries: readonly ChangelogEntry[] = [
   {
     bullets: [
