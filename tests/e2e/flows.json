@@ -11,6 +11,84 @@
       "file": "admin-login.spec.ts",
       "requires": [],
       "enabled": true
+    },
+    {
+      "id": "E1",
+      "file": "e01-fresh-deploy-sample.spec.ts",
+      "requires": ["L1", "L3a"],
+      "enabled": false
+    },
+    {
+      "id": "E2",
+      "file": "e02-browse-filter-search.spec.ts",
+      "requires": ["L1"],
+      "enabled": false
+    },
+    {
+      "id": "E3",
+      "file": "e03-job-detail-apply.spec.ts",
+      "requires": ["L1", "L2"],
+      "enabled": false
+    },
+    {
+      "id": "E4",
+      "file": "e04-taxonomy-and-companies.spec.ts",
+      "requires": ["L1"],
+      "enabled": false
+    },
+    {
+      "id": "E5",
+      "file": "e05-feeds-and-sitemaps.spec.ts",
+      "requires": ["L2"],
+      "enabled": false
+    },
+    {
+      "id": "E6",
+      "file": "e06-bordfeed-connect.spec.ts",
+      "requires": ["L1", "L3a", "L3b"],
+      "enabled": false
+    },
+    {
+      "id": "E7",
+      "file": "e07-post-a-job.spec.ts",
+      "requires": ["L1", "L4"],
+      "enabled": false
+    },
+    {
+      "id": "E8",
+      "file": "e08-job-alerts.spec.ts",
+      "requires": ["L5"],
+      "enabled": false
+    },
+    {
+      "id": "E9",
+      "file": "e09-theme-rebrand.spec.ts",
+      "requires": ["L1", "L7"],
+      "enabled": false
+    },
+    {
+      "id": "E10",
+      "file": "e10-marketing-flag.spec.ts",
+      "requires": ["L1", "L6"],
+      "enabled": false
+    },
+    {
+      "id": "E11",
+      "file": "e11-update-notice.spec.ts",
+      "requires": ["L7"],
+      "enabled": false
+    },
+    {
+      "id": "E12",
+      "file": "e12-security-headers.spec.ts",
+      "requires": ["L1", "L6"],
+      "enabled": false
+    },
+    {
+      "id": "E13",
+      "file": "e13-cli-connect.spec.ts",
+      "requires": ["L3a", "L3b"],
+      "enabled": false
     }
   ]
 }

@@ -1,10 +1,14 @@
-import { createHash } from "node:crypto";
-
 import { expect, test } from "@playwright/test";
 
+import {
+  installCspProbe,
+  nonceFromAttributes,
+  readCspViolations,
+  readScripts,
+  sha256Base64,
+} from "./support/html";
+
 const ADMIN_HOME = /\/admin\/?$/;
-const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
-const NONCE_VALUE = /(?:^|\s)nonce\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i;
 
 test("an admin can register and sign in without CSP violations", async ({
   page,
@@ -22,19 +26,16 @@ test("an admin can register and sign in without CSP violations", async ({
   expect(loginDocument.ok()).toBe(true);
   const policy = loginDocument.headers()["content-security-policy"] ?? "";
   const html = await loginDocument.text();
-  const scripts = [...html.matchAll(SCRIPT_TAG)];
+  const scripts = readScripts(html);
   expect(scripts.length).toBeGreaterThan(0);
 
   for (const script of scripts) {
-    const attrs = script[1] ?? "";
-    const body = script[2] ?? "";
-    const nonceMatch = NONCE_VALUE.exec(attrs);
-    const nonce = nonceMatch?.[1] ?? nonceMatch?.[2] ?? nonceMatch?.[3];
-    if (nonce) {
-      expect(policy).toContain(`'nonce-${nonce}'`);
-    } else {
-      const digest = createHash("sha256").update(body).digest("base64");
+    const nonce = nonceFromAttributes(script.attrs);
+    if (nonce === null) {
+      const digest = sha256Base64(script.body);
       expect(policy.includes(`sha256-${digest}`)).toBe(true);
+    } else {
+      expect(policy).toContain(`'nonce-${nonce}'`);
     }
   }
 
@@ -42,13 +43,7 @@ test("an admin can register and sign in without CSP violations", async ({
   page.on("console", (message) => {
     consoleMessages.push(message.text());
   });
-  await page.addInitScript(() => {
-    const record = window as Window & { __cspViolations?: string[] };
-    record.__cspViolations = [];
-    document.addEventListener("securitypolicyviolation", (event) => {
-      record.__cspViolations?.push(event.violatedDirective);
-    });
-  });
+  await installCspProbe(page);
 
   await page.goto("/admin/login");
   await page.getByLabel("Email").fill("admin@example.com");
@@ -63,12 +58,7 @@ test("an admin can register and sign in without CSP violations", async ({
       message.includes("Refused to")
   );
   expect(cspViolations).toEqual([]);
-
-  const recorded = await page.evaluate(
-    () =>
-      (window as Window & { __cspViolations?: string[] }).__cspViolations ?? []
-  );
-  expect(recorded).toEqual([]);
+  expect(await readCspViolations(page)).toEqual([]);
 
   const admin = await request.get("/admin");
   expect(admin.headers()["content-security-policy"]).toContain("nonce-");
