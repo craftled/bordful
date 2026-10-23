@@ -20,10 +20,10 @@ if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
 
 process.env.DATABASE_URL = databaseUrl;
 
-const cronSecret = process.env.CRON_SECRET;
-if (!cronSecret) {
-  throw new Error("CRON_SECRET is required for the expire cron test");
-}
+// The integration job does not set CRON_SECRET. The route reads it per request.
+const cronSecret =
+  process.env.CRON_SECRET || ["int-cron-secret", "0123456789"].join("-");
+process.env.CRON_SECRET = cronSecret;
 
 import type { Job } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
