@@ -1,78 +1,67 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
+
+const securityHeaders = [
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+];
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
   async headers() {
     return [
       {
-        // Apply these headers to all routes
-        source: '/:path*',
-        headers: [
-          {
-            key: 'X-Robots-Tag',
-            value:
-              'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
-          },
-        ],
+        headers: securityHeaders,
+        source: "/",
       },
       {
-        // Apply specific headers to image files
-        source: '/:path*.jpg',
-        headers: [
-          {
-            key: 'X-Robots-Tag',
-            value: 'index, max-image-preview:large',
-          },
-        ],
-      },
-      {
-        // Apply specific headers to image files
-        source: '/:path*.jpeg',
-        headers: [
-          {
-            key: 'X-Robots-Tag',
-            value: 'index, max-image-preview:large',
-          },
-        ],
-      },
-      {
-        // Apply specific headers to image files
-        source: '/:path*.png',
-        headers: [
-          {
-            key: 'X-Robots-Tag',
-            value: 'index, max-image-preview:large',
-          },
-        ],
-      },
-      {
-        // Apply specific headers to image files
-        source: '/:path*.svg',
-        headers: [
-          {
-            key: 'X-Robots-Tag',
-            value: 'index, max-image-preview:large',
-          },
-        ],
-      },
-      {
-        // Apply specific headers to PDF files
-        source: '/:path*.pdf',
-        headers: [
-          {
-            key: 'X-Robots-Tag',
-            value: 'index, nosnippet',
-          },
-        ],
+        headers: securityHeaders,
+        source: "/:path*",
       },
     ];
   },
+  // withPayload lands in S0b, once src/payload.config.ts exists.
+  images: {
+    contentDispositionType: "attachment",
+    dangerouslyAllowSVG: false,
+    localPatterns: [
+      {
+        pathname: "/api/media/file/**",
+      },
+    ],
+    remotePatterns: [
+      {
+        hostname: "*.public.blob.vercel-storage.com",
+        protocol: "https",
+      },
+      {
+        hostname: "bordfeed.com",
+        protocol: "https",
+      },
+      {
+        hostname: "*.bordfeed.com",
+        protocol: "https",
+      },
+    ],
+  },
+  poweredByHeader: false,
+  reactStrictMode: true,
 };
 
 export default nextConfig;

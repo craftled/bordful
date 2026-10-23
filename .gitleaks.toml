@@ -1,0 +1,13 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Placeholder values in the env example and test fixtures"
+paths = [
+  '''(?:^|/)\.env\.example$''',
+  '''(?:^|/)tests/fixtures/''',
+]
+
+[[allowlists]]
+description = "Airtable token removed in 562f197. Still present in that older commit. Rotate if the token was ever live."
+commits = ["9116f2ff5a485a34fb0c68f34f004e7496b95f78"]
