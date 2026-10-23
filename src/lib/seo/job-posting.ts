@@ -33,6 +33,12 @@ function absoluteUrl(siteUrl: string, value: string | null): string | null {
     return value;
   }
 
+  // A protocol-relative logo must keep the host, not join onto the site path.
+  if (value.startsWith("//")) {
+    const protocol = siteUrl.startsWith("http://") ? "http:" : "https:";
+    return `${protocol}${value}`;
+  }
+
   if (value.startsWith("/")) {
     return `${siteUrl}${value}`;
   }

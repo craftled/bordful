@@ -17,7 +17,8 @@ function sectionPaths(marketing: boolean): string[] {
     .map((item) => item.href)
     .filter((href) => href !== "/jobs" && href !== "/feed.xml");
 
-  return ["/", "/jobs", ...linked, "/companies"];
+  // First occurrence wins, so a later nav item cannot repeat a section URL.
+  return [...new Set(["/", "/jobs", ...linked, "/companies"])];
 }
 
 function publishedTime(job: JobListItem): number {
@@ -29,17 +30,33 @@ function publishedTime(job: JobListItem): number {
   return Number.isNaN(time) ? 0 : time;
 }
 
+function idDescending(a: string, b: string): number {
+  if (a === b) {
+    return 0;
+  }
+
+  const left = Number(a);
+  const right = Number(b);
+  const numeric =
+    Number.isSafeInteger(left) &&
+    Number.isSafeInteger(right) &&
+    String(left) === a &&
+    String(right) === b;
+
+  if (numeric) {
+    return right - left;
+  }
+
+  return a < b ? 1 : -1;
+}
+
 function byNewest(a: JobListItem, b: JobListItem): number {
   const delta = publishedTime(b) - publishedTime(a);
   if (delta !== 0) {
     return delta;
   }
 
-  if (a.id === b.id) {
-    return 0;
-  }
-
-  return a.id < b.id ? 1 : -1;
+  return idDescending(a.id, b.id);
 }
 
 function bySlug(a: string, b: string): number {

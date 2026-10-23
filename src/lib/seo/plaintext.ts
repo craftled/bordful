@@ -19,11 +19,12 @@ export function collapseWhitespace(value: string): string {
 }
 
 export function truncateAtWord(value: string, limit: number): string {
-  if (value.length <= limit) {
+  const codePoints = Array.from(value);
+  if (codePoints.length <= limit) {
     return value;
   }
 
-  const slice = value.slice(0, limit);
+  const slice = codePoints.slice(0, limit).join("");
   const boundary = slice.lastIndexOf(" ");
   const cut = boundary > 0 ? slice.slice(0, boundary).trimEnd() : slice;
   return `${cut}...`;

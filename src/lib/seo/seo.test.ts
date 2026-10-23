@@ -159,6 +159,30 @@ test("a relative company logo becomes an absolute URL", () => {
   });
 });
 
+test("a protocol-relative company logo keeps its host", () => {
+  const job = toJobDetail({
+    ...exampleSeniorBackendJob,
+    company: {
+      logoUrl: "//cdn.example/logo.png",
+      name: "Example Co",
+      slug: "example-co",
+      website: "https://example.com",
+    },
+    companySlug: "example-co",
+  });
+  const result = buildJobPostingJsonLd(job, ctx);
+  expect(result?.hiringOrganization).toMatchObject({
+    logo: "https://cdn.example/logo.png",
+  });
+  const httpResult = buildJobPostingJsonLd(job, {
+    siteName,
+    siteUrl: "http://board.example",
+  });
+  expect(httpResult?.hiringOrganization).toMatchObject({
+    logo: "http://cdn.example/logo.png",
+  });
+});
+
 test("RSS item matches the backend fixture", () => {
   expect(buildRssItem(backendFeed, siteUrl)).toBe(
     '<item><title>Example Senior Backend Engineer at Example Co</title><link>https://board.example/jobs/example-senior-backend-engineer</link><guid isPermaLink="true">https://board.example/jobs/example-senior-backend-engineer</guid><pubDate>Tue, 20 Oct 2026 09:00:00 GMT</pubDate><description>Example description.</description></item>'
@@ -237,6 +261,30 @@ test("fork sitemap skips sample jobs and orders companies by slug", () => {
   ]);
 });
 
+test("sitemap breaks equal publish times by numeric id", () => {
+  const publishedAt = "2026-10-21T09:00:00.000Z";
+  const low = {
+    ...designerList,
+    id: "9",
+    publishedAt,
+    slug: "low-id",
+  };
+  const high = {
+    ...designerList,
+    id: "10",
+    publishedAt,
+    slug: "high-id",
+  };
+  const urls = buildSitemapEntries({
+    jobs: [low, high],
+    marketing: false,
+    siteUrl,
+  }).map((entry) => entry.url);
+  expect(urls.indexOf("https://board.example/jobs/high-id")).toBeLessThan(
+    urls.indexOf("https://board.example/jobs/low-id")
+  );
+});
+
 test("marketing sitemap starts with the marketing pages", () => {
   const entries = buildSitemapEntries({
     jobs: [sampleList, designerList, backendList],
@@ -278,6 +326,16 @@ test("feed descriptions cut at a word boundary", () => {
   const text = "word ".repeat(101).trim();
   expect(text.length).toBe(504);
   expect(truncateAtWord(text, 500)).toBe(`${"word ".repeat(100).trim()}...`);
+});
+
+test("feed descriptions do not split a code point", () => {
+  const emoji = "\u{1F600}";
+  const within = `${"a".repeat(499)}${emoji}`;
+  expect(truncateAtWord(within, 500)).toBe(within);
+
+  const over = `${"a".repeat(499)}${emoji}bbb`;
+  expect(truncateAtWord(over, 500)).toBe(`${"a".repeat(499)}${emoji}...`);
+  expect(truncateAtWord(over, 500).includes("\uFFFD")).toBe(false);
 });
 
 test("atom.xml redirects to the RSS feed", async () => {
