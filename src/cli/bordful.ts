@@ -62,10 +62,13 @@ function finish(
   return exitCode;
 }
 
-async function promptLine(label: string): Promise<string | null> {
+async function promptLine(
+  label: string,
+  isJSON: boolean
+): Promise<string | null> {
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout,
+    output: isJSON ? process.stderr : process.stdout,
   });
   try {
     const answer = (await rl.question(label)).trim();
@@ -91,13 +94,16 @@ async function stdinLine(): Promise<string | null> {
   }
 }
 
-function readCode(given: string | undefined): Promise<string | null> {
+function readCode(
+  given: string | undefined,
+  isJSON: boolean
+): Promise<string | null> {
   if (given && given.trim().length > 0) {
     return Promise.resolve(given.trim());
   }
 
   if (process.stdin.isTTY) {
-    return promptLine("Enter the 6-digit code: ");
+    return promptLine("Enter the 6-digit code: ", isJSON);
   }
 
   return stdinLine();
@@ -141,7 +147,7 @@ async function chooseWorkspace(
     ]);
   }
 
-  const slug = await promptLine("Workspace slug: ");
+  const slug = await promptLine("Workspace slug: ", isJSON);
   if (!slug) {
     const record = await readConnection(payload);
     return finish(isJSON, 1, publicStatus(record, result.message), [
@@ -180,7 +186,7 @@ async function connectWithCode(
     );
   }
 
-  const entered = await readCode(code);
+  const entered = await readCode(code, isJSON);
   if (!entered) {
     const record = await readConnection(payload);
     return finish(isJSON, 2, publicStatus(record, result.message), [
@@ -196,7 +202,7 @@ async function connectWithCode(
       return next;
     }
 
-    const again = await readCode(undefined);
+    const again = await readCode(undefined, isJSON);
     if (!again) {
       const record = await readConnection(payload);
       return finish(isJSON, 2, publicStatus(record, next.message), [
@@ -264,10 +270,10 @@ async function runConnect(
 export const bordfulCommand = defineCLICommand({
   cli: { action: "argument", json: false },
   description:
-    "Bordfeed commands for this board. Positional [action] is connect, sample, sync, or status. Options from the input schema: --email <email>, --board-name <boardName>, --workspace <workspace>, --code <code>, --key <key>. Payload reserves --json for one JSON response on stdout.",
+    "Bordfeed commands for this board. Positional [action] is connect, sample, sync, or status. Options from the input schema: --email <email>, --board-name <boardName>, --workspace <workspace>, --code <code>, --key <key>. Prefer BORDFEED_API_KEY over --key so the key stays out of shell history. Payload reserves --json for one JSON response on stdout.",
   examples: [
     'bordful connect --email owner@example.com --board-name "Example Board"',
-    "bordful connect --key",
+    "BORDFEED_API_KEY=... bun run bordful connect",
     "bordful sample",
     "bordful sync",
     "bordful status",

@@ -8,6 +8,7 @@ import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import {
   allowConnectAttempt,
   allowVerifyAttempt,
+  clearVerifyAttempts,
 } from "@/lib/bordfeed/connect/limiter";
 import {
   ADMIN_ONLY_MESSAGE,
@@ -45,10 +46,6 @@ const keyFields = z.strictObject({
 const showFields = z.strictObject({
   show: z.enum(["false", "true"]),
 });
-
-function emptyForm(formData: FormData): boolean {
-  return z.object({}).safeParse(Object.fromEntries(formData.entries())).success;
-}
 
 function field(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -116,7 +113,7 @@ export async function connectAction(
   _prev: ConnectStepResult | null,
   formData: FormData
 ): Promise<ConnectStepResult> {
-  return await withAdmin((payload, userId) => {
+  return await withAdmin(async (payload, userId) => {
     const parsed = connectFields.safeParse({
       boardName: field(formData, "boardName"),
       email: field(formData, "email"),
@@ -129,6 +126,12 @@ export async function connectAction(
     if (!allowConnectAttempt(userId)) {
       return denied(payload, CONNECT_LIMIT_MESSAGE, { fallback: "paste_key" });
     }
+
+    const current = await readConnection(payload);
+    if (current.registrationId) {
+      clearVerifyAttempts(current.registrationId);
+    }
+    clearVerifyAttempts(`user:${userId}`);
 
     return startConnect(payload, { ...parsed.data, medium: "admin" });
   });
@@ -152,7 +155,12 @@ export async function verifyCodeAction(
       return denied(payload, VERIFY_LIMIT_MESSAGE, { fallback: "paste_key" });
     }
 
-    return submitCode(payload, { code: parsed.data.code });
+    const result = await submitCode(payload, { code: parsed.data.code });
+    if (result.state !== "awaiting_code") {
+      clearVerifyAttempts(registrationId);
+    }
+
+    return result;
   });
 }
 
@@ -172,28 +180,16 @@ export async function pasteKeyAction(
 
 export async function resetAction(
   _prev: ConnectStepResult | null,
-  formData: FormData
+  _formData: FormData
 ): Promise<ConnectStepResult> {
-  return await withAdmin((payload) => {
-    if (!emptyForm(formData)) {
-      return denied(payload, ADMIN_ONLY_MESSAGE);
-    }
-
-    return resetToSample(payload);
-  });
+  return await withAdmin((payload) => resetToSample(payload));
 }
 
 export async function syncNowAction(
   _prev: ConnectStepResult | null,
-  formData: FormData
+  _formData: FormData
 ): Promise<ConnectStepResult> {
-  return await withAdmin((payload) => {
-    if (!emptyForm(formData)) {
-      return denied(payload, ADMIN_ONLY_MESSAGE);
-    }
-
-    return syncNow(payload);
-  });
+  return await withAdmin((payload) => syncNow(payload));
 }
 
 export async function setAttributionAction(

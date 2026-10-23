@@ -31,6 +31,7 @@ import type {
 import {
   ALREADY_CONNECTED_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
+  ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   CREDIT_HIDDEN_MESSAGE,
   CREDIT_SHOWN_MESSAGE,
   connectedMessage,
@@ -297,6 +298,12 @@ export async function startConnect(
 
   try {
     const registered = await client.register(body);
+    // `registered` keeps apiKeyEncrypted. Clear that key before the new
+    // registration is saved, or the next code connects the previous account.
+    if (hasStoredKey(record)) {
+      await dispatchConnectionEvent(payload, { type: "reset" }, now());
+    }
+
     const next = await dispatchConnectionEvent(
       payload,
       {
@@ -372,6 +379,12 @@ export async function submitCode(
     return syncFeed(payload, deps, now);
   }
 
+  // Verify already stored the key. Finish the feed even when the code
+  // expired or this retry does not include the original digits.
+  if (record.state === "awaiting_code" && hasStoredKey(record)) {
+    return publishFeed(payload, record, undefined, deps, now);
+  }
+
   if (record.state !== "awaiting_code") {
     return step(record, NEED_CODE_MESSAGE);
   }
@@ -389,38 +402,36 @@ export async function submitCode(
     return step(record, WRONG_CODE_MESSAGE);
   }
 
+  if (!record.registrationId) {
+    return step(record, REGISTRATION_EXPIRED_MESSAGE);
+  }
+
+  const client = await clientFor(payload, record, deps);
   let suggested: SuggestedFeed | null | undefined;
-  if (!hasStoredKey(record)) {
-    if (!record.registrationId) {
-      return step(record, REGISTRATION_EXPIRED_MESSAGE);
+  try {
+    const verified = await client.verify({
+      code: input.code,
+      registration_id: record.registrationId,
+    });
+    suggested = verified.suggested_feed;
+    const sealed = sealApiKey(payload, verified.api_key);
+    record = await dispatchConnectionEvent(
+      payload,
+      {
+        apiKeyEncrypted: sealed.apiKeyEncrypted,
+        keyHint: sealed.keyHint,
+        type: "key_stored",
+      },
+      now()
+    );
+  } catch (error) {
+    const known = verifyFailure(record, error);
+    if (known) {
+      return known;
     }
 
-    const client = await clientFor(payload, record, deps);
-    try {
-      const verified = await client.verify({
-        code: input.code,
-        registration_id: record.registrationId,
-      });
-      suggested = verified.suggested_feed;
-      const sealed = sealApiKey(payload, verified.api_key);
-      record = await dispatchConnectionEvent(
-        payload,
-        {
-          apiKeyEncrypted: sealed.apiKeyEncrypted,
-          keyHint: sealed.keyHint,
-          type: "key_stored",
-        },
-        now()
-      );
-    } catch (error) {
-      const known = verifyFailure(record, error);
-      if (known) {
-        return known;
-      }
-
-      const failed = await rememberFailure(payload, error, now());
-      return step(failed, toSafeError(error, now()).message);
-    }
+    const failed = await rememberFailure(payload, error, now());
+    return step(failed, toSafeError(error, now()).message);
   }
 
   return publishFeed(payload, record, suggested, deps, now);
@@ -473,50 +484,17 @@ export async function pasteKey(
   return syncFeed(payload, deps, now);
 }
 
-async function unpublishIds(payload: Payload, ids: number[]): Promise<void> {
-  const [id, ...rest] = ids;
-  if (id === undefined) {
-    return;
-  }
-
+async function unpublishFeedJobs(payload: Payload): Promise<void> {
   await payload.update({
     collection: "jobs",
     data: { _status: "draft" },
     depth: 0,
-    id,
     overrideAccess: true,
-  });
-  await unpublishIds(payload, rest);
-}
-
-async function unpublishFeedJobs(payload: Payload, guard = 0): Promise<void> {
-  if (guard > 40) {
-    return;
-  }
-
-  const found = await payload.find({
-    collection: "jobs",
-    depth: 0,
-    draft: false,
-    limit: 50,
-    overrideAccess: true,
-    page: 1,
     where: {
-      and: [
-        { _status: { equals: "published" } },
-        { origin: { equals: "bordfeed" } },
-      ],
+      _status: { equals: "published" },
+      origin: { equals: "bordfeed" },
     },
   });
-  if (found.docs.length === 0) {
-    return;
-  }
-
-  await unpublishIds(
-    payload,
-    found.docs.map((job) => job.id)
-  );
-  await unpublishFeedJobs(payload, guard + 1);
 }
 
 export async function resetToSample(
@@ -551,7 +529,7 @@ export async function setShowAttribution(
     now()
   );
   if (!applied.ok) {
-    return step(record, applied.reason);
+    return step(record, ATTRIBUTION_CONNECTED_ONLY_MESSAGE);
   }
 
   const next = await dispatchConnectionEvent(

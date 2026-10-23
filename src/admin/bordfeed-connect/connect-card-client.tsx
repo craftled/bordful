@@ -21,6 +21,7 @@ import {
 import {
   ALREADY_CONNECTED_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
+  ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   CONNECT_LIMIT_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
@@ -42,6 +43,7 @@ export interface ConnectCardView {
   lastErrorMessage: string | null;
   lastSyncAt: string | null;
   previousState: "connected" | "sample" | null;
+  registrationExpired: boolean;
   showAttribution: boolean;
   state: "awaiting_code" | "connected" | "error" | "sample";
 }
@@ -49,6 +51,7 @@ export interface ConnectCardView {
 const ERROR_MESSAGES = new Set([
   ALREADY_CONNECTED_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
+  ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   CONNECT_LIMIT_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
@@ -66,8 +69,7 @@ function isProblem(result: ConnectStepResult): boolean {
     Boolean(result.workspaces?.length) ||
     result.state === "error" ||
     result.message.startsWith("Connected. The first sync failed:") ||
-    ERROR_MESSAGES.has(result.message) ||
-    result.message.startsWith("attribution can be hidden")
+    ERROR_MESSAGES.has(result.message)
   );
 }
 
@@ -90,9 +92,39 @@ function usePublish(
   }, [onResult, refreshOnSameState, result, router, serverState]);
 }
 
+const SYNC_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function formatSyncTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+
+  const month = SYNC_MONTHS[date.getUTCMonth()];
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+  return `${month} ${day}, ${year}, ${hours}:${minutes} UTC`;
+}
+
 function RegisterForm({
   boardName,
   email,
+  intro = true,
   onBoardName,
   onEmail,
   onResult,
@@ -100,6 +132,7 @@ function RegisterForm({
 }: {
   boardName: string;
   email: string;
+  intro?: boolean;
   onBoardName: (value: string) => void;
   onEmail: (value: string) => void;
   onResult: (result: ConnectStepResult) => void;
@@ -122,10 +155,12 @@ function RegisterForm({
 
   return (
     <form action={action} className={styles.form}>
-      <p className={styles.hint}>
-        The board shows sample jobs from the template. Connecting creates a free
-        Bordfeed account.
-      </p>
+      {intro ? (
+        <p className={styles.hint}>
+          The board shows sample jobs from the template. Connecting creates a
+          free Bordfeed account.
+        </p>
+      ) : null}
       <label htmlFor="bordfeed-email">
         Email
         <input
@@ -201,6 +236,7 @@ function WorkspaceForm({
       </label>
       <button
         className="btn btn--style-primary"
+        data-testid="bordfeed-workspace-submit"
         disabled={pending}
         type="submit"
       >
@@ -436,14 +472,18 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
   const showRegister =
     !workspaces &&
     (view.state === "sample" ||
+      view.registrationExpired ||
       (view.state === "error" && view.previousState !== "connected"));
+  const showVerify =
+    view.state === "awaiting_code" && !view.registrationExpired && !workspaces;
   const showTools =
     view.state === "connected" || view.previousState === "connected";
-  let statusText = "";
-  let errorText = view.lastErrorMessage ?? "";
+  let statusText = view.registrationExpired ? REGISTRATION_EXPIRED_MESSAGE : "";
+  let errorText = view.state === "error" ? (view.lastErrorMessage ?? "") : "";
   if (latest) {
     if (isProblem(latest)) {
       errorText = latest.message;
+      statusText = "";
     } else {
       errorText = "";
       statusText = latest.message;
@@ -457,20 +497,16 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
       data-testid="bordfeed-connect-card"
     >
       <h2>Connect Bordfeed</h2>
-      {statusText ? (
-        <p
-          className={styles.message}
-          data-testid="bordfeed-message"
-          role="status"
-        >
-          {statusText}
-        </p>
-      ) : null}
-      {errorText ? (
-        <p className={styles.error} data-testid="bordfeed-error" role="alert">
-          {errorText}
-        </p>
-      ) : null}
+      <p
+        className={styles.message}
+        data-testid="bordfeed-message"
+        role="status"
+      >
+        {statusText}
+      </p>
+      <p className={styles.error} data-testid="bordfeed-error" role="alert">
+        {errorText}
+      </p>
       {showRegister ? (
         <RegisterForm
           boardName={boardName}
@@ -481,8 +517,22 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
           serverState={view.state}
         />
       ) : null}
-      {view.state === "awaiting_code" ? (
-        <VerifyForm onResult={onResult} serverState={view.state} />
+      {showVerify ? (
+        <>
+          <VerifyForm onResult={onResult} serverState={view.state} />
+          <details className={styles.stack}>
+            <summary>Use a different email</summary>
+            <RegisterForm
+              boardName={boardName}
+              email={email}
+              intro={false}
+              onBoardName={setBoardName}
+              onEmail={setEmail}
+              onResult={onResult}
+              serverState={view.state}
+            />
+          </details>
+        </>
       ) : null}
       {workspaces ? (
         <WorkspaceForm
@@ -508,9 +558,17 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
         <ConnectedTools onResult={onResult} serverState={view.state} />
       ) : null}
       <p data-testid="bordfeed-last-sync">
-        {view.lastSyncAt
-          ? `Last sync ${view.lastSyncAt}${view.keyHint ? ` (${view.keyHint})` : ""}`
-          : "No sync yet."}
+        {view.lastSyncAt ? (
+          <>
+            {"Last sync "}
+            <time dateTime={view.lastSyncAt}>
+              {formatSyncTime(view.lastSyncAt)}
+            </time>
+            {view.keyHint ? ` (${view.keyHint})` : ""}
+          </>
+        ) : (
+          "No sync yet."
+        )}
       </p>
     </section>
   );

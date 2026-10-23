@@ -8,6 +8,21 @@ import { querySiteSettings } from "@/lib/read/queries";
 
 import { ConnectCardClient, type ConnectCardView } from "./connect-card-client";
 
+function registrationExpired(
+  record: {
+    registrationExpiresAt: string | null;
+    state: string;
+  },
+  now: Date
+): boolean {
+  if (record.state !== "awaiting_code" || !record.registrationExpiresAt) {
+    return false;
+  }
+
+  const expires = new Date(record.registrationExpiresAt).getTime();
+  return !Number.isNaN(expires) && expires <= now.getTime();
+}
+
 function emailOf(user: NonNullable<ServerProps["user"]>): string {
   if ("email" in user && typeof user.email === "string") {
     return user.email;
@@ -62,6 +77,7 @@ export async function BordfeedConnectCard({
     lastErrorMessage: record.lastError?.message ?? null,
     lastSyncAt: record.lastSyncAt,
     previousState: record.previousState,
+    registrationExpired: registrationExpired(record, new Date()),
     showAttribution: record.showAttribution,
     state: record.state,
   };

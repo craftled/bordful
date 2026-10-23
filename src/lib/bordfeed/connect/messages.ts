@@ -49,6 +49,9 @@ export const CREDIT_HIDDEN_MESSAGE = "The Jobs by Bordfeed credit is hidden.";
 
 export const CREDIT_SHOWN_MESSAGE = "The Jobs by Bordfeed credit is shown.";
 
+export const ATTRIBUTION_CONNECTED_ONLY_MESSAGE =
+  "The Jobs by Bordfeed credit can be hidden only while Bordfeed is connected.";
+
 export function syncedMessage(count: number): string {
   return `Synced ${count} jobs from Bordfeed.`;
 }

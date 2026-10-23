@@ -4,6 +4,7 @@ import { safeMessage } from "../errors";
 
 import {
   ALREADY_ISSUED_MESSAGE,
+  ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   connectedMessage,
   connectedSyncFailedMessage,
   REGISTER_RATE_LIMIT_MESSAGE,
@@ -63,6 +64,12 @@ describe("connect messages", () => {
   test("reset", () => {
     expect(RESET_MESSAGE).toBe(
       "Disconnected. The board shows sample jobs again."
+    );
+  });
+
+  test("attribution requires a connection", () => {
+    expect(ATTRIBUTION_CONNECTED_ONLY_MESSAGE).toBe(
+      "The Jobs by Bordfeed credit can be hidden only while Bordfeed is connected."
     );
   });
 });

@@ -10,10 +10,7 @@ import type { BordfeedClient } from "@/lib/bordfeed/client";
 import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import {
   ALREADY_ISSUED_MESSAGE,
-  connectedMessage,
-  connectedSyncFailedMessage,
   REGISTER_RATE_LIMIT_MESSAGE,
-  registeredMessage,
 } from "@/lib/bordfeed/connect/messages";
 import {
   pasteKey,
@@ -223,7 +220,7 @@ describe("bordfeed connect", () => {
     const register = calls.find((call) => call.type === "register");
 
     expect(result).toEqual({
-      message: registeredMessage("owner@example.com"),
+      message: "We sent a 6-digit code to owner@example.com. Enter it below.",
       state: "awaiting_code",
     });
     const installId = bordfeedInstallId(String(install.installId));
@@ -254,7 +251,7 @@ describe("bordfeed connect", () => {
     });
 
     expect(result.state).toBe("connected");
-    expect(result.message).toBe(connectedMessage(3));
+    expect(result.message).toBe("Connected. Synced 3 jobs from Bordfeed.");
     expect(record.feedId).toBe(FEED_ID);
     expect(record.keyHint).toBe("bf_...0001");
     expect(isEncryptedEnvelope(record.apiKeyEncrypted ?? "")).toBe(true);
@@ -361,13 +358,14 @@ describe("bordfeed connect", () => {
     const record = await readConnection(payload);
 
     expect(rejected.state).toBe("sample");
+    expect(rejected.message).toBe("Bordfeed rejected the API key.");
     expect(record.apiKeyEncrypted).toBeNull();
   });
 
   test("attribution can be hidden only while connected", async () => {
     const rejected = await setShowAttribution(payload, false, deps());
     expect(rejected.message).toBe(
-      "attribution can be hidden only while connected"
+      "The Jobs by Bordfeed credit can be hidden only while Bordfeed is connected."
     );
     expect((await readConnection(payload)).showAttribution).toBe(true);
 
@@ -424,6 +422,59 @@ describe("bordfeed connect", () => {
     );
   });
 
+  test("a stored key finishes after the code expires without another verify", async () => {
+    const bordfeed = deps();
+    behavior.createFeedFailures = 1;
+    await startConnect(payload, OWNER, bordfeed);
+    await submitCode(payload, { code: "424242" }, bordfeed);
+    const verifyCount = calls.filter((call) => call.type === "verify").length;
+
+    const result = await submitCode(
+      payload,
+      { code: "nope" },
+      {
+        client: bordfeed.client,
+        now: () => new Date("2026-10-23T10:00:00.000Z"),
+      }
+    );
+
+    expect(result.state).toBe("connected");
+    expect(calls.filter((call) => call.type === "verify")).toHaveLength(
+      verifyCount
+    );
+  });
+
+  test("starting again drops a stored key from the previous account", async () => {
+    const bordfeed = deps();
+    behavior.createFeedFailures = 1;
+    await startConnect(payload, OWNER, bordfeed);
+    await submitCode(payload, { code: "424242" }, bordfeed);
+    expect(
+      isEncryptedEnvelope((await readConnection(payload)).apiKeyEncrypted ?? "")
+    ).toBe(true);
+
+    calls.length = 0;
+    const again = await startConnect(
+      payload,
+      { ...OWNER, email: "other@example.com" },
+      bordfeed
+    );
+    const record = await readConnection(payload);
+    const register = calls.find((call) => call.type === "register");
+
+    expect(again).toEqual({
+      message: "We sent a 6-digit code to other@example.com. Enter it below.",
+      state: "awaiting_code",
+    });
+    expect(record.apiKeyEncrypted).toBeNull();
+    expect(
+      register?.body && "email" in register.body ? register.body.email : null
+    ).toBe("other@example.com");
+
+    await submitCode(payload, { code: "424242" }, bordfeed);
+    expect(calls.filter((call) => call.type === "verify")).toHaveLength(1);
+  });
+
   test("a failed first sync stays on the connected error", async () => {
     const bordfeed = deps();
     behavior.feedThrows = true;
@@ -433,7 +484,7 @@ describe("bordfeed connect", () => {
 
     expect(result.state).toBe("error");
     expect(result.message).toBe(
-      connectedSyncFailedMessage("Could not reach Bordfeed.")
+      "Connected. The first sync failed: Could not reach Bordfeed."
     );
     expect(record.previousState).toBe("connected");
     expect(record.feedId).toBe(FEED_ID);
