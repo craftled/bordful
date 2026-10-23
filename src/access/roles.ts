@@ -24,4 +24,6 @@ export const isStaffField: FieldAccess = ({ req }) =>
 
 export const denyAll = (): false => false;
 
+export const denyAuthenticated: FieldAccess = ({ req }) => !req.user;
+
 export const anyone = (): true => true;

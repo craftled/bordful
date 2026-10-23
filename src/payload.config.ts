@@ -7,7 +7,6 @@ import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { sharpTransformer } from "@payloadcms/transformer-sharp";
 import { buildConfig, type Payload } from "payload";
 import sharp from "sharp";
-import { stripDashes } from "../scripts/strip-dashes";
 import { collections } from "./collections";
 import { resolvePayloadSecret } from "./config/payload-secret";
 import { resolveServerUrl } from "./config/server-url";
@@ -15,6 +14,7 @@ import { globals } from "./globals";
 import { bordfeedSyncTask } from "./jobs/bordfeed-sync";
 import { expireJobsTask } from "./jobs/expire-job";
 import { sendAlertsTask } from "./jobs/send-alerts";
+import { stripDashes } from "./lib/codegen/strip-dashes";
 import { ensureInstallId } from "./lib/install/install-id";
 import { migrations } from "./migrations";
 

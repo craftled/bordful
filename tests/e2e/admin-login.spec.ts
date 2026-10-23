@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 
 const ADMIN_HOME = /\/admin\/?$/;
 const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
-const NONCE_ATTR = /(?:^|\s)nonce\s*=/i;
+const NONCE_VALUE = /(?:^|\s)nonce\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i;
 
 test("an admin can register and sign in without CSP violations", async ({
   page,
@@ -28,9 +28,14 @@ test("an admin can register and sign in without CSP violations", async ({
   for (const script of scripts) {
     const attrs = script[1] ?? "";
     const body = script[2] ?? "";
-    const hasNonce = NONCE_ATTR.test(attrs);
-    const digest = createHash("sha256").update(body).digest("base64");
-    expect(hasNonce || policy.includes(`sha256-${digest}`)).toBe(true);
+    const nonceMatch = NONCE_VALUE.exec(attrs);
+    const nonce = nonceMatch?.[1] ?? nonceMatch?.[2] ?? nonceMatch?.[3];
+    if (nonce) {
+      expect(policy).toContain(`'nonce-${nonce}'`);
+    } else {
+      const digest = createHash("sha256").update(body).digest("base64");
+      expect(policy.includes(`sha256-${digest}`)).toBe(true);
+    }
   }
 
   const consoleMessages: string[] = [];

@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { anyone, isStaff } from "@/access/roles";
+import { anyone, denyAuthenticated, isStaff } from "@/access/roles";
 import { JOB_ORIGINS } from "@/lib/domain/job-vocab";
 import { toOptions } from "@/lib/domain/options";
 
@@ -55,15 +55,15 @@ export const Companies: CollectionConfig = {
       type: "select",
       validate: syncOriginValidate,
     }),
-    owned({
-      access: { create: ({ req }) => !req.user },
+    {
+      access: { create: denyAuthenticated, update: denyAuthenticated },
       admin: { readOnly: true },
       hooks: { beforeValidate: [emptyToNull] },
       index: true,
       name: "bordfeedCompanyId",
       type: "text",
       unique: true,
-    }),
+    },
   ],
   hooks: {
     afterChange: [revalidateCompanies],

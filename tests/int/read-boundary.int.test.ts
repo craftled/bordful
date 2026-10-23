@@ -316,6 +316,71 @@ test("ensureInstallId is stable", async () => {
   expect(second).toBe(first);
 });
 
+test("an editor cannot write bordfeed identity fields on manual rows", async () => {
+  const jobs = await payload.find({
+    collection: "jobs",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: { slug: { equals: "example-senior-backend-engineer" } },
+  });
+  const [job] = jobs.docs;
+  if (!job) {
+    throw new Error("missing manual job");
+  }
+
+  await payload.update({
+    collection: "jobs",
+    data: {
+      bordfeedDescriptionHash: "h2",
+      bordfeedJobId: "22222222-2222-4222-8222-222222222222",
+    },
+    depth: 0,
+    id: job.id,
+    overrideAccess: false,
+    user: editorUser,
+  });
+
+  const storedJob = await payload.findByID({
+    collection: "jobs",
+    depth: 0,
+    id: job.id,
+    overrideAccess: true,
+    showHiddenFields: true,
+  });
+  expect(storedJob.bordfeedJobId).toBeNull();
+  expect(storedJob.bordfeedDescriptionHash).toBeNull();
+
+  const companies = await payload.find({
+    collection: "companies",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: { slug: { equals: "example-co" } },
+  });
+  const [company] = companies.docs;
+  if (!company) {
+    throw new Error("missing manual company");
+  }
+
+  await payload.update({
+    collection: "companies",
+    data: { bordfeedCompanyId: "33333333-3333-4333-8333-333333333333" },
+    depth: 0,
+    id: company.id,
+    overrideAccess: false,
+    user: editorUser,
+  });
+
+  const storedCompany = await payload.findByID({
+    collection: "companies",
+    depth: 0,
+    id: company.id,
+    overrideAccess: true,
+  });
+  expect(storedCompany.bordfeedCompanyId).toBeNull();
+});
+
 test("site settings and companies use the public defaults", async () => {
   const settings = await querySiteSettings(payload);
   expect(settings.postJob).toEqual({

@@ -1,6 +1,11 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { jobsRead } from "@/access/jobs";
-import { isAdmin, isStaff, isStaffField } from "@/access/roles";
+import {
+  denyAuthenticated,
+  isAdmin,
+  isStaff,
+  isStaffField,
+} from "@/access/roles";
 import { syncOwnedFieldUpdate } from "@/access/sync-owned";
 import { computeValidThrough } from "@/jobs/expire-job";
 import {
@@ -276,24 +281,25 @@ export const Jobs: CollectionConfig = {
       type: "select",
       validate: syncOriginValidate,
     }),
-    owned({
-      access: { create: ({ req }) => !req.user },
+    {
+      access: { create: denyAuthenticated, update: denyAuthenticated },
       admin: { position: "sidebar", readOnly: true },
       hooks: { beforeValidate: [emptyToNull] },
       index: true,
       name: "bordfeedJobId",
       type: "text",
       unique: true,
-    }),
-    owned({
+    },
+    {
       access: {
-        create: ({ req }) => !req.user,
+        create: denyAuthenticated,
         read: isStaffField,
+        update: denyAuthenticated,
       },
       admin: { hidden: true, readOnly: true },
       name: "bordfeedDescriptionHash",
       type: "text",
-    }),
+    },
     owned({ name: "sourceListingUrl", type: "text", validate: httpUrl }),
     {
       access: { read: isStaffField, update: syncOwnedFieldUpdate },

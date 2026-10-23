@@ -11,7 +11,7 @@
     "dev": "next dev",
     "format": "ultracite fix",
     "generate:importmap": "payload generate:importmap",
-    "generate:types": "payload generate:types && bun scripts/strip-dashes.ts src/payload-types.ts",
+    "generate:types": "payload generate:types",
     "lint": "ultracite check",
     "lint:payload": "bun scripts/check-override-access.ts",
     "payload": "payload",
