@@ -1,13 +1,16 @@
 [extend]
 useDefault = true
 
+# Historical Airtable token in legacy commit 9116f2f is ignored by fingerprint in .gitleaksignore pending revocation confirmation.
+
 [[allowlists]]
 description = "Placeholder values in the env example and test fixtures"
+condition = "AND"
 paths = [
   '''(?:^|/)\.env\.example$''',
   '''(?:^|/)tests/fixtures/''',
 ]
-
-[[allowlists]]
-description = "Airtable token removed in 562f197. Still present in that older commit. Rotate if the token was ever live."
-commits = ["9116f2ff5a485a34fb0c68f34f004e7496b95f78"]
+regexTarget = "line"
+regexes = [
+  '''=(?:|replace-[A-Za-z0-9-]+|postgres://postgres:postgres@127\.0\.0\.1:5432/bordful|http://localhost:3000)$''',
+]

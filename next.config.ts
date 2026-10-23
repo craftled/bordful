@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
+    value: "max-age=63072000; includeSubDomains",
   },
   {
     key: "X-Content-Type-Options",
@@ -26,10 +26,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   async headers() {
     return [
-      {
-        headers: securityHeaders,
-        source: "/",
-      },
       {
         headers: securityHeaders,
         source: "/:path*",

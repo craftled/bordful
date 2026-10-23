@@ -16,11 +16,15 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
   },
-  webServer: {
-    command: process.env.CI ? "bun run build && bun run start" : "bun run dev",
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    url: baseURL,
-  },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: process.env.CI
+          ? "bun run build && bun run start"
+          : "bun run dev",
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+        url: baseURL,
+      },
   workers: process.env.CI ? 1 : undefined,
 });

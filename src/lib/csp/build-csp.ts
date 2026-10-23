@@ -1,6 +1,7 @@
 const BASE64_NONCE =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-const FORBIDDEN_ORIGIN_CHARS = /['";\s]/;
+const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/;
+const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*]+$/;
 
 export function buildCsp({
   nonce,
@@ -56,18 +57,27 @@ export function buildCsp({
 function assertHttpsOrigin(origin: string): void {
   if (origin.length === 0 || FORBIDDEN_ORIGIN_CHARS.test(origin)) {
     throw new Error(
-      "CSP origin must be an https URL without quotes, semicolons, or spaces"
+      "CSP origin must be an https URL without quotes, semicolons, spaces, or commas"
     );
   }
 
+  // One leading wildcard label is the only star form. Parse it as a real host.
+  const wildcard = LEADING_WILDCARD_ORIGIN.test(origin);
+  if (origin.includes("*") && !wildcard) {
+    throw new Error("CSP origin must be an https URL");
+  }
+  const parsedOrigin = wildcard
+    ? origin.replace("https://*.", "https://wildcard.")
+    : origin;
+
   let url: URL;
   try {
-    url = new URL(origin);
+    url = new URL(parsedOrigin);
   } catch (error) {
     throw new Error("CSP origin must be an https URL", { cause: error });
   }
 
-  if (url.protocol !== "https:") {
+  if (url.protocol !== "https:" || url.origin !== parsedOrigin) {
     throw new Error("CSP origin must be an https URL");
   }
 }

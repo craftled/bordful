@@ -12,7 +12,7 @@ updates:
           - minor
           - patch
     ignore:
-      # Exact beta pins. Bump Payload by hand, including prerelease bumps.
+      # Payload is pinned to a beta and bumped by hand. This also suppresses Dependabot security PRs for Payload, so watch Payload advisories manually.
       - dependency-name: payload
       - dependency-name: "@payloadcms/*"
 

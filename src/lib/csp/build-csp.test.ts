@@ -72,6 +72,69 @@ test("rejects an origin that contains a semicolon or a quote", () => {
   ).toThrow(httpsError);
 });
 
+const prodWithWildcard =
+  "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' https://*.example.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";
+
+test("rejects an origin that contains a double quote", () => {
+  expect(() =>
+    buildCsp({
+      extraScriptOrigins: ['https://evil.example"'],
+      isDev: false,
+      nonce,
+    })
+  ).toThrow(httpsError);
+});
+
+test("rejects an origin that contains a space", () => {
+  expect(() =>
+    buildCsp({
+      extraScriptOrigins: ["https://evil.example "],
+      isDev: false,
+      nonce,
+    })
+  ).toThrow(httpsError);
+});
+
+test("rejects an origin that contains a comma", () => {
+  expect(() =>
+    buildCsp({
+      extraScriptOrigins: ["https://evil.example,https://other.example"],
+      isDev: false,
+      nonce,
+    })
+  ).toThrow(httpsError);
+});
+
+test("rejects an origin that includes a path", () => {
+  expect(() =>
+    buildCsp({
+      extraScriptOrigins: ["https://a.example/path"],
+      isDev: false,
+      nonce,
+    })
+  ).toThrow(httpsError);
+});
+
+test("accepts a single leading wildcard label", () => {
+  expect(
+    buildCsp({
+      extraScriptOrigins: ["https://*.example.com"],
+      isDev: false,
+      nonce,
+    })
+  ).toBe(prodWithWildcard);
+});
+
+test("rejects a bare wildcard origin", () => {
+  expect(() =>
+    buildCsp({
+      extraScriptOrigins: ["https://*"],
+      isDev: false,
+      nonce,
+    })
+  ).toThrow(httpsError);
+});
+
 test("rejects an http origin", () => {
   expect(() =>
     buildCsp({

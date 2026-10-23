@@ -25,10 +25,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      missing: [
-        { key: "next-router-prefetch", type: "header" },
-        { key: "purpose", type: "header", value: "prefetch" },
-      ],
+      missing: [{ key: "next-router-prefetch", type: "header" }],
       // Static files and prefetches skip the nonce. /api and /admin stay covered.
       source:
         "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
