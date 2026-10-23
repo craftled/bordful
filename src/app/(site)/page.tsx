@@ -1,7 +1,11 @@
+import { MarketingHome } from "@/app/(marketing)/_components/marketing-home";
+import { BoardHome } from "@/components/board/board-home";
+import { isMarketingEnabled } from "@/config/flags";
+
 export default function HomePage() {
-  return (
-    <main>
-      <h1>Bordful 1.0 beta</h1>
-    </main>
-  );
+  if (isMarketingEnabled()) {
+    return <MarketingHome />;
+  }
+
+  return <BoardHome />;
 }

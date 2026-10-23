@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: 24.22.1
 
+      - name: Generate throwaway Payload secret
+        run: echo "PAYLOAD_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
       - name: Install
         run: bun install --frozen-lockfile
 
@@ -44,13 +47,15 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Lint Payload access
+        run: bun run lint:payload
+
       - name: Test
         run: bun run test
 
       - name: Build
         run: bun run build
         env:
-          PAYLOAD_SECRET: ci-payload-secret-not-used-yet-32chars
           DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/bordful
           NEXT_PUBLIC_SERVER_URL: http://localhost:3000
 
@@ -75,7 +80,6 @@ jobs:
           --health-retries 5
     env:
       CI: "true"
-      PAYLOAD_SECRET: ci-payload-secret-not-used-yet-32chars
       DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/bordful
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
     steps:
@@ -94,11 +98,25 @@ jobs:
         with:
           node-version: 24.22.1
 
+      - name: Generate throwaway Payload secret
+        run: echo "PAYLOAD_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
       - name: Install
         run: bun install --frozen-lockfile
 
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
+
+      - name: Create integration database
+        run: PGPASSWORD=postgres createdb -h localhost -U postgres bordful_int
+
+      - name: Integration tests
+        run: bun run test:int
+        env:
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/bordful_int
+
+      - name: Migrate
+        run: bun run payload migrate
 
       - name: Playwright
         run: bun run test:e2e
