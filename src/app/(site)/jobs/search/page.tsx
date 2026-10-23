@@ -46,6 +46,7 @@ export default async function SearchPage({
         intro={settings.board.description}
         marketing={isMarketingEnabled()}
         options={options}
+        postJob={settings.postJob.enabled ? settings.postJob : null}
         query={query}
       />
     </BoardShell>
