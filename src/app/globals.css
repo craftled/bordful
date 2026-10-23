@@ -3,26 +3,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Fallbacks match DEFAULT_THEME_TOKENS (src/theme/tokens.ts); the layout
+   overrides them at runtime from Site settings. */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --radius: 0.5rem;
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #164e63;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f9fafb;
+  --muted-foreground: #52525b;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #164e63;
   color-scheme: light;
 }
 
@@ -49,6 +51,8 @@
 }
 
 @theme inline {
+  --container-board: 68.75rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -74,6 +78,107 @@
 }
 
 body {
+  font-family: var(--font-body);
   color: var(--foreground);
   background: var(--background);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+/* Visible focus for keyboard users on every link, button and disclosure. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Dark bands (footer) invert the focus ring, since --ring is dark. */
+.bordful-inverse :focus-visible {
+  outline-color: var(--background);
+}
+
+/* Hand-written port of the old Bordful .markdown-content rules. */
+.bordful-prose {
+  @apply max-w-none text-foreground text-sm leading-relaxed;
+
+  h1 {
+    @apply mb-2 font-semibold text-2xl;
+  }
+  h2 {
+    @apply mb-2 font-semibold text-xl;
+  }
+  h3 {
+    @apply mb-2 font-semibold text-lg;
+  }
+  h4 {
+    @apply mb-2 font-semibold text-base;
+  }
+
+  p,
+  ul,
+  ol {
+    @apply mb-4 text-sm leading-relaxed;
+  }
+
+  ul {
+    @apply list-disc space-y-1 pl-4;
+  }
+  ol {
+    @apply list-decimal space-y-1 pl-4;
+  }
+  ul ul,
+  ol ol,
+  ul ol,
+  ol ul {
+    @apply mt-1 mb-1;
+  }
+
+  a {
+    @apply text-primary no-underline underline-offset-2;
+  }
+  a:hover {
+    @apply underline;
+  }
+
+  pre {
+    @apply mb-4 overflow-x-auto rounded-lg bg-muted p-4 text-sm;
+  }
+  code {
+    @apply rounded bg-muted px-1.5 py-0.5 font-normal text-foreground text-sm;
+  }
+  pre code {
+    @apply bg-transparent p-0;
+  }
+
+  blockquote {
+    @apply my-4 border-border border-l-4 pl-4 text-muted-foreground italic;
+  }
+
+  table {
+    @apply mb-4 w-full border-collapse text-sm;
+  }
+  thead {
+    @apply bg-muted;
+  }
+  th,
+  td {
+    @apply border border-border px-3 py-2 text-left;
+  }
+  th {
+    @apply font-medium text-foreground;
+  }
+  tr:nth-child(even) {
+    @apply bg-muted;
+  }
 }
