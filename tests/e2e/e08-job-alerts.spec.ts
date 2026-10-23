@@ -3,7 +3,13 @@ import type { StoredEmail } from "../mocks/resend";
 import { ensureAdmin } from "./support/admin";
 import { runCron } from "./support/cron";
 import { resendEmails, resetMock } from "./support/mock";
-import { createJob, docString, readGlobal, updateGlobal } from "./support/seed";
+import {
+  createJob,
+  docId,
+  docString,
+  readGlobal,
+  updateGlobal,
+} from "./support/seed";
 
 const DAY_MS = 86_400_000;
 
@@ -121,7 +127,7 @@ test.describe("E8 job-alerts", { tag: ["@E8"] }, () => {
     expect(await resendEmails()).toHaveLength(before);
     // publishedAt is twelve days ahead, so this row would sort first on /
     // for every later flow. Remove it once the quiet digest has been checked.
-    const removed = await admin.delete(`/api/jobs/${docString(ahead, "id")}`);
+    const removed = await admin.delete(`/api/jobs/${docId(ahead)}`);
     expect(removed.ok()).toBe(true);
     await admin.dispose();
   });

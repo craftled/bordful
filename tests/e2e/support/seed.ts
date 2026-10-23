@@ -121,3 +121,16 @@ export function docString(doc: Record<string, unknown>, key: string): string {
   }
   return value;
 }
+
+// Postgres serial ids come back as numbers. A non-empty string still counts
+// so a uuid adapter would keep working.
+export function docId(doc: Record<string, unknown>): string {
+  const value = doc.id;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  throw new Error("missing id");
+}

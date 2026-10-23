@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { ensureAdmin } from "./support/admin";
 import { runCron } from "./support/cron";
-import { createJob, docString, updateGlobal } from "./support/seed";
+import { createJob, docId, docString, updateGlobal } from "./support/seed";
 
 const DAY_MS = 86_400_000;
 
@@ -41,7 +41,7 @@ test.describe("E7 post-a-job", { tag: ["@E7"] }, () => {
       paymentReference: "test_ref_e7",
       title: "E7zq Paid Role",
     });
-    const id = docString(created, "id");
+    const id = docId(created);
     const storedResponse = await admin.get(`/api/jobs/${id}`);
     expect(storedResponse.ok()).toBe(true);
     const stored = (await storedResponse.json()) as Record<string, unknown>;

@@ -4,6 +4,7 @@ import { ensureAdmin } from "./support/admin";
 import {
   createCompany,
   createJob,
+  docId,
   docString,
   lexicalParagraph,
 } from "./support/seed";
@@ -35,7 +36,7 @@ test.describe("E3 job-detail-apply", { tag: ["@E3"] }, () => {
       title: "E3zq Backend Role",
       workplaceType: "remote",
     });
-    const id = docString(created, "id");
+    const id = docId(created);
     const storedResponse = await admin.get(`/api/jobs/${id}`);
     expect(storedResponse.ok()).toBe(true);
     const stored = (await storedResponse.json()) as Record<string, unknown>;

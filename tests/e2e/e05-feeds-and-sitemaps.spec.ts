@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { ensureAdmin } from "./support/admin";
-import { createJob, docString } from "./support/seed";
+import { createJob, docId, docString } from "./support/seed";
 
 interface RssSummary {
   channel: boolean;
@@ -50,7 +50,7 @@ test.describe("E5 feeds-and-sitemaps", { tag: ["@E5"] }, () => {
       title: "E5zq Feed Role",
     });
     const slug = docString(created, "slug");
-    const id = docString(created, "id");
+    const id = docId(created);
     const samples = await admin.get(
       "/api/jobs?limit=100&where[origin][equals]=bordfeed_sample"
     );
