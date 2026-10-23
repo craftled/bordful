@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { Button } from "@/components/ui/button";
 import type { AlertsActionState } from "@/lib/alerts/action-state";
 
 type TokenAction = (
@@ -37,16 +38,20 @@ export function TokenActionForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input name="token" type="hidden" value={token} />
-      <button
-        className="h-10 w-fit rounded-md bg-primary px-4 text-primary-foreground disabled:opacity-50"
+      <Button
+        className="w-fit"
         data-testid={buttonTestId}
         disabled={pending}
         type="submit"
       >
         {submitLabel}
-      </button>
+      </Button>
       {state && !state.ok ? (
-        <p data-testid="alerts-invalid-token" role="alert">
+        <p
+          className="text-destructive text-sm"
+          data-testid="alerts-invalid-token"
+          role="alert"
+        >
           {invalidText}
         </p>
       ) : null}
