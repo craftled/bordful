@@ -96,7 +96,7 @@ test.describe("E6 bordfeed-connect", { tag: ["@E6"] }, () => {
       workspace.locator("option[value='example-workspace']")
     ).toHaveCount(1);
     await workspace.selectOption("example-workspace");
-    await page.getByTestId("bordfeed-register-submit").click();
+    await page.getByTestId("bordfeed-workspace-submit").click();
     await page.getByTestId("bordfeed-code").fill("424242");
     await page.getByTestId("bordfeed-verify-submit").click();
     await expect(card).toHaveAttribute("data-state", "connected");
