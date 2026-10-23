@@ -45,6 +45,15 @@ export const bordfulConfigSchema = z.strictObject({
       extraScriptOrigins: z.array(z.string()).prefault([]),
     })
     .prefault({}),
+  social: z
+    .strictObject({
+      bluesky: httpsUrl.optional(),
+      github: httpsUrl.optional(),
+      linkedin: httpsUrl.optional(),
+      reddit: httpsUrl.optional(),
+      x: httpsUrl.optional(),
+    })
+    .prefault({}),
   telemetry: z
     .strictObject({
       clientHeader: z.boolean().prefault(true),
