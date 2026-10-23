@@ -7,6 +7,7 @@ import {
   useActionState,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -23,6 +24,8 @@ import {
   ALREADY_ISSUED_MESSAGE,
   ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   CONNECT_LIMIT_MESSAGE,
+  CREDIT_HIDDEN_MESSAGE,
+  CREDIT_SHOWN_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
   NEED_CODE_MESSAGE,
@@ -63,6 +66,11 @@ const ERROR_MESSAGES = new Set([
   WRONG_CODE_MESSAGE,
 ]);
 
+const CREDIT_SAVED_MESSAGES = new Set([
+  CREDIT_HIDDEN_MESSAGE,
+  CREDIT_SHOWN_MESSAGE,
+]);
+
 function isProblem(result: ConnectStepResult): boolean {
   return (
     result.fallback === "paste_key" ||
@@ -80,11 +88,15 @@ function usePublish(
   refreshOnSameState: boolean
 ): void {
   const router = useRouter();
+  const published = useRef<ConnectStepResult | null>(null);
   useEffect(() => {
-    if (!result) {
+    // A state change re-runs this effect with the same result. Publish each
+    // action result once, so an old one cannot replace the banner again.
+    if (!result || result === published.current) {
       return;
     }
 
+    published.current = result;
     onResult(result);
     if (result.state !== serverState || refreshOnSameState) {
       router.refresh();
@@ -122,24 +134,22 @@ function formatSyncTime(iso: string): string {
 }
 
 function RegisterForm({
+  action,
   boardName,
   email,
   intro = true,
   onBoardName,
   onEmail,
-  onResult,
-  serverState,
+  pending,
 }: {
+  action: (payload: FormData) => void;
   boardName: string;
   email: string;
   intro?: boolean;
   onBoardName: (value: string) => void;
   onEmail: (value: string) => void;
-  onResult: (result: ConnectStepResult) => void;
-  serverState: ConnectCardView["state"];
+  pending: boolean;
 }) {
-  const [result, action, pending] = useActionState(connectAction, null);
-  usePublish(result, onResult, serverState, false);
   const onEmailChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       onEmail(event.target.value);
@@ -200,21 +210,18 @@ function RegisterForm({
 }
 
 function WorkspaceForm({
+  action,
   boardName,
   email,
-  onResult,
-  serverState,
+  pending,
   workspaces,
 }: {
+  action: (payload: FormData) => void;
   boardName: string;
   email: string;
-  onResult: (result: ConnectStepResult) => void;
-  serverState: ConnectCardView["state"];
+  pending: boolean;
   workspaces: { name: string; slug: string }[];
 }) {
-  const [result, action, pending] = useActionState(connectAction, null);
-  usePublish(result, onResult, serverState, false);
-
   return (
     <form action={action} className={styles.form}>
       <input name="boardName" type="hidden" value={boardName} />
@@ -247,15 +254,12 @@ function WorkspaceForm({
 }
 
 function VerifyForm({
-  onResult,
-  serverState,
+  action,
+  pending,
 }: {
-  onResult: (result: ConnectStepResult) => void;
-  serverState: ConnectCardView["state"];
+  action: (payload: FormData) => void;
+  pending: boolean;
 }) {
-  const [result, action, pending] = useActionState(verifyCodeAction, null);
-  usePublish(result, onResult, serverState, false);
-
   return (
     <form action={action} className={styles.form}>
       <label htmlFor="bordfeed-code">
@@ -284,18 +288,16 @@ function VerifyForm({
 }
 
 function PasteForm({
+  action,
   onOpenChange,
-  onResult,
   open,
-  serverState,
+  pending,
 }: {
+  action: (payload: FormData) => void;
   onOpenChange: (open: boolean) => void;
-  onResult: (result: ConnectStepResult) => void;
   open: boolean;
-  serverState: ConnectCardView["state"];
+  pending: boolean;
 }) {
-  const [result, action, pending] = useActionState(pasteKeyAction, null);
-  usePublish(result, onResult, serverState, false);
   const onDetailsToggle = useCallback(
     (event: SyntheticEvent<HTMLDetailsElement>) => {
       onOpenChange(event.currentTarget.open);
@@ -331,22 +333,34 @@ function PasteForm({
 }
 
 function AttributionField({
-  onResult,
-  serverState,
+  action,
+  creditResult,
+  pending,
   showAttribution,
+  state,
 }: {
-  onResult: (result: ConnectStepResult) => void;
-  serverState: ConnectCardView["state"];
+  action: (payload: FormData) => void;
+  creditResult: ConnectStepResult | null;
+  pending: boolean;
   showAttribution: boolean;
+  state: ConnectCardView["state"];
 }) {
-  const [creditResult, creditAction, creditPending] = useActionState(
-    setAttributionAction,
-    null
-  );
-  usePublish(creditResult, onResult, serverState, true);
-  const connected = serverState === "connected";
+  const connected = state === "connected";
+  // The box shows the click at once. The saved value follows on refresh.
+  const [checked, setChecked] = useState(showAttribution);
+  useEffect(() => {
+    setChecked(showAttribution);
+  }, [showAttribution]);
+  // A save that was refused leaves the saved value as it was, so the box
+  // goes back to it. A successful save is left to the refresh above.
+  useEffect(() => {
+    if (creditResult && !CREDIT_SAVED_MESSAGES.has(creditResult.message)) {
+      setChecked(showAttribution);
+    }
+  }, [creditResult, showAttribution]);
   const onCreditChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const { form } = event.currentTarget;
+    setChecked(event.currentTarget.checked);
     const hidden = form?.elements.namedItem("show");
     if (hidden instanceof HTMLInputElement) {
       hidden.value = event.currentTarget.checked ? "true" : "false";
@@ -355,7 +369,7 @@ function AttributionField({
   }, []);
 
   return (
-    <form action={creditAction}>
+    <form action={action}>
       <input
         name="show"
         type="hidden"
@@ -363,9 +377,9 @@ function AttributionField({
       />
       <label className={styles.check} htmlFor="bordfeed-show-attribution">
         <input
-          checked={showAttribution}
+          checked={checked}
           data-testid="bordfeed-show-attribution"
-          disabled={!connected || creditPending}
+          disabled={!connected || pending}
           id="bordfeed-show-attribution"
           onChange={onCreditChange}
           type="checkbox"
@@ -377,23 +391,17 @@ function AttributionField({
 }
 
 function ConnectedTools({
-  onResult,
-  serverState,
+  resetForm,
+  resetPending,
+  syncAction,
+  syncPending,
 }: {
-  onResult: (result: ConnectStepResult) => void;
-  serverState: ConnectCardView["state"];
+  resetForm: (payload: FormData) => void;
+  resetPending: boolean;
+  syncAction: (payload: FormData) => void;
+  syncPending: boolean;
 }) {
-  const [syncResult, syncAction, syncPending] = useActionState(
-    syncNowAction,
-    null
-  );
-  const [resetResult, resetFormAction, resetPending] = useActionState(
-    resetAction,
-    null
-  );
   const [confirming, setConfirming] = useState(false);
-  usePublish(syncResult, onResult, serverState, true);
-  usePublish(resetResult, onResult, serverState, true);
   const askConfirm = useCallback(() => {
     setConfirming(true);
   }, []);
@@ -414,7 +422,7 @@ function ConnectedTools({
         </button>
       </form>
       {confirming ? (
-        <form action={resetFormAction} className={styles.form}>
+        <form action={resetForm} className={styles.form}>
           <p className={styles.hint}>
             Disconnecting removes the saved key and shows sample jobs again.
           </p>
@@ -451,6 +459,32 @@ function ConnectedTools({
 }
 
 export function ConnectCardClient({ view }: { view: ConnectCardView }) {
+  // A save revalidates the board, so Next re-renders the card with the new
+  // state. Sub-forms unmount on that render, so the action hooks live here.
+  const [registerResult, registerAction, registerPending] = useActionState(
+    connectAction,
+    null
+  );
+  const [verifyResult, verifyAction, verifyPending] = useActionState(
+    verifyCodeAction,
+    null
+  );
+  const [pasteResult, pasteAction, pastePending] = useActionState(
+    pasteKeyAction,
+    null
+  );
+  const [creditResult, creditAction, creditPending] = useActionState(
+    setAttributionAction,
+    null
+  );
+  const [syncResult, syncAction, syncPending] = useActionState(
+    syncNowAction,
+    null
+  );
+  const [resetResult, resetFormAction, resetPending] = useActionState(
+    resetAction,
+    null
+  );
   const [email, setEmail] = useState(view.email);
   const [boardName, setBoardName] = useState(view.boardName);
   const [pasteOpen, setPasteOpen] = useState(false);
@@ -469,6 +503,12 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
         : null
     );
   }, []);
+  usePublish(registerResult, onResult, view.state, false);
+  usePublish(verifyResult, onResult, view.state, false);
+  usePublish(pasteResult, onResult, view.state, false);
+  usePublish(creditResult, onResult, view.state, true);
+  usePublish(syncResult, onResult, view.state, true);
+  usePublish(resetResult, onResult, view.state, true);
   const showRegister =
     !workspaces &&
     (view.state === "sample" ||
@@ -509,53 +549,60 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
       </p>
       {showRegister ? (
         <RegisterForm
+          action={registerAction}
           boardName={boardName}
           email={email}
           onBoardName={setBoardName}
           onEmail={setEmail}
-          onResult={onResult}
-          serverState={view.state}
+          pending={registerPending}
         />
       ) : null}
       {showVerify ? (
         <>
-          <VerifyForm onResult={onResult} serverState={view.state} />
+          <VerifyForm action={verifyAction} pending={verifyPending} />
           <details className={styles.stack}>
             <summary>Use a different email</summary>
             <RegisterForm
+              action={registerAction}
               boardName={boardName}
               email={email}
               intro={false}
               onBoardName={setBoardName}
               onEmail={setEmail}
-              onResult={onResult}
-              serverState={view.state}
+              pending={registerPending}
             />
           </details>
         </>
       ) : null}
       {workspaces ? (
         <WorkspaceForm
+          action={registerAction}
           boardName={boardName}
           email={email}
-          onResult={onResult}
-          serverState={view.state}
+          pending={registerPending}
           workspaces={workspaces}
         />
       ) : null}
       <PasteForm
+        action={pasteAction}
         onOpenChange={setPasteOpen}
-        onResult={onResult}
         open={pasteOpen}
-        serverState={view.state}
+        pending={pastePending}
       />
       <AttributionField
-        onResult={onResult}
-        serverState={view.state}
+        action={creditAction}
+        creditResult={creditResult}
+        pending={creditPending}
         showAttribution={view.showAttribution}
+        state={view.state}
       />
       {showTools ? (
-        <ConnectedTools onResult={onResult} serverState={view.state} />
+        <ConnectedTools
+          resetForm={resetFormAction}
+          resetPending={resetPending}
+          syncAction={syncAction}
+          syncPending={syncPending}
+        />
       ) : null}
       <p data-testid="bordfeed-last-sync">
         {view.lastSyncAt ? (

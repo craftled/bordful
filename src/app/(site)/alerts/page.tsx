@@ -39,8 +39,8 @@ export default async function AlertsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  // getSiteSettings stays stale after revalidateTag(tag, "max"), so a save
-  // that turns alerts on would still 404 this page.
+  // Read the row directly instead of through the cached getSiteSettings, so a
+  // save that turns alerts on takes effect on the next request.
   const payload = await getPayload({ config });
   const settings = await querySiteSettings(payload);
   if (!alertsReady(settings).ready) {

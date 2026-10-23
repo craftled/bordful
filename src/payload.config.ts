@@ -73,6 +73,12 @@ export default buildConfig({
   },
   maxDepth: 3,
   onInit: async (payload) => {
+    // `next build` boots Payload too. Seeding there would call Bordfeed from
+    // the build machine and bake the board into the data cache.
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      return;
+    }
+
     await ensureInstallIdSafely(payload);
     try {
       await ensureSampleJobs(payload, { signal: AbortSignal.timeout(8000) });
