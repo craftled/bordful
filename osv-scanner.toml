@@ -5,3 +5,8 @@
 id = "GHSA-vfj7-8cjw-p6xm"
 ignoreUntil = 2027-04-23
 reason = "braces 3.0.3 is the newest npm release and the advisory lists no patched version. It arrives through micromatch (ultracite, sass, payload cloud storage). Revisit when braces publishes a fix."
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2026-12-01
+reason = "deepmerge 4.3.1 is pinned by Payload 4 beta and no patched release exists yet; remove when Payload ships a fix."
