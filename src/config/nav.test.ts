@@ -34,7 +34,7 @@ test("fork nav with both features off", () => {
       BOARD_FEEDS,
     ],
     header: [
-      { href: "/", id: "jobs", label: "Jobs" },
+      { href: "/", id: "jobs", label: "Jobs", matchPrefixes: ["/jobs"] },
       { href: "/companies", id: "companies", label: "Companies" },
     ],
   });
@@ -49,7 +49,7 @@ test("post a job is the cta, not a header link, when enabled", () => {
 
   expect(nav.cta).toEqual({ href: "/post", id: "post", label: "Post a job" });
   expect(nav.header).toEqual([
-    { href: "/", id: "jobs", label: "Jobs" },
+    { href: "/", id: "jobs", label: "Jobs", matchPrefixes: ["/jobs"] },
     { href: "/companies", id: "companies", label: "Companies" },
     { href: "/alerts", id: "alerts", label: "Job alerts" },
   ]);

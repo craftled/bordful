@@ -11,9 +11,12 @@ import { getBordfeedConnectionPublic, getSiteSettings } from "@/lib/read";
 export async function BoardShell({
   children,
   fullBleed = false,
+  hidePostCta = false,
 }: {
   children: ReactNode;
   fullBleed?: boolean;
+  // Post pages already are the post flow, so the footer band is redundant.
+  hidePostCta?: boolean;
 }): Promise<JSX.Element> {
   const [settings, connection] = await Promise.all([
     getSiteSettings(),
@@ -60,7 +63,7 @@ export async function BoardShell({
           name={settings.name}
           priceLabel={settings.postJob.priceLabel}
           showAttribution={connection.showAttribution}
-          showCta={settings.postJob.enabled}
+          showCta={settings.postJob.enabled && !hidePostCta}
           social={social}
           tagline={settings.tagline}
         />

@@ -2,6 +2,7 @@ export interface NavItem {
   href: string;
   id: string;
   label: string;
+  matchPrefixes?: string[];
 }
 
 export interface FooterColumn {
@@ -89,7 +90,7 @@ export function getNav({
   }
 
   const header: NavItem[] = [
-    { href: "/", id: "jobs", label: "Jobs" },
+    { href: "/", id: "jobs", label: "Jobs", matchPrefixes: ["/jobs"] },
     { href: "/companies", id: "companies", label: "Companies" },
   ];
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
+
 import { getSiteSettings } from "@/lib/read";
 import { FONT_VARIABLE_CLASSES } from "@/theme/fonts";
 import { resolveThemeTokens, tokensToCssVariables } from "@/theme/tokens";

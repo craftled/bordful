@@ -62,7 +62,7 @@ export function SiteFooter({
               className="inline-flex h-9 items-center rounded-md bg-primary px-4 font-medium text-primary-foreground text-sm hover:bg-primary/90"
               href="/post"
             >
-              Post a job
+              Post a Job
             </Link>
           </div>
         </div>

@@ -121,6 +121,20 @@ test("mobile menu closes when a link is chosen and items are links", () => {
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
 });
 
+test("mobile menu closes on a tap outside it", () => {
+  renderHeader();
+
+  const toggle = screen.getByRole("button", { name: "Menu" });
+  fireEvent.click(toggle);
+  expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+  fireEvent.pointerDown(screen.getByRole("navigation", { name: "Mobile" }));
+  expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+  fireEvent.pointerDown(document.body);
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+});
+
 test("mobile menu closes when focus leaves it", () => {
   renderHeader();
 

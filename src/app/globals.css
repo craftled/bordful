@@ -77,19 +77,21 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-body {
-  font-family: var(--font-body);
-  color: var(--foreground);
-  background: var(--background);
-}
+@layer base {
+  body {
+    font-family: var(--font-body);
+    color: var(--foreground);
+    background: var(--background);
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading);
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
 }
 
 /* Visible focus for keyboard users on every link, button and disclosure. */

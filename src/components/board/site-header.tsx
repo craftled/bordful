@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { BrandMark } from "@/components/board/brand-mark";
 import { MobileNav } from "@/components/board/mobile-nav";
-import { isActivePath } from "@/components/board/nav-active";
+import { isActiveItem } from "@/components/board/nav-active";
 import {
   SocialLinks,
   type SocialProfiles,
@@ -59,7 +59,7 @@ export function SiteHeader({
           <nav aria-label="Primary">
             <ul className="hidden items-center gap-4 text-sm md:flex">
               {navItems.map((item) => {
-                const active = isActivePath(pathname, item.href);
+                const active = isActiveItem(pathname, item);
                 return (
                   <li key={item.id}>
                     <Link

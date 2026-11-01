@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { isActivePath } from "@/components/board/nav-active";
+import { isActiveItem } from "@/components/board/nav-active";
 import {
   SocialLinks,
   type SocialProfiles,
@@ -68,7 +68,8 @@ export function MobileNav({
 
   // Closes when focus moves outside the menu. Focus that goes nowhere is
   // ignored: Safari does not focus buttons on click, so the toggle would
-  // otherwise close and reopen the menu.
+  // otherwise close and reopen the menu. A tap outside is caught by
+  // pointerdown for the same reason: iOS does not move focus on tap.
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!(open && wrapper)) {
@@ -82,8 +83,18 @@ export function MobileNav({
       }
     }
 
+    function onPointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && !wrapper?.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
     wrapper.addEventListener("focusout", onFocusOut);
-    return () => wrapper.removeEventListener("focusout", onFocusOut);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      wrapper.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [open]);
 
   return (
@@ -112,7 +123,7 @@ export function MobileNav({
         <nav aria-label="Mobile" className="mx-auto max-w-board px-4 py-3">
           <ul className="flex flex-col">
             {items.map((item) => {
-              const active = isActivePath(pathname, item.href);
+              const active = isActiveItem(pathname, item);
               return (
                 <li key={item.id}>
                   <Link

@@ -43,7 +43,7 @@ test("shows the Post a Job band only when postJob is enabled", () => {
   renderFooter({ showCta: true });
   expect(screen.getByText("Post a Job for 30 Days")).toBeTruthy();
   expect(
-    screen.getByRole("link", { name: "Post a job" }).getAttribute("href")
+    screen.getByRole("link", { name: "Post a Job" }).getAttribute("href")
   ).toBe("/post");
 });
 
