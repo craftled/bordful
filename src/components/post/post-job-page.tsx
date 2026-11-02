@@ -18,18 +18,6 @@ export function PostJobPage({ view }: { view: PostJobView }) {
         <div className="flex flex-col gap-6">
           <Card className="gap-4 py-5">
             <CardHeader>
-              <CardTitle>What you get</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc space-y-2 pl-5 text-sm">
-                <li>Listed on the board for the duration</li>
-                <li>Included in the RSS feed and job alert emails</li>
-                <li>A JobPosting page that search engines can read</li>
-              </ul>
-            </CardContent>
-          </Card>
-          <Card className="gap-4 py-5">
-            <CardHeader>
               <CardTitle>How it works</CardTitle>
             </CardHeader>
             <CardContent>
@@ -64,7 +52,12 @@ export function PostJobPage({ view }: { view: PostJobView }) {
               {view.durationLabel}
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-6">
+            <ul className="list-disc space-y-2 pl-5 text-sm">
+              <li>Listed on the board for the duration</li>
+              <li>Included in the RSS feed and job alert emails</li>
+              <li>A JobPosting page that search engines can read</li>
+            </ul>
             <Button asChild className="w-full">
               <a
                 data-testid="post-job-cta"
