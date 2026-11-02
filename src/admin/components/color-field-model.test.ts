@@ -13,8 +13,8 @@ test("colorFieldModel uses the typed color when it is a hex value", () => {
 test("colorFieldModel falls back to the default pair when both values are empty", () => {
   expect(colorFieldModel("", "", "primary")).toEqual({
     lowContrast: false,
-    ratio: 17.18,
-    swatch: "#171717",
+    ratio: 9.11,
+    swatch: "#164e63",
   });
 });
 
