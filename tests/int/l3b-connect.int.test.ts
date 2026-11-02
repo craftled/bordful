@@ -95,10 +95,10 @@ function previewBody(data: BordfeedJob[]) {
     preview: true as const,
     request_id: "req_preview",
     template: {
-      description: "Engineering roles.",
-      filters: {},
-      id: "engineering-it",
-      name: "Engineering and IT",
+      description: "Remote roles in every job category and location",
+      filters: { workplace_type: ["Remote"] },
+      id: "fully-remote",
+      name: "Fully Remote",
     },
   };
 }
@@ -173,7 +173,7 @@ function client(): BordfeedClient {
         api_key: API_KEY,
         suggested_feed: {
           name: "Example Board",
-          template_id: "engineering-it",
+          template_id: "fully-remote",
         },
       });
     },
@@ -231,7 +231,7 @@ describe("bordfeed connect", () => {
       email: "owner@example.com",
       install_id: installId,
       ref: "bordful",
-      template_id: "engineering-it",
+      template_id: "fully-remote",
       utm_campaign: "connect",
       utm_medium: "admin",
       utm_source: "bordful",

@@ -115,7 +115,7 @@ test.describe("E6 bordfeed-connect", { tag: ["@E6"] }, () => {
       expect(body.utm_medium).toBe("admin");
       expect(body.utm_campaign).toBe("connect");
       expect(body.agent_name).toBe("bordful");
-      expect(body.template_id).toBe("engineering-it");
+      expect(body.template_id).toBe("fully-remote");
       expect(body.install_id).toMatch(INSTALL_ID);
     }
     for (const entry of recorded) {

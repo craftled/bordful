@@ -8,7 +8,7 @@ const base = {
   installId: "0".repeat(64),
   medium: "admin" as const,
   telemetry: true,
-  templateId: "engineering-it",
+  templateId: "fully-remote",
 };
 
 describe("buildRegisterBody", () => {
@@ -20,7 +20,7 @@ describe("buildRegisterBody", () => {
       install_id:
         "60e05bd1b195af2f94112fa7197a5c88289058840ce7c6df9693756bc6250f55",
       ref: "bordful",
-      template_id: "engineering-it",
+      template_id: "fully-remote",
       utm_campaign: "connect",
       utm_medium: "admin",
       utm_source: "bordful",
@@ -33,7 +33,7 @@ describe("buildRegisterBody", () => {
       board_name: "Example Board",
       email: "owner@example.com",
       ref: "bordful",
-      template_id: "engineering-it",
+      template_id: "fully-remote",
       utm_campaign: "connect",
       utm_medium: "admin",
       utm_source: "bordful",

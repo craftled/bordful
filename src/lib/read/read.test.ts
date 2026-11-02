@@ -83,17 +83,17 @@ test("sample attribution stays visible until the board is connected", () => {
       lastSyncAt: null,
       showAttribution: false,
       state: "sample",
-      templateId: "engineering-it",
+      templateId: "fully-remote",
     })
   ).toEqual({
     lastSyncAt: null,
     showAttribution: true,
     state: "sample",
-    templateId: "engineering-it",
+    templateId: "fully-remote",
   });
 
   expect(toBordfeedConnectionPublic({ templateId: null }).templateId).toBe(
-    "engineering-it"
+    "fully-remote"
   );
 });
 

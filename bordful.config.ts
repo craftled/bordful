@@ -4,7 +4,7 @@ import { defineBordfulConfig } from "./src/config/define-config";
 export default defineBordfulConfig({
   bordfeed: { baseUrl: "https://bordfeed.com", syncCron: "0 6 * * *" },
   telemetry: { clientHeader: true }, // false drops X-Bordfeed-Client and install_id
-  board: { defaultTemplateId: "engineering-it" },
+  board: { defaultTemplateId: "fully-remote" },
   alerts: { provider: "resend" },
   csp: { extraScriptOrigins: [], extraConnectOrigins: [] },
 });

@@ -30,7 +30,7 @@ export const bordfulConfigSchema = z.strictObject({
     .prefault({}),
   board: z
     .strictObject({
-      defaultTemplateId: z.string().min(1).max(100).prefault("engineering-it"),
+      defaultTemplateId: z.string().min(1).max(100).prefault("fully-remote"),
     })
     .prefault({}),
   bordfeed: z

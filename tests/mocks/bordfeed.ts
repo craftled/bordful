@@ -10,6 +10,13 @@ export const MOCK_FEED_ID = "11111111-1111-4111-8111-111111111111";
 
 const TEMPLATES = [
   {
+    category: "general",
+    description: "Remote roles in every job category and location",
+    filters: { workplace_type: ["Remote"] },
+    id: "fully-remote",
+    name: "Fully Remote",
+  },
+  {
     category: "engineering",
     description: "Fake engineering roles.",
     filters: {},
@@ -508,7 +515,7 @@ export function createBordfeedMock(): BordfeedMock {
       api_key: MOCK_API_KEY,
       suggested_feed: {
         name: registration.boardName,
-        template_id: registration.templateId ?? "engineering-it",
+        template_id: registration.templateId ?? "fully-remote",
       },
     });
   }

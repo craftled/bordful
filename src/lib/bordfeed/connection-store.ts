@@ -111,7 +111,7 @@ export async function readConnection(
     registrationId: asString(doc.registrationId),
     showAttribution: doc.showAttribution !== false,
     state: asState(doc.state),
-    templateId: asString(doc.templateId) ?? "engineering-it",
+    templateId: asString(doc.templateId) ?? "fully-remote",
   };
 }
 
