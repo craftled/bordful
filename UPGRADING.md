@@ -61,7 +61,7 @@ bun install
 bun run check
 ```
 
-Releases ship on `main`. The `v1` branch was the 1.0 beta line before it merged into `main`.
+Releases ship on `main`. The `v1` branch was the 1.0 beta line and merged into `main` with a merge commit, so its commits are on `main` and the base search above also finds a beta-era Deploy button project.
 
 If you have not deployed yet and you plan to pull upgrades, fork `craftled/bordful` and import that fork in Vercel. A fork shares history, so the first merge does not need the base step above.
 

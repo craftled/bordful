@@ -2,7 +2,7 @@
 
 ## Deploy button
 
-The button in the [README](../README.md) opens the Vercel project flow and clones `craftled/bordful` at branch `v1`. The `repository-url` parameter is a GitHub tree URL for that branch.
+The button in the [README](../README.md) opens the Vercel project flow and clones `craftled/bordful` at branch `main`. The `repository-url` parameter is a GitHub tree URL for `main`.
 
 It provisions:
 
