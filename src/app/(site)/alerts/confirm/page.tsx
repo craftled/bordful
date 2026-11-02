@@ -33,8 +33,10 @@ export default async function ConfirmAlertPage({
 
   return (
     <BoardShell>
-      <section className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
-        <h1 className="font-semibold text-2xl">Confirm your job alerts</h1>
+      <section className="mx-auto flex w-full max-w-xl flex-col gap-4 rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+        <h1 className="font-semibold text-2xl tracking-tight">
+          Confirm your job alerts
+        </h1>
         {pending ? (
           <>
             <p>{describeAlertQuery(pending.query)}</p>

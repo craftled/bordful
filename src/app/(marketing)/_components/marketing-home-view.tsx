@@ -5,6 +5,7 @@ import { Hero } from "@/components/marketing/hero";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 import { Pricing } from "@/components/marketing/pricing";
+import { ProductStrip } from "@/components/marketing/product-strip";
 import { Showcase } from "@/components/marketing/showcase";
 import { TechStack } from "@/components/marketing/tech-stack";
 
@@ -19,6 +20,7 @@ export function MarketingHomeView() {
       <MarketingHeader />
       <main className="flex-1">
         <Hero />
+        <ProductStrip />
         <TechStack />
         <Features />
         <Showcase />

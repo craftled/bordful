@@ -1,32 +1,28 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { getNav } from "@/config/nav";
 
 import { Container } from "./container";
 import { DEPLOY_URL } from "./links";
 import { MarketingImage } from "./marketing-image";
+import { MARKETING_HEADER_LINKS, type MarketingLink } from "./nav-links";
 import { GITHUB_URL } from "./site";
-
-const marketingNav = getNav({
-  alertsEnabled: false,
-  marketing: true,
-  postJobEnabled: false,
-});
+import { SocialIconLinks } from "./social-icon-links";
 
 function NavLinks({
   items,
   native = false,
 }: {
-  items: typeof marketingNav.header;
+  items: MarketingLink[];
   native?: boolean;
 }) {
-  const className = "text-[13px] text-muted-foreground hover:text-foreground";
+  const className =
+    "text-[13px] text-muted-foreground hover:text-foreground focus-visible:rounded-sm focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4";
 
   return (
     <ul className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-6">
       {items.map((item) => (
-        <li key={item.id}>
+        <li key={item.href}>
           {native ? (
             <a className={className} href={item.href}>
               {item.label}
@@ -42,10 +38,24 @@ function NavLinks({
   );
 }
 
-function HeaderActions() {
+function HeaderActions({ stacked = false }: { stacked?: boolean }) {
+  // The mobile panel is too narrow for the icons and buttons in one row.
+  const buttonClass = stacked ? "rounded-full w-full" : "rounded-full";
+
   return (
-    <div className="flex items-center gap-2">
-      <Button asChild className="rounded-full" size="sm" variant="outline">
+    <div
+      className={stacked ? "flex flex-col gap-3" : "flex items-center gap-2"}
+    >
+      <SocialIconLinks
+        className={
+          stacked ? "flex items-center gap-3" : "mr-2 flex items-center gap-3"
+        }
+        exclude={[GITHUB_URL]}
+      />
+      <Button asChild className={buttonClass} size="sm" variant="outline">
+        <Link href="/jobs">Live demo</Link>
+      </Button>
+      <Button asChild className={buttonClass} size="sm" variant="outline">
         <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
           <MarketingImage
             alt=""
@@ -57,7 +67,7 @@ function HeaderActions() {
           GitHub
         </a>
       </Button>
-      <Button asChild className="rounded-full" size="sm">
+      <Button asChild className={buttonClass} size="sm">
         <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
           Deploy
         </a>
@@ -75,7 +85,10 @@ export function MarketingHeader() {
       <Container>
         <div className="flex h-14 items-center justify-between rounded-full border border-border bg-background/60 px-4 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-4 sm:gap-6">
-            <Link className="flex items-center gap-2" href="/">
+            <Link
+              className="flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+              href="/"
+            >
               <MarketingImage
                 alt=""
                 className="marketing-mono h-5 w-5"
@@ -86,23 +99,23 @@ export function MarketingHeader() {
               <span className="font-medium text-sm">Bordful</span>
             </Link>
             <nav aria-label="Primary" className="hidden lg:block">
-              <NavLinks items={marketingNav.header} />
+              <NavLinks items={MARKETING_HEADER_LINKS} />
             </nav>
           </div>
           <div className="hidden lg:flex">
             <HeaderActions />
           </div>
           <details className="relative lg:hidden">
-            <summary className="cursor-pointer rounded-full border border-border px-3 py-1 text-[13px]">
+            <summary className="cursor-pointer rounded-full border border-border px-3 py-1 text-[13px] focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2">
               Menu
             </summary>
             <div className="absolute right-0 mt-3 w-64 rounded-lg border border-border bg-background p-4">
               <nav aria-label="Mobile">
                 {/* A full load closes this disclosure. Client navigation leaves it open. */}
-                <NavLinks items={marketingNav.header} native />
+                <NavLinks items={MARKETING_HEADER_LINKS} native />
               </nav>
               <div className="mt-4">
-                <HeaderActions />
+                <HeaderActions stacked />
               </div>
             </div>
           </details>
