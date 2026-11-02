@@ -44,6 +44,7 @@ export function AlertsForm({
   query: JobAlertQuery;
 }) {
   const [state, formAction, pending] = useActionState(subscribeAction, null);
+  const failed = state !== null && !state.ok;
 
   return (
     <form
@@ -64,7 +65,10 @@ export function AlertsForm({
           <div className="flex flex-col gap-2">
             <Label htmlFor="alerts-email">Email *</Label>
             <Input
-              aria-describedby="alerts-privacy"
+              aria-describedby={
+                failed ? "alerts-privacy alerts-status" : "alerts-privacy"
+              }
+              aria-invalid={failed || undefined}
               autoComplete="email"
               data-testid="alerts-email"
               id="alerts-email"
@@ -185,14 +189,19 @@ export function AlertsForm({
           ))}
 
           <p className="text-muted-foreground text-xs" id="alerts-privacy">
-            We keep only your email address to send alerts. Every email has a
-            one-click unsubscribe link.
+            We keep your email address and alert preferences only to send these
+            alerts. Every email has a one-click unsubscribe link.
           </p>
 
           <Button data-testid="alerts-submit" disabled={pending} type="submit">
             Subscribe to job alerts
           </Button>
-          <p className="text-sm" data-testid="alerts-status" role="status">
+          <p
+            className="text-sm"
+            data-testid="alerts-status"
+            id="alerts-status"
+            role={failed ? "alert" : "status"}
+          >
             {state ? state.message : ""}
           </p>
         </CardContent>
