@@ -61,9 +61,9 @@ export function Hero() {
           <MarketingImage
             alt="Bordful demo board"
             className="w-full"
-            height={1215}
+            height={1692}
             src="/marketing/bordful-demo.png"
-            width={2160}
+            width={2880}
           />
         </div>
       </Container>

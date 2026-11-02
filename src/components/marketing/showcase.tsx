@@ -33,9 +33,9 @@ function ShowcaseCard({
       <MarketingImage
         alt=""
         className="w-full"
-        height={1215}
+        height={1692}
         src={entry.image}
-        width={2160}
+        width={2880}
       />
       <div className="space-y-2 p-5">
         <Heading className="font-medium text-sm">{entry.name}</Heading>
