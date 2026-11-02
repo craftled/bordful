@@ -54,6 +54,8 @@ const calls: Call[] = [];
 
 interface Behavior {
   createFeedFailures: number;
+  feedError: BordfeedApiError | null;
+  feedJobs: number;
   feedThrows: boolean;
   registerError: BordfeedApiError | null;
   unauthorized: boolean;
@@ -62,6 +64,8 @@ interface Behavior {
 
 const behavior: Behavior = {
   createFeedFailures: 0,
+  feedError: null,
+  feedJobs: 3,
   feedThrows: false,
   registerError: null,
   unauthorized: false,
@@ -145,9 +149,25 @@ function client(): BordfeedClient {
         });
       }
 
-      yield jobs("feed", 3);
+      if (behavior.feedError) {
+        throw behavior.feedError;
+      }
+
+      yield behavior.feedJobs > 0 ? jobs("feed", behavior.feedJobs) : [];
     },
-    listTemplates: () => Promise.reject(new Error("unused")),
+    listTemplates: () =>
+      Promise.resolve({
+        data: [
+          {
+            category: "general",
+            description: "Remote roles in every job category and location",
+            filters: { workplace_type: ["Remote"] },
+            id: "fully-remote",
+            name: "Fully Remote",
+          },
+        ],
+        request_id: "req_templates",
+      }),
     previewTemplate: () => {
       calls.push({ type: "preview" });
       return Promise.resolve(previewBody(jobs("sample", 3)));
@@ -158,9 +178,12 @@ function client(): BordfeedClient {
         return rejectApi(behavior.registerError);
       }
 
+      // Live shape (auth.md): expires_in seconds, no expires_at.
       return Promise.resolve({
-        expires_at: "2026-10-23T09:15:00.000Z",
-        registration_id: "reg_mock_0001",
+        email: "owner@example.com",
+        expires_in: 600,
+        next: "Ask the person for the 6-digit code.",
+        registration_id: "00000000-0000-4000-8000-000000000001",
       });
     },
     verify(body) {
@@ -170,9 +193,24 @@ function client(): BordfeedClient {
       }
 
       return Promise.resolve({
+        account: "created",
         api_key: API_KEY,
-        suggested_feed: {
+        key_id: "33333333-3333-4333-8333-333333333333",
+        key_name: "bordful",
+        next: "Store the key in an env var such as BORDFEED_API_KEY.",
+        organization: {
+          id: "44444444-4444-4444-8444-444444444444",
           name: "Example Board",
+        },
+        suggested_feed: {
+          body: {
+            filters: {},
+            name: "Fully Remote",
+            template_id: "fully-remote",
+          },
+          create: "POST https://bordfeed.com/api/v1/feeds",
+          dashboard_url:
+            "https://bordfeed.com/dashboard/organization/feeds/create?template=fully-remote",
           template_id: "fully-remote",
         },
       });
@@ -202,6 +240,8 @@ describe("bordfeed connect", () => {
     await payload.db.migrateFresh({ forceAcceptWarning: true });
     calls.length = 0;
     behavior.createFeedFailures = 0;
+    behavior.feedError = null;
+    behavior.feedJobs = 3;
     behavior.feedThrows = false;
     behavior.registerError = null;
     behavior.unauthorized = false;
@@ -305,7 +345,7 @@ describe("bordfeed connect", () => {
     behavior.verifyError = new BordfeedApiError({
       code: "workspace_required",
       message: "Choose which Bordfeed workspace to connect.",
-      status: 400,
+      status: 409,
       workspaces: [{ name: "Example Workspace", slug: "example-workspace" }],
     });
     await startConnect(payload, OWNER, bordfeed);
@@ -333,7 +373,7 @@ describe("bordfeed connect", () => {
   test("register 429 stays on sample and records rate_limited", async () => {
     const bordfeed = deps();
     behavior.registerError = new BordfeedApiError({
-      code: "rate_limited",
+      code: "rate_limit_exceeded",
       message: "Bordfeed is rate limiting this board. Try again later.",
       status: 429,
     });
@@ -488,6 +528,114 @@ describe("bordfeed connect", () => {
     );
     expect(record.previousState).toBe("connected");
     expect(record.feedId).toBe(FEED_ID);
+  });
+  test("register stores the expiry from live expires_in", async () => {
+    await startConnect(payload, OWNER, deps());
+    const record = await readConnection(payload);
+
+    expect(record.state).toBe("awaiting_code");
+    expect(record.registrationId).toBe("00000000-0000-4000-8000-000000000001");
+    expect(record.registrationExpiresAt).toBe("2026-10-23T09:10:00.000Z");
+  });
+
+  test("connect creates the feed with filters, named after the template on a default site name", async () => {
+    const bordfeed = deps();
+    await startConnect(payload, OWNER, bordfeed);
+    await submitCode(payload, { code: "424242" }, bordfeed);
+    const create = calls.find((call) => call.type === "createFeed");
+
+    expect(create?.body).toEqual({
+      filters: {},
+      name: "Fully Remote",
+      template_id: "fully-remote",
+    });
+  });
+
+  test("connect names the feed after a renamed site", async () => {
+    await payload.updateGlobal({
+      data: { name: "Remote Rust Jobs" },
+      overrideAccess: true,
+      slug: "site-settings",
+    });
+    const bordfeed = deps();
+    await startConnect(payload, OWNER, bordfeed);
+    await submitCode(payload, { code: "424242" }, bordfeed);
+    const create = calls.find((call) => call.type === "createFeed");
+
+    expect(create?.body).toEqual({
+      filters: {},
+      name: "Remote Rust Jobs",
+      template_id: "fully-remote",
+    });
+  });
+
+  test("pasteKey creates the feed with filters and the template display name", async () => {
+    await pasteKey(payload, { apiKey: API_KEY }, deps());
+    const create = calls.find((call) => call.type === "createFeed");
+
+    expect(create?.body).toEqual({
+      filters: {},
+      name: "Fully Remote",
+      template_id: "fully-remote",
+    });
+  });
+
+  test("a 402 on the first feed read keeps the samples and explains credits", async () => {
+    const bordfeed = deps();
+    await runSampleSync(payload, bordfeed);
+    behavior.feedError = new BordfeedApiError({
+      code: "payment_required",
+      message: "The Bordfeed request failed.",
+      status: 402,
+    });
+    await startConnect(payload, OWNER, bordfeed);
+    const result = await submitCode(payload, { code: "424242" }, bordfeed);
+    const samples = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: {
+        and: [
+          { origin: { equals: "bordfeed_sample" } },
+          { _status: { equals: "published" } },
+        ],
+      },
+    });
+
+    expect(result.message).toBe(
+      "Connected. The first sync failed: Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then."
+    );
+    expect(samples.totalDocs).toBe(3);
+  });
+
+  test("an empty first feed keeps the samples instead of a blank board", async () => {
+    const bordfeed = deps();
+    await runSampleSync(payload, bordfeed);
+    behavior.feedJobs = 0;
+    const result = await pasteKey(payload, { apiKey: API_KEY }, bordfeed);
+    const samples = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+
+    expect(result.message).toBe(
+      "Connected. The first sync failed: The Bordfeed feed came back empty, so the board kept its current jobs."
+    );
+    expect(samples.totalDocs).toBe(3);
+  });
+
+  test("an expired or locked code asks to start again", async () => {
+    const bordfeed = deps();
+    behavior.verifyError = new BordfeedApiError({
+      code: "code_expired",
+      message: "The Bordfeed request failed.",
+      status: 410,
+    });
+    await startConnect(payload, OWNER, bordfeed);
+    const result = await submitCode(payload, { code: "424242" }, bordfeed);
+
+    expect(result.message).toBe("The code expired. Start again.");
+    expect(result.state).toBe("awaiting_code");
   });
 });
 

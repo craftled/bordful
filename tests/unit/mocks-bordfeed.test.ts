@@ -86,10 +86,18 @@ test("register then verify 424242 issues the key once", async () => {
     method: "POST",
   });
   expect(registered.status).toBe(200);
-  const registration = (await registered.json()) as {
+  const registration = (await registered.json()) as Record<string, unknown> & {
     registration_id: string;
   };
-  expect(registration.registration_id).toBe("reg_mock_0001");
+  // auth.md register shape: no expires_at, expiry in seconds.
+  expect(Object.keys(registration).sort()).toEqual(
+    ["email", "expires_in", "next", "registration_id"].sort()
+  );
+  expect(registration.registration_id).toBe(
+    "00000000-0000-4000-8000-000000000001"
+  );
+  expect(registration.expires_in).toBe(600);
+  expect(registration.email).toBe("owner@example.com");
 
   const verified = await call(mock, "/api/agent/verify", {
     body: JSON.stringify({
@@ -100,8 +108,20 @@ test("register then verify 424242 issues the key once", async () => {
     method: "POST",
   });
   expect(verified.status).toBe(200);
-  const key = (await verified.json()) as { api_key: string };
+  const key = (await verified.json()) as {
+    account: string;
+    api_key: string;
+    suggested_feed: unknown;
+  };
   expect(key.api_key).toBe(MOCK_API_KEY);
+  expect(key.account).toBe("created");
+  expect(key.suggested_feed).toEqual({
+    body: { filters: {}, name: "Fully Remote", template_id: "fully-remote" },
+    create: "POST https://bordfeed.com/api/v1/feeds",
+    dashboard_url:
+      "https://bordfeed.com/dashboard/organization/feeds/create?template=fully-remote",
+    template_id: "fully-remote",
+  });
 
   const again = await call(mock, "/api/agent/verify", {
     body: JSON.stringify({
@@ -171,4 +191,66 @@ test("feed pages are 10, 10 and 5 with one 429 before page 2", async () => {
   expect(third.data).toHaveLength(5);
   expect(third.pagination.next_cursor).toBeNull();
   expect(third.data[0]?.description_html).toContain("Mock Feed Engineer");
+});
+
+function createFeed(
+  mock: ReturnType<typeof createBordfeedMock>,
+  body: Record<string, unknown>
+): Promise<Response> {
+  return call(mock, "/api/v1/feeds", {
+    body: JSON.stringify(body),
+    headers: {
+      authorization: `Bearer ${MOCK_API_KEY}`,
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+}
+
+test("feed create without filters is a 422 like live", async () => {
+  const mock = createBordfeedMock();
+  const missing = await createFeed(mock, {
+    name: "Job Board",
+    template_id: "fully-remote",
+  });
+  expect(missing.status).toBe(422);
+  const error = (await missing.json()) as {
+    error: { code: string; errors: { path: string[] }[] };
+  };
+  expect(error.error.code).toBe("validation_error");
+  expect(error.error.errors[0]?.path).toEqual(["filters"]);
+
+  const created = await createFeed(mock, {
+    filters: {},
+    name: "Fully Remote",
+    template_id: "fully-remote",
+  });
+  expect(created.status).toBe(201);
+});
+
+test("credits start at 0 and the first feed read grants 2000", async () => {
+  const mock = createBordfeedMock();
+  const headers = { authorization: `Bearer ${MOCK_API_KEY}` };
+  const page = await call(mock, `/api/v1/feeds/${MOCK_FEED_ID}/jobs`, {
+    headers,
+  });
+  expect(page.status).toBe(200);
+  const balance = await call(mock, "/api/v1/billing/balance", { headers });
+  const body = (await balance.json()) as { data: { credits: number } };
+  expect(body.data.credits).toBe(1990);
+});
+
+test("nocredits@example.com makes billed feed reads a 402", async () => {
+  const mock = createBordfeedMock();
+  await call(mock, "/api/agent/register", {
+    body: JSON.stringify(registerBody("nocredits@example.com")),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  const page = await call(mock, `/api/v1/feeds/${MOCK_FEED_ID}/jobs`, {
+    headers: { authorization: `Bearer ${MOCK_API_KEY}` },
+  });
+  expect(page.status).toBe(402);
+  const body = (await page.json()) as { error: { code: string } };
+  expect(body.error.code).toBe("insufficient_credits");
 });

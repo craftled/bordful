@@ -47,6 +47,8 @@ const WORKPLACES = new Set(["Remote", "Hybrid", "On-site"]);
 const FEED_PAGE = 10;
 const FEED_TOTAL = 25;
 const PREVIEW_TOTAL = 20;
+const STARTING_CREDITS = 2000;
+const CODE_TTL_SECONDS = 600;
 
 export interface BordfeedRequestLog {
   authorization: string | null;
@@ -87,8 +89,9 @@ function requestId(sequence: number): string {
   return `req_mock_${String(sequence).padStart(4, "0")}`;
 }
 
+// Live registration ids are UUIDs, and verify rejects anything else.
 function registrationId(sequence: number): string {
-  return `reg_mock_${String(sequence).padStart(4, "0")}`;
+  return `00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
 }
 
 function queryRecord(url: URL): Record<string, string | string[]> {
@@ -349,6 +352,19 @@ export function createBordfeedMock(): BordfeedMock {
   let registrationsIssued = 0;
   // First cursor=c2 read is a one-shot 429 so clients exercise Retry-After.
   let delayedPageTwo = false;
+  // Like live: a new account reads 0 credits until the first balance read or
+  // billed call grants the starting credit. Feed create is free.
+  let creditsGranted = false;
+  let credits = 0;
+  // Registering nocredits@example.com makes billed feed reads return 402.
+  let creditsExhausted = false;
+
+  function grantCredits(): void {
+    if (!(creditsGranted || creditsExhausted)) {
+      creditsGranted = true;
+      credits = STARTING_CREDITS;
+    }
+  }
 
   function log(request: Request, url: URL, body: unknown): void {
     state.requests.push({
@@ -426,9 +442,9 @@ export function createBordfeedMock(): BordfeedMock {
     if (!parsed.success) {
       sequence += 1;
       return envelope(
-        422,
-        "validation_error",
-        "Invalid register request",
+        400,
+        "invalid_request",
+        "The request body is not valid.",
         sequence
       );
     }
@@ -437,8 +453,8 @@ export function createBordfeedMock(): BordfeedMock {
       sequence += 1;
       return envelope(
         429,
-        "rate_limited",
-        "Too many signups",
+        "rate_limit_exceeded",
+        "Rate limit exceeded",
         sequence,
         { retry_after: 3600 },
         { "retry-after": "3600" }
@@ -447,7 +463,6 @@ export function createBordfeedMock(): BordfeedMock {
 
     registrationsIssued += 1;
     const id = registrationId(registrationsIssued);
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     registrations.set(id, {
       boardName: parsed.data.board_name,
       email: parsed.data.email,
@@ -456,7 +471,16 @@ export function createBordfeedMock(): BordfeedMock {
       verified: false,
       workspace: parsed.data.workspace ?? null,
     });
-    return Response.json({ expires_at: expiresAt, registration_id: id });
+    if (parsed.data.email === "nocredits@example.com") {
+      creditsExhausted = true;
+    }
+    // Live shape (auth.md): no request_id on success, expiry in seconds.
+    return Response.json({
+      email: parsed.data.email,
+      expires_in: CODE_TTL_SECONDS,
+      next: `Ask the person for the 6-digit code sent to ${parsed.data.email}, then POST /api/agent/verify with registration_id and code.`,
+      registration_id: id,
+    });
   }
 
   function handleVerify(body: unknown): Response {
@@ -464,9 +488,9 @@ export function createBordfeedMock(): BordfeedMock {
     if (!parsed.success) {
       sequence += 1;
       return envelope(
-        422,
-        "validation_error",
-        "Invalid verify request",
+        400,
+        "invalid_request",
+        "The request body is not valid.",
         sequence
       );
     }
@@ -474,7 +498,12 @@ export function createBordfeedMock(): BordfeedMock {
     const registration = registrations.get(parsed.data.registration_id);
     if (registration === undefined) {
       sequence += 1;
-      return envelope(404, "not_found", "Unknown registration", sequence);
+      return envelope(
+        404,
+        "invalid_registration",
+        "No registration matches that id.",
+        sequence
+      );
     }
 
     if (
@@ -483,13 +512,17 @@ export function createBordfeedMock(): BordfeedMock {
     ) {
       sequence += 1;
       return envelope(
-        400,
+        409,
         "workspace_required",
-        "Choose a workspace",
+        "This account has more than one workspace.",
         sequence,
         {
           workspaces: [
-            { name: "Example Workspace", slug: "example-workspace" },
+            {
+              id: "22222222-2222-4222-8222-222222222222",
+              name: "Example Workspace",
+              slug: "example-workspace",
+            },
           ],
         }
       );
@@ -507,16 +540,41 @@ export function createBordfeedMock(): BordfeedMock {
 
     if (parsed.data.code !== "424242") {
       sequence += 1;
-      return envelope(400, "invalid_code", "Code did not match", sequence);
+      return envelope(400, "invalid_code", "That code is wrong.", sequence, {
+        attempts_remaining: 4,
+      });
     }
 
     registration.verified = true;
+    const template =
+      registration.templateId === null
+        ? null
+        : templateById(registration.templateId);
+    // Live shape (auth.md). suggested_feed only for a known template_id.
     return Response.json({
+      account: "created",
       api_key: MOCK_API_KEY,
-      suggested_feed: {
+      key_id: "33333333-3333-4333-8333-333333333333",
+      key_name: "bordful",
+      next: "Store the key in an env var such as BORDFEED_API_KEY.",
+      organization: {
+        id: "44444444-4444-4444-8444-444444444444",
         name: registration.boardName,
-        template_id: registration.templateId ?? "fully-remote",
       },
+      ...(template === null
+        ? {}
+        : {
+            suggested_feed: {
+              body: {
+                filters: {},
+                name: template.name,
+                template_id: template.id,
+              },
+              create: "POST https://bordfeed.com/api/v1/feeds",
+              dashboard_url: `https://bordfeed.com/dashboard/organization/feeds/create?template=${template.id}`,
+              template_id: template.id,
+            },
+          }),
     });
   }
 
@@ -531,27 +589,81 @@ export function createBordfeedMock(): BordfeedMock {
       return envelope(422, "validation_error", "Invalid feed", sequence);
     }
 
+    // Live: name (1 to 100) and filters (object) are required; template_id is
+    // optional, and an unknown one is a 422 too.
     const record = body as Record<string, unknown>;
+    const errors: { code: string; message: string; path: string[] }[] = [];
     if (
-      typeof record.template_id !== "string" ||
-      typeof record.name !== "string"
+      typeof record.name !== "string" ||
+      record.name.length < 1 ||
+      record.name.length > 100
     ) {
+      errors.push({
+        code: "invalid_type",
+        message: "Invalid input: expected string, received undefined",
+        path: ["name"],
+      });
+    }
+    if (
+      record.filters === null ||
+      typeof record.filters !== "object" ||
+      Array.isArray(record.filters)
+    ) {
+      errors.push({
+        code: "invalid_type",
+        message: "Invalid input: expected object, received undefined",
+        path: ["filters"],
+      });
+    }
+    if (
+      record.template_id !== undefined &&
+      (typeof record.template_id !== "string" ||
+        templateById(record.template_id) === null)
+    ) {
+      errors.push({
+        code: "custom",
+        message: "Unknown template",
+        path: ["template_id"],
+      });
+    }
+    if (errors.length > 0) {
       sequence += 1;
-      return envelope(422, "validation_error", "Invalid feed", sequence);
+      return envelope(
+        422,
+        "validation_error",
+        errors[0]?.message ?? "Invalid feed",
+        sequence,
+        { errors }
+      );
     }
 
     sequence += 1;
     return Response.json(
       {
         data: {
+          filters: record.filters,
           id: MOCK_FEED_ID,
           name: record.name,
-          template_id: record.template_id,
+          template_id: record.template_id ?? null,
         },
         request_id: requestId(sequence),
       },
       { status: 201 }
     );
+  }
+
+  function handleBalance(request: Request): Response {
+    const denied = requireKey(request);
+    if (denied !== null) {
+      return denied;
+    }
+
+    grantCredits();
+    sequence += 1;
+    return Response.json({
+      data: { credits },
+      request_id: requestId(sequence),
+    });
   }
 
   function handleFeedJobs(request: Request, url: URL): Response {
@@ -560,14 +672,26 @@ export function createBordfeedMock(): BordfeedMock {
       return denied;
     }
 
+    if (creditsExhausted) {
+      sequence += 1;
+      return envelope(
+        402,
+        "insufficient_credits",
+        "Insufficient credits",
+        sequence,
+        { topup_url: "https://bordfeed.com/topup/mock" }
+      );
+    }
+    grantCredits();
+
     const cursor = url.searchParams.get("cursor");
     if (cursor === "c2" && !delayedPageTwo) {
       delayedPageTwo = true;
       sequence += 1;
       return envelope(
         429,
-        "rate_limited",
-        "Slow down",
+        "rate_limit_exceeded",
+        "Rate limit exceeded",
         sequence,
         { retry_after: 1 },
         { "retry-after": "1" }
@@ -593,6 +717,7 @@ export function createBordfeedMock(): BordfeedMock {
     const include = url.searchParams.get("include") === "description_html";
     const data = withDescriptionHtml(feed.slice(start, end), include);
     const more = end < feed.length;
+    credits = Math.max(0, credits - data.length);
     sequence += 1;
     return Response.json({
       data,
@@ -613,6 +738,9 @@ export function createBordfeedMock(): BordfeedMock {
       log(request, url, body);
 
       if (request.method === "GET" && url.pathname.startsWith("/api/v1/")) {
+        if (url.pathname === "/api/v1/billing/balance") {
+          return handleBalance(request);
+        }
         if (FEED_JOBS_PATH.test(url.pathname)) {
           return handleFeedJobs(request, url);
         }
@@ -639,6 +767,9 @@ export function createBordfeedMock(): BordfeedMock {
       registrationsIssued = 0;
       sequence = 0;
       delayedPageTwo = false;
+      creditsGranted = false;
+      credits = 0;
+      creditsExhausted = false;
     },
     state,
   };

@@ -91,10 +91,21 @@ export interface RegisterRequest {
 export interface VerifyRequest {
   code: string;
   registration_id: string;
+  workspace?: string;
+}
+
+// The feed body Bordfeed suggests after verify: POST it to /api/v1/feeds.
+export interface SuggestedFeedBody {
+  filters?: Record<string, unknown>;
+  name?: string;
+  template_id?: string;
+  [key: string]: unknown;
 }
 
 export interface SuggestedFeed {
-  name?: string;
+  body?: SuggestedFeedBody;
+  create?: string;
+  dashboard_url?: string;
   template_id?: string;
   [key: string]: unknown;
 }
@@ -114,12 +125,12 @@ export interface BordfeedWorkspace {
   slug: string;
 }
 
-// Provisional: confirm against the Bordfeed mock in L3a
+// 409 from register or verify (auth.md). error.workspaces lists id, name, slug.
 export type WorkspaceRequiredError = BordfeedErrorBody<"workspace_required"> & {
   error: { workspaces: BordfeedWorkspace[] };
 };
 
-// Provisional: confirm against the Bordfeed mock in L3a
+// 409 from verify when the key was already returned once (auth.md).
 export type AlreadyIssuedError = BordfeedErrorBody<"already_issued"> & {
   status: 409;
 };
@@ -129,19 +140,28 @@ export type AgentError =
   | AlreadyIssuedError
   | BordfeedErrorBody;
 
+// POST /api/v1/feeds requires `name` and `filters`. Empty `filters` keeps
+// the template filters.
 export interface CreateFeedRequest {
+  filters: Record<string, unknown>;
   name: string;
   template_id: string;
 }
 
-// Provisional: confirm against the Bordfeed mock in L3a
 export interface RegisterResponse {
-  expires_at: string;
+  email?: string;
+  expires_at?: string;
+  expires_in?: number;
+  next?: string;
   registration_id: string;
 }
 
-// Provisional: confirm against the Bordfeed mock in L3a
 export interface VerifyResponse {
+  account?: string;
   api_key: string;
+  key_id?: string;
+  key_name?: string;
+  next?: string;
+  organization?: { id: string; name: string };
   suggested_feed?: SuggestedFeed | null;
 }

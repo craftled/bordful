@@ -46,7 +46,8 @@ test("toSafeError maps each Bordfeed failure to a fixed sentence", () => {
   ).toEqual({
     at,
     code: "payment_required",
-    message: "The Bordfeed plan cannot fetch this feed.",
+    message:
+      "Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
   });
   expect(
     toSafeError(
@@ -132,7 +133,8 @@ test("toSafeError maps each Bordfeed failure to a fixed sentence", () => {
   expect(toSafeError(new SyncGuardError(), now)).toEqual({
     at,
     code: "invalid_response",
-    message: "The Bordfeed feed came back empty, so no jobs were unpublished.",
+    message:
+      "The Bordfeed feed came back empty, so the board kept its current jobs.",
   });
   expect(toSafeError(new Error("boom"), now)).toEqual({
     at,
