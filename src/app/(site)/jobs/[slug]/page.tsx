@@ -4,10 +4,16 @@ import { notFound } from "next/navigation";
 
 import { BoardShell } from "@/components/board/board-shell";
 import { JobPosting } from "@/components/board/job-detail";
+import { isMarketingEnabled } from "@/config/flags";
 import { resolveServerUrl } from "@/config/server-url";
 import { buildJobPath, isPublicJobSlug } from "@/lib/board/paths";
 import { metaDescription } from "@/lib/board/plaintext";
-import { getJobBySlug, getSiteSettings } from "@/lib/read";
+import { getSimilarJobs } from "@/lib/detail";
+import {
+  getBordfeedConnectionPublic,
+  getJobBySlug,
+  getSiteSettings,
+} from "@/lib/read";
 import { buildJobPostingJsonLd } from "@/lib/seo/job-posting";
 
 export async function generateMetadata({
@@ -47,14 +53,29 @@ export default async function JobPage({
     notFound();
   }
 
-  const [job, settings, nonce] = await Promise.all([
+  const [job, settings, connection, nonce] = await Promise.all([
     getJobBySlug(slug),
     getSiteSettings(),
+    getBordfeedConnectionPublic(),
     headers().then((value) => value.get("x-nonce") ?? undefined),
   ]);
   if (!job) {
     notFound();
   }
+
+  // Sample jobs only exist on a board that has not connected a feed yet, so
+  // they may appear in similar lists exactly when the board shows samples.
+  const includeSamples = connection.state === "sample";
+  // Similar jobs are optional: a failed read drops the section, not the page.
+  const similarJobs = await getSimilarJobs(job, includeSamples).catch(
+    (error: unknown) => {
+      console.error(
+        "similar jobs read failed",
+        error instanceof Error ? error.name : "unknown"
+      );
+      return [];
+    }
+  );
 
   const jsonLd = job.indexable
     ? buildJobPostingJsonLd(job, {
@@ -69,7 +90,10 @@ export default async function JobPage({
         fields={settings.board.publicDetailFields}
         job={job}
         jsonLd={jsonLd}
+        marketing={isMarketingEnabled()}
         nonce={nonce}
+        postJob={settings.postJob}
+        similarJobs={similarJobs}
       />
     </BoardShell>
   );
