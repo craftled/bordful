@@ -48,7 +48,7 @@ export async function UpdateNotice(
             Release notes
           </a>{" "}
           <a
-            href="https://github.com/craftled/bordful/blob/v1/UPGRADING.md"
+            href="https://github.com/craftled/bordful/blob/main/UPGRADING.md"
             rel="noopener noreferrer"
             target="_blank"
           >

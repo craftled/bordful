@@ -10,7 +10,7 @@ const MARKETING_PAGES = [
 ];
 
 const DEPLOY_PREFIX =
-  "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcraftled%2Fbordful%2Ftree%2Fv1";
+  "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcraftled%2Fbordful%2Ftree%2Fmain";
 
 function marketingBase(): string {
   if (process.env.E2E_MARKETING_BASE_URL) {

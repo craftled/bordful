@@ -2,7 +2,7 @@
 
 ## Deploy button
 
-The button in the [README](../README.md) opens the Vercel project flow and clones `craftled/bordful` at branch `v1`. The `repository-url` parameter is a GitHub tree URL for that branch.
+The button in the [README](../README.md) opens the Vercel project flow and clones `craftled/bordful` at branch `main`. The `repository-url` parameter is a GitHub tree URL for `main`.
 
 It provisions:
 
@@ -16,7 +16,7 @@ It then asks you to enter:
 
 `NEXT_PUBLIC_SERVER_URL` is optional on Vercel. When it is unset, the app uses the production URL. Set it only when you need to pin an origin, then redeploy, because Next inlines it at build time.
 
-Migrations run automatically on deploy. Payload applies `prodMigrations` when the production server starts. You do not run a migrate command in the Vercel build.
+Migrations run automatically. With `NODE_ENV=production`, Payload applies `prodMigrations` the first time it connects to the database. That can be during `next build` as well as when the server starts, so a new deployment can migrate the production database before it is promoted. You do not run a migrate command yourself. Keep migrations backward compatible (add first, remove in a later release), so an instant rollback to the previous deployment still works against the newer schema.
 
 ## Environment variables
 
@@ -56,6 +56,10 @@ Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never com
 2. In the Vercel project, open Settings, then Domains, and add the domain.
 3. Create the DNS records Vercel shows.
 4. When that domain is the production domain, leave `NEXT_PUBLIC_SERVER_URL` unset so the app uses the production URL. To pin the origin, set `NEXT_PUBLIC_SERVER_URL` to `https://board.example` and redeploy.
+
+## Admin sign-in
+
+Bordful does not send admin password reset emails yet. Keep a second admin account, so one admin can change another's password in Users. After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
 
 ## Self-hosting outside Vercel
 

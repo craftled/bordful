@@ -19,7 +19,7 @@ git fetch upstream
 
 ### First upgrade of a Deploy button project
 
-The Deploy button creates a new Git repository and pushes the source files into it. That repository has its own initial commit. It does not share history with `craftled/bordful`, so a plain `git merge upstream/v1` stops with "refusing to merge unrelated histories".
+The Deploy button creates a new Git repository and pushes the source files into it. That repository has its own initial commit. It does not share history with `craftled/bordful`, so a plain `git merge upstream/main` stops with "refusing to merge unrelated histories".
 
 Do not start with `--allow-unrelated-histories`. That merge has no common ancestor. Only files that are identical on both sides merge cleanly. Every other file, including files you never edited, shows up as a whole-file add/add conflict. Keeping your side drops upstream fixes. Taking the upstream side drops your edits.
 
@@ -27,13 +27,13 @@ Record the upstream commit your root tree came from, then merge normally. These 
 
 ```bash
 init=$(git rev-list --max-parents=0 HEAD)
-base=$(for c in $(git rev-list upstream/v1); do [ "$(git rev-parse "$c^{tree}")" = "$(git rev-parse "$init^{tree}")" ] && echo "$c" && break; done)
+base=$(for c in $(git rev-list upstream/main); do [ "$(git rev-parse "$c^{tree}")" = "$(git rev-parse "$init^{tree}")" ] && echo "$c" && break; done)
 if [ -n "$base" ]; then
   git merge -s ours --allow-unrelated-histories -m "Record upstream base" "$base"
-  git merge upstream/v1
+  git merge upstream/main
 else
   echo "No upstream commit matches your initial tree. Every file upstream changed will show as a whole-file conflict."
-  git merge upstream/v1 --allow-unrelated-histories
+  git merge upstream/main --allow-unrelated-histories
 fi
 ```
 
@@ -56,12 +56,12 @@ bun run check
 After this first upgrade the histories are related. Later upgrades are a plain merge:
 
 ```bash
-git merge upstream/v1
+git merge upstream/main
 bun install
 bun run check
 ```
 
-Later releases merge `upstream/main` instead of `upstream/v1`.
+Releases ship on `main`. The `v1` branch was the 1.0 beta line and merged into `main` with a merge commit, so its commits are on `main` and the base search above also finds a beta-era Deploy button project.
 
 If you have not deployed yet and you plan to pull upgrades, fork `craftled/bordful` and import that fork in Vercel. A fork shares history, so the first merge does not need the base step above.
 
