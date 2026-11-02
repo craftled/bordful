@@ -165,7 +165,7 @@ test("the limiter spaces request starts by 500ms", async () => {
             category: "engineering",
             description: "Roles",
             filters: {},
-            id: "engineering-it",
+            id: "fully-remote",
             name: "Engineering",
           },
         ],
@@ -306,7 +306,7 @@ test("preview retries a 400 once with no query string", async () => {
         template: {
           description: "Roles",
           filters: {},
-          id: "engineering-it",
+          id: "fully-remote",
           name: "Engineering",
         },
       })
@@ -316,10 +316,10 @@ test("preview retries a 400 once with no query string", async () => {
     fetch: fetchImpl,
     now: time.now,
     sleep: time.sleep,
-  }).previewTemplate("engineering-it", previewQuerySchema.parse({ limit: 20 }));
+  }).previewTemplate("fully-remote", previewQuerySchema.parse({ limit: 20 }));
   expect(calls).toEqual([
-    "http://bf.test/api/v1/templates/engineering-it/preview?limit=20",
-    "http://bf.test/api/v1/templates/engineering-it/preview",
+    "http://bf.test/api/v1/templates/fully-remote/preview?limit=20",
+    "http://bf.test/api/v1/templates/fully-remote/preview",
   ]);
   expect(preview.data.map((item) => item.id)).toEqual(["job-1"]);
 });

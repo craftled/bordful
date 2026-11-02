@@ -4,7 +4,7 @@ A new board starts in sample mode. Connecting Bordfeed replaces those sample job
 
 ## Sample mode
 
-On first boot, Bordful loads up to 20 jobs from the template in `board.defaultTemplateId` (default `engineering-it`). The daily cron at 06:00 UTC refreshes them. See [Deploy](deploy.md).
+On first boot, Bordful loads up to 20 jobs from the template in `board.defaultTemplateId` (default `fully-remote`). The daily cron at 06:00 UTC refreshes them. See [Deploy](deploy.md).
 
 Sample jobs use origin `bordfeed_sample`. They are `noindex`. They are left out of the sitemap, the RSS and JSON feeds, and JobPosting JSON-LD. They are never included in alert emails.
 

@@ -285,6 +285,6 @@ export function toBordfeedConnectionPublic(
     lastSyncAt: dateOrNull(row.lastSyncAt),
     showAttribution: state !== "connected" || row.showAttribution !== false,
     state,
-    templateId: stringOrNull(row.templateId) ?? "engineering-it",
+    templateId: stringOrNull(row.templateId) ?? "fully-remote",
   };
 }

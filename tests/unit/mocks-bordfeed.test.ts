@@ -22,14 +22,14 @@ function registerBody(email: string, workspace?: string) {
     agent_name: "bordful",
     board_name: "Example Board",
     email,
-    template_id: "engineering-it",
+    template_id: "fully-remote",
     ...(workspace === undefined ? {} : { workspace }),
   };
 }
 
 test("preview default gives 10 jobs and limit=20 gives 20", async () => {
   const mock = createBordfeedMock();
-  const preview = await call(mock, "/api/v1/templates/engineering-it/preview");
+  const preview = await call(mock, "/api/v1/templates/fully-remote/preview");
   expect(preview.status).toBe(200);
   const body = (await preview.json()) as {
     attribution: { logo_url: string; text: string; url: string };
@@ -60,7 +60,7 @@ test("preview default gives 10 jobs and limit=20 gives 20", async () => {
 
   const wide = await call(
     mock,
-    "/api/v1/templates/engineering-it/preview?limit=20"
+    "/api/v1/templates/fully-remote/preview?limit=20"
   );
   const wideBody = (await wide.json()) as { data: { title: string }[] };
   expect(wideBody.data).toHaveLength(20);
@@ -71,7 +71,7 @@ test("foo=bar gives 400", async () => {
   const mock = createBordfeedMock();
   const response = await call(
     mock,
-    "/api/v1/templates/engineering-it/preview?foo=bar"
+    "/api/v1/templates/fully-remote/preview?foo=bar"
   );
   expect(response.status).toBe(400);
   const body = (await response.json()) as { error: { code: string } };

@@ -46,10 +46,10 @@ function previewBody(jobs: BordfeedJob[]) {
     preview: true as const,
     request_id: "req_preview",
     template: {
-      description: "Engineering roles.",
+      description: "Remote roles in every category.",
       filters: {},
-      id: "engineering-it",
-      name: "Engineering and IT",
+      id: "fully-remote",
+      name: "Fully Remote",
     },
   };
 }

@@ -29,7 +29,7 @@ function record(patch: Partial<ConnectionRecord> = {}): ConnectionRecord {
     registrationId: null,
     showAttribution: true,
     state: "sample",
-    templateId: "engineering-it",
+    templateId: "fully-remote",
     ...patch,
   };
 }

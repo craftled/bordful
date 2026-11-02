@@ -8,7 +8,7 @@ import { bordfulConfig } from "./index";
 
 const defaults = {
   alerts: { provider: "resend" },
-  board: { defaultTemplateId: "engineering-it" },
+  board: { defaultTemplateId: "fully-remote" },
   bordfeed: { baseUrl: "https://bordfeed.com", syncCron: "0 6 * * *" },
   csp: { extraConnectOrigins: [], extraScriptOrigins: [] },
   social: {},
