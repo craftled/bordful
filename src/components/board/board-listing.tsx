@@ -24,6 +24,7 @@ export function BoardListing({
   heading,
   headingTestId,
   intro,
+  listingTitle,
   marketing,
   options,
   postJob = null,
@@ -39,6 +40,7 @@ export function BoardListing({
   heading?: string;
   headingTestId?: string;
   intro?: string;
+  listingTitle?: string;
   marketing: boolean;
   options: BoardQueryOptions;
   postJob?: { durationDays: number; priceLabel: string } | null;
@@ -95,6 +97,7 @@ export function BoardListing({
             query={query}
             showControls={showControls}
             shown={view.docs.length}
+            title={listingTitle}
             total={view.matchCount}
           />
           {view.docs.length > 0 ? (

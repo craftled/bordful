@@ -9,15 +9,15 @@ import {
   formatSalary,
   isNewJob,
 } from "@/lib/board/format";
-import { buildJobPath } from "@/lib/board/paths";
+import { buildCompanyPath, buildJobPath } from "@/lib/board/paths";
 import {
   JOB_EMPLOYMENT_LABELS,
   JOB_WORKPLACE_LABELS,
 } from "@/lib/domain/job-vocab";
 import type { JobListItem } from "@/lib/read/types";
 
-// The whole card is the link (stretched link), so nothing inside may be
-// interactive. The focus ring sits on the card, not on the title text.
+// The title link stretches over the whole card. Other links and slot content
+// sit above it (z-10) so they stay clickable; the focus ring sits on the card.
 export function JobRow({ job, now }: { job: JobListItem; now: number }) {
   const Extra = customSlots["job-card-extra"];
   const salary = formatSalary(job);
@@ -62,7 +62,7 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
       <article className="relative rounded-lg border bg-card p-4 transition-colors hover:border-zinc-300 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <h2 className="line-clamp-2 font-medium text-base">
+            <h3 className="line-clamp-2 font-medium text-base">
               <Link
                 className="rounded-sm outline-none after:absolute after:inset-0"
                 data-testid="job-row-link"
@@ -70,8 +70,19 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
               >
                 {job.title}
               </Link>
-            </h2>
-            <p className="text-muted-foreground text-sm">{job.companyName}</p>
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              {job.companySlug ? (
+                <Link
+                  className="relative z-10 rounded-sm hover:underline"
+                  href={buildCompanyPath(job.companySlug)}
+                >
+                  {job.companyName}
+                </Link>
+              ) : (
+                job.companyName
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {job.featured ? (
@@ -79,7 +90,11 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
                 Featured
               </span>
             ) : null}
-            {Extra ? <Extra /> : null}
+            {Extra ? (
+              <div className="relative z-10">
+                <Extra />
+              </div>
+            ) : null}
           </div>
         </div>
         {meta.length > 0 ? (

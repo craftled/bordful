@@ -82,7 +82,7 @@ export function BoardHero({
 
   return (
     <section
-      className="border-b bg-primary text-primary-foreground"
+      className="bordful-inverse border-b bg-primary text-primary-foreground"
       data-testid="board-hero"
     >
       <div className="mx-auto w-full max-w-board space-y-6 px-4 py-8 md:py-12">

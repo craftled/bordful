@@ -16,7 +16,7 @@ Everything else may change in an upstream release. Keep your edits inside these 
 | --- | --- |
 | `header` | Replaces the default site header. |
 | `footer` | Replaces the default site footer. |
-| `job-card-extra` | Extra content on a job card. |
+| `job-card-extra` | Extra content on a job card. It renders above the card link, so its own links and buttons stay clickable. |
 
 A missing slot keeps the default UI. Minimal registration:
 

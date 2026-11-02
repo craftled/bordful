@@ -90,11 +90,12 @@ test("omits the salary, date and featured badge when they are missing", () => {
   expect(container.querySelector("time")).toBeNull();
 });
 
-test("the whole card is one link with the title as its text", () => {
+test("the card's job link is the title, and the title is an H3", () => {
   render(
     <ul>
       <JobRow
         job={job({
+          companySlug: null,
           employmentType: "full-time",
           featured: true,
           publishedAt: "2026-10-22T12:00:00Z",
@@ -108,6 +109,32 @@ test("the whole card is one link with the title as its text", () => {
   expect(links).toHaveLength(1);
   expect(links[0]?.textContent).toBe("Senior Engineer");
   expect(links[0]?.getAttribute("href")).toBe("/jobs/senior-engineer");
+  expect(
+    screen.getByRole("heading", { level: 3, name: "Senior Engineer" })
+  ).toBeTruthy();
   expect(screen.getByText("Featured")).toBeTruthy();
   expect(screen.getByText("Full-time")).toBeTruthy();
+});
+
+test("links the company name to its page when the slug is known", () => {
+  render(
+    <ul>
+      <JobRow job={job({ companySlug: "acme" })} now={NOW} />
+    </ul>
+  );
+
+  const company = screen.getByRole("link", { name: "Acme" });
+  expect(company.getAttribute("href")).toBe("/companies/acme");
+  expect(company.className).toContain("z-10");
+});
+
+test("shows the company name as plain text when the slug is missing", () => {
+  render(
+    <ul>
+      <JobRow job={job({ companySlug: null })} now={NOW} />
+    </ul>
+  );
+
+  expect(screen.queryByRole("link", { name: "Acme" })).toBeNull();
+  expect(screen.getByText("Acme")).toBeTruthy();
 });

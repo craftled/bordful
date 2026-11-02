@@ -53,7 +53,8 @@ export function BoardSearchForm({
         <Input
           className={cn(
             "pl-9",
-            hero && "h-11 border-white bg-white text-zinc-900"
+            hero &&
+              "h-11 border-white bg-white text-zinc-900 focus-visible:border-background focus-visible:ring-background"
           )}
           data-testid="board-search-input"
           defaultValue={query.q}
@@ -72,7 +73,10 @@ export function BoardSearchForm({
         />
       ))}
       <Button
-        className={cn(hero && "h-11 bg-white text-primary hover:bg-zinc-100")}
+        className={cn(
+          hero &&
+            "h-11 bg-white text-primary hover:bg-zinc-100 focus-visible:ring-background"
+        )}
         data-testid="board-search-submit"
         type="submit"
       >

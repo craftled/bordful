@@ -8,6 +8,8 @@ import {
   PER_PAGE_OPTIONS,
 } from "@/lib/board/query";
 
+const DEFAULT_TITLE = "Latest Opportunities";
+
 const SORTS: { id: BoardSort; label: string }[] = [
   { id: "newest", label: "Newest first" },
   { id: "oldest", label: "Oldest first" },
@@ -85,6 +87,7 @@ export function BoardToolbar({
   query,
   shown,
   showControls,
+  title = DEFAULT_TITLE,
   total,
 }: {
   marketing: boolean;
@@ -92,6 +95,7 @@ export function BoardToolbar({
   query: BoardQuery;
   shown: number;
   showControls: boolean;
+  title?: string;
   total: number;
 }) {
   const perPage = perPageChoices(options.defaultPerPage);
@@ -100,7 +104,7 @@ export function BoardToolbar({
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="space-y-1">
-        <h2 className="font-semibold text-xl">Latest Opportunities</h2>
+        <h2 className="font-semibold text-xl">{title}</h2>
         <p
           className="text-muted-foreground text-sm"
           data-count={total}

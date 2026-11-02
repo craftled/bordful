@@ -44,6 +44,7 @@ export default async function SearchPage({
         cards={cards}
         heading={settings.board.title || "Latest jobs"}
         intro={settings.board.description}
+        listingTitle="Results"
         marketing={isMarketingEnabled()}
         options={options}
         postJob={settings.postJob.enabled ? settings.postJob : null}
