@@ -281,7 +281,7 @@ export function BoardFilters({
           </Link>
         ) : null}
       </div>
-      <details className="group mt-4 md:[&::details-content]:content-visible">
+      <details className="group mt-4 md:[&::details-content]:[content-visibility:visible]">
         <summary
           className={cn(
             "flex cursor-pointer list-none items-center justify-between rounded-[var(--radius)] border border-input bg-background px-3 py-2 text-sm md:hidden [&::-webkit-details-marker]:hidden",
