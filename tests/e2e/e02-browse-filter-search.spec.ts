@@ -43,8 +43,16 @@ async function walkRows(
   if (href === null || href.length === 0) {
     return rows;
   }
+  // Client navigation updates the URL before the list re-renders, so wait for
+  // the new rows instead of reading the previous page's DOM.
+  const previousFirstRow = await page
+    .getByTestId("job-row")
+    .first()
+    .textContent();
   await next.click();
-  await page.waitForLoadState("domcontentloaded");
+  await expect(page.getByTestId("job-row").first()).not.toHaveText(
+    previousFirstRow ?? ""
+  );
   return rows + (await walkRows(page, seen));
 }
 
@@ -107,7 +115,7 @@ test.describe("E2 browse-filter-search", { tag: ["@E2"] }, () => {
     await expect(page.getByTestId("job-row")).toHaveCount(1);
 
     await page.getByTestId("filter-clear").click();
-    await page.waitForLoadState("domcontentloaded");
+    await expect(page.getByTestId("filter-clear")).toHaveCount(0);
     const total = await page
       .getByTestId("job-count")
       .getAttribute("data-count");
