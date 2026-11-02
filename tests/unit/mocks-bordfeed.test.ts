@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-
+import { createBordfeedClient } from "../../src/lib/bordfeed/client";
+import { BordfeedApiError } from "../../src/lib/bordfeed/errors";
 import {
   createBordfeedMock,
   MOCK_API_KEY,
@@ -86,10 +87,18 @@ test("register then verify 424242 issues the key once", async () => {
     method: "POST",
   });
   expect(registered.status).toBe(200);
-  const registration = (await registered.json()) as {
+  const registration = (await registered.json()) as Record<string, unknown> & {
     registration_id: string;
   };
-  expect(registration.registration_id).toBe("reg_mock_0001");
+  // auth.md register shape: no expires_at, expiry in seconds.
+  expect(Object.keys(registration).sort()).toEqual(
+    ["email", "expires_in", "next", "registration_id"].sort()
+  );
+  expect(registration.registration_id).toBe(
+    "00000000-0000-4000-8000-000000000001"
+  );
+  expect(registration.expires_in).toBe(600);
+  expect(registration.email).toBe("owner@example.com");
 
   const verified = await call(mock, "/api/agent/verify", {
     body: JSON.stringify({
@@ -100,8 +109,20 @@ test("register then verify 424242 issues the key once", async () => {
     method: "POST",
   });
   expect(verified.status).toBe(200);
-  const key = (await verified.json()) as { api_key: string };
+  const key = (await verified.json()) as {
+    account: string;
+    api_key: string;
+    suggested_feed: unknown;
+  };
   expect(key.api_key).toBe(MOCK_API_KEY);
+  expect(key.account).toBe("created");
+  expect(key.suggested_feed).toEqual({
+    body: { filters: {}, name: "Fully Remote", template_id: "fully-remote" },
+    create: "POST https://bordfeed.com/api/v1/feeds",
+    dashboard_url:
+      "https://bordfeed.com/dashboard/organization/feeds/create?template=fully-remote",
+    template_id: "fully-remote",
+  });
 
   const again = await call(mock, "/api/agent/verify", {
     body: JSON.stringify({
@@ -171,4 +192,136 @@ test("feed pages are 10, 10 and 5 with one 429 before page 2", async () => {
   expect(third.data).toHaveLength(5);
   expect(third.pagination.next_cursor).toBeNull();
   expect(third.data[0]?.description_html).toContain("Mock Feed Engineer");
+});
+
+function createFeed(
+  mock: ReturnType<typeof createBordfeedMock>,
+  body: Record<string, unknown>
+): Promise<Response> {
+  return call(mock, "/api/v1/feeds", {
+    body: JSON.stringify(body),
+    headers: {
+      authorization: `Bearer ${MOCK_API_KEY}`,
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+}
+
+test("feed create without filters is a 422 like live", async () => {
+  const mock = createBordfeedMock();
+  const missing = await createFeed(mock, {
+    name: "Job Board",
+    template_id: "fully-remote",
+  });
+  expect(missing.status).toBe(422);
+  const error = (await missing.json()) as {
+    error: { code: string; errors: { path: string[] }[] };
+  };
+  expect(error.error.code).toBe("validation_error");
+  expect(error.error.errors[0]?.path).toEqual(["filters"]);
+
+  const created = await createFeed(mock, {
+    filters: {},
+    name: "Fully Remote",
+    template_id: "fully-remote",
+  });
+  expect(created.status).toBe(201);
+});
+
+test("credits start at 0 and the first feed read grants 2000", async () => {
+  const mock = createBordfeedMock();
+  const headers = { authorization: `Bearer ${MOCK_API_KEY}` };
+  const page = await call(mock, `/api/v1/feeds/${MOCK_FEED_ID}/jobs`, {
+    headers,
+  });
+  expect(page.status).toBe(200);
+  const balance = await call(mock, "/api/v1/billing/balance", { headers });
+  const body = (await balance.json()) as { data: { balance_jobs: number } };
+  expect(body.data.balance_jobs).toBe(1990);
+});
+
+test("nocredits@example.com makes billed feed reads a 402", async () => {
+  const mock = createBordfeedMock();
+  await call(mock, "/api/agent/register", {
+    body: JSON.stringify(registerBody("nocredits@example.com")),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  const page = await call(mock, `/api/v1/feeds/${MOCK_FEED_ID}/jobs`, {
+    headers: { authorization: `Bearer ${MOCK_API_KEY}` },
+  });
+  expect(page.status).toBe(402);
+  const body = (await page.json()) as { error: { code: string } };
+  expect(body.error.code).toBe("insufficient_credits");
+});
+
+function mockClient(mock: ReturnType<typeof createBordfeedMock>) {
+  return createBordfeedClient({
+    baseUrl: ORIGIN,
+    clientHeaders: {},
+    fetch: (input, init) => mock.handle(new Request(String(input), init)),
+    now: () => 0,
+    sleep: () => Promise.resolve(),
+  });
+}
+
+test("the client keeps invalid_registration on a 404 from verify", async () => {
+  const mock = createBordfeedMock();
+  const error = await mockClient(mock)
+    .verify({
+      code: "123456",
+      registration_id: "00000000-0000-4000-8000-000000000999",
+    })
+    .catch((caught: unknown) => caught);
+  expect(error).toBeInstanceOf(BordfeedApiError);
+  expect((error as BordfeedApiError).status).toBe(404);
+  expect((error as BordfeedApiError).code).toBe("invalid_registration");
+});
+
+test("a domain-like board_name is a 400 and a missing one names the org from the email", async () => {
+  const mock = createBordfeedMock();
+  const rejected = await call(mock, "/api/agent/register", {
+    body: JSON.stringify({
+      ...registerBody("owner@example.com"),
+      board_name: "Remote.io",
+    }),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  expect(rejected.status).toBe(400);
+
+  const { board_name: _unused, ...withoutBoard } = registerBody(
+    "ada+bot@example.com"
+  );
+  const registered = await call(mock, "/api/agent/register", {
+    body: JSON.stringify(withoutBoard),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  const { registration_id } = (await registered.json()) as {
+    registration_id: string;
+  };
+  const verified = await call(mock, "/api/agent/verify", {
+    body: JSON.stringify({ code: "424242", registration_id }),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  const body = (await verified.json()) as { organization: { name: string } };
+  expect(body.organization.name).toBe("ada");
+});
+
+test("an unknown template_id on feed create is a 404 not_found", async () => {
+  const mock = createBordfeedMock();
+  const response = await call(mock, "/api/v1/feeds", {
+    body: JSON.stringify({ filters: {}, name: "Board", template_id: "nope" }),
+    headers: {
+      authorization: `Bearer ${MOCK_API_KEY}`,
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+  expect(response.status).toBe(404);
+  const body = (await response.json()) as { error: { code: string } };
+  expect(body.error.code).toBe("not_found");
 });

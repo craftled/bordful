@@ -1,6 +1,7 @@
 import { bordfeedInstallId } from "@/lib/install/install-id";
 
 import { registerRequestSchema } from "../register-schema";
+import { isValidBoardName } from "../signup-names";
 import type { RegisterRequest } from "../types";
 
 export function buildRegisterBody(input: {
@@ -14,7 +15,6 @@ export function buildRegisterBody(input: {
 }): RegisterRequest {
   const body: RegisterRequest = {
     agent_name: "bordful",
-    board_name: input.boardName.trim().slice(0, 100),
     email: input.email,
     ref: "bordful",
     template_id: input.templateId,
@@ -22,6 +22,14 @@ export function buildRegisterBody(input: {
     utm_medium: input.medium,
     utm_source: "bordful",
   };
+
+  // Live rejects a board_name over 80 characters or one that looks like a
+  // domain ("Remote.io"). It is optional, so leave it out and Bordfeed names
+  // the workspace from the email instead.
+  const boardName = input.boardName.trim();
+  if (isValidBoardName(boardName)) {
+    body.board_name = boardName;
+  }
 
   if (input.telemetry) {
     body.install_id = bordfeedInstallId(input.installId);

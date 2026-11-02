@@ -129,16 +129,34 @@ export const previewResponseSchema = z.looseObject({
   template: previewTemplateSchema,
 });
 
+// Shapes follow https://bordfeed.com/auth.md. Register answers with
+// `expires_in` (seconds, 600 today). `expires_at` is still accepted.
 export const registerResponseSchema = z.looseObject({
-  expires_at: z.string(),
-  registration_id: z.string(),
+  email: z.string().optional(),
+  expires_at: z.string().optional(),
+  expires_in: z.number().int().positive().optional(),
+  next: z.string().optional(),
+  registration_id: z.string().min(1),
+});
+
+const suggestedFeedBodySchema = z.looseObject({
+  filters: z.record(z.string(), z.unknown()).optional(),
+  name: z.string().optional(),
+  template_id: z.string().optional(),
 });
 
 export const verifyResponseSchema = z.looseObject({
+  account: z.string().optional(),
   api_key: z.string(),
+  key_id: z.string().optional(),
+  key_name: z.string().optional(),
+  next: z.string().optional(),
+  organization: z.looseObject({ id: z.string(), name: z.string() }).optional(),
   suggested_feed: z
     .looseObject({
-      name: z.string().optional(),
+      body: suggestedFeedBodySchema.optional(),
+      create: z.string().optional(),
+      dashboard_url: z.string().optional(),
       template_id: z.string().optional(),
     })
     .nullable()

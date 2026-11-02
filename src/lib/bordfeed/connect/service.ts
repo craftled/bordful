@@ -25,6 +25,7 @@ import {
 import type {
   BordfeedConnectionState,
   BordfeedWorkspace,
+  CreateFeedRequest,
   SuggestedFeed,
 } from "../types";
 
@@ -156,32 +157,97 @@ function plainKeyClient(
   );
 }
 
-async function boardName(payload: Payload): Promise<string> {
+// Site settings ship with this name. A board that never renamed itself gets
+// a feed named after its template instead.
+const DEFAULT_SITE_NAME = "Job Board";
+const FEED_NAME_MAX = 100;
+// auth.md: the code lasts 10 minutes. Used when register sends no expiry.
+const DEFAULT_CODE_TTL_SECONDS = 600;
+
+async function siteName(payload: Payload): Promise<string | null> {
   const settings = await querySiteSettings(payload);
   const name = settings.name.trim();
-  return name.length > 0 ? name.slice(0, 100) : "Job Board";
+  return name.length > 0 && name !== DEFAULT_SITE_NAME
+    ? name.slice(0, FEED_NAME_MAX)
+    : null;
 }
 
-function feedTemplate(
-  suggested: SuggestedFeed | null | undefined,
-  fallback: string
+export function registrationExpiry(
+  registered: { expires_at?: string; expires_in?: number },
+  now: Date
 ): string {
-  const templateId = suggested?.template_id?.trim();
-  return templateId ? templateId : fallback;
+  const ttl = registered.expires_in;
+  if (typeof ttl === "number" && Number.isFinite(ttl) && ttl > 0) {
+    return new Date(now.getTime() + ttl * 1000).toISOString();
+  }
+
+  const at = registered.expires_at
+    ? new Date(registered.expires_at).getTime()
+    : Number.NaN;
+  if (!Number.isNaN(at)) {
+    return new Date(at).toISOString();
+  }
+
+  return new Date(
+    now.getTime() + DEFAULT_CODE_TTL_SECONDS * 1000
+  ).toISOString();
 }
 
-function feedName(
-  suggested: SuggestedFeed | null | undefined,
-  fallback: string
-): string {
-  const name = suggested?.name?.trim();
-  return name ? name.slice(0, 100) : fallback;
+function trimmed(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const text = value.trim();
+  return text.length > 0 ? text : null;
+}
+
+async function templateDisplayName(
+  client: BordfeedClient,
+  templateId: string
+): Promise<string | null> {
+  try {
+    const templates = await client.listTemplates();
+    const match = templates.data.find((item) => item.id === templateId);
+    return trimmed(match?.name);
+  } catch {
+    return null;
+  }
+}
+
+// Builds POST /api/v1/feeds: Bordfeed's suggested body when verify sent one,
+// named after the site, else the template display name, else the template id.
+export async function buildFeedRequest(input: {
+  client: BordfeedClient;
+  payload: Payload;
+  suggested: SuggestedFeed | null | undefined;
+  templateId: string;
+}): Promise<CreateFeedRequest> {
+  const body = input.suggested?.body;
+  const templateId =
+    trimmed(body?.template_id) ??
+    trimmed(input.suggested?.template_id) ??
+    input.templateId;
+  const filters =
+    body?.filters && typeof body.filters === "object" ? body.filters : {};
+  const name =
+    (await siteName(input.payload)) ??
+    trimmed(body?.name) ??
+    (await templateDisplayName(input.client, templateId)) ??
+    templateId;
+  return {
+    filters,
+    name: name.slice(0, FEED_NAME_MAX),
+    template_id: templateId,
+  };
 }
 
 function isRateLimited(error: unknown): boolean {
   return (
     error instanceof BordfeedApiError &&
-    (error.status === 429 || error.code === "rate_limited")
+    (error.status === 429 ||
+      error.code === "rate_limited" ||
+      error.code === "rate_limit_exceeded")
   );
 }
 
@@ -190,6 +256,23 @@ function isUnauthorized(error: unknown): boolean {
     error instanceof BordfeedApiError &&
     (error.status === 401 || error.code === "auth_failed")
   );
+}
+
+// A racing submit or a new register can move the record first; then the
+// stored record is already the answer.
+async function endRegistration(
+  payload: Payload,
+  now: Date
+): Promise<ConnectionRecord> {
+  try {
+    return await dispatchConnectionEvent(
+      payload,
+      { gone: true, type: "registration_expired" },
+      now
+    );
+  } catch {
+    return readConnection(payload);
+  }
 }
 
 async function rememberFailure(
@@ -237,12 +320,15 @@ async function publishFeed(
   let current = record;
   if (!current.feedId) {
     const client = await clientFor(payload, current, deps);
-    const name = await boardName(payload);
     try {
-      const created = await client.createFeed({
-        name: feedName(suggested, name),
-        template_id: feedTemplate(suggested, current.templateId),
-      });
+      const created = await client.createFeed(
+        await buildFeedRequest({
+          client,
+          payload,
+          suggested,
+          templateId: current.templateId,
+        })
+      );
       current = await dispatchConnectionEvent(
         payload,
         { feedId: created.id, type: "feed_ready" },
@@ -307,7 +393,7 @@ export async function startConnect(
     const next = await dispatchConnectionEvent(
       payload,
       {
-        expiresAt: registered.expires_at,
+        expiresAt: registrationExpiry(registered, now()),
         registrationId: registered.registration_id,
         type: "registered",
       },
@@ -335,6 +421,20 @@ export async function startConnect(
   }
 }
 
+// auth.md: code_expired (410), locked (423) and invalid_registration (404)
+// all mean this registration cannot be verified. Register again.
+const REGISTRATION_GONE_CODES = new Set([
+  "code_expired",
+  "invalid_registration",
+  "locked",
+]);
+
+function registrationGone(error: unknown): boolean {
+  return (
+    error instanceof BordfeedApiError && REGISTRATION_GONE_CODES.has(error.code)
+  );
+}
+
 function verifyFailure(
   record: ConnectionRecord,
   error: unknown
@@ -343,7 +443,11 @@ function verifyFailure(
     return null;
   }
 
-  if (error.code === "workspace_required") {
+  // workspace_not_found carries the same list, so both show the picker.
+  if (
+    error.code === "workspace_required" ||
+    error.code === "workspace_not_found"
+  ) {
     return step(record, WORKSPACE_REQUIRED_MESSAGE, {
       workspaces: error.workspaces,
     });
@@ -430,6 +534,15 @@ export async function submitCode(
       return known;
     }
 
+    // Bordfeed already ended this registration, so clear it now rather
+    // than letting retries hit the same error until the local expiry.
+    if (registrationGone(error)) {
+      return step(
+        await endRegistration(payload, now()),
+        REGISTRATION_EXPIRED_MESSAGE
+      );
+    }
+
     const failed = await rememberFailure(payload, error, now());
     return step(failed, toSafeError(error, now()).message);
   }
@@ -456,10 +569,14 @@ export async function pasteKey(
   const client = await plainKeyClient(parsed.data, deps);
   let feedId: string;
   try {
-    const created = await client.createFeed({
-      name: await boardName(payload),
-      template_id: record.templateId,
-    });
+    const created = await client.createFeed(
+      await buildFeedRequest({
+        client,
+        payload,
+        suggested: null,
+        templateId: record.templateId,
+      })
+    );
     feedId = created.id;
   } catch (error) {
     if (isUnauthorized(error)) {

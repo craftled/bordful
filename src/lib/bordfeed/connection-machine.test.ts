@@ -296,3 +296,17 @@ test("illegal connection transitions are rejected", () => {
     expect(applyConnectionEvent(start, event, now).ok).toBe(false);
   }
 });
+
+test("registration_expired with gone ends an unexpired registration", () => {
+  const waiting = record({
+    registrationExpiresAt: "2099-01-01T00:00:00.000Z",
+    registrationId: "reg_1",
+    state: "awaiting_code",
+  });
+  expect(
+    applyConnectionEvent(waiting, { type: "registration_expired" }, now).ok
+  ).toBe(false);
+  expect(next(waiting, { gone: true, type: "registration_expired" })).toEqual(
+    record()
+  );
+});

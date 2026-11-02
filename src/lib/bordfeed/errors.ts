@@ -24,7 +24,9 @@ export class BordfeedApiError extends Error {
 
 export class SyncGuardError extends Error {
   constructor() {
-    super("The Bordfeed feed came back empty, so no jobs were unpublished.");
+    super(
+      "The Bordfeed feed came back empty, so the board kept its current jobs."
+    );
     this.name = "SyncGuardError";
   }
 }
@@ -46,7 +48,8 @@ const MESSAGES = {
   invalid_response: "Bordfeed returned an unexpected response.",
   network: "Could not reach Bordfeed.",
   not_found: "Bordfeed could not find this template or feed.",
-  payment_required: "The Bordfeed plan cannot fetch this feed.",
+  payment_required:
+    "Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
   rate_limited: "Bordfeed is rate limiting this board. Try again later.",
   unknown: "The Bordfeed request failed.",
   workspace_required: "Choose which Bordfeed workspace to connect.",
@@ -107,7 +110,7 @@ export function toSafeError(error: unknown, now = new Date()): SafeError {
       at,
       code: "invalid_response",
       message:
-        "The Bordfeed feed came back empty, so no jobs were unpublished.",
+        "The Bordfeed feed came back empty, so the board kept its current jobs.",
     };
   }
 

@@ -714,10 +714,15 @@ function guardedSlugs(
   return slugs;
 }
 
+// An empty first feed would delete the samples and leave a blank board.
 function emptyFeedWouldUnpublish(jobs: Job[], incomingCount: number): boolean {
   return (
     incomingCount === 0 &&
-    jobs.some((job) => job.origin === "bordfeed" && job._status !== "draft")
+    jobs.some(
+      (job) =>
+        job.origin === "bordfeed_sample" ||
+        (job.origin === "bordfeed" && job._status !== "draft")
+    )
   );
 }
 

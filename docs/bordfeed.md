@@ -26,7 +26,11 @@ Bordfeed allows 5 signups per hour from one IP address. Shared hosts can hit tha
 
 The API key is stored encrypted with `PAYLOAD_SECRET`. It is hidden from every API read and it is never shown again. The admin shows a hint (`bf_...` plus the last 4 characters). Rotating `PAYLOAD_SECRET` makes the stored key unreadable, so you reconnect.
 
-The first sync removes the sample jobs. Later syncs are described below.
+The feed Bordful creates uses your site name from Site settings. If the site still has the default name "Job Board", the feed takes the template name, for example "Fully Remote". It keeps the template filters.
+
+A new Bordfeed account shows 0 credits until its first feed read, which adds the free starting credit. If Bordfeed answers with a credits or payment error, the admin card says so, and the sample jobs stay on the board until a sync succeeds.
+
+The first successful sync removes the sample jobs. If the feed comes back empty, the samples stay, so the board is never blank. Later syncs are described below.
 
 ## CLI
 

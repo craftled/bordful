@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isValidAgentName, isValidBoardName } from "./signup-names";
+
 export const UTM_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 export const INSTALL_ID_PATTERN = /^[a-f0-9]{16,64}$/;
 
@@ -7,8 +9,8 @@ const optionalUtm = z.string().regex(UTM_PATTERN).optional();
 const optionalName = z.string().min(1).max(100).optional();
 
 export const registerRequestSchema = z.strictObject({
-  agent_name: z.string().min(1).max(100),
-  board_name: z.string().min(1).max(100),
+  agent_name: z.string().refine(isValidAgentName),
+  board_name: z.string().refine(isValidBoardName).optional(),
   email: z.email(),
   install_id: z.string().regex(INSTALL_ID_PATTERN).optional(),
   ref: optionalUtm,
@@ -21,5 +23,6 @@ export const registerRequestSchema = z.strictObject({
 
 export const verifyRequestSchema = z.strictObject({
   code: z.string().regex(/^\d{6}$/),
-  registration_id: z.string().min(1).max(200),
+  registration_id: z.uuid(),
+  workspace: optionalName,
 });
