@@ -63,12 +63,14 @@ async function payloadClient(): Promise<Payload> {
 }
 
 export async function getFeedJobs(limit = 50): Promise<FeedJob[]> {
+  // Over-fetch so jobs expiring inside the cache window do not shrink the feed
+  // below `limit` before the next refresh.
   const jobs = await unstable_cache(
-    async () => queryFeedJobs(await payloadClient(), limit),
+    async () => queryFeedJobs(await payloadClient(), limit * 2),
     ["queryFeedJobs", String(limit)],
     { revalidate: 300, tags: [READ_TAGS.jobs, READ_TAGS.companies] }
   )();
-  return dropExpired(jobs, new Date());
+  return dropExpired(jobs, new Date()).slice(0, limit);
 }
 
 export async function getSitemapJobs(): Promise<JobListItem[]> {
