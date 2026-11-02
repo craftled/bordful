@@ -1,5 +1,6 @@
 import { resolveServerUrl } from "@/config/server-url";
 import { getSiteSettings } from "@/lib/read";
+import { FEED_CACHE_CONTROL } from "@/lib/seo/feed-cache";
 import { buildJsonFeed } from "@/lib/seo/json-feed";
 import { getFeedJobs } from "@/lib/seo/queries";
 
@@ -18,7 +19,7 @@ export async function GET() {
 
   return new Response(JSON.stringify(body), {
     headers: {
-      "cache-control": "public, max-age=300",
+      "cache-control": FEED_CACHE_CONTROL,
       "content-type": "application/feed+json; charset=utf-8",
     },
   });
