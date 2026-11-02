@@ -1,6 +1,7 @@
 import { resolveServerUrl } from "@/config/server-url";
 import { getSiteSettings } from "@/lib/read";
 import type { SiteSettingsView } from "@/lib/read/types";
+import { FEED_CACHE_CONTROL } from "@/lib/seo/feed-cache";
 import { getFeedJobs } from "@/lib/seo/queries";
 import { buildRssFeed } from "@/lib/seo/rss";
 
@@ -25,7 +26,7 @@ export async function GET() {
 
   return new Response(body, {
     headers: {
-      "cache-control": "public, max-age=300",
+      "cache-control": FEED_CACHE_CONTROL,
       "content-type": "application/rss+xml; charset=utf-8",
     },
   });
