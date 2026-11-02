@@ -53,7 +53,7 @@ export function JobPosting({
     <div className="space-y-6">
       <JobBreadcrumb marketing={marketing} title={job.title} />
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_17.5rem] md:items-start md:gap-8">
-        <article className="min-w-0 space-y-6 pb-24 md:pb-0">
+        <article className="min-w-0 space-y-6">
           <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0 space-y-2">
               <h1
@@ -111,6 +111,7 @@ export function JobPosting({
               target="_blank"
             >
               Apply Now
+              <span className="sr-only"> to {job.title}</span>
             </a>
           ) : null}
           {website || companyHref ? (
@@ -162,7 +163,7 @@ export function JobPosting({
           <SimilarJobs jobs={similarJobs} />
         </aside>
       </div>
-      {applyHref ? <StickyApply href={applyHref} /> : null}
+      {applyHref ? <StickyApply href={applyHref} title={job.title} /> : null}
     </div>
   );
 }

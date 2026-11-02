@@ -66,7 +66,16 @@ export default async function JobPage({
   // Sample jobs only exist on a board that has not connected a feed yet, so
   // they may appear in similar lists exactly when the board shows samples.
   const includeSamples = connection.state === "sample";
-  const similarJobs = await getSimilarJobs(job, includeSamples);
+  // Similar jobs are optional: a failed read drops the section, not the page.
+  const similarJobs = await getSimilarJobs(job, includeSamples).catch(
+    (error: unknown) => {
+      console.error(
+        "similar jobs read failed",
+        error instanceof Error ? error.name : "unknown"
+      );
+      return [];
+    }
+  );
 
   const jsonLd = job.indexable
     ? buildJobPostingJsonLd(job, {
