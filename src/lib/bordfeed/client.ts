@@ -110,11 +110,14 @@ function workspaceOf(item: unknown): BordfeedWorkspace | null {
     return null;
   }
 
+  const id = "id" in item ? item.id : null;
   const name = "name" in item ? item.name : null;
   const slug = "slug" in item ? item.slug : null;
-  return typeof name === "string" && typeof slug === "string"
-    ? { name, slug }
-    : null;
+  if (!(typeof name === "string" && typeof slug === "string")) {
+    return null;
+  }
+
+  return typeof id === "string" ? { id, name, slug } : { name, slug };
 }
 
 function workspacesOf(value: unknown): BordfeedWorkspace[] {
@@ -151,8 +154,18 @@ function readErrorBody(body: unknown): ErrorBody {
   };
 }
 
+const AGENT_CODES = new Set([
+  "already_issued",
+  "code_expired",
+  "invalid_registration",
+  "locked",
+  "workspace_not_found",
+  "workspace_required",
+]);
+
 function statusCode(status: number, bodyCode: string | null): string {
-  if (bodyCode === "workspace_required" || bodyCode === "already_issued") {
+  // Agent sign-up codes keep their meaning even on a 404 or 410.
+  if (bodyCode !== null && AGENT_CODES.has(bodyCode)) {
     return bodyCode;
   }
 

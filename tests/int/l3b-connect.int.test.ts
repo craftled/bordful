@@ -635,7 +635,7 @@ describe("bordfeed connect", () => {
     const result = await submitCode(payload, { code: "424242" }, bordfeed);
 
     expect(result.message).toBe("The code expired. Start again.");
-    expect(result.state).toBe("awaiting_code");
+    expect(result.state).toBe("sample");
   });
 });
 

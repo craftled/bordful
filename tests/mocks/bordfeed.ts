@@ -60,7 +60,7 @@ export interface BordfeedRequestLog {
 }
 
 interface Registration {
-  boardName: string;
+  boardName: string | null;
   email: string;
   id: string;
   templateId: string | null;
@@ -83,6 +83,12 @@ interface PreviewFilters {
   country_code: string[];
   limit: number;
   workplace_type: string[];
+}
+
+// Live names the workspace from the email local part when board_name is absent.
+function nameFromEmail(email: string): string {
+  const local = email.split("@")[0] ?? "";
+  return local.split("+")[0]?.trim() || "user";
 }
 
 function requestId(sequence: number): string {
@@ -343,6 +349,49 @@ function nextCursor(end: number): string | null {
   return null;
 }
 
+interface FieldError {
+  code: string;
+  message: string;
+  path: string[];
+}
+
+function feedCreateErrors(record: Record<string, unknown>): FieldError[] {
+  const errors: FieldError[] = [];
+  if (
+    typeof record.name !== "string" ||
+    record.name.length < 1 ||
+    record.name.length > 100
+  ) {
+    errors.push({
+      code: "invalid_type",
+      message: "Invalid input: expected string, received undefined",
+      path: ["name"],
+    });
+  }
+  if (
+    record.filters === null ||
+    typeof record.filters !== "object" ||
+    Array.isArray(record.filters)
+  ) {
+    errors.push({
+      code: "invalid_type",
+      message: "Invalid input: expected object, received undefined",
+      path: ["filters"],
+    });
+  }
+  if (
+    record.template_id !== undefined &&
+    typeof record.template_id !== "string"
+  ) {
+    errors.push({
+      code: "invalid_type",
+      message: "Invalid input: expected string",
+      path: ["template_id"],
+    });
+  }
+  return errors;
+}
+
 export function createBordfeedMock(): BordfeedMock {
   const state: BordfeedMockState = { requests: [] };
   const registrations = new Map<string, Registration>();
@@ -464,7 +513,7 @@ export function createBordfeedMock(): BordfeedMock {
     registrationsIssued += 1;
     const id = registrationId(registrationsIssued);
     registrations.set(id, {
-      boardName: parsed.data.board_name,
+      boardName: parsed.data.board_name ?? null,
       email: parsed.data.email,
       id,
       templateId: parsed.data.template_id ?? null,
@@ -559,7 +608,7 @@ export function createBordfeedMock(): BordfeedMock {
       next: "Store the key in an env var such as BORDFEED_API_KEY.",
       organization: {
         id: "44444444-4444-4444-8444-444444444444",
-        name: registration.boardName,
+        name: registration.boardName ?? nameFromEmail(registration.email),
       },
       ...(template === null
         ? {}
@@ -589,43 +638,10 @@ export function createBordfeedMock(): BordfeedMock {
       return envelope(422, "validation_error", "Invalid feed", sequence);
     }
 
-    // Live: name (1 to 100) and filters (object) are required; template_id is
-    // optional, and an unknown one is a 422 too.
+    // Live: name (1 to 100) and filters (object) are required (422); an
+    // unknown template_id is a 404.
     const record = body as Record<string, unknown>;
-    const errors: { code: string; message: string; path: string[] }[] = [];
-    if (
-      typeof record.name !== "string" ||
-      record.name.length < 1 ||
-      record.name.length > 100
-    ) {
-      errors.push({
-        code: "invalid_type",
-        message: "Invalid input: expected string, received undefined",
-        path: ["name"],
-      });
-    }
-    if (
-      record.filters === null ||
-      typeof record.filters !== "object" ||
-      Array.isArray(record.filters)
-    ) {
-      errors.push({
-        code: "invalid_type",
-        message: "Invalid input: expected object, received undefined",
-        path: ["filters"],
-      });
-    }
-    if (
-      record.template_id !== undefined &&
-      (typeof record.template_id !== "string" ||
-        templateById(record.template_id) === null)
-    ) {
-      errors.push({
-        code: "custom",
-        message: "Unknown template",
-        path: ["template_id"],
-      });
-    }
+    const errors = feedCreateErrors(record);
     if (errors.length > 0) {
       sequence += 1;
       return envelope(
@@ -635,6 +651,14 @@ export function createBordfeedMock(): BordfeedMock {
         sequence,
         { errors }
       );
+    }
+
+    if (
+      typeof record.template_id === "string" &&
+      templateById(record.template_id) === null
+    ) {
+      sequence += 1;
+      return envelope(404, "not_found", "Template not found", sequence);
     }
 
     sequence += 1;

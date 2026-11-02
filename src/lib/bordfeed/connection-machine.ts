@@ -23,7 +23,9 @@ export type ConnectionEvent =
   | { at: string; summary: unknown; type: "sync_succeeded" }
   | { error: SafeError; type: "sync_failed" }
   | { error: SafeError; type: "connect_failed" }
-  | { type: "registration_expired" }
+  // gone: Bordfeed already rejected the registration (expired, locked or
+  // unknown), so it ends now instead of at the local expiry.
+  | { gone?: boolean; type: "registration_expired" }
   | { type: "reset" }
   | { show: boolean; type: "attribution_set" };
 
@@ -198,9 +200,11 @@ function applyConnectFailed(
 
 function applyRegistrationExpired(
   record: ConnectionRecord,
+  event: Extract<ConnectionEvent, { type: "registration_expired" }>,
   now: Date
 ): ConnectionResult {
-  if (record.state !== "awaiting_code" || !registrationIsExpired(record, now)) {
+  const ended = event.gone === true || registrationIsExpired(record, now);
+  if (record.state !== "awaiting_code" || !ended) {
     return reject("registration_expired is not allowed yet");
   }
 
@@ -264,7 +268,7 @@ export function applyConnectionEvent(
       return applyConnectFailed(record, event);
     }
     case "registration_expired": {
-      return applyRegistrationExpired(record, now);
+      return applyRegistrationExpired(record, event, now);
     }
     case "reset": {
       return applyReset(record);

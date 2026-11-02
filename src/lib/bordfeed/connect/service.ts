@@ -512,10 +512,15 @@ export async function submitCode(
       return known;
     }
 
-    // The card still accepts a new email while awaiting a code, so this
-    // only needs the message. The local expiry clears the registration.
+    // Bordfeed already ended this registration, so clear it now rather
+    // than letting retries hit the same error until the local expiry.
     if (registrationGone(error)) {
-      return step(record, REGISTRATION_EXPIRED_MESSAGE);
+      const next = await dispatchConnectionEvent(
+        payload,
+        { gone: true, type: "registration_expired" },
+        now()
+      );
+      return step(next, REGISTRATION_EXPIRED_MESSAGE);
     }
 
     const failed = await rememberFailure(payload, error, now());

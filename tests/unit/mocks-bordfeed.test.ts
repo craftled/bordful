@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-
+import { createBordfeedClient } from "../../src/lib/bordfeed/client";
+import { BordfeedApiError } from "../../src/lib/bordfeed/errors";
 import {
   createBordfeedMock,
   MOCK_API_KEY,
@@ -253,4 +254,74 @@ test("nocredits@example.com makes billed feed reads a 402", async () => {
   expect(page.status).toBe(402);
   const body = (await page.json()) as { error: { code: string } };
   expect(body.error.code).toBe("insufficient_credits");
+});
+
+function mockClient(mock: ReturnType<typeof createBordfeedMock>) {
+  return createBordfeedClient({
+    baseUrl: ORIGIN,
+    clientHeaders: {},
+    fetch: (input, init) => mock.handle(new Request(String(input), init)),
+    now: () => 0,
+    sleep: () => Promise.resolve(),
+  });
+}
+
+test("the client keeps invalid_registration on a 404 from verify", async () => {
+  const mock = createBordfeedMock();
+  const error = await mockClient(mock)
+    .verify({
+      code: "123456",
+      registration_id: "00000000-0000-4000-8000-000000000999",
+    })
+    .catch((caught: unknown) => caught);
+  expect(error).toBeInstanceOf(BordfeedApiError);
+  expect((error as BordfeedApiError).status).toBe(404);
+  expect((error as BordfeedApiError).code).toBe("invalid_registration");
+});
+
+test("a domain-like board_name is a 400 and a missing one names the org from the email", async () => {
+  const mock = createBordfeedMock();
+  const rejected = await call(mock, "/api/agent/register", {
+    body: JSON.stringify({
+      ...registerBody("owner@example.com"),
+      board_name: "Remote.io",
+    }),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  expect(rejected.status).toBe(400);
+
+  const { board_name: _unused, ...withoutBoard } = registerBody(
+    "ada+bot@example.com"
+  );
+  const registered = await call(mock, "/api/agent/register", {
+    body: JSON.stringify(withoutBoard),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  const { registration_id } = (await registered.json()) as {
+    registration_id: string;
+  };
+  const verified = await call(mock, "/api/agent/verify", {
+    body: JSON.stringify({ code: "424242", registration_id }),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  const body = (await verified.json()) as { organization: { name: string } };
+  expect(body.organization.name).toBe("ada");
+});
+
+test("an unknown template_id on feed create is a 404 not_found", async () => {
+  const mock = createBordfeedMock();
+  const response = await call(mock, "/api/v1/feeds", {
+    body: JSON.stringify({ filters: {}, name: "Board", template_id: "nope" }),
+    headers: {
+      authorization: `Bearer ${MOCK_API_KEY}`,
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+  expect(response.status).toBe(404);
+  const body = (await response.json()) as { error: { code: string } };
+  expect(body.error.code).toBe("not_found");
 });

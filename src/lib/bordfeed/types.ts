@@ -77,7 +77,7 @@ export interface PreviewResponse<TJob = unknown> {
 
 export interface RegisterRequest {
   agent_name: string;
-  board_name: string;
+  board_name?: string;
   email: string;
   install_id?: string;
   ref?: string;
@@ -91,7 +91,6 @@ export interface RegisterRequest {
 export interface VerifyRequest {
   code: string;
   registration_id: string;
-  workspace?: string;
 }
 
 // The feed body Bordfeed suggests after verify: POST it to /api/v1/feeds.
@@ -121,6 +120,7 @@ export interface BordfeedErrorBody<TCode extends string = string> {
 }
 
 export interface BordfeedWorkspace {
+  id?: string;
   name: string;
   slug: string;
 }

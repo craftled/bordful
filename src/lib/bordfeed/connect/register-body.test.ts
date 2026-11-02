@@ -53,10 +53,23 @@ describe("buildRegisterBody", () => {
     });
   });
 
-  test("cuts a 120 character board name to 100 characters", () => {
-    const boardName = "b".repeat(120);
-    expect(buildRegisterBody({ ...base, boardName }).board_name).toBe(
-      "b".repeat(100)
-    );
+  test("keeps an 80 character board name and drops an 81 character one", () => {
+    expect(
+      buildRegisterBody({ ...base, boardName: "b".repeat(80) }).board_name
+    ).toBe("b".repeat(80));
+    expect(
+      buildRegisterBody({ ...base, boardName: "b".repeat(81) })
+    ).not.toHaveProperty("board_name");
+  });
+
+  test("drops a board name that live would read as a domain", () => {
+    for (const boardName of ["Remote.io", "jobs.example.com", "www jobs"]) {
+      expect(buildRegisterBody({ ...base, boardName })).not.toHaveProperty(
+        "board_name"
+      );
+    }
+    expect(
+      buildRegisterBody({ ...base, boardName: "Dr. Smith Jobs" }).board_name
+    ).toBe("Dr. Smith Jobs");
   });
 });
