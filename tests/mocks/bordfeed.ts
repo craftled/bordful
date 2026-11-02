@@ -11,10 +11,17 @@ export const MOCK_FEED_ID = "11111111-1111-4111-8111-111111111111";
 const TEMPLATES = [
   {
     category: "general",
-    description: "Fake remote roles in every category.",
-    filters: {},
+    description: "Remote roles in every job category and location",
+    filters: { workplace_type: ["Remote"] },
     id: "fully-remote",
     name: "Fully Remote",
+  },
+  {
+    category: "engineering",
+    description: "Fake engineering roles.",
+    filters: {},
+    id: "engineering-it",
+    name: "Engineering and IT",
   },
   {
     category: "engineering",

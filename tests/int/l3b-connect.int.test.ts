@@ -95,8 +95,8 @@ function previewBody(data: BordfeedJob[]) {
     preview: true as const,
     request_id: "req_preview",
     template: {
-      description: "Remote roles in every category.",
-      filters: {},
+      description: "Remote roles in every job category and location",
+      filters: { workplace_type: ["Remote"] },
       id: "fully-remote",
       name: "Fully Remote",
     },

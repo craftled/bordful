@@ -21,7 +21,7 @@ export default defineBordfulConfig({
 | `bordfeed.baseUrl` | `https://bordfeed.com` | `https` only. Use the origin only, for example `https://bordfeed.com`. The schema does not reject a trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock. |
 | `bordfeed.syncCron` | `0 6 * * *` | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Editing it does not change `vercel.json`. |
 | `telemetry.clientHeader` | `true` | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md). |
-| `board.defaultTemplateId` | `fully-remote` | Template used for sample jobs and for the feed created at connect. |
+| `board.defaultTemplateId` | `fully-remote` | Template used for sample jobs and for the feed created at connect. Read once, on first boot. An existing board keeps the template stored in its Bordfeed connection, so changing this value later does not move it. |
 | `alerts.provider` | `resend` | Only `resend`. |
 | `csp.extraScriptOrigins` | `[]` | Intended extra `script-src` origins. `https` origins only. Not applied yet. |
 | `csp.extraConnectOrigins` | `[]` | Intended extra `connect-src` origins. `https` origins only. Not applied yet. |

@@ -162,11 +162,11 @@ test("the limiter spaces request starts by 500ms", async () => {
       jsonResponse({
         data: [
           {
-            category: "engineering",
+            category: "general",
             description: "Roles",
             filters: {},
             id: "fully-remote",
-            name: "Engineering",
+            name: "Fully Remote",
           },
         ],
         request_id: "req_templates",
