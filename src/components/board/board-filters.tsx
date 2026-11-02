@@ -265,43 +265,53 @@ export function BoardFilters({
     },
   ];
 
-  // One DOM tree for both breakpoints: the groups are folded behind a
-  // disclosure below md and forced visible above it (see the details class).
+  // One DOM tree for both breakpoints. Below md the header row and the
+  // disclosure form one bar: the disclosure sits first and takes the free
+  // width, Clear all stays on its right. Above md the header comes first and
+  // the disclosure wraps onto its own line, forced open by the details class.
+  // Browsers without ::details-content keep the summary on md+ so the groups
+  // stay reachable behind it.
   return (
-    <aside aria-label="Filters" className="rounded-lg border bg-muted p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="font-semibold text-sm">Filters</h2>
+    <aside
+      aria-label="Filters"
+      className="self-start rounded-lg border bg-muted p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h2 className="hidden font-semibold text-sm md:block">Filters</h2>
         {boardQueryHasFilters(query) ? (
           <Link
-            className={cn("text-sm underline underline-offset-4", ROW_FOCUS)}
+            className={cn(
+              "shrink-0 py-2 text-sm underline underline-offset-4 md:py-0",
+              ROW_FOCUS
+            )}
             data-testid="filter-clear"
             href={boardStateHref(clearBoardFilters(query), options, marketing)}
           >
             Clear all
           </Link>
         ) : null}
+        <details className="group order-first min-w-0 flex-1 md:order-none md:basis-full md:[&::details-content]:[content-visibility:visible]">
+          <summary
+            className={cn(
+              "flex cursor-pointer list-none items-center justify-between gap-2 rounded-[var(--radius)] border border-input bg-background px-3 py-2 text-sm supports-[selector(::details-content)]:md:hidden [&::-webkit-details-marker]:hidden",
+              ROW_FOCUS
+            )}
+          >
+            <span className="font-semibold">
+              Filters{activeCount > 0 ? ` (${activeCount})` : ""}
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 transition-transform group-open:rotate-180"
+            />
+          </summary>
+          <div className="mt-4 space-y-6 md:mt-0">
+            {groups.map((group) => (
+              <FilterGroupView group={group} key={group.title} />
+            ))}
+          </div>
+        </details>
       </div>
-      <details className="group mt-4 md:[&::details-content]:[content-visibility:visible]">
-        <summary
-          className={cn(
-            "flex cursor-pointer list-none items-center justify-between rounded-[var(--radius)] border border-input bg-background px-3 py-2 text-sm md:hidden [&::-webkit-details-marker]:hidden",
-            ROW_FOCUS
-          )}
-        >
-          <span>
-            Show filters{activeCount > 0 ? ` (${activeCount} active)` : ""}
-          </span>
-          <ChevronDown
-            aria-hidden="true"
-            className="size-4 transition-transform group-open:rotate-180"
-          />
-        </summary>
-        <div className="mt-4 space-y-6 md:mt-0">
-          {groups.map((group) => (
-            <FilterGroupView group={group} key={group.title} />
-          ))}
-        </div>
-      </details>
     </aside>
   );
 }

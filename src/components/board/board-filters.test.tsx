@@ -53,6 +53,7 @@ test("hides zero-count options", () => {
   expect(screen.queryByTestId("filter-level-intern")).toBeNull();
   expect(screen.queryByTestId("filter-remote")).toBeNull();
   expect(screen.queryByTestId("filter-visa")).toBeNull();
+  expect(screen.getByRole("group", { name: "Level" })).toBeTruthy();
 });
 
 test("keeps an active zero-count option so it can be cleared", () => {

@@ -45,12 +45,14 @@ async function walkRows(
   }
   // Client navigation updates the URL before the list re-renders, so wait for
   // the new rows instead of reading the previous page's DOM.
+  // Compare links, not text: two pages can hold rows with identical titles.
   const previousFirstRow = await page
-    .getByTestId("job-row")
+    .getByTestId("job-row-link")
     .first()
-    .textContent();
+    .getAttribute("href");
   await next.click();
-  await expect(page.getByTestId("job-row").first()).not.toHaveText(
+  await expect(page.getByTestId("job-row-link").first()).not.toHaveAttribute(
+    "href",
     previousFirstRow ?? ""
   );
   return rows + (await walkRows(page, seen));

@@ -86,6 +86,7 @@ export function BoardPagination({
         ) : (
           <Link
             aria-current={slot === page ? "page" : undefined}
+            aria-label={`Page ${slot}`}
             className={cn(
               CONTROL,
               "min-w-9 justify-center",
