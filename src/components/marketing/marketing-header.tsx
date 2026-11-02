@@ -7,6 +7,7 @@ import { DEPLOY_URL } from "./links";
 import { MarketingImage } from "./marketing-image";
 import { MARKETING_HEADER_LINKS, type MarketingLink } from "./nav-links";
 import { GITHUB_URL } from "./site";
+import { SocialIconLinks } from "./social-icon-links";
 
 function NavLinks({
   items,
@@ -40,6 +41,7 @@ function NavLinks({
 function HeaderActions() {
   return (
     <div className="flex items-center gap-2">
+      <SocialIconLinks className="mr-2 flex items-center gap-3" />
       <Button asChild className="rounded-full" size="sm" variant="outline">
         <Link href="/jobs">Live demo</Link>
       </Button>

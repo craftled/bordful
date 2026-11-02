@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Container } from "./container";
 import { MarketingImage } from "./marketing-image";
 import { MARKETING_FOOTER_COLUMNS } from "./nav-links";
-import { SOCIAL_LINKS } from "./site";
+import { SocialIconLinks } from "./social-icon-links";
 
 const linkClass =
   "text-muted-foreground hover:text-foreground focus-visible:rounded-sm focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4";
@@ -38,27 +38,7 @@ export function MarketingFooter() {
               Open-source job board template. Deploy to Vercel and start with
               real jobs from Bordfeed.
             </p>
-            <ul className="flex flex-wrap items-center gap-4">
-              {SOCIAL_LINKS.map((link) => (
-                <li key={link.href}>
-                  <a
-                    aria-label={link.name}
-                    className="inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
-                    href={link.href}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <MarketingImage
-                      alt=""
-                      className="marketing-mono h-4 w-4 opacity-80 hover:opacity-100"
-                      height={16}
-                      src={link.icon}
-                      width={16}
-                    />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <SocialIconLinks className="flex flex-wrap items-center gap-4" />
           </div>
           {MARKETING_FOOTER_COLUMNS.map((column) => (
             <nav aria-label={column.title} key={column.title}>
