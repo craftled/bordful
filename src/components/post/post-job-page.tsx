@@ -15,23 +15,21 @@ export function PostJobPage({ view }: { view: PostJobView }) {
         </p>
       </header>
       <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-        <div className="flex flex-col gap-6">
-          <Card className="gap-4 py-5">
-            <CardHeader>
-              <CardTitle>How it works</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ol className="list-decimal space-y-2 pl-5 text-sm">
-                <li>Pay with the secure Stripe link.</li>
-                <li>You receive a receipt.</li>
-                <li>
-                  The board owner collects the job details and publishes it,
-                  usually within one business day.
-                </li>
-              </ol>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="h-fit gap-4 py-5">
+          <CardHeader>
+            <CardTitle>How it works</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal space-y-2 pl-5 text-sm">
+              <li>Pay with the secure Stripe link.</li>
+              <li>You receive a receipt.</li>
+              <li>
+                The board owner collects the job details and publishes it,
+                usually within one business day.
+              </li>
+            </ol>
+          </CardContent>
+        </Card>
         <Card className="h-fit gap-6 py-6" data-testid="post-job-pricing">
           <CardHeader className="gap-2">
             <CardTitle className="text-muted-foreground text-sm uppercase tracking-wider">

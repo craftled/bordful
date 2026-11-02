@@ -5,7 +5,7 @@ import { afterEach, expect, test } from "vitest";
 
 import { MarketingHeader } from "./marketing-header";
 import { MARKETING_HEADER_LINKS } from "./nav-links";
-import { SOCIAL_LINKS } from "./site";
+import { GITHUB_URL, SOCIAL_LINKS } from "./site";
 
 const MARKETING_HEADER_HREFS = MARKETING_HEADER_LINKS.map((link) => link.href);
 
@@ -38,9 +38,23 @@ test("mobile nav links use the same hrefs", () => {
 test("header social icons carry accessible names", () => {
   render(<MarketingHeader />);
 
-  for (const link of SOCIAL_LINKS) {
+  // GitHub is already a labelled button in the header, so its icon is left out.
+  for (const link of SOCIAL_LINKS.filter((item) => item.href !== GITHUB_URL)) {
     const anchors = screen.getAllByRole("link", { name: link.name });
     expect(anchors.length).toBeGreaterThan(0);
     expect(anchors[0]?.getAttribute("href")).toBe(link.href);
   }
+});
+
+test("header shows one GitHub button per menu and no GitHub icon link", () => {
+  render(<MarketingHeader />);
+
+  const github = screen.getAllByRole("link", { name: "GitHub" });
+  expect(github.length).toBeGreaterThan(0);
+  for (const link of github) {
+    expect(link.getAttribute("href")).toBe(GITHUB_URL);
+  }
+  expect(
+    screen.queryAllByRole("link", { name: "GitHub, craftled/bordful" })
+  ).toHaveLength(0);
 });

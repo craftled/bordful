@@ -38,14 +38,24 @@ function NavLinks({
   );
 }
 
-function HeaderActions() {
+function HeaderActions({ stacked = false }: { stacked?: boolean }) {
+  // The mobile panel is too narrow for the icons and buttons in one row.
+  const buttonClass = stacked ? "rounded-full w-full" : "rounded-full";
+
   return (
-    <div className="flex items-center gap-2">
-      <SocialIconLinks className="mr-2 flex items-center gap-3" />
-      <Button asChild className="rounded-full" size="sm" variant="outline">
+    <div
+      className={stacked ? "flex flex-col gap-3" : "flex items-center gap-2"}
+    >
+      <SocialIconLinks
+        className={
+          stacked ? "flex items-center gap-3" : "mr-2 flex items-center gap-3"
+        }
+        exclude={[GITHUB_URL]}
+      />
+      <Button asChild className={buttonClass} size="sm" variant="outline">
         <Link href="/jobs">Live demo</Link>
       </Button>
-      <Button asChild className="rounded-full" size="sm" variant="outline">
+      <Button asChild className={buttonClass} size="sm" variant="outline">
         <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
           <MarketingImage
             alt=""
@@ -57,7 +67,7 @@ function HeaderActions() {
           GitHub
         </a>
       </Button>
-      <Button asChild className="rounded-full" size="sm">
+      <Button asChild className={buttonClass} size="sm">
         <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
           Deploy
         </a>
@@ -105,7 +115,7 @@ export function MarketingHeader() {
                 <NavLinks items={MARKETING_HEADER_LINKS} native />
               </nav>
               <div className="mt-4">
-                <HeaderActions />
+                <HeaderActions stacked />
               </div>
             </div>
           </details>

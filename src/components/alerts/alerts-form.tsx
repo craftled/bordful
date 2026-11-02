@@ -66,7 +66,7 @@ export function AlertsForm({
             <Label htmlFor="alerts-email">Email *</Label>
             <Input
               aria-describedby={
-                failed ? "alerts-privacy alerts-status" : "alerts-privacy"
+                failed ? "alerts-privacy alerts-error" : "alerts-privacy"
               }
               aria-invalid={failed || undefined}
               autoComplete="email"
@@ -196,13 +196,21 @@ export function AlertsForm({
           <Button data-testid="alerts-submit" disabled={pending} type="submit">
             Subscribe to job alerts
           </Button>
+          {/* Both regions stay mounted so screen readers announce each change. */}
           <p
             className="text-sm"
             data-testid="alerts-status"
             id="alerts-status"
-            role={failed ? "alert" : "status"}
+            role="status"
           >
-            {state ? state.message : ""}
+            {state?.ok ? state.message : ""}
+          </p>
+          <p
+            className="text-destructive text-sm"
+            id="alerts-error"
+            role="alert"
+          >
+            {failed ? state.message : ""}
           </p>
         </CardContent>
       </Card>
