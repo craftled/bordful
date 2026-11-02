@@ -237,8 +237,8 @@ test("credits start at 0 and the first feed read grants 2000", async () => {
   });
   expect(page.status).toBe(200);
   const balance = await call(mock, "/api/v1/billing/balance", { headers });
-  const body = (await balance.json()) as { data: { credits: number } };
-  expect(body.data.credits).toBe(1990);
+  const body = (await balance.json()) as { data: { balance_jobs: number } };
+  expect(body.data.balance_jobs).toBe(1990);
 });
 
 test("nocredits@example.com makes billed feed reads a 402", async () => {

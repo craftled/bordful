@@ -7,6 +7,7 @@ import { buildMockJob, type MockJob } from "./job-shape";
 
 export const MOCK_API_KEY = ["bf_mock_key", "0000000000000001"].join("_");
 export const MOCK_FEED_ID = "11111111-1111-4111-8111-111111111111";
+const TOPUP_URL = "https://bordfeed.com/topup/mock";
 
 const TEMPLATES = [
   {
@@ -684,8 +685,14 @@ export function createBordfeedMock(): BordfeedMock {
 
     grantCredits();
     sequence += 1;
+    // Live shape (app/api/v1/billing/balance): one credit is one job.
     return Response.json({
-      data: { credits },
+      data: {
+        balance_jobs: credits,
+        plan: "payg",
+        price_per_job_usd: 0.01,
+        topup_url: TOPUP_URL,
+      },
       request_id: requestId(sequence),
     });
   }
@@ -703,7 +710,7 @@ export function createBordfeedMock(): BordfeedMock {
         "insufficient_credits",
         "Insufficient credits",
         sequence,
-        { topup_url: "https://bordfeed.com/topup/mock" }
+        { topup_url: TOPUP_URL }
       );
     }
     grantCredits();

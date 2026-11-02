@@ -176,8 +176,9 @@ export function registrationExpiry(
   registered: { expires_at?: string; expires_in?: number },
   now: Date
 ): string {
-  if (typeof registered.expires_in === "number") {
-    return new Date(now.getTime() + registered.expires_in * 1000).toISOString();
+  const ttl = registered.expires_in;
+  if (typeof ttl === "number" && Number.isFinite(ttl) && ttl > 0) {
+    return new Date(now.getTime() + ttl * 1000).toISOString();
   }
 
   const at = registered.expires_at
@@ -255,6 +256,23 @@ function isUnauthorized(error: unknown): boolean {
     error instanceof BordfeedApiError &&
     (error.status === 401 || error.code === "auth_failed")
   );
+}
+
+// A racing submit or a new register can move the record first; then the
+// stored record is already the answer.
+async function endRegistration(
+  payload: Payload,
+  now: Date
+): Promise<ConnectionRecord> {
+  try {
+    return await dispatchConnectionEvent(
+      payload,
+      { gone: true, type: "registration_expired" },
+      now
+    );
+  } catch {
+    return readConnection(payload);
+  }
 }
 
 async function rememberFailure(
@@ -425,7 +443,11 @@ function verifyFailure(
     return null;
   }
 
-  if (error.code === "workspace_required") {
+  // workspace_not_found carries the same list, so both show the picker.
+  if (
+    error.code === "workspace_required" ||
+    error.code === "workspace_not_found"
+  ) {
     return step(record, WORKSPACE_REQUIRED_MESSAGE, {
       workspaces: error.workspaces,
     });
@@ -515,12 +537,10 @@ export async function submitCode(
     // Bordfeed already ended this registration, so clear it now rather
     // than letting retries hit the same error until the local expiry.
     if (registrationGone(error)) {
-      const next = await dispatchConnectionEvent(
-        payload,
-        { gone: true, type: "registration_expired" },
-        now()
+      return step(
+        await endRegistration(payload, now()),
+        REGISTRATION_EXPIRED_MESSAGE
       );
-      return step(next, REGISTRATION_EXPIRED_MESSAGE);
     }
 
     const failed = await rememberFailure(payload, error, now());

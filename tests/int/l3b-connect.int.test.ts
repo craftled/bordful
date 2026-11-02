@@ -14,6 +14,7 @@ import {
 } from "@/lib/bordfeed/connect/messages";
 import {
   pasteKey,
+  registrationExpiry,
   resetToSample,
   setShowAttribution,
   startConnect,
@@ -370,6 +371,23 @@ describe("bordfeed connect", () => {
     ).toBe("example-workspace");
   });
 
+  test("workspace_not_found at verify shows the workspace picker", async () => {
+    const bordfeed = deps();
+    behavior.verifyError = new BordfeedApiError({
+      code: "workspace_not_found",
+      message: "The Bordfeed request failed.",
+      status: 404,
+      workspaces: [{ name: "Example Workspace", slug: "example-workspace" }],
+    });
+    await startConnect(payload, OWNER, bordfeed);
+    const result = await submitCode(payload, { code: "424242" }, bordfeed);
+
+    expect(result.message).toBe("Choose which Bordfeed workspace to connect.");
+    expect(result.workspaces).toEqual([
+      { name: "Example Workspace", slug: "example-workspace" },
+    ]);
+  });
+
   test("register 429 stays on sample and records rate_limited", async () => {
     const bordfeed = deps();
     behavior.registerError = new BordfeedApiError({
@@ -636,6 +654,26 @@ describe("bordfeed connect", () => {
 
     expect(result.message).toBe("The code expired. Start again.");
     expect(result.state).toBe("sample");
+  });
+});
+
+describe("registration expiry", () => {
+  const now = new Date("2026-10-23T09:00:00.000Z");
+
+  test("uses a positive expires_in, else expires_at, else 600 seconds", () => {
+    expect(registrationExpiry({ expires_in: 300 }, now)).toBe(
+      "2026-10-23T09:05:00.000Z"
+    );
+    expect(
+      registrationExpiry(
+        { expires_at: "2026-10-23T09:02:00.000Z", expires_in: 0 },
+        now
+      )
+    ).toBe("2026-10-23T09:02:00.000Z");
+    expect(registrationExpiry({ expires_in: -5 }, now)).toBe(
+      "2026-10-23T09:10:00.000Z"
+    );
+    expect(registrationExpiry({}, now)).toBe("2026-10-23T09:10:00.000Z");
   });
 });
 
