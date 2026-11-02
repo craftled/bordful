@@ -5,6 +5,7 @@ import { toJobListItem } from "@/lib/read/mappers";
 import { READ_TAGS } from "@/lib/read/tags";
 import type { JobListItem } from "@/lib/read/types";
 
+import { dropExpired } from "./expiry";
 import { feedDescriptionText } from "./plaintext";
 import type { FeedJob } from "./types";
 
@@ -61,18 +62,22 @@ async function payloadClient(): Promise<Payload> {
   return getPayload({ config });
 }
 
-export function getFeedJobs(limit = 50): Promise<FeedJob[]> {
-  return unstable_cache(
-    async () => queryFeedJobs(await payloadClient(), limit),
+export async function getFeedJobs(limit = 50): Promise<FeedJob[]> {
+  // Over-fetch so jobs expiring inside the cache window do not shrink the feed
+  // below `limit` before the next refresh.
+  const jobs = await unstable_cache(
+    async () => queryFeedJobs(await payloadClient(), limit * 2),
     ["queryFeedJobs", String(limit)],
     { revalidate: 300, tags: [READ_TAGS.jobs, READ_TAGS.companies] }
   )();
+  return dropExpired(jobs, new Date()).slice(0, limit);
 }
 
-export function getSitemapJobs(): Promise<JobListItem[]> {
-  return unstable_cache(
+export async function getSitemapJobs(): Promise<JobListItem[]> {
+  const jobs = await unstable_cache(
     async () => querySitemapJobs(await payloadClient()),
     ["querySitemapJobs"],
     { revalidate: 300, tags: [READ_TAGS.jobs] }
   )();
+  return dropExpired(jobs, new Date());
 }
