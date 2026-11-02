@@ -13,8 +13,11 @@ export function CompanyCard({
   slug: string;
 }) {
   return (
-    <Link className="block space-y-1 py-3" href={buildCompanyPath(slug)}>
-      <span className="font-medium" data-testid="company-name">
+    <Link
+      className="block rounded-lg border bg-card p-4 outline-none transition-colors hover:border-zinc-300 focus-visible:ring-2 focus-visible:ring-ring"
+      href={buildCompanyPath(slug)}
+    >
+      <span className="block font-medium text-base" data-testid="company-name">
         {name}
       </span>
       <span className="block text-muted-foreground text-sm">

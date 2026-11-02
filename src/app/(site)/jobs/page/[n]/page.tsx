@@ -56,6 +56,7 @@ export default async function BoardPageNumber({
         intro={settings.board.description}
         marketing={marketing}
         options={options}
+        postJob={settings.postJob.enabled ? settings.postJob : null}
         query={query}
       />
     </BoardShell>

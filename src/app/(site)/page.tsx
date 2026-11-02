@@ -9,7 +9,7 @@ export default function HomePage() {
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <BoardHome />
     </BoardShell>
   );

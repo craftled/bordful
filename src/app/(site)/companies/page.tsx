@@ -15,11 +15,18 @@ export default async function CompaniesPage() {
   return (
     <BoardShell>
       <div className="space-y-6">
-        <h1 className="font-[var(--font-heading)] font-semibold text-3xl">
-          Companies
-        </h1>
+        <header className="space-y-2">
+          <h1 className="font-[var(--font-heading)] font-semibold text-3xl">
+            Companies
+          </h1>
+          <p className="text-muted-foreground">
+            {rows.length === 1
+              ? "1 company with open jobs"
+              : `${rows.length} companies with open jobs`}
+          </p>
+        </header>
         {rows.length > 0 ? (
-          <ul className="divide-y divide-border" data-testid="company-list">
+          <ul className="space-y-3" data-testid="company-list">
             {rows.map((row) => (
               <li
                 data-company-slug={row.slug}

@@ -3,7 +3,7 @@ import type { JobListItem } from "@/lib/read/types";
 
 export function BoardList({ jobs, now }: { jobs: JobListItem[]; now: number }) {
   return (
-    <ul className="divide-y divide-border" data-testid="job-list">
+    <ul className="space-y-3" data-testid="job-list">
       {jobs.map((job) => (
         <JobRow job={job} key={job.id} now={now} />
       ))}
