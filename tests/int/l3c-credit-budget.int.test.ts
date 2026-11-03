@@ -95,9 +95,11 @@ function database(): Executor {
   return (payload.db as unknown as { drizzle: Executor }).drizzle;
 }
 
-async function storedSince(): Promise<string | null> {
+async function storedSince(
+  track: "additions" | "removals"
+): Promise<string | null> {
   const result = await database().execute(
-    sql`select "state"->>'since' as "since" from "bordfeed_sync_state"`
+    sql`select "state"->${track}->>'since' as "since" from "bordfeed_sync_state"`
   );
   const row = result.rows[0] as { since?: string | null } | undefined;
   return row?.since ?? null;
@@ -128,6 +130,18 @@ async function cronRuns(count: number): Promise<boolean[]> {
 
   const { ok } = await cron();
   return [ok, ...(await cronRuns(count - 1))];
+}
+
+// Syncs run one after another, like daily crons.
+async function syncRuns(
+  count: number
+): Promise<Awaited<ReturnType<typeof runBordfeedSync>>[]> {
+  if (count === 0) {
+    return [];
+  }
+
+  const run = await runBordfeedSync(payload);
+  return [run, ...(await syncRuns(count - 1))];
 }
 
 describe("bordfeed credit budget", () => {
@@ -161,8 +175,13 @@ describe("bordfeed credit budget", () => {
       .map((request) => request.query);
     // Closed and expired jobs updated since the first sync, then new jobs.
     expect(deltaQueries).toHaveLength(3);
+    // Removals get half the budget, additions the rest.
+    expect(deltaQueries.map((query) => query.limit)).toEqual([
+      "25",
+      "25",
+      "50",
+    ]);
     for (const query of deltaQueries) {
-      expect(query).toMatchObject({ limit: "50" });
       expect(typeof query.since).toBe("string");
     }
     expect(
@@ -242,20 +261,46 @@ describe("bordfeed credit budget", () => {
     await setLimits({ jobsPerSync: 20 });
     await connectFeed();
     await runBordfeedSync(payload);
-    const sinceAfterFirst = await storedSince();
+    const sinceAfterFirst = await storedSince("removals");
 
-    // 30 jobs close: the 20 on the board and 10 it never fetched.
+    // 30 jobs close: the 20 on the board and 10 it never fetched. Removals
+    // get 10 jobs per sync, so the closed list takes three syncs and the
+    // expired list a fourth.
     mock.closeFeedJobs(Array.from({ length: 30 }, (_, index) => index + 1));
-    const first = await runBordfeedSync(payload);
-    expect(first).toMatchObject({ fetchedJobs: 20, unpublished: 20 });
-    expect(await storedSince()).toBe(sinceAfterFirst);
-
-    const second = await runBordfeedSync(payload);
-    expect(second).toMatchObject({ fetchedJobs: 10, unpublished: 0 });
-    expect(await storedSince()).not.toBe(sinceAfterFirst);
+    const runs = await syncRuns(4);
+    expect(runs.map((run) => run.fetchedJobs)).toEqual([10, 10, 10, 0]);
+    expect(runs.reduce((sum, run) => sum + run.unpublished, 0)).toBe(20);
+    expect(runs.every((run) => run.fetchedJobs <= 20)).toBe(true);
+    expect(await storedSince("removals")).not.toBe(sinceAfterFirst);
     expect(
       (await boardJobs({ _status: { equals: "published" } })).totalDocs
     ).toBe(0);
+  });
+
+  test("closures of jobs the board never had cannot starve new jobs", async () => {
+    await connectFeed();
+    await runBordfeedSync(payload);
+
+    // Three days: 60 jobs the board never fetched close, 5 new jobs appear.
+    const created: number[] = [];
+    const billed: number[] = [];
+    for (const day of [0, 1, 2]) {
+      const start = 100 + day * 60;
+      mock.closeFeedJobs(
+        Array.from({ length: 60 }, (_, index) => start + index)
+      );
+      mock.surfaceFeedJobs(
+        Array.from({ length: 5 }, (_, index) => 1900 + day * 5 + index)
+      );
+      const before = mock.state.billedJobs;
+      // biome-ignore lint/performance/noAwaitInLoops: one sync per day, in order
+      const run = await runBordfeedSync(payload);
+      created.push(run.created);
+      billed.push(mock.state.billedJobs - before);
+    }
+
+    expect(created).toEqual([5, 5, 5]);
+    expect(billed.every((value) => value <= 50)).toBe(true);
   });
 
   test("the first sync after an upgrade keeps jobs it did not fetch", async () => {

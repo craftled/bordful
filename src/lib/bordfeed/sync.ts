@@ -29,8 +29,9 @@ import {
 import { previewQuerySchema } from "./preview-query";
 import {
   acquireSyncLease,
-  afterDelta,
   afterFirst,
+  afterTrack,
+  type FetchPlan,
   nextPhase,
   planFetch,
   readSyncBudget,
@@ -40,6 +41,7 @@ import {
   type SeriesPosition,
   type SyncState,
   sinceFieldFor,
+  type Track,
   writeSyncState,
 } from "./sync-budget";
 
@@ -964,26 +966,30 @@ function withPage(
   return next;
 }
 
-// Reads the delta series from `position`. Each request asks for what is left
-// of this sync's budget. It stops when the budget is spent or a phase has
-// more pages; the returned position is where the next sync resumes (null
-// once every phase is read). Usage is saved as soon as Bordfeed answers. A
-// failure after earlier pages keeps those pages and their position.
+// Reads one track from `position`. Each request asks for what is left of
+// the track's budget. It stops when the budget is spent or a phase has more
+// pages; the returned position is where the next sync resumes (null once
+// the track's phases are read). Usage is saved as soon as Bordfeed answers.
+// A failure after earlier pages keeps those pages and their position.
 async function readSeries(
   client: BordfeedClient,
   feedId: string,
-  since: string,
+  track: { name: Track; since: string },
   position: SeriesPosition,
   read: SeriesRead,
   context: { save: SaveState; startedAt: Date }
 ): Promise<SeriesRead> {
+  if (read.budget <= 0) {
+    return { ...read, position };
+  }
+
   let page: Awaited<ReturnType<BordfeedClient["fetchFeedPage"]>>;
   try {
     page = await client.fetchFeedPage(feedId, {
       cursor: position.cursor,
       limit: read.budget,
       offset: requestOffset(position.offset, read.budget),
-      since,
+      since: track.since,
       sinceField: sinceFieldFor(position.phase),
       status: position.phase === "open" ? undefined : position.phase,
     });
@@ -1006,17 +1012,13 @@ async function readSeries(
     return next;
   }
 
-  const phase = nextPhase(position.phase);
+  const phase = nextPhase(track.name, position.phase);
   if (!phase) {
     return next;
   }
 
   next.position = { cursor: null, offset: null, phase };
-  if (next.budget <= 0) {
-    return next;
-  }
-
-  return readSeries(client, feedId, since, next.position, next, context);
+  return readSeries(client, feedId, track, next.position, next, context);
 }
 
 async function firstSync(
@@ -1080,21 +1082,30 @@ async function syncFeedWithBudget(
     );
   }
 
-  const read = await readSeries(
+  const context = { save, startedAt };
+  const removals = await readSeries(
     client,
     feedId,
-    plan.since,
-    plan.position,
+    { name: "removals", since: plan.removals.since },
+    plan.removals.position,
     {
-      budget: plan.limit,
+      budget: plan.removalsLimit,
       pages: 0,
       position: null,
       removedIds: new Set(),
       state: budget.state,
       updated: [],
     },
-    { save, startedAt }
+    context
   );
+  const additions = await readAdditions(
+    client,
+    feedId,
+    plan,
+    removals,
+    context
+  );
+  const read = additions.read ?? removals;
   const summary = await runSync(
     payload,
     deps,
@@ -1102,20 +1113,72 @@ async function syncFeedWithBudget(
     {
       fetch: "delta",
       fetchedJobs: plan.limit - read.budget,
-      incoming: read.updated,
-      pages: read.pages,
-      removedIds: read.removedIds,
+      incoming: additions.read?.updated ?? [],
+      pages: removals.pages + (additions.read?.pages ?? 0),
+      removedIds: removals.removedIds,
     },
     "bordfeed",
     stamp
   );
   if (await connectionStillMatches(payload, stamp)) {
-    await save(afterDelta(read.state, plan, read.position));
+    await save({
+      ...read.state,
+      additions: additions.read
+        ? afterTrack(
+            read.state.additions,
+            plan.additions,
+            additions.read.position
+          )
+        : read.state.additions,
+      removals: afterTrack(
+        read.state.removals,
+        plan.removals,
+        removals.position
+      ),
+    });
   }
-  if (read.error !== undefined) {
-    throw read.error;
+  const failure = removals.error ?? additions.error;
+  if (failure !== undefined) {
+    throw failure;
   }
   return summary;
+}
+
+// Additions get the rest of the sync's budget after removals, which is at
+// least half. They are skipped when removals failed. A failure here still
+// lets the removals already read be applied.
+async function readAdditions(
+  client: BordfeedClient,
+  feedId: string,
+  plan: Extract<FetchPlan, { kind: "delta" }>,
+  removals: SeriesRead,
+  context: { save: SaveState; startedAt: Date }
+): Promise<{ error?: unknown; read: SeriesRead | null }> {
+  if (removals.error !== undefined) {
+    return { read: null };
+  }
+
+  const spent = plan.removalsLimit - removals.budget;
+  try {
+    const read = await readSeries(
+      client,
+      feedId,
+      { name: "additions", since: plan.additions.since },
+      plan.additions.position,
+      {
+        budget: plan.limit - spent,
+        pages: 0,
+        position: null,
+        removedIds: new Set(),
+        state: removals.state,
+        updated: [],
+      },
+      context
+    );
+    return { error: read.error, read };
+  } catch (error) {
+    return { error, read: null };
+  }
 }
 
 async function leasedSync(

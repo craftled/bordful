@@ -12,17 +12,30 @@ export interface SyncLimits {
   jobsPerSync: number;
 }
 
-// A delta series reads jobs closed, then expired, updated after `since`, then
-// open jobs that first became visible after `since`. Removals come first so
-// they never wait behind new jobs. Bordfeed bumps `updated_at` on routine
-// scrape writes, so open jobs are read by `first_visible`, not `updated`.
-// A series can span several syncs.
+// Later syncs run two tracks, each with its own watermark and resume point:
+// - removals: jobs closed, then expired, updated after its `since`;
+// - additions: open jobs that first became visible after its `since`.
+// Bordfeed bumps `updated_at` on routine scrape writes, so additions are
+// read by `first_visible`, not `updated`. Each track gets its own share of a
+// sync's budget, so removals can never starve new jobs or the other way.
+export type Track = "additions" | "removals";
 export type SeriesPhase = "closed" | "expired" | "open";
 
-const PHASES: readonly SeriesPhase[] = ["closed", "expired", "open"];
+const TRACK_PHASES: Record<Track, readonly SeriesPhase[]> = {
+  additions: ["open"],
+  removals: ["closed", "expired"],
+};
 
 export function sinceFieldFor(phase: SeriesPhase): "first_visible" | "updated" {
   return phase === "open" ? "first_visible" : "updated";
+}
+
+export function nextPhase(
+  track: Track,
+  phase: SeriesPhase
+): SeriesPhase | null {
+  const phases = TRACK_PHASES[track];
+  return phases[phases.indexOf(phase) + 1] ?? null;
 }
 
 export interface SeriesPosition {
@@ -31,27 +44,38 @@ export interface SeriesPosition {
   phase: SeriesPhase;
 }
 
-export interface SyncState {
-  day: string | null;
-  feedId: string | null;
-  jobsToday: number;
+export interface TrackState {
   // Set while a series is unfinished: where the next sync resumes.
   position: SeriesPosition | null;
   // Start of the unfinished series. `since` moves here once it ends.
   seriesStart: string | null;
-  // Jobs updated after this instant are fetched by delta syncs.
   since: string | null;
+}
+
+export interface SyncState {
+  additions: TrackState;
+  day: string | null;
+  feedId: string | null;
+  jobsToday: number;
+  removals: TrackState;
+}
+
+export interface TrackPlan {
+  position: SeriesPosition;
+  seriesStart: string;
+  since: string;
 }
 
 export type FetchPlan =
   | { kind: "skip"; reason: "daily_cap" }
   | { kind: "first"; limit: number }
   | {
+      additions: TrackPlan;
       kind: "delta";
       limit: number;
-      position: SeriesPosition;
-      seriesStart: string;
-      since: string;
+      removals: TrackPlan;
+      // Budget the removals track may use. Additions get the rest.
+      removalsLimit: number;
     };
 
 // Overlap between watermarks so clock skew never drops an update.
@@ -89,13 +113,15 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function positionOf(value: unknown): SeriesPosition | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
+}
 
-  const row = value as Record<string, unknown>;
-  const phase = PHASES.find((item) => item === row.phase);
+function positionOf(value: unknown, track: Track): SeriesPosition | null {
+  const row = record(value);
+  const phase = TRACK_PHASES[track].find((item) => item === row.phase);
   if (!phase) {
     return null;
   }
@@ -107,39 +133,47 @@ function positionOf(value: unknown): SeriesPosition | null {
   return { cursor: text(row.cursor), offset, phase };
 }
 
+const EMPTY_TRACK: TrackState = {
+  position: null,
+  seriesStart: null,
+  since: null,
+};
+
+function trackOf(value: unknown, track: Track): TrackState {
+  const row = record(value);
+  const since = text(row.since);
+  const seriesStart = since ? text(row.seriesStart) : null;
+  return {
+    position: seriesStart ? positionOf(row.position, track) : null,
+    seriesStart,
+    since,
+  };
+}
+
 // A different feed starts over with a capped first sync. Usage for the day
 // carries across feeds, since the same Bordfeed workspace pays.
 export function parseSyncState(
   value: unknown,
   feedId: string | null
 ): SyncState {
-  const row =
-    value && typeof value === "object"
-      ? (value as Record<string, unknown>)
-      : {};
+  const row = record(value);
   const jobsToday =
     typeof row.jobsToday === "number" && row.jobsToday > 0
       ? Math.floor(row.jobsToday)
       : 0;
   const usage = { day: text(row.day), jobsToday };
-  if (text(row.feedId) !== feedId) {
-    return {
-      ...usage,
-      feedId,
-      position: null,
-      seriesStart: null,
-      since: null,
-    };
-  }
-
-  const since = text(row.since);
-  const seriesStart = since ? text(row.seriesStart) : null;
+  const sameFeed = text(row.feedId) === feedId;
+  const additions = sameFeed
+    ? trackOf(row.additions, "additions")
+    : EMPTY_TRACK;
+  const removals = sameFeed ? trackOf(row.removals, "removals") : EMPTY_TRACK;
+  // Both tracks start together; a half-set state starts over.
+  const started = additions.since !== null && removals.since !== null;
   return {
     ...usage,
+    additions: started ? additions : EMPTY_TRACK,
     feedId,
-    position: seriesStart ? positionOf(row.position) : null,
-    seriesStart,
-    since,
+    removals: started ? removals : EMPTY_TRACK,
   };
 }
 
@@ -163,6 +197,15 @@ export function watermark(startedAt: Date): string {
   return new Date(startedAt.getTime() - WATERMARK_OVERLAP_MS).toISOString();
 }
 
+function trackPlan(state: TrackState, track: Track, now: Date): TrackPlan {
+  const first = TRACK_PHASES[track][0] ?? "open";
+  return {
+    position: state.position ?? { cursor: null, offset: null, phase: first },
+    seriesStart: state.seriesStart ?? watermark(now),
+    since: state.since ?? watermark(now),
+  };
+}
+
 export function planFetch(
   state: SyncState,
   limits: SyncLimits,
@@ -176,25 +219,17 @@ export function planFetch(
     return { kind: "skip", reason: "daily_cap" };
   }
 
-  if (!state.since) {
+  if (!(state.additions.since && state.removals.since)) {
     return { kind: "first", limit };
   }
 
   return {
+    additions: trackPlan(state.additions, "additions", now),
     kind: "delta",
     limit,
-    position: state.position ?? {
-      cursor: null,
-      offset: null,
-      phase: PHASES[0] ?? "closed",
-    },
-    seriesStart: state.seriesStart ?? watermark(now),
-    since: state.since,
+    removals: trackPlan(state.removals, "removals", now),
+    removalsLimit: Math.floor(limit / 2),
   };
-}
-
-export function nextPhase(phase: SeriesPhase): SeriesPhase | null {
-  return PHASES[PHASES.indexOf(phase) + 1] ?? null;
 }
 
 export function recordSpend(
@@ -209,33 +244,28 @@ export function recordSpend(
   };
 }
 
-// After a first sync the next run asks only for jobs updated since it began.
+// After a first sync both tracks ask only for changes since it began.
 export function afterFirst(state: SyncState, startedAt: Date): SyncState {
-  return {
-    ...state,
+  const fresh: TrackState = {
     position: null,
     seriesStart: null,
     since: watermark(startedAt),
   };
+  return { ...state, additions: fresh, removals: { ...fresh } };
 }
 
-// `next` is where the series resumes, or null once every phase is read. Only
-// then does `since` move, so no update, closure or expiry is skipped.
-export function afterDelta(
-  state: SyncState,
-  plan: Extract<FetchPlan, { kind: "delta" }>,
+// `next` is where the track resumes, or null once all its phases are read.
+// Only then does its `since` move, so nothing in between is skipped.
+export function afterTrack(
+  state: TrackState,
+  plan: TrackPlan,
   next: SeriesPosition | null
-): SyncState {
+): TrackState {
   if (next) {
     return { ...state, position: next, seriesStart: plan.seriesStart };
   }
 
-  return {
-    ...state,
-    position: null,
-    seriesStart: null,
-    since: plan.seriesStart,
-  };
+  return { position: null, seriesStart: null, since: plan.seriesStart };
 }
 
 const SLUG = "bordfeed-connection";

@@ -1,13 +1,14 @@
 import { expect, test } from "vitest";
 
 import {
-  afterDelta,
   afterFirst,
+  afterTrack,
   nextPhase,
   parseSyncState,
   planFetch,
   recordSpend,
   resolveLimits,
+  type SyncState,
   sinceFieldFor,
   WATERMARK_OVERLAP_MS,
 } from "./sync-budget";
@@ -47,25 +48,37 @@ test("a fresh feed plans one capped first page", () => {
   });
 });
 
-test("after the first page, syncs read removals since it began", () => {
+test("after the first page, both tracks read changes since it began", () => {
   const state = afterFirst(
     recordSpend(parseSyncState(null, FEED), 50, NOW),
     NOW
   );
   const later = new Date(NOW.getTime() + 24 * HOUR);
+  const since = new Date(NOW.getTime() - WATERMARK_OVERLAP_MS).toISOString();
+  const seriesStart = new Date(
+    later.getTime() - WATERMARK_OVERLAP_MS
+  ).toISOString();
   expect(planFetch(state, resolveLimits({}), later)).toEqual({
+    additions: {
+      position: { cursor: null, offset: null, phase: "open" },
+      seriesStart,
+      since,
+    },
     kind: "delta",
     limit: 50,
-    position: { cursor: null, offset: null, phase: "closed" },
-    seriesStart: new Date(later.getTime() - WATERMARK_OVERLAP_MS).toISOString(),
-    since: new Date(NOW.getTime() - WATERMARK_OVERLAP_MS).toISOString(),
+    removals: {
+      position: { cursor: null, offset: null, phase: "closed" },
+      seriesStart,
+      since,
+    },
+    removalsLimit: 25,
   });
 });
 
-test("since moves only after closed, expired and open are all read", () => {
-  expect(nextPhase("closed")).toBe("expired");
-  expect(nextPhase("expired")).toBe("open");
-  expect(nextPhase("open")).toBeNull();
+test("a track's since moves only after all its phases are read", () => {
+  expect(nextPhase("removals", "closed")).toBe("expired");
+  expect(nextPhase("removals", "expired")).toBeNull();
+  expect(nextPhase("additions", "open")).toBeNull();
   expect(sinceFieldFor("closed")).toBe("updated");
   expect(sinceFieldFor("open")).toBe("first_visible");
 
@@ -73,29 +86,32 @@ test("since moves only after closed, expired and open are all read", () => {
   const plan1 = delta(
     planFetch(started, resolveLimits({}), new Date(NOW.getTime() + HOUR))
   );
-  const mid = afterDelta(started, plan1, {
-    cursor: "c50",
-    offset: null,
-    phase: "closed",
-  });
-  expect(mid.since).toBe(started.since);
+  const mid: SyncState = {
+    ...started,
+    removals: afterTrack(started.removals, plan1.removals, {
+      cursor: "c50",
+      offset: null,
+      phase: "expired",
+    }),
+  };
+  expect(mid.removals.since).toBe(started.removals.since);
 
-  // Stored and read back, the series resumes where it stopped.
+  // Stored and read back, the track resumes where it stopped.
   const reread = parseSyncState(JSON.parse(JSON.stringify(mid)), FEED);
   const plan2 = delta(
     planFetch(reread, resolveLimits({}), new Date(NOW.getTime() + 2 * HOUR))
   );
-  expect(plan2).toMatchObject({
-    position: { cursor: "c50", offset: null, phase: "closed" },
-    seriesStart: plan1.seriesStart,
-    since: started.since,
+  expect(plan2.removals).toEqual({
+    position: { cursor: "c50", offset: null, phase: "expired" },
+    seriesStart: plan1.removals.seriesStart,
+    since: started.removals.since,
   });
+  expect(plan2.additions.since).toBe(started.additions.since);
 
-  const done = afterDelta(reread, plan2, null);
-  expect(done).toMatchObject({
+  expect(afterTrack(reread.removals, plan2.removals, null)).toEqual({
     position: null,
     seriesStart: null,
-    since: plan1.seriesStart,
+    since: plan1.removals.seriesStart,
   });
 });
 
@@ -121,5 +137,9 @@ test("a new feed id starts over but keeps the day's usage", () => {
     NOW
   );
   const other = parseSyncState(state, "22222222-2222-4222-8222-222222222222");
-  expect(other).toMatchObject({ jobsToday: 60, position: null, since: null });
+  expect(other).toMatchObject({
+    additions: { since: null },
+    jobsToday: 60,
+    removals: { since: null },
+  });
 });
