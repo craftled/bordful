@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rebuilt on Payload 4 and Postgres.
+- Requires Node.js 26 LTS. `engines.node` is `26.x`, which overrides the Vercel project Node.js setting. Built-in fetch on Vercel uses HTTP/2 on Node 26. Set `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
 ### Removed
 

@@ -31,7 +31,7 @@ Bordful 1.0 beta includes:
 
 ## Quick start
 
-Prerequisites: Bun 1.4.2, Node.js 26 (26.13.0 or later 26.x, see .nvmrc), and Postgres 17.
+Prerequisites: Bun 1.4.2, Node.js 26 LTS (see .nvmrc), and Postgres 17.
 
 ```bash
 bun install

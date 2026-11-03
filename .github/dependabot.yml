@@ -20,6 +20,10 @@ updates:
       - dependency-name: graphql
         update-types:
           - version-update:semver-major
+      # Keep @types/node on the runtime major. Bump it together with engines, CI and .nvmrc.
+      - dependency-name: "@types/node"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /

@@ -65,6 +65,8 @@ Bordful does not send admin password reset emails yet. Keep a second admin accou
 
 ## Self-hosting outside Vercel
 
+Run Node.js 26 LTS (see `.nvmrc`).
+
 Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. Without `BLOB_READ_WRITE_TOKEN`, media uploads go to the local `media/` directory, so the host needs a persistent disk. Blob is required on Vercel and on other read-only or serverless hosts: `payload.config.ts` enables the Blob adapter only when the token is set. Run migrations once:
 
 ```bash
