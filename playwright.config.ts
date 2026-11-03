@@ -11,7 +11,7 @@ interface FlowEntry {
   requires: string[];
 }
 
-const NUMERIC_PORT = /^\d+$/;
+const NUMERIC_PORT = /^\d+$/u;
 const root = path.dirname(fileURLToPath(import.meta.url));
 const e2eDir = path.join(root, "tests/e2e");
 const registry = JSON.parse(

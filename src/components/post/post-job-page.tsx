@@ -7,8 +7,8 @@ export function PostJobPage({ view }: { view: PostJobView }) {
   return (
     <article className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-4">
       <header className="flex flex-col gap-3">
-        <h1 className="font-semibold text-3xl tracking-tight">Post a Job</h1>
-        <p className="max-w-2xl text-muted-foreground">
+        <h1 className="text-3xl font-semibold tracking-tight">Post a Job</h1>
+        <p className="text-muted-foreground max-w-2xl">
           Reach people who read this board, its RSS feed and its job alert
           emails. Pay once with the secure Stripe link, and the board owner
           publishes your listing.
@@ -32,12 +32,12 @@ export function PostJobPage({ view }: { view: PostJobView }) {
         </Card>
         <Card className="h-fit gap-6 py-6" data-testid="post-job-pricing">
           <CardHeader className="gap-2">
-            <CardTitle className="text-muted-foreground text-sm uppercase tracking-wider">
+            <CardTitle className="text-muted-foreground text-sm tracking-wider uppercase">
               Job listing
             </CardTitle>
             {view.priceLabel ? (
               <p
-                className="font-semibold text-4xl tracking-tight"
+                className="text-4xl font-semibold tracking-tight"
                 data-testid="post-job-price"
               >
                 {view.priceLabel}

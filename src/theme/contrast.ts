@@ -1,6 +1,6 @@
 import { THEME_COLOR_KEYS, type ThemeColorKey } from "./tokens";
 
-const HEX_COLOR = /^#([0-9a-f]{6})$/i;
+const HEX_COLOR = /^#(?<digits>[0-9a-f]{6})$/iu;
 const SRGB_BREAKPOINT = 0.039_28;
 const SRGB_OFFSET = 0.055;
 const SRGB_SCALE = 1.055;
@@ -28,7 +28,7 @@ for (const [left, right] of THEME_CONTRAST_PAIRS) {
 
 function hexChannels(hex: string): [number, number, number] | null {
   const match = HEX_COLOR.exec(hex);
-  const digits = match?.[1];
+  const digits = match?.groups?.digits;
   if (digits === undefined) {
     return null;
   }

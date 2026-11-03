@@ -8,7 +8,7 @@ import {
 
 export const ADMIN_EMAIL = "admin@example.com";
 export const ADMIN_PASSWORD = "Example-Passw0rd-123";
-const ADMIN_HOME = /\/admin\/?$/;
+const ADMIN_HOME = /\/admin\/?$/u;
 
 function appBaseUrl(): string {
   if (process.env.PLAYWRIGHT_BASE_URL) {

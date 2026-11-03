@@ -5,7 +5,7 @@ import { escapeHtml, headerSafe } from "./escape";
 import { renderEmailLayout } from "./layout";
 import type { RenderedEmail } from "./rendered";
 
-const TRAILING_SLASH = /\/$/;
+const TRAILING_SLASH = /\/$/u;
 
 function locationText(job: JobListItem): string {
   const value = job.locationDisplay?.trim();

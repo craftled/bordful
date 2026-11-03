@@ -1,6 +1,6 @@
 import type { JobWorkplaceType } from "@/lib/domain/job-vocab";
 
-const TRAILING_POINT_ZERO = /\.0$/;
+const TRAILING_POINT_ZERO = /\.0$/u;
 const K_THRESHOLD = 10_000;
 const M_THRESHOLD = 1_000_000;
 const MS_PER_MINUTE = 60_000;

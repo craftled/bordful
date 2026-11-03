@@ -58,7 +58,7 @@ export function BoardListing({
       {showHeading ? (
         <div className="space-y-2">
           <h1
-            className="font-[var(--font-heading)] font-semibold text-3xl"
+            className="font-[var(--font-heading)] text-3xl font-semibold"
             data-testid={headingTestId}
           >
             {heading}
@@ -104,7 +104,7 @@ export function BoardListing({
             <BoardList jobs={view.docs} now={now} />
           ) : (
             <div
-              className="space-y-3 rounded-lg border bg-card p-6 text-center"
+              className="bg-card space-y-3 rounded-lg border p-6 text-center"
               data-testid="board-empty-box"
             >
               <p data-testid="board-empty">No matching jobs</p>

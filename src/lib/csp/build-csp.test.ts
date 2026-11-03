@@ -4,9 +4,9 @@ import { buildCsp } from "./build-csp";
 import { createNonce } from "./nonce";
 
 const nonce = "dGVzdG5vbmNlMTIzNDU2Nw==";
-const base64Error = /base64/;
-const httpsError = /https/;
-const base64Value = /^[A-Za-z0-9+/]+=*$/;
+const base64Error = /base64/u;
+const httpsError = /https/u;
+const base64Value = /^[A-Za-z0-9+/]+=*$/u;
 
 const prod =
   "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests";

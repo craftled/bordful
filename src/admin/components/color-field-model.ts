@@ -5,7 +5,7 @@ import {
   type ThemeColorKey,
 } from "@/theme/tokens";
 
-const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const HEX_COLOR = /^#[0-9a-f]{6}$/iu;
 const AA_TEXT_RATIO = 4.5;
 
 export interface ColorFieldModel {
@@ -32,10 +32,7 @@ export function colorFieldLabel(key: string, label: unknown): string {
     return label;
   }
 
-  const spaced = key
-    .replaceAll(/([A-Z])/g, " $1")
-    .trim()
-    .toLowerCase();
+  const spaced = key.replaceAll(/[A-Z]/gu, " $&").trim().toLowerCase();
   if (spaced.length === 0) {
     return "Color";
   }

@@ -1,7 +1,7 @@
 import type { RichText } from "@payloadcms/richtext-lexical/react";
 import type { ComponentProps } from "react";
 
-const WHITESPACE_RE = /\s+/g;
+const WHITESPACE_RE = /\s+/gu;
 const BLOCK_TYPES = new Set(["heading", "listitem", "paragraph"]);
 
 type EditorState = ComponentProps<typeof RichText>["data"];

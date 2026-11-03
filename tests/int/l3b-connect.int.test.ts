@@ -1,11 +1,6 @@
 import { existsSync } from "node:fs";
 
 import { beforeEach, describe, expect, test } from "vitest";
-
-if (existsSync(".env")) {
-  process.loadEnvFile(".env");
-}
-
 import type { BordfeedClient } from "@/lib/bordfeed/client";
 import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import {
@@ -28,6 +23,10 @@ import type { CreateFeedRequest, RegisterRequest } from "@/lib/bordfeed/types";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { bordfeedInstallId } from "@/lib/install/install-id";
 import { toBordfeedConnectionPublic } from "@/lib/read/mappers";
+
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
 
 const FEED_ID = "11111111-1111-4111-8111-111111111111";
 const API_KEY = "bf_mock_key_0000000000000001";
@@ -73,7 +72,7 @@ const behavior: Behavior = {
   verifyError: null,
 };
 
-const INSTALL_ID_PATTERN = /^[a-f0-9]{64}$/;
+const INSTALL_ID_PATTERN = /^[a-f0-9]{64}$/u;
 
 function jobs(prefix: string, count: number): BordfeedJob[] {
   return Array.from({ length: count }, (_, index) => {
@@ -230,7 +229,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL_TEST is required for test:int");
 }
 
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
 if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
   throw new Error("DATABASE_URL_TEST database must end with _int or _test");
 }

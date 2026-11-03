@@ -29,7 +29,7 @@ export default async function PostJobThanksPage() {
     <BoardShell>
       <article className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-12">
         <h1
-          className="font-semibold text-3xl tracking-tight"
+          className="text-3xl font-semibold tracking-tight"
           data-testid="post-job-thanks"
         >
           Thanks for your payment
@@ -39,7 +39,7 @@ export default async function PostJobThanksPage() {
           usually within one business day.
         </p>
         <a
-          className="font-medium text-sm underline underline-offset-4"
+          className="text-sm font-medium underline underline-offset-4"
           href={boardHomePath(isMarketingEnabled())}
         >
           Back to the board

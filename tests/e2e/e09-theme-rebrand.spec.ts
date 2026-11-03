@@ -6,8 +6,8 @@ import { ensureAdmin, loginInBrowser } from "./support/admin";
 import { writeTinyPng } from "./support/png";
 import { updateGlobal } from "./support/seed";
 
-const LOGO_SRC = /\/api\/media\/file\//;
-const SAVED_TOAST = /updated successfully/i;
+const LOGO_SRC = /\/api\/media\/file\//u;
+const SAVED_TOAST = /updated successfully/iu;
 
 test.describe("E9 theme-rebrand", { tag: ["@E9"] }, () => {
   test("applies a saved color, radius and logo without a restart", async ({

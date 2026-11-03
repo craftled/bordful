@@ -63,28 +63,28 @@ function PricingCards() {
         {plans.map((plan) => (
           <Card
             className={cn(
-              "gap-4 rounded-lg bg-background/50 py-6 shadow-none",
+              "bg-background/50 gap-4 rounded-lg py-6 shadow-none",
               plan.highlight && "border-foreground"
             )}
             key={plan.name}
           >
             <CardHeader className="px-6">
-              <h3 className="font-medium text-lg leading-none">{plan.name}</h3>
+              <h3 className="text-lg leading-none font-medium">{plan.name}</h3>
               <p className="text-muted-foreground text-sm">
                 {plan.description}
               </p>
             </CardHeader>
             <CardContent className="px-6">
-              <div className="font-medium text-3xl">{plan.price}</div>
+              <div className="text-3xl font-medium">{plan.price}</div>
               <ul className="mt-4 space-y-2">
                 {plan.features.map((feature) => (
                   <li
-                    className="flex text-muted-foreground text-sm"
+                    className="text-muted-foreground flex text-sm"
                     key={feature}
                   >
                     <svg
                       aria-hidden="true"
-                      className="mr-2 h-5 w-5 text-foreground"
+                      className="text-foreground mr-2 h-5 w-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -119,7 +119,7 @@ function PricingCards() {
           </Card>
         ))}
       </div>
-      <div className="mt-8 text-center text-muted-foreground text-xs">
+      <div className="text-muted-foreground mt-8 text-center text-xs">
         <p>Payments are processed & secured by Stripe.</p>
         <p className="mt-1">Price in USD. VAT may apply.</p>
         <p className="mt-3">
@@ -153,10 +153,10 @@ export function Pricing({
       <Container>
         <div className="mx-auto max-w-2xl">
           <div className="text-center">
-            <h2 className="font-medium text-2xl tracking-tight sm:text-3xl">
+            <h2 className="text-2xl font-medium tracking-tight sm:text-3xl">
               Pricing
             </h2>
-            <p className="mx-auto mt-3 max-w-[600px] text-balance text-muted-foreground text-sm">
+            <p className="text-muted-foreground mx-auto mt-3 max-w-[600px] text-sm text-balance">
               Bordful is open source and free to use commercially. Need help
               getting started? We offer custom setup services for a one-time
               fee.

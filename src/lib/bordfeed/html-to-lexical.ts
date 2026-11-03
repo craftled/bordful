@@ -60,8 +60,8 @@ export interface LexicalRoot {
 
 const SKIP_TAGS = new Set(["script", "style"]);
 const HEADING_TAGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
-const BLANK_LINES = /\n{2,}/;
-const WHITESPACE = /\s+/g;
+const BLANK_LINES = /\n{2,}/u;
+const WHITESPACE = /\s+/gu;
 const DROP_TAGS = new Set(["iframe", "img"]);
 const BLOCK_TAGS = new Set([
   "blockquote",

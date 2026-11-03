@@ -16,7 +16,7 @@ export default async function CompaniesPage() {
     <BoardShell>
       <div className="space-y-6">
         <header className="space-y-2">
-          <h1 className="font-[var(--font-heading)] font-semibold text-3xl">
+          <h1 className="font-[var(--font-heading)] text-3xl font-semibold">
             Companies
           </h1>
           <p className="text-muted-foreground">

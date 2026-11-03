@@ -1,9 +1,9 @@
 import { boardHomePath } from "@/config/nav";
 
-const PUBLIC_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const PATH_PAGE_RE = /^[1-9]\d*$/;
-const NON_SLUG_RE = /[^a-z0-9]+/g;
-const EDGE_HYPHEN_RE = /^-+|-+$/g;
+const PUBLIC_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const PATH_PAGE_RE = /^[1-9]\d*$/u;
+const NON_SLUG_RE = /[^a-z0-9]+/gu;
+const EDGE_HYPHEN_RE = /^-+|-+$/gu;
 
 export const BOARD_SEARCH_PATH = "/jobs/search";
 

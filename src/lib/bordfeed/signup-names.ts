@@ -3,9 +3,9 @@
 
 const AGENT_NAME = /^[\p{L}\p{N}][\p{L}\p{N} ._()-]{0,63}$/u;
 const DOMAIN_TOKEN = /\p{L}\.\p{L}/u;
-const WWW_WORD = /\bwww\b/;
-const GAP = /[\s()[\]{}]/;
-const BRACKET = /[()[\]{}]/;
+const WWW_WORD = /\bwww\b/u;
+const GAP = /[\s()[\]{}]/u;
+const BRACKET = /[()[\]{}]/u;
 const LETTER = /\p{L}/u;
 export const BOARD_NAME_MAX = 80;
 

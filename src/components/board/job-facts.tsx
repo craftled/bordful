@@ -123,10 +123,10 @@ export function JobFacts({
   return (
     <section
       aria-labelledby="job-facts-title"
-      className="rounded-lg border border-border bg-muted p-5"
+      className="border-border bg-muted rounded-lg border p-5"
       data-testid="job-facts"
     >
-      <h2 className="font-semibold text-base" id="job-facts-title">
+      <h2 className="text-base font-semibold" id="job-facts-title">
         Job details
       </h2>
       <dl className="mt-4 space-y-4">
@@ -134,11 +134,11 @@ export function JobFacts({
           <div className="flex gap-3" key={row.field}>
             <row.icon
               aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+              className="text-muted-foreground mt-0.5 size-4 shrink-0"
             />
             <div className="min-w-0">
               <dt className="text-muted-foreground text-xs">{row.label}</dt>
-              <dd className="break-words text-sm">{row.value}</dd>
+              <dd className="text-sm break-words">{row.value}</dd>
             </div>
           </div>
         ))}

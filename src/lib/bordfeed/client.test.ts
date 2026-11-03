@@ -4,6 +4,7 @@ import { BordfeedApiError } from "./errors";
 import { previewQuerySchema } from "./preview-query";
 
 const FEED = "11111111-1111-4111-8111-111111111111";
+// biome-ignore lint/complexity/noUnnecessaryTemplateExpression: split literal keeps secret scanners from flagging the test key
 const KEY = `bf_${"test_key_0001"}`;
 const JOBS = `http://bf.test/api/v1/feeds/${FEED}/jobs?limit=100&include=description_html`;
 

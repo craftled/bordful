@@ -1,20 +1,19 @@
 import { existsSync } from "node:fs";
 
 import { afterAll, beforeAll, expect, test } from "vitest";
+import { BORDFUL_VERSION } from "@/lib/bordfeed/client-header";
+import { checkForUpdate } from "@/lib/update-check/check";
 
 if (existsSync(".env")) {
   process.loadEnvFile(".env");
 }
-
-import { BORDFUL_VERSION } from "@/lib/bordfeed/client-header";
-import { checkForUpdate } from "@/lib/update-check/check";
 
 const databaseUrl = process.env.DATABASE_URL_TEST;
 if (!databaseUrl) {
   throw new Error("DATABASE_URL_TEST is required for test:int");
 }
 
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
 if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
   throw new Error(
     `DATABASE_URL_TEST database must end with _int or _test (${databaseName})`

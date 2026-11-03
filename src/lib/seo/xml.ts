@@ -1,8 +1,8 @@
-const AMPERSAND = /&/g;
-const LESS_THAN = /</g;
-const GREATER_THAN = />/g;
-const QUOTE = /"/g;
-const APOSTROPHE = /'/g;
+const AMPERSAND = /&/gu;
+const LESS_THAN = /</gu;
+const GREATER_THAN = />/gu;
+const QUOTE = /"/gu;
+const APOSTROPHE = /'/gu;
 
 function isXmlChar(code: number): boolean {
   return (

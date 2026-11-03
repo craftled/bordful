@@ -21,19 +21,19 @@ function Group({
 
   return (
     <section aria-labelledby={`${id}-heading`} className="space-y-4" id={id}>
-      <h2 className="font-semibold text-xl" id={`${id}-heading`}>
+      <h2 className="text-xl font-semibold" id={`${id}-heading`}>
         {title}
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((facet) => (
           <li key={facet.slug}>
             <Link
-              className="block rounded-lg border bg-background p-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+              className="bg-background hover:bg-muted focus-visible:outline-ring block rounded-lg border p-4 focus-visible:outline-2 focus-visible:outline-offset-2"
               data-testid="taxonomy-link"
               href={facet.href}
             >
               <span className="block font-medium">{facet.label}</span>
-              <span className="block text-muted-foreground text-sm">
+              <span className="text-muted-foreground block text-sm">
                 {facet.count} {facet.count === 1 ? "position" : "positions"}
               </span>
             </Link>
@@ -54,7 +54,7 @@ export async function TaxonomyHub() {
   return (
     <div className="space-y-10" data-testid="taxonomy-hub">
       <div className="space-y-2">
-        <h1 className="font-[var(--font-heading)] font-semibold text-3xl">
+        <h1 className="font-[var(--font-heading)] text-3xl font-semibold">
           {settings.board.title || "Browse jobs"}
         </h1>
         {settings.board.description ? (

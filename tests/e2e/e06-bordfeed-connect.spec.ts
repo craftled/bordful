@@ -4,9 +4,9 @@ import { loginInBrowser } from "./support/admin";
 import { bordfeedRequests, resetMock } from "./support/mock";
 import { readGlobal } from "./support/seed";
 
-const INSTALL_ID = /^[a-f0-9]{64}$/;
-const CONNECTED_MESSAGE = /^Connected\. Synced 25 jobs/;
-const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/;
+const INSTALL_ID = /^[a-f0-9]{64}$/u;
+const CONNECTED_MESSAGE = /^Connected\. Synced 25 jobs/u;
+const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/u;
 
 function queryValues(value: string | string[] | undefined): string[] {
   if (value === undefined) {

@@ -1,11 +1,11 @@
 const BASE64_NONCE =
-  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
 // Payload admin renders one inline theme script without a nonce (ResolveThemeOnClient).
 // payload-theme-hash.test.ts fails when a Payload bump changes its content.
 export const PAYLOAD_THEME_SCRIPT_SHA256 =
   "eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM=";
-const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/;
-const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*.]+\.[^*]+$/;
+const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/u;
+const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*.]+\.[^*]+$/u;
 
 export function buildCsp({
   nonce,

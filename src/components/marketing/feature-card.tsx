@@ -8,11 +8,11 @@ export function FeatureCard({
   title: string;
 }) {
   return (
-    <Card className="gap-3 rounded-lg bg-background/50 py-5 shadow-none">
+    <Card className="bg-background/50 gap-3 rounded-lg py-5 shadow-none">
       <CardHeader className="px-5">
-        <CardTitle className="font-medium text-sm">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="px-5 text-muted-foreground text-sm">
+      <CardContent className="text-muted-foreground px-5 text-sm">
         {description}
       </CardContent>
     </Card>

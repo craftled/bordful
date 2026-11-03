@@ -14,13 +14,13 @@ export function CompanyCard({
 }) {
   return (
     <Link
-      className="block rounded-lg border bg-card p-4 outline-none transition-colors hover:border-zinc-300 focus-visible:ring-2 focus-visible:ring-ring"
+      className="bg-card focus-visible:ring-ring block rounded-lg border p-4 transition-colors outline-none hover:border-zinc-300 focus-visible:ring-2"
       href={buildCompanyPath(slug)}
     >
-      <span className="block font-medium text-base" data-testid="company-name">
+      <span className="block text-base font-medium" data-testid="company-name">
         {name}
       </span>
-      <span className="block text-muted-foreground text-sm">
+      <span className="text-muted-foreground block text-sm">
         {jobCountLabel(count)}
       </span>
     </Link>

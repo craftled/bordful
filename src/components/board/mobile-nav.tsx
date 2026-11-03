@@ -103,7 +103,7 @@ export function MobileNav({
         aria-controls={panelId}
         aria-expanded={open}
         aria-label="Menu"
-        className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+        className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-9 items-center justify-center rounded-md"
         onClick={toggle}
         ref={buttonRef}
         type="button"
@@ -115,12 +115,12 @@ export function MobileNav({
         )}
       </button>
       <div
-        className="absolute inset-x-0 top-14 z-30 border-border border-b bg-background shadow-sm"
+        className="border-border bg-background absolute inset-x-0 top-14 z-30 border-b shadow-sm"
         hidden={!open}
         id={panelId}
         ref={panelRef}
       >
-        <nav aria-label="Mobile" className="mx-auto max-w-board px-4 py-3">
+        <nav aria-label="Mobile" className="max-w-board mx-auto px-4 py-3">
           <ul className="flex flex-col">
             {items.map((item) => {
               const active = isActiveItem(pathname, item);

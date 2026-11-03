@@ -4,7 +4,7 @@ import { bordfeedRequests } from "./support/mock";
 
 const CREDIT_URL =
   "https://bordfeed.com/?ref=bordful&utm_source=bordful&utm_medium=credit&utm_campaign=board";
-const NOINDEX = /noindex/;
+const NOINDEX = /noindex/u;
 
 test.describe("E1 fresh-deploy-sample", { tag: ["@E1"] }, () => {
   test("shows 20 sample jobs, the credit, and noindex detail pages", async ({

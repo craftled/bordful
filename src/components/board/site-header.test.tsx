@@ -96,12 +96,14 @@ test("mobile menu toggles aria-expanded and closes on Escape", () => {
 
   fireEvent.click(toggle);
   expect(toggle.getAttribute("aria-expanded")).toBe("true");
+  // biome-ignore lint/style/useDomQuerySelector: React useId values contain colons, which a #id selector would misparse
   expect(document.getElementById(panelId ?? "")?.hasAttribute("hidden")).toBe(
     false
   );
 
   fireEvent.keyDown(document, { key: "Escape" });
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  // biome-ignore lint/style/useDomQuerySelector: React useId values contain colons, which a #id selector would misparse
   expect(document.getElementById(panelId ?? "")?.hasAttribute("hidden")).toBe(
     true
   );
