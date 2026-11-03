@@ -28,7 +28,7 @@ export default function AboutPage() {
             headingLevel="h1"
             title="About"
           />
-          <div className="space-y-4 text-muted-foreground text-sm leading-relaxed">
+          <div className="text-muted-foreground space-y-4 text-sm leading-relaxed">
             <p>
               Bordful is an open-source job board template. Deploy it and a
               board with real sample jobs from Bordfeed is live in about two
@@ -42,7 +42,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="space-y-3">
-            <h2 className="font-medium text-xl">Craftled</h2>
+            <h2 className="text-xl font-medium">Craftled</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Craftled builds Bordful. The code is released under the{" "}
               <a
@@ -66,7 +66,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="space-y-3">
-            <h2 className="font-medium text-xl">Bordfeed</h2>
+            <h2 className="text-xl font-medium">Bordfeed</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Bordfeed powers the jobs: the sample set on a fresh board, and the
               feed you connect when you want ongoing listings.{" "}
@@ -81,12 +81,12 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="space-y-3">
-            <h2 className="font-medium text-xl">Elsewhere</h2>
+            <h2 className="text-xl font-medium">Elsewhere</h2>
             <ul className="flex flex-wrap gap-4 text-sm">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.href}>
                   <a
-                    className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                    className="text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
                     href={link.href}
                     rel="noopener noreferrer"
                     target="_blank"

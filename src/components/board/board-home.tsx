@@ -23,7 +23,7 @@ export async function BoardHome() {
         query={query}
         title={settings.board.title}
       />
-      <div className="mx-auto w-full max-w-board px-4 py-8">
+      <div className="max-w-board mx-auto w-full px-4 py-8">
         <BoardListing
           cards={cards}
           marketing={isMarketingEnabled()}

@@ -83,10 +83,10 @@ export function MarketingHeader() {
       data-testid="marketing-header"
     >
       <Container>
-        <div className="flex h-14 items-center justify-between rounded-full border border-border bg-background/60 px-4 backdrop-blur-md sm:px-6">
+        <div className="border-border bg-background/60 flex h-14 items-center justify-between rounded-full border px-4 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-4 sm:gap-6">
             <Link
-              className="flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+              className="focus-visible:outline-ring flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
               href="/"
             >
               <MarketingImage
@@ -96,7 +96,7 @@ export function MarketingHeader() {
                 src="/marketing/logos/bordful.svg"
                 width={20}
               />
-              <span className="font-medium text-sm">Bordful</span>
+              <span className="text-sm font-medium">Bordful</span>
             </Link>
             <nav aria-label="Primary" className="hidden lg:block">
               <NavLinks items={MARKETING_HEADER_LINKS} />
@@ -106,10 +106,10 @@ export function MarketingHeader() {
             <HeaderActions />
           </div>
           <details className="relative lg:hidden">
-            <summary className="cursor-pointer rounded-full border border-border px-3 py-1 text-[13px] focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2">
+            <summary className="border-border focus-visible:outline-ring cursor-pointer rounded-full border px-3 py-1 text-[13px] focus-visible:outline-2 focus-visible:outline-offset-2">
               Menu
             </summary>
-            <div className="absolute right-0 mt-3 w-64 rounded-lg border border-border bg-background p-4">
+            <div className="border-border bg-background absolute right-0 mt-3 w-64 rounded-lg border p-4">
               <nav aria-label="Mobile">
                 {/* A full load closes this disclosure. Client navigation leaves it open. */}
                 <NavLinks items={MARKETING_HEADER_LINKS} native />

@@ -15,7 +15,7 @@ export function SocialIconLinks({
           <li key={link.href}>
             <a
               aria-label={link.name}
-              className="inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+              className="focus-visible:outline-ring inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
               href={link.href}
               rel="noopener noreferrer"
               target="_blank"

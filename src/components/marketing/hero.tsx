@@ -14,13 +14,13 @@ export function Hero() {
         <div className="mx-auto max-w-[980px] pb-12">
           <div className="flex flex-col items-start gap-6">
             <Badge variant="outline">Open-source job board template</Badge>
-            <h1 className="font-medium text-3xl tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+            <h1 className="text-3xl font-medium tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
               Live in two minutes{" "}
               <span className="text-muted-foreground">
                 with real jobs from Bordfeed
               </span>
             </h1>
-            <p className="max-w-[600px] text-base text-muted-foreground">
+            <p className="text-muted-foreground max-w-[600px] text-base">
               Deploy the template and the board is already filled with sample
               jobs. Connect Bordfeed for your own feed, post jobs through a
               Stripe payment link, and send email alerts with Resend.
@@ -57,7 +57,7 @@ export function Hero() {
             </div>
           </div>
         </div>
-        <div className="relative mx-auto w-full max-w-[1080px] overflow-hidden rounded-lg border bg-background">
+        <div className="bg-background relative mx-auto w-full max-w-[1080px] overflow-hidden rounded-lg border">
           <MarketingImage
             alt="Bordful demo board"
             className="w-full"

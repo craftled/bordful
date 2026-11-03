@@ -51,7 +51,7 @@ function LinkMenu({
 }) {
   return (
     <details className="group relative" data-testid={testId}>
-      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md border border-input bg-card px-3 py-1.5 text-sm [&::-webkit-details-marker]:hidden">
+      <summary className="border-input bg-card flex cursor-pointer list-none items-center gap-2 rounded-md border px-3 py-1.5 text-sm [&::-webkit-details-marker]:hidden">
         <span className="text-muted-foreground">{label}</span>
         <span className="font-medium">{value}</span>
         <ChevronDownIcon
@@ -59,15 +59,15 @@ function LinkMenu({
           className="size-4 transition-transform group-open:rotate-180"
         />
       </summary>
-      <ul className="absolute right-0 z-10 mt-1 min-w-full space-y-0.5 rounded-md border border-border bg-popover p-1 shadow-md">
+      <ul className="border-border bg-popover absolute right-0 z-10 mt-1 min-w-full space-y-0.5 rounded-md border p-1 shadow-md">
         {options.map((option) => (
           <li key={option.key}>
             <a
               aria-current={option.active ? "true" : undefined}
               className={
                 option.active
-                  ? "block whitespace-nowrap rounded-sm bg-primary px-2 py-1 text-primary-foreground text-sm"
-                  : "block whitespace-nowrap rounded-sm px-2 py-1 text-sm hover:bg-muted"
+                  ? "bg-primary text-primary-foreground block rounded-sm px-2 py-1 text-sm whitespace-nowrap"
+                  : "hover:bg-muted block rounded-sm px-2 py-1 text-sm whitespace-nowrap"
               }
               data-active={option.active ? "true" : undefined}
               href={option.href}
@@ -104,7 +104,7 @@ export function BoardToolbar({
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="space-y-1">
-        <h2 className="font-semibold text-xl">{title}</h2>
+        <h2 className="text-xl font-semibold">{title}</h2>
         <p
           className="text-muted-foreground text-sm"
           data-count={total}

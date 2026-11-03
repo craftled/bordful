@@ -59,10 +59,10 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
 
   return (
     <li data-job-slug={job.slug} data-origin={job.origin} data-testid="job-row">
-      <article className="relative rounded-lg border bg-card p-4 transition-colors hover:border-zinc-300 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+      <article className="bg-card has-[:focus-visible]:ring-ring relative rounded-lg border p-4 transition-colors hover:border-zinc-300 has-[:focus-visible]:ring-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <h3 className="line-clamp-2 font-medium text-base">
+            <h3 className="line-clamp-2 text-base font-medium">
               <Link
                 className="rounded-sm outline-none after:absolute after:inset-0"
                 data-testid="job-row-link"
@@ -86,7 +86,7 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
           </div>
           <div className="flex items-center gap-2">
             {job.featured ? (
-              <span className="rounded-full bg-primary px-2 py-0.5 font-medium text-primary-foreground text-xs">
+              <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs font-medium">
                 Featured
               </span>
             ) : null}
@@ -98,7 +98,7 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
           </div>
         </div>
         {meta.length > 0 ? (
-          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground text-xs">
+          <p className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             {meta.map((item, index) => (
               <span className="inline-flex items-center gap-2" key={item.key}>
                 {index > 0 ? <span aria-hidden="true">&bull;</span> : null}

@@ -79,7 +79,7 @@ function FilterLink({ active, count, href, label, testId }: FacetOption) {
         {active ? <span className="sr-only"> (selected)</span> : null}
       </span>
       <span
-        className="rounded-full bg-background px-2 text-muted-foreground text-xs tabular-nums"
+        className="bg-background text-muted-foreground rounded-full px-2 text-xs tabular-nums"
         data-count={count}
         data-testid="facet-count"
       >
@@ -104,7 +104,7 @@ function FilterGroupView({ group }: { group: FacetGroup }) {
 
   return (
     <fieldset className="space-y-1">
-      <legend className="mb-2 font-semibold text-sm">{group.title}</legend>
+      <legend className="mb-2 text-sm font-semibold">{group.title}</legend>
       {shown.map((option) => (
         <FilterLink {...option} key={option.testId} />
       ))}
@@ -274,10 +274,10 @@ export function BoardFilters({
   return (
     <aside
       aria-label="Filters"
-      className="self-start rounded-lg border bg-muted p-5"
+      className="bg-muted self-start rounded-lg border p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="hidden font-semibold text-sm md:block">Filters</h2>
+        <h2 className="hidden text-sm font-semibold md:block">Filters</h2>
         {boardQueryHasFilters(query) ? (
           <Link
             className={cn(
@@ -293,7 +293,7 @@ export function BoardFilters({
         <details className="group order-first min-w-0 flex-1 md:order-none md:basis-full md:[&::details-content]:[content-visibility:visible]">
           <summary
             className={cn(
-              "flex cursor-pointer list-none items-center justify-between gap-2 rounded-[var(--radius)] border border-input bg-background px-3 py-2 text-sm supports-[selector(::details-content)]:md:hidden [&::-webkit-details-marker]:hidden",
+              "border-input bg-background flex cursor-pointer list-none items-center justify-between gap-2 rounded-[var(--radius)] border px-3 py-2 text-sm supports-[selector(::details-content)]:md:hidden [&::-webkit-details-marker]:hidden",
               ROW_FOCUS
             )}
           >

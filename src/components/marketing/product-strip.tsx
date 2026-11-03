@@ -18,7 +18,7 @@ export function ProductStrip() {
     >
       <Container className="flex flex-col items-center gap-8">
         <div className="space-y-1 text-center">
-          <h2 className="font-semibold text-lg tracking-tight">
+          <h2 className="text-lg font-semibold tracking-tight">
             Built for makers and founders
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -29,7 +29,7 @@ export function ProductStrip() {
           {PRODUCTS.map((product) => (
             <li key={product.href}>
               <a
-                className="font-semibold text-lg text-muted-foreground tracking-tight hover:text-foreground focus-visible:rounded-sm focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+                className="text-muted-foreground hover:text-foreground focus-visible:text-foreground focus-visible:outline-ring text-lg font-semibold tracking-tight focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
                 href={product.href}
                 rel="noopener noreferrer"
                 target="_blank"

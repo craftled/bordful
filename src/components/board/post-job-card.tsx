@@ -14,21 +14,21 @@ export function PostJobCard({
   return (
     <section
       aria-labelledby={titleId}
-      className="rounded-lg border border-border bg-background p-4"
+      className="border-border bg-background rounded-lg border p-4"
     >
-      <h2 className="font-semibold text-base" id={titleId}>
+      <h2 className="text-base font-semibold" id={titleId}>
         Hiring? Post your job
       </h2>
-      <p className="mt-1 text-muted-foreground text-sm">
+      <p className="text-muted-foreground mt-1 text-sm">
         Reach candidates browsing this board.
       </p>
       <Link
-        className="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 font-medium text-primary-foreground text-sm hover:bg-primary/90"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 inline-flex h-9 w-full items-center justify-center rounded-md px-4 text-sm font-medium"
         href="/post"
       >
         {priceLabel ? `Post a job (${priceLabel})` : "Post a job"}
       </Link>
-      <p className="mt-2 text-center text-muted-foreground text-xs">
+      <p className="text-muted-foreground mt-2 text-center text-xs">
         {durationDays}-day listing
       </p>
     </section>

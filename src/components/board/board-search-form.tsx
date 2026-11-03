@@ -48,13 +48,13 @@ export function BoardSearchForm({
       <div className="relative min-w-0 flex-1">
         <SearchIcon
           aria-hidden
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
         <Input
           className={cn(
             "pl-9",
             hero &&
-              "h-11 border-white bg-white text-zinc-900 focus-visible:border-background focus-visible:ring-background"
+              "focus-visible:border-background focus-visible:ring-background h-11 border-white bg-white text-zinc-900"
           )}
           data-testid="board-search-input"
           defaultValue={query.q}
@@ -75,7 +75,7 @@ export function BoardSearchForm({
       <Button
         className={cn(
           hero &&
-            "h-11 bg-white text-primary hover:bg-zinc-100 focus-visible:ring-background"
+            "text-primary focus-visible:ring-background h-11 bg-white hover:bg-zinc-100"
         )}
         data-testid="board-search-submit"
         type="submit"

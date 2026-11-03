@@ -32,8 +32,8 @@ export function MarketingNotFound({ enabled }: { enabled: boolean }) {
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center px-4 pt-32 text-center">
-      <h1 className="font-medium text-4xl">404</h1>
-      <p className="mt-3 text-muted-foreground">
+      <h1 className="text-4xl font-medium">404</h1>
+      <p className="text-muted-foreground mt-3">
         Sorry, we could not find that page.
       </p>
       <Button asChild className="mt-6 rounded-full">

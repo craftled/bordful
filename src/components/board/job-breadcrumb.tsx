@@ -37,7 +37,7 @@ export function JobBreadcrumb({
         <li aria-hidden="true">
           <ChevronRight className="size-3.5" />
         </li>
-        <li className="min-w-0 truncate text-foreground" title={title}>
+        <li className="text-foreground min-w-0 truncate" title={title}>
           <span aria-current="page">{title}</span>
         </li>
       </ol>
