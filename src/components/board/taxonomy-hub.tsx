@@ -1,73 +1,87 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
-import { loadBoardPool } from "@/lib/board/pool";
-import { countTaxonomy, type TaxonomyFacet } from "@/lib/board/taxonomy";
-import { getSiteSettings } from "@/lib/read";
+import { cn } from "@/lib/utils";
 
-// The footer links to these ids (/jobs#job-types and friends), keep them in sync.
-function Group({
-  facets,
-  id,
-  title,
-}: {
-  facets: TaxonomyFacet[];
-  id: string;
-  title: string;
-}) {
-  const shown = facets.filter((facet) => facet.count > 0);
-  if (shown.length === 0) {
-    return null;
-  }
+export interface Crumb {
+  href?: string;
+  label: string;
+}
 
+export function Crumbs({ items }: { items: Crumb[] }) {
   return (
-    <section aria-labelledby={`${id}-heading`} className="space-y-4" id={id}>
-      <h2 className="text-xl font-semibold" id={`${id}-heading`}>
-        {title}
-      </h2>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {shown.map((facet) => (
-          <li key={facet.slug}>
-            <Link
-              className="bg-background hover:bg-muted focus-visible:outline-ring block rounded-lg border p-4 focus-visible:outline-2 focus-visible:outline-offset-2"
-              data-testid="taxonomy-link"
-              href={facet.href}
-            >
-              <span className="block font-medium">{facet.label}</span>
-              <span className="text-muted-foreground block text-sm">
-                {facet.count} {facet.count === 1 ? "position" : "positions"}
+    <nav
+      aria-label="Breadcrumb"
+      className="text-subtle flex flex-wrap items-center gap-2 text-[13px] leading-4 md:leading-[19px]"
+    >
+      {items.map((item, index) => {
+        const last = index === items.length - 1;
+        return (
+          <span className="flex items-center gap-2" key={item.label}>
+            {index > 0 ? <span aria-hidden="true">/</span> : null}
+            {item.href && !last ? (
+              <Link
+                className="hover:text-foreground transition-colors"
+                href={item.href}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span
+                aria-current={last ? "page" : undefined}
+                className={last ? "text-foreground" : undefined}
+              >
+                {item.label}
               </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+            )}
+          </span>
+        );
+      })}
+    </nav>
   );
 }
 
-export async function TaxonomyHub() {
-  const [settings, cards] = await Promise.all([
-    getSiteSettings(),
-    loadBoardPool(),
-  ]);
-  const counts = countTaxonomy(cards);
-
+export function PageTitle({
+  children,
+  subtitle,
+  tight = false,
+  testId,
+}: {
+  children: ReactNode;
+  subtitle?: ReactNode;
+  // Paper sets the location pages on a 44px line and the rest on 48px.
+  tight?: boolean;
+  testId?: string;
+}) {
   return (
-    <div className="space-y-10" data-testid="taxonomy-hub">
-      <div className="space-y-2">
-        <h1 className="font-[var(--font-heading)] text-3xl font-semibold">
-          {settings.board.title || "Browse jobs"}
-        </h1>
-        {settings.board.description ? (
-          <p className="text-muted-foreground">{settings.board.description}</p>
-        ) : null}
-        <p className="text-muted-foreground text-sm">
-          Open roles grouped by type, level, location, and language.
-        </p>
-      </div>
-      <Group facets={counts.types} id="job-types" title="Job types" />
-      <Group facets={counts.levels} id="levels" title="Levels" />
-      <Group facets={counts.locations} id="locations" title="Locations" />
-      <Group facets={counts.languages} id="languages" title="Languages" />
+    <h1
+      className={cn(
+        "text-foreground text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px]",
+        tight ? "md:leading-[44px]" : "md:leading-[48px]"
+      )}
+      data-testid={testId}
+    >
+      {children}
+      {subtitle ? <span className="text-subtle block">{subtitle}</span> : null}
+    </h1>
+  );
+}
+
+// The padded column every taxonomy and company page sits in: Paper's 1072px
+// content width, 28px above and 72px below on desktop.
+export function PageFrame({
+  children,
+  testId,
+}: {
+  children: ReactNode;
+  testId?: string;
+}) {
+  return (
+    <div
+      className="mx-auto flex w-full max-w-[1104px] flex-col gap-5 px-4 pt-2 pb-7 md:gap-8 md:pt-7 md:pb-[72px]"
+      data-testid={testId}
+    >
+      {children}
     </div>
   );
 }

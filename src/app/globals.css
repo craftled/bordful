@@ -1,52 +1,119 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode follows the system unless <html data-theme="light|dark"> pins it. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+}
 
 /* Fallbacks match DEFAULT_THEME_TOKENS (src/theme/tokens.ts); the layout
-   overrides them at runtime from Site settings. */
+   overrides the ten theme keys at runtime from Site settings. */
 :root {
   --radius: 0.5rem;
-  --background: #ffffff;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --card-foreground: #18181b;
-  --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --primary: #164e63;
+  --background: #f5f5f4;
+  --foreground: #161616;
+  --primary: #161616;
   --primary-foreground: #ffffff;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f9fafb;
-  --muted-foreground: #52525b;
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #164e63;
+  --muted: #f7f7f6;
+  --muted-foreground: #5c5c5c;
+  --accent: #f0f0ef;
+  --accent-foreground: #161616;
+  --border: #e4e4e3;
+  --ring: #161616;
+  /* Bordful 1.0 surfaces and status colors (Paper design tokens). */
+  --card: #ffffff;
+  --card-foreground: #161616;
+  --popover: #ffffff;
+  --popover-foreground: #161616;
+  --secondary: #f0f0ef;
+  --secondary-foreground: #161616;
+  --surface: #ffffff;
+  --surface-sub: #f7f7f6;
+  --selected: #f7f7f6;
+  --tag: #f0f0ef;
+  --line: rgb(0 0 0 / 7%);
+  --line-strong: rgb(0 0 0 / 10%);
+  --text-subtle: #8e8e8e;
+  --featured: #1a6fe0;
+  --new: #15803d;
+  --closing: #b45309;
+  --destructive: #c62828;
+  --input: rgb(0 0 0 / 10%);
   color-scheme: light;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+/* Two-class selectors outrank the Site settings :root override, so the
+   Paper dark palette wins in dark mode. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0e0e0e;
+    --foreground: #ededed;
+    --card: #171717;
+    --card-foreground: #ededed;
+    --popover: #171717;
+    --popover-foreground: #ededed;
+    --primary: #ededed;
+    --primary-foreground: #121212;
+    --secondary: rgb(255 255 255 / 5%);
+    --secondary-foreground: #ededed;
+    --muted: #1f1f1f;
+    --muted-foreground: #a0a0a0;
+    --accent: rgb(255 255 255 / 5%);
+    --accent-foreground: #ededed;
+    --border: rgb(255 255 255 / 8%);
+    --input: rgb(255 255 255 / 8%);
+    --ring: #ededed;
+    --surface: #171717;
+    --surface-sub: #1f1f1f;
+    --selected: #1c1c1c;
+    --tag: rgb(255 255 255 / 5%);
+    --line: rgb(255 255 255 / 6%);
+    --line-strong: rgb(255 255 255 / 8%);
+    --text-subtle: #757575;
+    --featured: #5aa7ff;
+    --new: #4cc38a;
+    --closing: #f1a10d;
+    --destructive: #f87171;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --background: #0e0e0e;
+  --foreground: #ededed;
+  --card: #171717;
+  --card-foreground: #ededed;
+  --popover: #171717;
+  --popover-foreground: #ededed;
+  --primary: #ededed;
+  --primary-foreground: #121212;
+  --secondary: rgb(255 255 255 / 5%);
+  --secondary-foreground: #ededed;
+  --muted: #1f1f1f;
+  --muted-foreground: #a0a0a0;
+  --accent: rgb(255 255 255 / 5%);
+  --accent-foreground: #ededed;
+  --border: rgb(255 255 255 / 8%);
+  --input: rgb(255 255 255 / 8%);
+  --ring: #ededed;
+  --surface: #171717;
+  --surface-sub: #1f1f1f;
+  --selected: #1c1c1c;
+  --tag: rgb(255 255 255 / 5%);
+  --line: rgb(255 255 255 / 6%);
+  --line-strong: rgb(255 255 255 / 8%);
+  --text-subtle: #757575;
+  --featured: #5aa7ff;
+  --new: #4cc38a;
+  --closing: #f1a10d;
+  --destructive: #f87171;
   color-scheme: dark;
 }
 
@@ -71,6 +138,18 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-sub: var(--surface-sub);
+  --color-selected: var(--selected);
+  --color-tag: var(--tag);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-subtle: var(--text-subtle);
+  --color-featured: var(--featured);
+  --color-new: var(--new);
+  --color-closing: var(--closing);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -110,77 +189,112 @@ textarea:focus-visible {
   outline-color: var(--background);
 }
 
-/* Hand-written port of the old Bordful .markdown-content rules. */
-.bordful-prose {
-  @apply max-w-none text-foreground text-sm leading-relaxed;
+/* Job description type from the Paper job page: 16/20 body (17/28 from md),
+   small uppercase section labels. Layered so utilities can still override. */
+@layer components {
+  .bordful-prose {
+    @apply max-w-none text-[16px] text-foreground leading-5 md:text-[17px] md:text-foreground/83 md:leading-7 md:dark:text-muted-foreground;
 
-  h1 {
-    @apply mb-2 font-semibold text-2xl;
-  }
-  h2 {
-    @apply mb-2 font-semibold text-xl;
-  }
-  h3 {
-    @apply mb-2 font-semibold text-lg;
-  }
-  h4 {
-    @apply mb-2 font-semibold text-base;
-  }
+    /* Payload's RichText wraps the blocks in a div; edges are on either level. */
+    > :first-child,
+    > .payload-richtext > :first-child {
+      @apply mt-0;
+    }
+    > :last-child,
+    > .payload-richtext > :last-child {
+      @apply mb-0;
+    }
 
-  p,
-  ul,
-  ol {
-    @apply mb-4 text-sm leading-relaxed;
-  }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      @apply mt-5 mb-2 font-medium font-mono text-[11px] text-subtle uppercase leading-[14px] tracking-[0.04em] md:mt-9 md:mb-2.5 md:font-sans md:text-[13px] md:leading-4 md:tracking-[0.02em];
+    }
 
-  ul {
-    @apply list-disc space-y-1 pl-4;
-  }
-  ol {
-    @apply list-decimal space-y-1 pl-4;
-  }
-  ul ul,
-  ol ol,
-  ul ol,
-  ol ul {
-    @apply mt-1 mb-1;
-  }
+    p {
+      @apply mb-5 md:mb-6;
+    }
+    ul,
+    ol {
+      @apply mb-5 md:mb-9;
+    }
+    /* A lead-in line sits on its list, like a Paper section label. */
+    p:has(+ ul),
+    p:has(+ ol) {
+      @apply mb-2 md:mb-2.5;
+    }
 
-  a {
-    @apply text-primary no-underline underline-offset-2;
-  }
-  a:hover {
-    @apply underline;
-  }
+    /* Paper list items: 15/18 secondary text on phones, body text from md. */
+    li {
+      @apply text-[15px] text-muted-foreground leading-[18px] md:text-[17px] md:text-inherit md:leading-7;
+    }
 
-  pre {
-    @apply mb-4 overflow-x-auto rounded-lg bg-muted p-4 text-sm;
-  }
-  code {
-    @apply rounded bg-muted px-1.5 py-0.5 font-normal text-foreground text-sm;
-  }
-  pre code {
-    @apply bg-transparent p-0;
-  }
+    /* Paper bullets: a subtle "•", 10px (12px from md) from the text. */
+    ul {
+      @apply list-none space-y-2 pl-0 md:space-y-2.5;
+    }
+    ul > li {
+      @apply relative pl-[15px] md:pl-[18px];
+    }
+    ul > li::before {
+      @apply absolute left-0 text-[14px] text-subtle content-['•'] md:text-[17px];
+    }
 
-  blockquote {
-    @apply my-4 border-border border-l-4 pl-4 text-muted-foreground italic;
-  }
+    /* Paper steps: the number sits in a 24px ring, 14px from the text. */
+    ol {
+      @apply list-none space-y-3.5 pl-0 [counter-reset:bordful-step];
+    }
+    ol > li {
+      @apply relative min-h-6 pl-[38px] [counter-increment:bordful-step];
+    }
+    ol > li::before {
+      @apply absolute -top-[3px] left-0 flex size-6 items-center justify-center rounded-full font-medium text-[12px] text-muted-foreground leading-[14px] ring-1 ring-line-strong ring-inset content-[counter(bordful-step)] md:top-0.5;
+    }
 
-  table {
-    @apply mb-4 w-full border-collapse text-sm;
-  }
-  thead {
-    @apply bg-muted;
-  }
-  th,
-  td {
-    @apply border border-border px-3 py-2 text-left;
-  }
-  th {
-    @apply font-medium text-foreground;
-  }
-  tr:nth-child(even) {
-    @apply bg-muted;
+    ul ul,
+    ol ol,
+    ul ol,
+    ol ul {
+      @apply mt-2 mb-2 md:mt-2.5 md:mb-2.5;
+    }
+
+    a {
+      @apply text-foreground underline decoration-line-strong underline-offset-2;
+    }
+    a:hover {
+      @apply decoration-current;
+    }
+
+    strong {
+      @apply font-medium text-foreground;
+    }
+
+    pre {
+      @apply mb-6 overflow-x-auto rounded-lg bg-surface-sub p-4 text-[13px];
+    }
+    code {
+      @apply rounded bg-tag px-1.5 py-0.5 font-mono text-[0.875em] text-foreground;
+    }
+    pre code {
+      @apply bg-transparent p-0;
+    }
+
+    blockquote {
+      @apply my-6 border-line-strong border-l-2 pl-4 text-muted-foreground;
+    }
+
+    table {
+      @apply mb-6 w-full border-collapse text-[14px];
+    }
+    th,
+    td {
+      @apply border border-line px-3 py-2 text-left;
+    }
+    th {
+      @apply bg-surface-sub font-medium text-foreground;
+    }
   }
 }

@@ -25,7 +25,7 @@ export default async function LocationArchivePage({
   redirectTaxonomyAlias("location", value, 1);
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="location" page={1} value={value} />
     </BoardShell>
   );

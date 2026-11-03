@@ -25,7 +25,9 @@ test("marketing not found is the plain stub when the flag is off", () => {
   expect(screen.getByRole("link", { name: "Home" }).getAttribute("href")).toBe(
     "/"
   );
-  expect(screen.queryByText("Sorry, we could not find that page.")).toBeNull();
+  expect(
+    screen.queryByText("Sorry, we couldn't find the page you're looking for.")
+  ).toBeNull();
   expect(screen.queryByTestId("marketing-header")).toBeNull();
 });
 
@@ -34,8 +36,10 @@ test("marketing not found is branded when the flag is on", () => {
   render(<NotFound />);
 
   expect(screen.getByRole("heading", { name: "404" })).toBeTruthy();
-  expect(screen.getByText("Sorry, we could not find that page.")).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Home" }).getAttribute("href")).toBe(
-    "/"
-  );
+  expect(
+    screen.getByText("Sorry, we couldn't find the page you're looking for.")
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "Go Home" }).getAttribute("href")
+  ).toBe("/");
 });

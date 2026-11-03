@@ -25,7 +25,7 @@ export default async function LevelArchivePage({
   redirectTaxonomyAlias("level", value, 1);
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="level" page={1} value={value} />
     </BoardShell>
   );

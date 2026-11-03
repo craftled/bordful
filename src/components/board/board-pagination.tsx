@@ -8,7 +8,7 @@ import type { BoardQuery, BoardQueryOptions } from "@/lib/board/query";
 import { cn } from "@/lib/utils";
 
 const CONTROL =
-  "inline-flex h-9 items-center gap-1 rounded-[var(--radius)] border border-input bg-background px-3 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  "inline-flex h-7 items-center gap-1 rounded-[6px] px-2 text-[12px] leading-4 text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 function pageHref(
   nextPage: number,
@@ -52,7 +52,7 @@ export function BoardPagination({
   return (
     <nav
       aria-label="Pagination"
-      className="mt-6 flex flex-wrap items-center justify-center gap-2"
+      className="flex min-h-10 flex-wrap items-center justify-center gap-1 py-1.5"
       data-testid="pagination"
     >
       {page > 1 ? (
@@ -61,15 +61,15 @@ export function BoardPagination({
           data-testid="pagination-prev"
           href={hrefOf(page - 1)}
         >
-          <ChevronLeft aria-hidden="true" className="size-4" />
+          <ChevronLeft aria-hidden="true" className="size-3.5" />
           Previous
         </Link>
       ) : (
         <span
           aria-disabled="true"
-          className={cn(CONTROL, "text-muted-foreground pointer-events-none")}
+          className={cn(CONTROL, "text-subtle pointer-events-none")}
         >
-          <ChevronLeft aria-hidden="true" className="size-4" />
+          <ChevronLeft aria-hidden="true" className="size-3.5" />
           Previous
         </span>
       )}
@@ -77,7 +77,7 @@ export function BoardPagination({
         slot === "gap" ? (
           <span
             aria-hidden="true"
-            className="text-muted-foreground px-2 text-sm"
+            className="text-subtle px-1 text-[12px]"
             // biome-ignore lint/suspicious/noArrayIndexKey: a gap never reorders, so its position is a stable key
             key={`gap-${index}`}
           >
@@ -89,9 +89,9 @@ export function BoardPagination({
             aria-label={`Page ${slot}`}
             className={cn(
               CONTROL,
-              "min-w-9 justify-center",
+              "min-w-7 justify-center tabular-nums",
               slot === page &&
-                "border-primary bg-primary text-primary-foreground hover:bg-primary"
+                "bg-card text-foreground ring-line font-medium shadow-xs ring-1"
             )}
             data-testid={`pagination-page-${slot}`}
             href={hrefOf(slot)}
@@ -108,15 +108,15 @@ export function BoardPagination({
           href={hrefOf(page + 1)}
         >
           Next
-          <ChevronRight aria-hidden="true" className="size-4" />
+          <ChevronRight aria-hidden="true" className="size-3.5" />
         </Link>
       ) : (
         <span
           aria-disabled="true"
-          className={cn(CONTROL, "text-muted-foreground pointer-events-none")}
+          className={cn(CONTROL, "text-subtle pointer-events-none")}
         >
           Next
-          <ChevronRight aria-hidden="true" className="size-4" />
+          <ChevronRight aria-hidden="true" className="size-3.5" />
         </span>
       )}
     </nav>

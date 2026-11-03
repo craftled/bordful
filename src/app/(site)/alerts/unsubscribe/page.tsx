@@ -33,27 +33,29 @@ export default async function UnsubscribePage({
 
   return (
     <BoardShell>
-      <section className="bg-card text-card-foreground mx-auto flex w-full max-w-xl flex-col gap-4 rounded-xl border p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <section className="mx-auto flex w-full max-w-[520px] flex-col items-center gap-6 px-0 py-12 text-center">
+        <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
           Unsubscribe from job alerts
         </h1>
-        {subscriber ? (
-          <>
-            <p>This stops job alerts for this subscription.</p>
-            <TokenActionForm
-              action={unsubscribeAction}
-              buttonTestId="alerts-unsubscribe-button"
-              doneTestId="alerts-unsubscribed"
-              invalidText="This unsubscribe link is not valid."
-              submitLabel="Unsubscribe"
-              token={token}
-            />
-          </>
-        ) : (
-          <p data-testid="alerts-invalid-token">
-            This unsubscribe link is not valid.
-          </p>
-        )}
+        <div className="bg-card border-line text-muted-foreground flex w-full flex-col items-center gap-4 rounded-[14px] border p-5 text-[14px]">
+          {subscriber ? (
+            <>
+              <p>This stops job alerts for this subscription.</p>
+              <TokenActionForm
+                action={unsubscribeAction}
+                buttonTestId="alerts-unsubscribe-button"
+                doneTestId="alerts-unsubscribed"
+                invalidText="This unsubscribe link is not valid."
+                submitLabel="Unsubscribe"
+                token={token}
+              />
+            </>
+          ) : (
+            <p data-testid="alerts-invalid-token">
+              This unsubscribe link is not valid.
+            </p>
+          )}
+        </div>
       </section>
     </BoardShell>
   );

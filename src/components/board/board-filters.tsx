@@ -1,7 +1,9 @@
-import { Check, ChevronDown } from "lucide-react";
+import { ListFilter, X } from "lucide-react";
 import Link from "next/link";
 import type { BoardFacets } from "@/lib/board/filter";
+import { SENIORITY_LABELS } from "@/lib/board/format";
 import { boardStateHref } from "@/lib/board/links";
+import { slugifyTaxonomyValue } from "@/lib/board/paths";
 import {
   type BoardQuery,
   type BoardQueryOptions,
@@ -13,24 +15,15 @@ import { languageLabel } from "@/lib/board/taxonomy";
 import {
   JOB_EMPLOYMENT_LABELS,
   type JobEmploymentType,
-  type JobSeniority,
   SALARY_BAND_IDS,
   type SalaryBandId,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
 import { cn } from "@/lib/utils";
 
-const SENIORITY_LABELS: Record<JobSeniority, string> = {
-  c_level: "C-level",
-  director: "Director",
-  entry: "Entry",
-  intern: "Intern",
-  lead: "Lead",
-  mid: "Mid",
-  principal: "Principal",
-  senior: "Senior",
-  vp: "VP",
-};
+// The rail doubles as the phone filter sheet. The toolbar's filter buttons
+// open it with the native popover API, so it needs no client JS.
+export const FILTERS_SHEET_ID = "board-filters";
 
 // Longer groups show this many options, the rest sit behind "Show more".
 const GROUP_PREVIEW = 5;
@@ -38,7 +31,7 @@ const GROUP_PREVIEW = 5;
 const ROW_FOCUS =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
-interface FacetOption {
+export interface FacetOption {
   active: boolean;
   count: number;
   href: string;
@@ -46,88 +39,16 @@ interface FacetOption {
   testId: string;
 }
 
-interface FacetGroup {
+export interface FacetGroup {
+  // Short name for the toolbar chip ("Type", "Level").
+  chip: string;
+  // Drops every value of this group, keeping the rest of the query.
+  clearHref: string;
+  id: string;
   options: FacetOption[];
   title: string;
-}
-
-function FilterLink({ active, count, href, label, testId }: FacetOption) {
-  return (
-    <Link
-      aria-current={active ? "true" : undefined}
-      className={cn(
-        "flex items-center gap-2 rounded-[var(--radius)] px-2 py-1 text-sm hover:underline",
-        ROW_FOCUS
-      )}
-      data-active={active ? "true" : undefined}
-      data-testid={testId}
-      href={href}
-    >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex size-4 shrink-0 items-center justify-center rounded-sm border",
-          active
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-input bg-background"
-        )}
-      >
-        {active ? <Check className="size-3" /> : null}
-      </span>
-      <span className="min-w-0 flex-1">
-        {label}
-        {active ? <span className="sr-only"> (selected)</span> : null}
-      </span>
-      <span
-        className="bg-background text-muted-foreground rounded-full px-2 text-xs tabular-nums"
-        data-count={count}
-        data-testid="facet-count"
-      >
-        {count}
-      </span>
-    </Link>
-  );
-}
-
-// Options with no results are dropped, but an active one stays so the user
-// can always clear it.
-function FilterGroupView({ group }: { group: FacetGroup }) {
-  const visible = group.options.filter(
-    (option) => option.active || option.count > 0
-  );
-  if (visible.length === 0) {
-    return null;
-  }
-
-  const shown = visible.slice(0, GROUP_PREVIEW);
-  const more = visible.slice(GROUP_PREVIEW);
-
-  return (
-    <fieldset className="space-y-1">
-      <legend className="mb-2 text-sm font-semibold">{group.title}</legend>
-      {shown.map((option) => (
-        <FilterLink {...option} key={option.testId} />
-      ))}
-      {more.length > 0 ? (
-        <details className="group" open={more.some((option) => option.active)}>
-          <summary
-            className={cn(
-              "w-fit cursor-pointer list-none rounded-[var(--radius)] px-2 py-1 text-sm underline underline-offset-4 [&::-webkit-details-marker]:hidden",
-              ROW_FOCUS
-            )}
-          >
-            <span className="group-open:hidden">Show more</span>
-            <span className="hidden group-open:inline">Show less</span>
-          </summary>
-          <div className="space-y-1">
-            {more.map((option) => (
-              <FilterLink {...option} key={option.testId} />
-            ))}
-          </div>
-        </details>
-      ) : null}
-    </fieldset>
-  );
+  // A single on/off option (remote, visa) renders as a switch.
+  toggle: boolean;
 }
 
 function toggleValue<T extends string>(
@@ -142,7 +63,25 @@ function toggleValue<T extends string>(
   return [...values, value];
 }
 
-export function BoardFilters({
+// An active category no job carries any more still gets an option, so it
+// can be cleared.
+function categoryFacets(facets: BoardFacets, query: BoardQuery) {
+  const known = new Set(facets.categories.map((facet) => facet.value));
+  return [
+    ...facets.categories,
+    ...query.categories
+      .filter((value) => !known.has(value))
+      .map((value) => ({ count: 0, label: value, value })),
+  ];
+}
+
+// Options with no results are dropped, but an active one stays so the user
+// can always clear it.
+export function visibleOptions(group: FacetGroup): FacetOption[] {
+  return group.options.filter((option) => option.active || option.count > 0);
+}
+
+export function buildFilterGroups({
   facets,
   marketing,
   options,
@@ -152,7 +91,7 @@ export function BoardFilters({
   marketing: boolean;
   options: BoardQueryOptions;
   query: BoardQuery;
-}) {
+}): FacetGroup[] {
   const hrefFor = (next: BoardQuery) =>
     boardStateHref({ ...next, page: 1 }, options, marketing);
   const typeCounts = new Map(
@@ -165,16 +104,31 @@ export function BoardFilters({
     facets.salary.map((facet) => [facet.value, facet.count])
   );
 
-  const activeCount =
-    query.types.length +
-    query.seniority.length +
-    query.salary.length +
-    query.languages.length +
-    (query.remote ? 1 : 0) +
-    (query.visa ? 1 : 0);
-
-  const groups: FacetGroup[] = [
+  return [
     {
+      chip: "Category",
+      clearHref: hrefFor({ ...query, categories: [] }),
+      id: "category",
+      options: categoryFacets(facets, query).map((facet) => {
+        const active = query.categories.includes(facet.value);
+        return {
+          active,
+          count: facet.count,
+          href: hrefFor({
+            ...query,
+            categories: toggleValue(query.categories, facet.value, active),
+          }),
+          label: facet.label ?? facet.value,
+          testId: `filter-category-${slugifyTaxonomyValue(facet.value)}`,
+        };
+      }),
+      title: "Category",
+      toggle: false,
+    },
+    {
+      chip: "Type",
+      clearHref: hrefFor({ ...query, types: [] }),
+      id: "type",
       options: facets.types.map((facet) => {
         const value = facet.value as JobEmploymentType;
         const active = query.types.includes(value);
@@ -190,20 +144,12 @@ export function BoardFilters({
         };
       }),
       title: "Job type",
+      toggle: false,
     },
     {
-      options: [
-        {
-          active: query.remote,
-          count: facets.remote,
-          href: hrefFor({ ...query, remote: !query.remote }),
-          label: "Remote only",
-          testId: "filter-remote",
-        },
-      ],
-      title: "Workplace",
-    },
-    {
+      chip: "Level",
+      clearHref: hrefFor({ ...query, seniority: [] }),
+      id: "level",
       options: SENIORITIES.map((level) => {
         const active = query.seniority.includes(level);
         return {
@@ -218,8 +164,12 @@ export function BoardFilters({
         };
       }),
       title: "Level",
+      toggle: false,
     },
     {
+      chip: "Salary",
+      clearHref: hrefFor({ ...query, salary: [] }),
+      id: "salary",
       options: SALARY_BAND_IDS.map((band, index) => {
         const active = query.salary.includes(band);
         return {
@@ -234,20 +184,12 @@ export function BoardFilters({
         };
       }),
       title: "Salary range",
+      toggle: false,
     },
     {
-      options: [
-        {
-          active: query.visa,
-          count: facets.visa,
-          href: hrefFor({ ...query, visa: !query.visa }),
-          label: "Visa sponsorship",
-          testId: "filter-visa",
-        },
-      ],
-      title: "Visa sponsorship",
-    },
-    {
+      chip: "Language",
+      clearHref: hrefFor({ ...query, languages: [] }),
+      id: "language",
       options: facets.languages.map((facet) => {
         const active = query.languages.includes(facet.value);
         return {
@@ -262,57 +204,498 @@ export function BoardFilters({
         };
       }),
       title: "Language",
+      toggle: false,
+    },
+    {
+      chip: "Remote",
+      clearHref: hrefFor({ ...query, remote: false }),
+      id: "remote",
+      options: [
+        {
+          active: query.remote,
+          count: facets.remote,
+          href: hrefFor({ ...query, remote: !query.remote }),
+          label: "Remote only",
+          testId: "filter-remote",
+        },
+      ],
+      title: "Workplace",
+      toggle: true,
+    },
+    {
+      chip: "Visa sponsorship",
+      clearHref: hrefFor({ ...query, visa: false }),
+      id: "visa",
+      options: [
+        {
+          active: query.visa,
+          count: facets.visa,
+          href: hrefFor({ ...query, visa: !query.visa }),
+          label: "Visa sponsorship",
+          testId: "filter-visa",
+        },
+      ],
+      title: "Visa sponsorship",
+      toggle: true,
     },
   ];
+}
 
-  // One DOM tree for both breakpoints. Below md the header row and the
-  // disclosure form one bar: the disclosure sits first and takes the free
-  // width, Clear all stays on its right. Above md the header comes first and
-  // the disclosure wraps onto its own line, forced open by the details class.
-  // Browsers without ::details-content keep the summary on md+ so the groups
-  // stay reachable behind it.
+function Switch({ on, size }: { on: boolean; size: "lg" | "sm" }) {
   return (
-    <aside
-      aria-label="Filters"
-      className="bg-muted self-start rounded-lg border p-5"
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex shrink-0 rounded-full transition-colors",
+        size === "lg" ? "h-[26px] w-11 p-[3px]" : "h-3.5 w-6 p-0.5",
+        on && "bg-primary",
+        !on &&
+          (size === "lg"
+            ? "bg-line-strong"
+            : "bg-tag ring-line-strong ring-1 ring-inset")
+      )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="hidden text-sm font-semibold md:block">Filters</h2>
-        {boardQueryHasFilters(query) ? (
-          <Link
-            className={cn(
-              "shrink-0 py-2 text-sm underline underline-offset-4 md:py-0",
-              ROW_FOCUS
-            )}
-            data-testid="filter-clear"
-            href={boardStateHref(clearBoardFilters(query), options, marketing)}
-          >
-            Clear all
-          </Link>
-        ) : null}
-        <details className="group order-first min-w-0 flex-1 md:order-none md:basis-full md:[&::details-content]:[content-visibility:visible]">
+      <span
+        className={cn(
+          "rounded-full transition-transform",
+          size === "lg" ? "size-5" : "size-2.5",
+          on && (size === "lg" ? "translate-x-[18px]" : "translate-x-2.5"),
+          on && "bg-primary-foreground",
+          !on &&
+            (size === "lg"
+              ? "dark:bg-subtle bg-white shadow-[0_1px_2px_rgb(0_0_0/0.2)]"
+              : "bg-subtle")
+        )}
+      />
+    </span>
+  );
+}
+
+// A pill in the phone sheet, or a row with a switch for on/off groups. The
+// desktop chips carry the e2e test ids, so these get a "sheet-" prefix.
+function FilterLink({
+  active,
+  href,
+  label,
+  testId,
+  toggle,
+}: FacetOption & { toggle: boolean }) {
+  return (
+    <Link
+      aria-current={active ? "true" : undefined}
+      className={cn(
+        ROW_FOCUS,
+        "items-center gap-2 transition-colors",
+        toggle
+          ? "flex w-full justify-between text-[15px] font-medium"
+          : "inline-flex h-9 rounded-full px-3.5 text-[14px] font-medium ring-1 ring-inset",
+        !toggle &&
+          (active
+            ? "bg-primary text-primary-foreground ring-primary"
+            : "text-foreground ring-line-strong")
+      )}
+      data-active={active ? "true" : undefined}
+      data-testid={`sheet-${testId}`}
+      href={href}
+    >
+      <span className="min-w-0 truncate">
+        {label}
+        {active ? <span className="sr-only"> (selected)</span> : null}
+      </span>
+      {toggle ? <Switch on={active} size="lg" /> : null}
+    </Link>
+  );
+}
+
+function FilterGroupView({ group }: { group: FacetGroup }) {
+  const visible = visibleOptions(group);
+  if (visible.length === 0) {
+    return null;
+  }
+
+  const shown = visible.slice(0, GROUP_PREVIEW);
+  const more = visible.slice(GROUP_PREVIEW);
+  const list = "flex flex-wrap gap-2";
+
+  return (
+    <fieldset className="border-line min-w-0 border-t px-5 py-4">
+      <legend
+        className={cn(
+          "float-left mb-2.5 w-full text-[15px] font-medium",
+          group.toggle && "sr-only"
+        )}
+      >
+        {group.title}
+      </legend>
+      <div className={cn("clear-left", list)}>
+        {shown.map((option) => (
+          <FilterLink {...option} key={option.testId} toggle={group.toggle} />
+        ))}
+      </div>
+      {more.length > 0 ? (
+        <details
+          className="group mt-2"
+          open={more.some((option) => option.active)}
+        >
           <summary
             className={cn(
-              "border-input bg-background flex cursor-pointer list-none items-center justify-between gap-2 rounded-[var(--radius)] border px-3 py-2 text-sm supports-[selector(::details-content)]:md:hidden [&::-webkit-details-marker]:hidden",
+              "text-muted-foreground hover:text-foreground w-fit cursor-pointer list-none rounded-[6px] text-[13px] [&::-webkit-details-marker]:hidden",
               ROW_FOCUS
             )}
           >
-            <span className="font-semibold">
-              Filters{activeCount > 0 ? ` (${activeCount})` : ""}
-            </span>
-            <ChevronDown
-              aria-hidden="true"
-              className="size-4 transition-transform group-open:rotate-180"
-            />
+            <span className="group-open:hidden">Show more</span>
+            <span className="hidden group-open:inline">Show less</span>
           </summary>
-          <div className="mt-4 space-y-6 md:mt-0">
-            {groups.map((group) => (
-              <FilterGroupView group={group} key={group.title} />
+          <div className={cn("mt-2", list)}>
+            {more.map((option) => (
+              <FilterLink
+                {...option}
+                key={option.testId}
+                toggle={group.toggle}
+              />
             ))}
           </div>
         </details>
+      ) : null}
+    </fieldset>
+  );
+}
+
+function resultsLabel(total: number): string {
+  return total === 1 ? "Show 1 job" : `Show ${total} jobs`;
+}
+
+// The phone filter sheet: a native popover styled as a bottom sheet, opened
+// by the toolbar's filter chips, so it needs no client JS. From lg up the
+// toolbar chips do this job and the sheet stays hidden.
+export function BoardFilters({
+  facets,
+  marketing,
+  options,
+  query,
+  total,
+}: {
+  facets: BoardFacets;
+  marketing: boolean;
+  options: BoardQueryOptions;
+  query: BoardQuery;
+  total?: number;
+}) {
+  const groups = buildFilterGroups({ facets, marketing, options, query });
+  const hasFilters = boardQueryHasFilters(query);
+
+  return (
+    <aside
+      aria-label="Filters"
+      className="bg-card text-foreground fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-2xl border-0 p-0 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_-16px_48px_rgb(0_0_0/0.16)] backdrop:bg-black/30 lg:hidden"
+      id={FILTERS_SHEET_ID}
+      popover="auto"
+    >
+      <div className="bg-card sticky top-0 z-10">
+        <div className="flex justify-center pt-2">
+          <span className="bg-line-strong h-[5px] w-9 rounded-full" />
+        </div>
+        <div className="flex items-center justify-between px-5 pt-2.5 pb-3.5">
+          {hasFilters ? (
+            <Link
+              className={cn("text-muted-foreground text-[15px]", ROW_FOCUS)}
+              href={boardStateHref(
+                clearBoardFilters(query),
+                options,
+                marketing
+              )}
+            >
+              Reset
+            </Link>
+          ) : (
+            <span className="text-subtle text-[15px]">Reset</span>
+          )}
+          <h2 className="text-[17px] leading-[22px] font-medium">Filters</h2>
+          <button
+            className={cn("text-[15px] font-medium", ROW_FOCUS)}
+            popoverTarget={FILTERS_SHEET_ID}
+            popoverTargetAction="hide"
+            type="button"
+          >
+            Done
+          </button>
+        </div>
       </div>
+      <div>
+        {groups.map((group) => (
+          <FilterGroupView group={group} key={group.id} />
+        ))}
+      </div>
+      {total === undefined ? null : (
+        <div className="bg-card border-line sticky bottom-0 border-t px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <button
+            className={cn(
+              "bg-primary text-primary-foreground flex h-12 w-full items-center justify-center rounded-[12px] text-[16px] font-medium",
+              ROW_FOCUS
+            )}
+            popoverTarget={FILTERS_SHEET_ID}
+            popoverTargetAction="hide"
+            type="button"
+          >
+            {resultsLabel(total)}
+          </button>
+        </div>
+      )}
     </aside>
+  );
+}
+
+const CHIP =
+  "flex h-7 shrink-0 items-center gap-1.5 rounded-[8px] bg-card px-2 text-[13px] leading-[18px] ring-1 ring-line-strong ring-inset";
+const PHONE_CHIP =
+  "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[14px] leading-[18px] ring-1 ring-line-strong ring-inset";
+
+function Caret() {
+  return (
+    <span aria-hidden="true" className="text-subtle text-[10px] leading-3">
+      ▾
+    </span>
+  );
+}
+
+// What the popover footer needs: the current list URL and its size.
+export interface ChipMenuFooter {
+  currentHref: string;
+  total: number;
+}
+
+function showLabel(total: number): string {
+  return total === 1 ? "Show 1 job" : `Show ${total} jobs`;
+}
+
+// Desktop: a chip that drops down the group's options. <details> keeps it
+// usable without JS; every option is a crawlable link. The scrim sits inside
+// the summary, so a click on it closes the menu. The details stays static so
+// the scrim spans the toolbar (the positioned ancestor) and everything below.
+function ChipMenu({
+  footer,
+  group,
+}: {
+  footer?: ChipMenuFooter;
+  group: FacetGroup;
+}) {
+  const visible = visibleOptions(group);
+  const active = visible.filter((option) => option.active);
+
+  return (
+    <details className="group hidden lg:block">
+      <summary
+        className={cn(
+          CHIP,
+          "group-open:ring-subtle cursor-pointer list-none [&::-webkit-details-marker]:hidden",
+          ROW_FOCUS
+        )}
+        data-testid={`filter-chip-${group.id}`}
+      >
+        <span className="text-muted-foreground">{group.chip}</span>
+        {active.length > 0 ? (
+          <span className="text-foreground max-w-40 truncate font-medium">
+            {active.map((option) => option.label).join(", ")}
+          </span>
+        ) : null}
+        <Caret />
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-full z-20 hidden h-screen cursor-default bg-black/25 group-open:block dark:bg-black/55"
+        />
+      </summary>
+      <div className="relative h-0">
+        <div className="bg-popover text-popover-foreground ring-line absolute top-0 left-0 z-30 mt-4 flex w-[300px] flex-col gap-3 rounded-[12px] p-3.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.04),0_32px_64px_-16px_rgb(0_0_0/0.25)] ring-1 dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.04),0_32px_64px_-16px_rgb(0_0_0/0.75)]">
+          <p className="text-foreground text-[13px] leading-[18px] font-medium">
+            {group.title}
+          </p>
+          <ul className="border-line flex max-h-80 flex-col gap-0.5 overflow-y-auto border-t pt-2">
+            {visible.map((option) => (
+              <li key={option.testId}>
+                <Link
+                  aria-current={option.active ? "true" : undefined}
+                  className={cn(
+                    "text-foreground flex h-8 items-center gap-2.5 rounded-[6px] px-2 text-[13px] leading-[18px] whitespace-nowrap",
+                    option.active ? "bg-tag" : "hover:bg-tag",
+                    ROW_FOCUS
+                  )}
+                  data-active={option.active ? "true" : undefined}
+                  data-testid={option.testId}
+                  href={option.href}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "flex size-4 shrink-0 items-center justify-center rounded-[5px] text-[10px] leading-[10px]",
+                      option.active
+                        ? "bg-foreground text-background"
+                        : "ring-line-strong ring-1 ring-inset"
+                    )}
+                  >
+                    {option.active ? "✓" : null}
+                  </span>
+                  <span className="min-w-0 grow truncate">
+                    {option.label}
+                    {option.active ? (
+                      <span className="sr-only"> (selected)</span>
+                    ) : null}
+                  </span>
+                  <span
+                    className="text-subtle shrink-0 text-[12px] leading-4 tabular-nums"
+                    data-count={option.count}
+                    data-testid="facet-count"
+                  >
+                    {option.count}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {footer ? (
+            <div className="flex items-center gap-1.5">
+              <div className="flex grow">
+                {active.length > 0 ? (
+                  <Link
+                    className={cn(
+                      "text-subtle hover:text-foreground rounded-sm py-[5px] text-[13px] leading-[18px]",
+                      ROW_FOCUS
+                    )}
+                    href={group.clearHref}
+                  >
+                    Reset
+                  </Link>
+                ) : null}
+              </div>
+              <Link
+                className={cn(
+                  "bg-primary text-primary-foreground hover:bg-primary/90 flex h-7 shrink-0 items-center rounded-[8px] px-2.5 text-[13px] leading-[18px] font-medium",
+                  ROW_FOCUS
+                )}
+                href={footer.currentHref}
+              >
+                {showLabel(footer.total)}
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </details>
+  );
+}
+
+function ToggleChip({ group }: { group: FacetGroup }) {
+  const [option] = group.options;
+  if (option === undefined) {
+    return null;
+  }
+
+  return (
+    <Link
+      aria-current={option.active ? "true" : undefined}
+      className={cn(CHIP, "hidden gap-2 lg:flex", ROW_FOCUS)}
+      data-active={option.active ? "true" : undefined}
+      data-testid={option.testId}
+      href={option.href}
+    >
+      <span
+        className={
+          option.active
+            ? "text-foreground font-medium"
+            : "text-muted-foreground"
+        }
+      >
+        {group.chip}
+      </span>
+      <Switch on={option.active} size="sm" />
+    </Link>
+  );
+}
+
+// Phone: an active group is a removable chip; an inactive one opens the sheet.
+function PhoneChip({ group }: { group: FacetGroup }) {
+  const active = visibleOptions(group).filter((option) => option.active);
+  if (active.length > 0) {
+    const value = group.toggle
+      ? group.chip
+      : active.map((option) => option.label).join(", ");
+    return (
+      <Link
+        aria-label={`Remove ${group.chip} filter: ${value}`}
+        className={cn(
+          PHONE_CHIP,
+          "bg-card text-foreground pr-2.5 font-medium lg:hidden",
+          ROW_FOCUS
+        )}
+        href={group.clearHref}
+      >
+        <span className="max-w-40 truncate">{value}</span>
+        <X aria-hidden="true" className="text-subtle size-3" />
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      className={cn(PHONE_CHIP, "text-muted-foreground lg:hidden", ROW_FOCUS)}
+      popoverTarget={FILTERS_SHEET_ID}
+      popoverTargetAction="show"
+      type="button"
+    >
+      {group.chip}
+    </button>
+  );
+}
+
+// The chip row in the toolbar. Groups with nothing to pick are left out.
+export function FilterChips({
+  footer,
+  groups,
+}: {
+  footer?: ChipMenuFooter;
+  groups: FacetGroup[];
+}) {
+  const shown = groups.filter((group) => visibleOptions(group).length > 0);
+  const isActive = (group: FacetGroup) =>
+    group.options.some((option) => option.active);
+  // Phone chips lead with what is already applied.
+  const phoneOrder = [
+    ...shown.filter(isActive),
+    ...shown.filter((group) => !isActive(group)),
+  ];
+  const activeCount = groups.reduce(
+    (sum, group) =>
+      sum + group.options.filter((option) => option.active).length,
+    0
+  );
+
+  return (
+    <>
+      <button
+        aria-label={
+          activeCount > 0 ? `Filters (${activeCount} active)` : "Filters"
+        }
+        className={cn(
+          PHONE_CHIP,
+          "bg-card text-foreground w-[34px] justify-center px-0 lg:hidden",
+          ROW_FOCUS
+        )}
+        popoverTarget={FILTERS_SHEET_ID}
+        popoverTargetAction="show"
+        type="button"
+      >
+        <ListFilter aria-hidden="true" className="size-4" />
+      </button>
+      {phoneOrder.map((group) => (
+        <PhoneChip group={group} key={`phone-${group.id}`} />
+      ))}
+      {shown.map((group) =>
+        group.toggle ? (
+          <ToggleChip group={group} key={group.id} />
+        ) : (
+          <ChipMenu footer={footer} group={group} key={group.id} />
+        )
+      )}
+    </>
   );
 }
 

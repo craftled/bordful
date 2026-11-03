@@ -48,10 +48,10 @@ function job(overrides: Partial<JobListItem>): JobListItem {
 
 test("formats salary for min only, max only, both and none", () => {
   expect(formatSalary({ salaryCurrency: "USD", salaryMin: 45_000 })).toBe(
-    "$45k (USD)"
+    "$45k"
   );
   expect(formatSalary({ salaryCurrency: "USD", salaryMax: 65_000 })).toBe(
-    "$65k (USD)"
+    "$65k"
   );
   expect(
     formatSalary({
@@ -59,7 +59,7 @@ test("formats salary for min only, max only, both and none", () => {
       salaryMax: 65_000,
       salaryMin: 45_000,
     })
-  ).toBe("$45k-65k (USD)");
+  ).toBe("$45k-65k");
   expect(formatSalary({ salaryCurrency: "USD" })).toBe("");
   expect(formatSalary({ salaryMin: Number.NaN })).toBe("");
 });
@@ -75,7 +75,7 @@ test("never renders undefined in the salary or the meta row", () => {
   );
 
   expect(container.textContent).not.toContain("undefined");
-  expect(container.textContent).toContain("$45k (USD)");
+  expect(container.textContent).toContain("$45k");
 });
 
 test("omits the salary, date and featured badge when they are missing", () => {
@@ -137,4 +137,49 @@ test("shows the company name as plain text when the slug is missing", () => {
 
   expect(screen.queryByRole("link", { name: "Acme" })).toBeNull();
   expect(screen.getByText("Acme")).toBeTruthy();
+});
+
+test("shows the short age and keeps the full date in the time element", () => {
+  const { container } = render(
+    <ul>
+      <JobRow job={job({ publishedAt: "2026-10-23T10:00:00Z" })} now={NOW} />
+    </ul>
+  );
+
+  const time = container.querySelector("time");
+  expect(time?.textContent).toBe("2h");
+  expect(time?.getAttribute("dateTime")).toBe("2026-10-23T10:00:00Z");
+  expect(time?.getAttribute("title")).toBe("2 hours ago");
+});
+
+test("marks featured, new and closing rows with status pills", () => {
+  const { container } = render(
+    <ul>
+      <JobRow
+        job={job({ featured: true, publishedAt: "2026-10-23T10:00:00Z" })}
+        now={NOW}
+      />
+      <JobRow
+        job={job({
+          id: "closing",
+          publishedAt: "2026-10-23T10:00:00Z",
+          slug: "closing",
+          validThrough: "2026-10-26T00:00:00Z",
+        })}
+        now={NOW}
+      />
+    </ul>
+  );
+
+  const statuses = Array.from(
+    container.querySelectorAll("[data-status]"),
+    (node) => node.getAttribute("data-status")
+  );
+  expect(statuses).toEqual(["featured", "new", "closing"]);
+  expect(
+    container.querySelector("[data-status='featured']")?.className
+  ).toContain("text-featured");
+  expect(
+    container.querySelector("[data-status='closing']")?.className
+  ).toContain("text-closing");
 });

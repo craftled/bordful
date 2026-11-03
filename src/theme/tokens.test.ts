@@ -8,14 +8,14 @@ import {
 
 test("tokensToCssVariables emits the fixed variable list", () => {
   expect(tokensToCssVariables(DEFAULT_THEME_TOKENS)).toBe(
-    "--background:#ffffff;--foreground:#18181b;--primary:#164e63;--primary-foreground:#ffffff;--muted:#f9fafb;--muted-foreground:#52525b;--accent:#f4f4f5;--accent-foreground:#18181b;--border:#e4e4e7;--ring:#164e63;--radius:0.5rem;--font-heading:var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;--font-body:var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;"
+    "--background:#f5f5f4;--foreground:#161616;--primary:#161616;--primary-foreground:#ffffff;--muted:#f7f7f6;--muted-foreground:#5c5c5c;--accent:#f0f0ef;--accent-foreground:#161616;--border:#e4e4e3;--ring:#161616;--radius:0.5rem;--font-heading:var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;--font-body:var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;"
   );
 });
 
-test("default theme uses the old Bordful zinc look with cyan primary", () => {
-  expect(DEFAULT_THEME_TOKENS.colors.primary).toBe("#164e63");
-  expect(DEFAULT_THEME_TOKENS.colors.background).toBe("#ffffff");
-  expect(DEFAULT_THEME_TOKENS.colors.foreground).toBe("#18181b");
+test("default theme uses the Bordful 1.0 neutral palette", () => {
+  expect(DEFAULT_THEME_TOKENS.colors.primary).toBe("#161616");
+  expect(DEFAULT_THEME_TOKENS.colors.background).toBe("#f5f5f4");
+  expect(DEFAULT_THEME_TOKENS.colors.foreground).toBe("#161616");
   expect(DEFAULT_THEME_TOKENS.radius).toBe(0.5);
   expect(DEFAULT_THEME_TOKENS.fontBody).toBe("sans");
   expect(DEFAULT_THEME_TOKENS.fontHeading).toBe("sans");

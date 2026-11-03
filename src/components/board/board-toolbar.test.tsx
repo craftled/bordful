@@ -2,10 +2,10 @@
 
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
-
+import type { BoardFacets } from "@/lib/board/filter";
 import { parseBoardQuery } from "@/lib/board/query";
 
-import { BoardToolbar, perPageChoices, showingLabel } from "./board-toolbar";
+import { BoardToolbar, perPageChoices, resultsLabel } from "./board-toolbar";
 
 afterEach(() => {
   cleanup();
@@ -13,23 +13,25 @@ afterEach(() => {
 
 const OPTIONS = { defaultPerPage: 10 };
 
-function toolbar(search: string, shown: number, total: number) {
+function toolbar(search: string, total: number) {
   return (
     <BoardToolbar
       marketing={false}
       options={OPTIONS}
       query={parseBoardQuery(new URLSearchParams(search), OPTIONS)}
       showControls
-      shown={shown}
       total={total}
     />
   );
 }
 
-test("shows the page size and the total in the count label", () => {
-  expect(showingLabel(10, 143)).toBe("Showing 10 of 143 positions");
-  expect(showingLabel(1, 1)).toBe("Showing 1 of 1 position");
-  expect(showingLabel(0, 0)).toBe("Showing 0 of 0 positions");
+test("shows the total and the last update in the count label", () => {
+  expect(resultsLabel(143)).toBe("143 results");
+  expect(resultsLabel(1)).toBe("1 result");
+  expect(resultsLabel(0, null)).toBe("0 results");
+  expect(resultsLabel(31, "2 hours ago")).toBe(
+    "31 results · updated 2 hours ago"
+  );
 });
 
 test("adds a non-standard default page size to the per-page choices", () => {
@@ -38,15 +40,15 @@ test("adds a non-standard default page size to the per-page choices", () => {
 });
 
 test("renders the count element from the component with its data attributes", () => {
-  render(toolbar("per_page=20", 20, 143));
+  render(toolbar("per_page=20", 143));
 
   const count = screen.getByTestId("job-count");
   expect(count.getAttribute("data-count")).toBe("143");
-  expect(count.textContent).toBe("Showing 20 of 143 positions");
+  expect(count.textContent).toBe("143 results");
 });
 
 test("renders the title as the H2 and accepts a custom title", () => {
-  const { unmount } = render(toolbar("", 10, 10));
+  const { unmount } = render(toolbar("", 10));
   expect(
     screen.getByRole("heading", { level: 2, name: "Latest Opportunities" })
   ).toBeTruthy();
@@ -58,7 +60,6 @@ test("renders the title as the H2 and accepts a custom title", () => {
       options={OPTIONS}
       query={parseBoardQuery(new URLSearchParams(""), OPTIONS)}
       showControls={false}
-      shown={0}
       title="Results"
       total={0}
     />
@@ -69,7 +70,7 @@ test("renders the title as the H2 and accepts a custom title", () => {
 });
 
 test("the per-page menu links to each page size and marks the current one", () => {
-  render(toolbar("per_page=20&sort=oldest", 20, 143));
+  render(toolbar("per_page=20&sort=oldest", 143));
 
   const menu = screen.getByTestId("per-page-menu");
   expect(menu.querySelector("summary")?.textContent).toContain("20");
@@ -93,16 +94,16 @@ test("the per-page menu links to each page size and marks the current one", () =
   expect(active[0]?.getAttribute("data-active")).toBe("true");
 });
 
-test("the sort menu uses the old labels and marks the current sort", () => {
-  render(toolbar("per_page=20&sort=oldest", 20, 143));
+test("the sort menu uses the short labels and marks the current sort", () => {
+  render(toolbar("per_page=20&sort=oldest", 143));
 
   const menu = screen.getByTestId("sort-menu");
-  expect(menu.querySelector("summary")?.textContent).toContain("Oldest first");
+  expect(menu.querySelector("summary")?.textContent).toContain("Oldest");
 
   const links = within(menu).getAllByRole("link", { hidden: true });
   expect(links.map((link) => link.textContent)).toEqual([
-    "Newest first",
-    "Oldest first",
+    "Newest",
+    "Oldest",
     "Highest salary",
   ]);
   expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -112,7 +113,7 @@ test("the sort menu uses the old labels and marks the current sort", () => {
   ]);
 
   const active = links.filter((link) => link.hasAttribute("aria-current"));
-  expect(active.map((link) => link.textContent)).toEqual(["Oldest first"]);
+  expect(active.map((link) => link.textContent)).toEqual(["Oldest"]);
 });
 
 test("hides the menus when controls are off", () => {
@@ -122,11 +123,67 @@ test("hides the menus when controls are off", () => {
       options={OPTIONS}
       query={parseBoardQuery(new URLSearchParams(""), OPTIONS)}
       showControls={false}
-      shown={0}
       total={0}
     />
   );
 
   expect(screen.queryByTestId("sort-menu")).toBeNull();
   expect(screen.queryByTestId("per-page-menu")).toBeNull();
+});
+
+const FACETS: BoardFacets = {
+  categories: [],
+  featured: 0,
+  languages: [],
+  remote: 2,
+  salary: [],
+  seniority: [],
+  types: [{ count: 4, value: "full-time" }],
+  visa: 0,
+};
+
+function withFacets(search: string) {
+  return (
+    <BoardToolbar
+      facets={FACETS}
+      marketing={false}
+      options={OPTIONS}
+      query={parseBoardQuery(new URLSearchParams(search), OPTIONS)}
+      showControls
+      total={4}
+    />
+  );
+}
+
+test("clear href keeps sort and page size but drops every filter", () => {
+  render(withFacets("types=full-time&per_page=20&sort=oldest"));
+
+  const clear = screen.getByTestId("filter-clear");
+  expect(clear.textContent).toBe("Clear");
+  const href = clear.getAttribute("href") ?? "";
+  expect(href).not.toContain("types=");
+  expect(href).toContain("per_page=20");
+  expect(href).toContain("sort=oldest");
+});
+
+test("no clear link when nothing is active", () => {
+  render(withFacets(""));
+
+  expect(screen.queryByTestId("filter-clear")).toBeNull();
+});
+
+test("an active filter gets a removable phone chip", () => {
+  render(withFacets("types=full-time&remote=true"));
+
+  const chip = screen.getByRole("link", {
+    name: "Remove Type filter: Full-time",
+  });
+  expect(chip.getAttribute("href")).toBe("/jobs/search?remote=true");
+});
+
+test("chips are left out when there are no facets", () => {
+  render(toolbar("types=full-time", 4));
+
+  expect(screen.queryByTestId("filter-clear")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Filters" })).toBeNull();
 });

@@ -57,9 +57,9 @@ describe("factRows", () => {
       ["salary", "location", "employmentType", "careerLevel", "categories"]
     );
     expect(rows.map((row) => row.label)).toEqual([
-      "Location",
       "Salary",
-      "Employment type",
+      "Type",
+      "Location",
     ]);
   });
 

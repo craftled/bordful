@@ -1,10 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { subscribeAction } from "@/app/(site)/alerts/actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AlertFrequency } from "@/lib/domain/job-vocab";
@@ -17,12 +17,25 @@ import {
 } from "@/lib/domain/job-vocab";
 
 const selectClass =
-  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
+  "h-10 w-full rounded-lg border border-line-strong bg-card px-3 text-[14px] leading-[18px] text-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
-const checkRowClass = "flex items-center gap-2 text-sm";
+// Paper chip: the native checkbox stays in the DOM, transparent over the
+// whole chip, so names, values, clicks and keyboard behaviour are unchanged.
+const chipClass =
+  "relative flex h-[30px] cursor-pointer items-center rounded-full border border-line-strong bg-card px-3 text-[13px] leading-4 font-medium text-foreground has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50";
 
 const checkboxClass =
-  "size-4 accent-primary outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+  "absolute inset-0 m-0 cursor-pointer appearance-none rounded-full opacity-0";
+
+const fieldLabelClass = "text-[13px] font-medium leading-4 text-foreground";
+// A legend ignores the fieldset gap, so the 8px label-to-chips space lives here.
+const legendClass = `${fieldLabelClass} mb-2 p-0`;
+
+const STEPS = [
+  "Pick what you want to see.",
+  "Confirm your email once.",
+  "New matches arrive when they are posted.",
+];
 
 const SENIORITY_LABELS: Record<(typeof SENIORITIES)[number], string> = {
   c_level: "C level",
@@ -38,145 +51,170 @@ const SENIORITY_LABELS: Record<(typeof SENIORITIES)[number], string> = {
 
 export function AlertsForm({
   defaultFrequency,
+  jobsHref,
   query,
 }: {
   defaultFrequency: AlertFrequency;
+  jobsHref: string;
   query: JobAlertQuery;
 }) {
   const [state, formAction, pending] = useActionState(subscribeAction, null);
   const failed = state !== null && !state.ok;
 
   return (
-    <form
-      action={formAction}
-      className="mx-auto flex w-full max-w-xl flex-col gap-6 py-4"
-      data-testid="alerts-form"
-    >
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Job Alerts</h1>
-        <p className="text-muted-foreground">
-          Get new jobs from this board by email. Weekly is the default, and
-          daily is available.
-        </p>
-      </div>
+    <div className="mx-auto -mt-8 -mb-1 flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:-mt-1 md:mb-0 md:gap-8 md:pt-0 md:pb-10">
+      <nav aria-label="Breadcrumb" className="text-[13px] leading-4">
+        <ol className="flex items-center gap-2">
+          <li>
+            <Link className="text-subtle hover:text-foreground" href={jobsHref}>
+              Jobs
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-subtle">
+            /
+          </li>
+          <li aria-current="page" className="text-foreground">
+            Job alerts
+          </li>
+        </ol>
+      </nav>
 
-      <Card className="gap-6 py-6">
-        <CardContent className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="alerts-email">Email *</Label>
-            <Input
-              aria-describedby={
-                failed ? "alerts-privacy alerts-error" : "alerts-privacy"
-              }
-              aria-invalid={failed || undefined}
-              autoComplete="email"
-              data-testid="alerts-email"
-              id="alerts-email"
-              maxLength={254}
-              name="email"
-              placeholder="you@example.com"
-              required
-              type="email"
-            />
+      <h1 className="flex flex-col text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
+        <span className="text-foreground">Get new roles by email.</span>
+        <span className="text-subtle md:hidden">Daily or weekly.</span>
+        <span className="text-subtle hidden md:inline">
+          Once a day or once a week.
+        </span>
+      </h1>
+
+      <div className="flex flex-col items-start gap-5 md:flex-row md:gap-8">
+        <form
+          action={formAction}
+          className="bg-card border-line flex w-full flex-col gap-[18px] rounded-[14px] border p-5 md:w-[660px] md:shrink-0 md:gap-[22px] md:p-7"
+          data-testid="alerts-form"
+        >
+          <div className="flex flex-col gap-[18px] md:flex-row md:gap-3">
+            <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
+              <Label className={fieldLabelClass} htmlFor="alerts-email">
+                Email *
+              </Label>
+              <Input
+                aria-describedby={
+                  failed ? "alerts-privacy alerts-error" : "alerts-privacy"
+                }
+                aria-invalid={failed || undefined}
+                autoComplete="email"
+                className="h-10 px-3 text-[14px] leading-[18px]"
+                data-testid="alerts-email"
+                id="alerts-email"
+                maxLength={254}
+                name="email"
+                placeholder="you@example.com"
+                required
+                type="email"
+              />
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-[6px] md:w-[200px] md:shrink-0">
+              <Label className={fieldLabelClass} htmlFor="alerts-frequency">
+                Frequency
+              </Label>
+              <select
+                className={selectClass}
+                data-testid="alerts-frequency"
+                defaultValue={defaultFrequency}
+                id="alerts-frequency"
+                name="frequency"
+              >
+                <option value="weekly">Weekly</option>
+                <option value="daily">Daily</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="alerts-frequency">Frequency</Label>
-            <select
-              className={selectClass}
-              data-testid="alerts-frequency"
-              defaultValue={defaultFrequency}
-              id="alerts-frequency"
-              name="frequency"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="daily">Daily</option>
-            </select>
-          </div>
-
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 text-sm leading-none font-medium">
-              Employment type
-            </legend>
-            {JOB_EMPLOYMENT_TYPES.map((type) => (
-              <label className={checkRowClass} key={type}>
-                <input
-                  className={checkboxClass}
-                  data-testid={`alerts-type-${type}`}
-                  defaultChecked={query.types.includes(type)}
-                  name="types"
-                  type="checkbox"
-                  value={type}
-                />
-                {JOB_EMPLOYMENT_LABELS[type]}
-              </label>
-            ))}
+          <fieldset className="flex flex-col gap-2">
+            <legend className={legendClass}>Employment type</legend>
+            <div className="flex flex-wrap gap-2">
+              {JOB_EMPLOYMENT_TYPES.map((type) => (
+                <label className={chipClass} key={type}>
+                  <input
+                    className={checkboxClass}
+                    data-testid={`alerts-type-${type}`}
+                    defaultChecked={query.types.includes(type)}
+                    name="types"
+                    type="checkbox"
+                    value={type}
+                  />
+                  {JOB_EMPLOYMENT_LABELS[type]}
+                </label>
+              ))}
+            </div>
           </fieldset>
 
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 text-sm leading-none font-medium">
-              Work
-            </legend>
-            <label className={checkRowClass}>
-              <input
-                className={checkboxClass}
-                data-testid="alerts-remote"
-                defaultChecked={query.remote}
-                name="remote"
-                type="checkbox"
-                value="true"
-              />
-              Remote
-            </label>
-            <label className={checkRowClass}>
-              <input
-                className={checkboxClass}
-                data-testid="alerts-visa"
-                defaultChecked={query.visa}
-                name="visa"
-                type="checkbox"
-                value="true"
-              />
-              Visa sponsorship
-            </label>
-          </fieldset>
-
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 text-sm leading-none font-medium">
-              Seniority
-            </legend>
-            {SENIORITIES.map((level) => (
-              <label className={checkRowClass} key={level}>
+          <fieldset className="flex flex-col gap-2">
+            <legend className={legendClass}>Work</legend>
+            <div className="flex flex-wrap gap-2">
+              <label className={chipClass}>
                 <input
                   className={checkboxClass}
-                  data-testid={`alerts-seniority-${level}`}
-                  defaultChecked={query.seniority.includes(level)}
-                  name="seniority"
+                  data-testid="alerts-remote"
+                  defaultChecked={query.remote}
+                  name="remote"
                   type="checkbox"
-                  value={level}
+                  value="true"
                 />
-                {SENIORITY_LABELS[level]}
+                Remote
               </label>
-            ))}
-          </fieldset>
-
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 text-sm leading-none font-medium">
-              Salary
-            </legend>
-            {SALARY_BAND_IDS.map((band, index) => (
-              <label className={checkRowClass} key={band}>
+              <label className={chipClass}>
                 <input
                   className={checkboxClass}
-                  data-testid={`alerts-salary-${index}`}
-                  defaultChecked={query.salary.includes(band)}
-                  name="salary"
+                  data-testid="alerts-visa"
+                  defaultChecked={query.visa}
+                  name="visa"
                   type="checkbox"
-                  value={band}
+                  value="true"
                 />
-                {band}
+                Visa sponsorship
               </label>
-            ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className={legendClass}>Seniority</legend>
+            <div className="flex flex-wrap gap-2">
+              {SENIORITIES.map((level) => (
+                <label className={chipClass} key={level}>
+                  <input
+                    className={checkboxClass}
+                    data-testid={`alerts-seniority-${level}`}
+                    defaultChecked={query.seniority.includes(level)}
+                    name="seniority"
+                    type="checkbox"
+                    value={level}
+                  />
+                  {SENIORITY_LABELS[level]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className={legendClass}>Salary</legend>
+            <div className="flex flex-wrap gap-2">
+              {SALARY_BAND_IDS.map((band, index) => (
+                <label className={chipClass} key={band}>
+                  <input
+                    className={checkboxClass}
+                    data-testid={`alerts-salary-${index}`}
+                    defaultChecked={query.salary.includes(band)}
+                    name="salary"
+                    type="checkbox"
+                    value={band}
+                  />
+                  {band}
+                </label>
+              ))}
+            </div>
           </fieldset>
 
           {query.languages.map((language) => (
@@ -188,17 +226,24 @@ export function AlertsForm({
             />
           ))}
 
-          <p className="text-muted-foreground text-xs" id="alerts-privacy">
+          <p className="text-subtle text-[12px] leading-4" id="alerts-privacy">
             We keep your email address and alert preferences only to send these
             alerts. Every email has a one-click unsubscribe link.
           </p>
 
-          <Button data-testid="alerts-submit" disabled={pending} type="submit">
-            Subscribe to job alerts
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              className="h-11 w-full text-[15px] leading-[18px] md:h-9 md:w-fit md:text-[14px] md:leading-4"
+              data-testid="alerts-submit"
+              disabled={pending}
+              type="submit"
+            >
+              Subscribe to job alerts
+            </Button>
+          </div>
           {/* Both regions stay mounted so screen readers announce each change. */}
           <p
-            className="text-sm"
+            className="text-foreground text-[13px] empty:sr-only"
             data-testid="alerts-status"
             id="alerts-status"
             role="status"
@@ -206,14 +251,31 @@ export function AlertsForm({
             {state?.ok ? state.message : ""}
           </p>
           <p
-            className="text-destructive text-sm"
+            className="text-destructive text-[13px] empty:sr-only"
             id="alerts-error"
             role="alert"
           >
             {failed ? state.message : ""}
           </p>
-        </CardContent>
-      </Card>
-    </form>
+        </form>
+
+        <aside className="bg-card border-line flex w-full flex-col gap-[10px] rounded-[14px] border p-5 md:w-[380px] md:shrink-0">
+          <h2 className="text-foreground text-[15px] leading-[18px] font-medium">
+            How it works
+          </h2>
+          <ol className="flex flex-col gap-[10px]">
+            {STEPS.map((step, index) => (
+              <li
+                className="text-muted-foreground flex gap-[10px] text-[13px] leading-4"
+                key={step}
+              >
+                <span className="text-subtle font-medium">{index + 1}</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </aside>
+      </div>
+    </div>
   );
 }

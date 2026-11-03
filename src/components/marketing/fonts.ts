@@ -1,6 +1,5 @@
-import { Geist } from "next/font/google";
+import { geistMono, geistSans } from "@/theme/fonts";
 
-export const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist",
-});
+// Same self-hosted Geist faces as the board, so font-sans and font-mono
+// resolve inside the marketing frame too.
+export const marketingFontVariables = `${geistSans.variable} ${geistMono.variable}`;

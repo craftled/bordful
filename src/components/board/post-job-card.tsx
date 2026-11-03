@@ -14,23 +14,23 @@ export function PostJobCard({
   return (
     <section
       aria-labelledby={titleId}
-      className="border-border bg-background rounded-lg border p-4"
+      className="bg-card ring-line flex flex-col gap-2.5 rounded-[14px] p-4 shadow-xs ring-1"
     >
-      <h2 className="text-base font-semibold" id={titleId}>
+      <h2 className="text-[13px] leading-[18px] font-medium" id={titleId}>
         Hiring? Post your job
       </h2>
-      <p className="text-muted-foreground mt-1 text-sm">
+      <p className="text-muted-foreground text-[12px] leading-[17px]">
         Reach candidates browsing this board.
       </p>
-      <Link
-        className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 inline-flex h-9 w-full items-center justify-center rounded-md px-4 text-sm font-medium"
-        href="/post"
-      >
-        {priceLabel ? `Post a job (${priceLabel})` : "Post a job"}
-      </Link>
-      <p className="text-muted-foreground mt-2 text-center text-xs">
-        {durationDays}-day listing
-      </p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <Link
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 items-center justify-center rounded-[6px] px-2.5 text-[13px] font-medium"
+          href="/post"
+        >
+          {priceLabel ? `Post a job (${priceLabel})` : "Post a job"}
+        </Link>
+        <p className="text-subtle text-[12px]">{durationDays}-day listing</p>
+      </div>
     </section>
   );
 }

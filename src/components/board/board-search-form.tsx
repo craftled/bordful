@@ -1,21 +1,26 @@
 import { SearchIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { BOARD_SEARCH_PATH } from "@/lib/board/paths";
 import {
   type BoardQuery,
   type BoardQueryOptions,
   serializeBoardQuery,
 } from "@/lib/board/query";
-import { cn } from "@/lib/utils";
 
-function hiddenFields(
+export const BOARD_SEARCH_INPUT_ID = "board-search-input";
+
+export interface SearchField {
+  name: string;
+  value: string;
+}
+
+// The filters a search keeps, minus the text and the page.
+export function searchHiddenFields(
   query: BoardQuery,
   options: BoardQueryOptions
-): { name: string; value: string }[] {
+): SearchField[] {
   const params = serializeBoardQuery({ ...query, page: 1, q: "" }, options);
-  const fields: { name: string; value: string }[] = [];
+  const fields: SearchField[] = [];
 
   for (const [name, value] of params.entries()) {
     fields.push({ name, value });
@@ -24,47 +29,62 @@ function hiddenFields(
   return fields;
 }
 
-export function BoardSearchForm({
-  options,
-  query,
-  variant = "default",
-}: {
-  options: BoardQueryOptions;
-  query: BoardQuery;
-  variant?: "default" | "hero";
-}) {
-  const hero = variant === "hero";
+export function searchPlaceholder(count?: number, long = false): string {
+  const suffix = long ? " by role or company" : "";
+  if (count === undefined || count <= 0) {
+    return `Search jobs${suffix}`;
+  }
+  return count === 1
+    ? `Search 1 job${suffix}`
+    : `Search ${count} jobs${suffix}`;
+}
 
+// Rendered once per page, in the site header. The search icon is the submit
+// button, so Enter and a tap both search. On phones it is a full-width row
+// under the brand bar; from lg up it sits in the bar with the ⌘K hint.
+export function BoardSearchForm({
+  count,
+  hidden = [],
+  q = "",
+}: {
+  count?: number;
+  hidden?: SearchField[];
+  q?: string;
+}) {
   return (
     <form
       action={BOARD_SEARCH_PATH}
-      className="flex flex-col gap-2 sm:flex-row"
+      className="bg-card ring-line-strong focus-within:ring-ring/40 relative flex h-10 w-full items-center rounded-[10px] ring-1 ring-inset lg:h-8 lg:rounded-[8px]"
       data-testid="board-search"
       method="get"
     >
-      <label className="sr-only" htmlFor="board-search-input">
-        Search jobs
+      <button
+        aria-label="Search"
+        className="text-subtle hover:text-foreground flex h-full w-10 shrink-0 items-center justify-center rounded-l-[10px] lg:w-8 lg:rounded-l-[8px]"
+        data-testid="board-search-submit"
+        type="submit"
+      >
+        <SearchIcon aria-hidden="true" className="size-4 lg:size-3.5" />
+      </button>
+      <label className="sr-only" htmlFor={BOARD_SEARCH_INPUT_ID}>
+        Search jobs by title or company
       </label>
-      <div className="relative min-w-0 flex-1">
-        <SearchIcon
-          aria-hidden
-          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-        />
-        <Input
-          className={cn(
-            "pl-9",
-            hero &&
-              "focus-visible:border-background focus-visible:ring-background h-11 border-white bg-white text-zinc-900"
-          )}
-          data-testid="board-search-input"
-          defaultValue={query.q}
-          id="board-search-input"
-          name="q"
-          placeholder="Search title or company"
-          type="search"
-        />
-      </div>
-      {hiddenFields(query, options).map((field) => (
+      <input
+        className="text-foreground placeholder:text-subtle peer h-full min-w-0 flex-1 bg-transparent pr-3 text-[15px] outline-none lg:pr-2 lg:text-[14px] [&::-webkit-search-cancel-button]:hidden"
+        data-testid="board-search-input"
+        defaultValue={q}
+        id={BOARD_SEARCH_INPUT_ID}
+        name="q"
+        placeholder={searchPlaceholder(count, true)}
+        type="search"
+      />
+      <span
+        aria-hidden="true"
+        className="bg-tag text-subtle mr-2.5 hidden shrink-0 rounded-[4px] px-[5px] font-sans text-[10px] leading-4 peer-focus:invisible lg:inline-block"
+      >
+        ⌘K
+      </span>
+      {hidden.map((field) => (
         <input
           key={field.name}
           name={field.name}
@@ -72,16 +92,6 @@ export function BoardSearchForm({
           value={field.value}
         />
       ))}
-      <Button
-        className={cn(
-          hero &&
-            "text-primary focus-visible:ring-background h-11 bg-white hover:bg-zinc-100"
-        )}
-        data-testid="board-search-submit"
-        type="submit"
-      >
-        Search
-      </Button>
     </form>
   );
 }

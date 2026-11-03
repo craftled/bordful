@@ -1,5 +1,19 @@
 "use client";
 
-export function RelativeTime({ iso, label }: { iso: string; label: string }) {
-  return <time dateTime={iso}>{label}</time>;
+export function RelativeTime({
+  className,
+  iso,
+  label,
+  title,
+}: {
+  className?: string;
+  iso: string;
+  label: string;
+  title?: string;
+}) {
+  return (
+    <time className={className} dateTime={iso} title={title}>
+      {label}
+    </time>
+  );
 }

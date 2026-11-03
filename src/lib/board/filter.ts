@@ -11,10 +11,14 @@ import type { BoardQuery, BoardSort } from "./query";
 
 export interface BoardFacetValue {
   count: number;
+  // Display name when it differs from the (lowercased) value.
+  label?: string;
   value: string;
 }
 
 export interface BoardFacets {
+  categories: BoardFacetValue[];
+  featured: number;
   languages: BoardFacetValue[];
   remote: number;
   salary: BoardFacetValue[];
@@ -141,6 +145,17 @@ function matchesLanguages(card: JobListItem, languages: string[]): boolean {
   return languages.some((language) => present.has(language.toLowerCase()));
 }
 
+function matchesCategories(card: JobListItem, categories: string[]): boolean {
+  if (categories.length === 0) {
+    return true;
+  }
+
+  const present = new Set(
+    card.categories.map((category) => category.trim().toLowerCase())
+  );
+  return categories.some((category) => present.has(category));
+}
+
 function matchesList<T extends string>(
   selected: T[],
   value: T | null
@@ -154,6 +169,12 @@ function matchesList<T extends string>(
 
 function matchesCard(card: JobListItem, query: BoardQuery): boolean {
   if (!matchesText(card, query.q)) {
+    return false;
+  }
+  if (query.featured && !card.featured) {
+    return false;
+  }
+  if (!matchesCategories(card, query.categories)) {
     return false;
   }
   if (!matchesList<JobEmploymentType>(query.types, card.employmentType)) {
@@ -320,13 +341,44 @@ function languageCounts(cards: JobListItem[]): BoardFacetValue[] {
   return sortFacetValues(counts);
 }
 
+// Counts by lowercased name, labelled with the first spelling seen.
+function categoryCounts(cards: JobListItem[]): BoardFacetValue[] {
+  const counts = new Map<string, number>();
+  const labels = new Map<string, string>();
+
+  for (const card of cards) {
+    const seen = new Set<string>();
+    for (const category of card.categories) {
+      const label = category.trim();
+      const value = label.toLowerCase();
+      if (value.length === 0 || seen.has(value)) {
+        continue;
+      }
+      seen.add(value);
+      if (!labels.has(value)) {
+        labels.set(value, label);
+      }
+      bump(counts, value);
+    }
+  }
+
+  return sortFacetValues(counts).map((facet) => ({
+    ...facet,
+    label: labels.get(facet.value) ?? facet.value,
+  }));
+}
+
 export function buildBoardFacets(cards: JobListItem[]): BoardFacets {
   const types = new Map<string, number>();
   const seniority = new Map<string, number>();
+  let featured = 0;
   let remote = 0;
   let visa = 0;
 
   for (const card of cards) {
+    if (card.featured) {
+      featured += 1;
+    }
     bump(types, card.employmentType);
     bump(seniority, card.seniority);
     if (card.workplaceType === "remote") {
@@ -338,6 +390,8 @@ export function buildBoardFacets(cards: JobListItem[]): BoardFacets {
   }
 
   return {
+    categories: categoryCounts(cards),
+    featured,
     languages: languageCounts(cards),
     remote,
     salary: SALARY_BAND_IDS.map((value) => ({

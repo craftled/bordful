@@ -3,9 +3,10 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
+import { DEPLOY_URL } from "./links";
 import { MarketingHeader } from "./marketing-header";
 import { MARKETING_HEADER_LINKS } from "./nav-links";
-import { GITHUB_URL, SOCIAL_LINKS } from "./site";
+import { GITHUB_URL } from "./site";
 
 const MARKETING_HEADER_HREFS = MARKETING_HEADER_LINKS.map((link) => link.href);
 
@@ -35,15 +36,13 @@ test("mobile nav links use the same hrefs", () => {
   expect(hrefs).toEqual(MARKETING_HEADER_HREFS);
 });
 
-test("header social icons carry accessible names", () => {
+test("header deploy button opens the Vercel clone flow", () => {
   render(<MarketingHeader />);
 
-  // GitHub is already a labelled button in the header, so its icon is left out.
-  for (const link of SOCIAL_LINKS.filter((item) => item.href !== GITHUB_URL)) {
-    const anchors = screen.getAllByRole("link", { name: link.name });
-    expect(anchors.length).toBeGreaterThan(0);
-    expect(anchors[0]?.getAttribute("href")).toBe(link.href);
-  }
+  const deploy = screen.getByRole("link", { name: "Deploy" });
+  expect(deploy.getAttribute("href")).toBe(DEPLOY_URL);
+  expect(deploy.getAttribute("target")).toBe("_blank");
+  expect(deploy.getAttribute("rel")).toBe("noopener noreferrer");
 });
 
 test("header shows one GitHub button per menu and no GitHub icon link", () => {

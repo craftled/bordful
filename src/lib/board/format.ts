@@ -1,4 +1,16 @@
-import type { JobWorkplaceType } from "@/lib/domain/job-vocab";
+import type { JobSeniority, JobWorkplaceType } from "@/lib/domain/job-vocab";
+
+export const SENIORITY_LABELS: Record<JobSeniority, string> = {
+  c_level: "C-level",
+  director: "Director",
+  entry: "Entry",
+  intern: "Intern",
+  lead: "Lead",
+  mid: "Mid",
+  principal: "Principal",
+  senior: "Senior",
+  vp: "VP",
+};
 
 const TRAILING_POINT_ZERO = /\.0$/u;
 const K_THRESHOLD = 10_000;
@@ -79,7 +91,9 @@ export function formatSalary(job: SalaryFields): string {
 
   const code = job.salaryCurrency?.trim().toUpperCase() ?? "";
   const symbol = code ? currencySymbol(code) : "";
-  const codeSuffix = code && symbol !== code ? ` (${code})` : "";
+  // "$" alone reads as US dollars, so USD needs no code after it.
+  const codeSuffix =
+    code && code !== "USD" && symbol !== code ? ` (${code})` : "";
   return `${symbol}${range}${codeSuffix}`;
 }
 
@@ -165,4 +179,22 @@ export function formatLocation(card: LocationFields): string {
   }
 
   return "Location not listed";
+}
+
+// "Nov 22", or "Nov 22, 2027" when the date is in another year. Empty for an
+// unparseable date.
+export function formatShortDate(iso: string, now = Date.now()): string {
+  const value = Date.parse(iso);
+  if (Number.isNaN(value)) {
+    return "";
+  }
+
+  const date = new Date(value);
+  const sameYear = date.getUTCFullYear() === new Date(now).getUTCFullYear();
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
 }

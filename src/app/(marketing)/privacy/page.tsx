@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Container } from "@/components/marketing/container";
-import { Section } from "@/components/marketing/section";
-import { SectionHeader } from "@/components/marketing/section-header";
+import { DocsSectionNav } from "@/components/marketing/docs-section-nav";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = {
@@ -11,21 +10,54 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
 };
 
-function Block({ children, title }: { children: ReactNode; title: string }) {
+const SECTIONS = [
+  "Introduction",
+  "Data Collection",
+  "Your Responsibilities",
+  "Third-Party Services",
+  "Security",
+  "Updates",
+  "Contact",
+] as const;
+
+function slugify(value: string): string {
+  return value.toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-");
+}
+
+const NAV_ITEMS = SECTIONS.map((label) => ({ id: slugify(label), label }));
+
+function Block({
+  children,
+  index,
+  title,
+}: {
+  children: ReactNode;
+  index: number;
+  title: string;
+}) {
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-medium">{title}</h2>
-      <div className="text-muted-foreground space-y-3 text-sm leading-relaxed">
+    <section
+      aria-labelledby={`${slugify(title)}-heading`}
+      className="scroll-mt-24 space-y-3"
+      id={slugify(title)}
+    >
+      <h2
+        className="text-foreground text-xl leading-[26px] font-medium tracking-[-0.02em]"
+        id={`${slugify(title)}-heading`}
+      >
+        {index}. {title}
+      </h2>
+      <div className="text-muted-foreground space-y-3 text-[14px] leading-[22px]">
         {children}
       </div>
-    </div>
+    </section>
   );
 }
 
 function Item({ children }: { children: ReactNode }) {
   return (
-    <li className="flex items-center gap-2">
-      <span className="text-primary">•</span>
+    <li className="flex gap-2.5">
+      <span className="text-subtle">•</span>
       <span>{children}</span>
     </li>
   );
@@ -35,21 +67,24 @@ export default function PrivacyPage() {
   assertMarketingEnabled();
 
   return (
-    <Section className="pt-24 md:pt-32">
-      <Container>
-        <div className="mx-auto max-w-2xl">
-          <div className="text-center">
-            <SectionHeader
-              description="How we handle your data and protect your privacy."
-              headingLevel="h1"
-              title="Privacy Policy"
-            />
-            <p className="text-muted-foreground mt-2 text-sm">
+    <Container className="md:px-10">
+      <div className="flex flex-col gap-12 pt-12 pb-[72px] lg:flex-row lg:gap-14">
+        <DocsSectionNav items={NAV_ITEMS} />
+        <div className="flex w-full max-w-[680px] flex-col gap-8">
+          <p className="text-foreground text-[13px] font-medium">Privacy</p>
+          <h1 className="text-foreground text-[30px] leading-[46px] font-medium tracking-[-0.03em] sm:text-[40px]">
+            Privacy Policy
+          </h1>
+          <div className="space-y-1">
+            <p className="text-muted-foreground text-[14px] leading-5">
+              How we handle your data and protect your privacy.
+            </p>
+            <p className="text-subtle text-[14px] leading-5">
               Last updated: October 23, 2026
             </p>
           </div>
-          <div className="mt-16 space-y-10">
-            <Block title="1. Introduction">
+          <div className="flex flex-col gap-8">
+            <Block index={1} title="Introduction">
               <p>
                 This privacy policy explains how Bordful collects, uses, and
                 protects any information when you use our open-source job board
@@ -57,7 +92,7 @@ export default function PrivacyPage() {
                 protected.
               </p>
             </Block>
-            <Block title="2. Data Collection">
+            <Block index={2} title="Data Collection">
               <p>
                 As an open-source software, Bordful itself doesn&apos;t collect
                 any data. However, when you deploy your job board, you may
@@ -72,7 +107,7 @@ export default function PrivacyPage() {
                 <Item>User submitted information</Item>
               </ul>
             </Block>
-            <Block title="3. Your Responsibilities">
+            <Block index={3} title="Your Responsibilities">
               <p>When deploying Bordful, you are responsible for:</p>
               <ul className="ml-4 space-y-2">
                 <Item>Creating your own privacy policy</Item>
@@ -83,7 +118,7 @@ export default function PrivacyPage() {
                 <Item>Managing user consent and data rights</Item>
               </ul>
             </Block>
-            <Block title="4. Third-Party Services">
+            <Block index={4} title="Third-Party Services">
               <p>
                 Bordful integrates with third-party services that may collect
                 data:
@@ -101,7 +136,7 @@ export default function PrivacyPage() {
                 how they handle data.
               </p>
             </Block>
-            <Block title="5. Security">
+            <Block index={5} title="Security">
               <p>
                 While we&apos;ve implemented security best practices in our
                 code, you are responsible for securing your deployment,
@@ -113,19 +148,19 @@ export default function PrivacyPage() {
                 <Item>Protecting API keys and credentials</Item>
               </ul>
             </Block>
-            <Block title="6. Updates">
+            <Block index={6} title="Updates">
               <p>
                 We may update this privacy policy to reflect changes in our
                 software or legal requirements. We recommend checking this page
                 periodically for any changes.
               </p>
             </Block>
-            <Block title="7. Contact">
+            <Block index={7} title="Contact">
               <p>
                 If you have any questions about this privacy policy, please
                 contact us at{" "}
                 <a
-                  className="text-primary hover:underline"
+                  className="text-foreground underline-offset-4 hover:underline"
                   href="mailto:support@bordful.com"
                 >
                   support@bordful.com
@@ -135,7 +170,7 @@ export default function PrivacyPage() {
             </Block>
           </div>
         </div>
-      </Container>
-    </Section>
+      </div>
+    </Container>
   );
 }

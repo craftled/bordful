@@ -33,27 +33,29 @@ export default async function ConfirmAlertPage({
 
   return (
     <BoardShell>
-      <section className="bg-card text-card-foreground mx-auto flex w-full max-w-xl flex-col gap-4 rounded-xl border p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <section className="mx-auto flex w-full max-w-[520px] flex-col items-center gap-6 px-0 py-12 text-center">
+        <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
           Confirm your job alerts
         </h1>
-        {pending ? (
-          <>
-            <p>{describeAlertQuery(pending.query)}</p>
-            <TokenActionForm
-              action={confirmAction}
-              buttonTestId="alerts-confirm-button"
-              doneTestId="alerts-confirmed"
-              invalidText="This confirmation link is not valid."
-              submitLabel="Confirm"
-              token={token}
-            />
-          </>
-        ) : (
-          <p data-testid="alerts-invalid-token">
-            This confirmation link is not valid.
-          </p>
-        )}
+        <div className="bg-card border-line text-muted-foreground flex w-full flex-col items-center gap-4 rounded-[14px] border p-5 text-[14px]">
+          {pending ? (
+            <>
+              <p>{describeAlertQuery(pending.query)}</p>
+              <TokenActionForm
+                action={confirmAction}
+                buttonTestId="alerts-confirm-button"
+                doneTestId="alerts-confirmed"
+                invalidText="This confirmation link is not valid."
+                submitLabel="Confirm"
+                token={token}
+              />
+            </>
+          ) : (
+            <p data-testid="alerts-invalid-token">
+              This confirmation link is not valid.
+            </p>
+          )}
+        </div>
       </section>
     </BoardShell>
   );

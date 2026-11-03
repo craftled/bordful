@@ -4,6 +4,7 @@ import {
   formatLocation,
   formatRelativePosted,
   formatSalary,
+  formatShortDate,
   isNewJob,
 } from "./format";
 
@@ -14,7 +15,7 @@ test("formats compact salaries", () => {
       salaryMax: 160_000,
       salaryMin: 120_000,
     })
-  ).toBe("$120k-160k (USD)");
+  ).toBe("$120k-160k");
   expect(
     formatSalary({
       salaryCurrency: "EUR",
@@ -27,14 +28,14 @@ test("formats compact salaries", () => {
   ).toBe("£95k (GBP)");
   expect(
     formatSalary({ salaryCurrency: "USD", salaryMax: 5000, salaryMin: 5000 })
-  ).toBe("$5,000 (USD)");
+  ).toBe("$5,000");
   expect(
     formatSalary({
       salaryCurrency: "USD",
       salaryMax: 1_500_000,
       salaryMin: 1_200_000,
     })
-  ).toBe("$1.2M-1.5M (USD)");
+  ).toBe("$1.2M-1.5M");
   expect(formatSalary({})).toBe("");
 });
 
@@ -93,4 +94,12 @@ test("formats location lines", () => {
       workplaceType: null,
     })
   ).toBe("Location not listed");
+});
+
+test("formats short dates, adding the year only when it differs", () => {
+  const now = Date.parse("2026-10-23T09:00:00.000Z");
+
+  expect(formatShortDate("2026-11-22T00:00:00.000Z", now)).toBe("Nov 22");
+  expect(formatShortDate("2027-01-05T00:00:00.000Z", now)).toBe("Jan 5, 2027");
+  expect(formatShortDate("nope", now)).toBe("");
 });

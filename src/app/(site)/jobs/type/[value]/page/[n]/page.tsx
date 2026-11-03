@@ -34,7 +34,7 @@ export default async function TypeArchivePagedPage({
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="type" page={page} value={value} />
     </BoardShell>
   );

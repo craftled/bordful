@@ -1,15 +1,3 @@
-import {
-  Briefcase,
-  CalendarClock,
-  Clock,
-  Languages,
-  Laptop,
-  MapPin,
-  Tag,
-  Wallet,
-} from "lucide-react";
-import type { ComponentType, SVGProps } from "react";
-
 import { formatLocation, formatSalary } from "@/lib/board/format";
 import { languageLabel } from "@/lib/board/taxonomy";
 import {
@@ -23,21 +11,36 @@ const LOCATION_FALLBACK = "Location not listed";
 
 export interface FactRow {
   field: PublicDetailField;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
   value: string;
 }
 
 const FACT_ORDER: readonly PublicDetailField[] = [
-  "validThrough",
+  "salary",
+  "employmentType",
+  "careerLevel",
   "location",
   "workplaceType",
-  "salary",
-  "careerLevel",
-  "employmentType",
   "categories",
   "languages",
+  "validThrough",
 ];
+
+export function formatClosingDate(validThrough: string | null): string {
+  if (!validThrough) {
+    return "";
+  }
+  const parsed = Date.parse(validThrough);
+  if (Number.isNaN(parsed)) {
+    return "";
+  }
+  return new Date(parsed).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  });
+}
 
 function factValue(job: JobDetail, field: PublicDetailField): string {
   if (field === "salary") {
@@ -62,38 +65,23 @@ function factValue(job: JobDetail, field: PublicDetailField): string {
   if (field === "categories") {
     return job.categories.join(", ");
   }
-  if (job.validThrough) {
-    const parsed = Date.parse(job.validThrough);
-    if (Number.isNaN(parsed)) {
-      return "";
-    }
-    return new Date(parsed).toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      timeZone: "UTC",
-      year: "numeric",
-    });
-  }
 
-  return "";
+  return formatClosingDate(job.validThrough);
 }
 
-const FACT_META: Record<
-  PublicDetailField,
-  { icon: FactRow["icon"]; label: string }
-> = {
-  careerLevel: { icon: Briefcase, label: "Career level" },
-  categories: { icon: Tag, label: "Category" },
-  employmentType: { icon: Clock, label: "Employment type" },
-  languages: { icon: Languages, label: "Languages" },
-  location: { icon: MapPin, label: "Location" },
-  salary: { icon: Wallet, label: "Salary" },
-  validThrough: { icon: CalendarClock, label: "Apply by" },
-  workplaceType: { icon: Laptop, label: "Workplace" },
+const FACT_LABELS: Record<PublicDetailField, string> = {
+  careerLevel: "Level",
+  categories: "Category",
+  employmentType: "Type",
+  languages: "Languages",
+  location: "Location",
+  salary: "Salary",
+  validThrough: "Closes",
+  workplaceType: "Workplace",
 };
 
 // Only fields the owner allowed and that have a value. Empty rows are dropped
-// here, not hidden in markup, so the box disappears when nothing is left.
+// here, not hidden in markup, so the strip disappears when nothing is left.
 export function factRows(
   job: JobDetail,
   fields: readonly PublicDetailField[]
@@ -101,13 +89,15 @@ export function factRows(
   return FACT_ORDER.filter((field) => fields.includes(field))
     .map((field) => ({
       field,
-      icon: FACT_META[field].icon,
-      label: FACT_META[field].label,
+      label: FACT_LABELS[field],
       value: factValue(job, field),
     }))
     .filter((row) => row.value.length > 0);
 }
 
+// A strip of key facts under the title. Cells wrap; the negative margin on the
+// list hides the outer edge of each cell's top/left divider so only inner
+// dividers show, whatever the wrap point.
 export function JobFacts({
   fields,
   job,
@@ -122,24 +112,20 @@ export function JobFacts({
 
   return (
     <section
-      aria-labelledby="job-facts-title"
-      className="border-border bg-muted rounded-lg border p-5"
+      aria-label="Job details"
+      className="bg-card ring-line sm:bg-surface-sub overflow-clip rounded-[12px] ring-1 sm:ring-inset sm:dark:bg-black/20"
       data-testid="job-facts"
     >
-      <h2 className="text-base font-semibold" id="job-facts-title">
-        Job details
-      </h2>
-      <dl className="mt-4 space-y-4">
+      <dl className="-mt-px -ml-px flex flex-wrap">
         {rows.map((row) => (
-          <div className="flex gap-3" key={row.field}>
-            <row.icon
-              aria-hidden="true"
-              className="text-muted-foreground mt-0.5 size-4 shrink-0"
-            />
-            <div className="min-w-0">
-              <dt className="text-muted-foreground text-xs">{row.label}</dt>
-              <dd className="text-sm break-words">{row.value}</dd>
-            </div>
+          <div
+            className="sm:border-line flex min-w-0 basis-1/2 flex-col gap-0.5 px-3.5 py-3 sm:grow sm:basis-auto sm:gap-1 sm:border-t sm:border-l sm:px-4 sm:py-3.5"
+            key={row.field}
+          >
+            <dt className="text-subtle text-[12px] leading-4">{row.label}</dt>
+            <dd className="text-foreground text-[14px] leading-[18px] font-medium break-words sm:text-[15px] sm:leading-5">
+              {row.value}
+            </dd>
           </div>
         ))}
       </dl>
