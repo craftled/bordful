@@ -12,16 +12,17 @@ Final release of the Airtable version. Forks should update to this release for s
 ### Security
 - Upgrade Next.js to 15.5.28 (fixes GHSA-2464-fhr4-w9xw, GHSA-p3m5-59mp-jv5r, GHSA-2xp9-vwfh-vxw4 and other 15.5.x advisories)
 - Force sharp 0.35.5 via overrides to pick up patched libvips, libheif and librsvg
-- Remove axios (and the unused node-fetch); the Encharge provider now uses the built-in `fetch`. Network failures report the runtime's fetch error message
+- Remove axios and the direct node-fetch dependency (airtable still pulls in its own node-fetch); the Encharge provider now uses the built-in `fetch`. Network failures report the runtime's fetch error message
 - Upgrade ultracite to 5.6.4, which drops the vitest, vite and rollup dev dependency chain
 - Add overrides for patched transitive versions: postcss, @trpc/server, lodash, nanoid, mdast-util-to-hast, browserslist, source-map-js, postcss-selector-parser
-- Add security headers: Content-Security-Policy (script origins are derived from `config.scripts` for `script-src` and `connect-src`; `img-src` allows `https:` for remote hero and avatar images; `upgrade-insecure-requests` is omitted because it breaks plain-HTTP deploys and HSTS covers HTTPS sites), Strict-Transport-Security (`max-age=63072000` only; add `includeSubDomains; preload` once every subdomain serves HTTPS), X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy
+- Add security headers: Content-Security-Policy (script origins are derived from `config.scripts` for `script-src` and `connect-src`; `img-src` allows `https:` for remote hero and avatar images; `upgrade-insecure-requests` is omitted because it breaks plain-HTTP deploys and HSTS covers HTTPS sites), Strict-Transport-Security (`max-age=63072000` only; add `includeSubDomains; preload` once every subdomain serves HTTPS), X-Frame-Options (`DENY`), X-Content-Type-Options, Referrer-Policy and Permissions-Policy
 - Explicitly disable SVG processing in the Next.js image optimizer
-- Add a CI workflow (install, typecheck, lint, test, build, OSV scan) with actions pinned to commit SHAs, and Dependabot for the bun ecosystem (text `bun.lock`, lockfileVersion 2; semver-major updates ignored on this frozen Next 15 line) and GitHub Actions
+- Add a CI workflow (install, typecheck, lint, test, build, OSV scan) with actions pinned to commit SHAs, and a reference Dependabot config for the bun ecosystem (Dependabot only reads config from the default branch, so it runs on a fork whose default branch is this line, not on upstream `legacy-airtable`; text `bun.lock`, lockfileVersion 2; semver-major updates ignored on this frozen Next 15 line) and GitHub Actions
+- The job board can no longer be framed by other sites: `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'` block iframe embeds. A fork that embeds its board elsewhere can relax this in the headers in `next.config.ts` (for example `frame-ancestors https://example.com` and `X-Frame-Options: SAMEORIGIN`, or remove X-Frame-Options and rely on `frame-ancestors`)
 
 ### Added
 - `typecheck` and `test` scripts, plus a behavior test for the Encharge provider
-- `osv-scanner.toml` documenting the two remaining build-time advisories that have no fix in the current major
+- `osv-scanner.toml` documenting the one remaining advisory (deepmerge, dev-only via ultracite) that has no fixed version
 
 ### Changed
 - Update dependencies to the latest minor and patch versions within their current major
@@ -29,7 +30,7 @@ Final release of the Airtable version. Forks should update to this release for s
 - Custom integration docs now use `fetch` instead of axios
 
 ### Note
-- Script origins from `config.scripts` are added to `script-src` and `connect-src` automatically. If a script loads other resources (images, iframes, styles, fonts) from other domains, add those origins to the matching directives (`img-src`, `frame-src`, `style-src`, `font-src`) in `next.config.ts` and check the browser console for CSP violations.
+- Script origins from `config.scripts` are added to `script-src` and `connect-src` automatically. If a script loads other resources (images, iframes, styles, fonts) from other domains, add those origins to the matching directives (`img-src`, `frame-src`, `style-src`, `font-src`) in `next.config.ts` and check the browser console for CSP violations. Only the script's own origin is added, so tags that send data to other origins need `connect-src` (and sometimes `script-src`) additions in `next.config.ts`. For example, GA4 loads from `www.googletagmanager.com` but sends beacons elsewhere, so add `https://*.google-analytics.com https://*.googletagmanager.com` to `script-src` and `connect-src`. If you use the Vercel Toolbar on preview deployments, add `https://vercel.live` to `script-src`, `connect-src` and `frame-src`.
 
 ## [0.1.60] - 2026-03-15
 

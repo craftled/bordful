@@ -1,3 +1,6 @@
+# Reference only. Dependabot reads its config from the default branch, so this
+# file does not run on upstream legacy-airtable. It applies to forks whose
+# default branch is this line.
 version: 2
 updates:
   - package-ecosystem: bun

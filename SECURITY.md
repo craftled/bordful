@@ -11,6 +11,8 @@ This repository is the Airtable version of Bordful. Version 0.1.x is its final r
 
 Bordful 1.0, built on Payload, is in development and will replace this version.
 
+Forks should merge the `legacy-airtable` branch or tag `v0.1.61` from upstream. Do not merge upstream `main`, which is the Payload 1.0 rewrite.
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please follow these steps:

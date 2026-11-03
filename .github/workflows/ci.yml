@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [legacy-airtable, main]
 
 permissions:
   contents: read
