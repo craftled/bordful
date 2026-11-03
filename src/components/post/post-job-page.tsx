@@ -108,6 +108,15 @@ export function PostJobPage({
               {view.ctaLabel}
             </a>
           </Button>
+          {view.testMode ? (
+            <p
+              className="bg-surface-sub text-muted-foreground rounded-[8px] px-3 py-2 text-[12px] leading-[18px]"
+              data-testid="post-job-test-mode"
+            >
+              Demo checkout: no real charge. Pay with card 4242 4242 4242 4242,
+              any future date and any CVC.
+            </p>
+          ) : null}
         </section>
       </div>
     </article>

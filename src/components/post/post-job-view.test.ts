@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { buildPostJobView } from "./post-job-view";
+import { buildPostJobView, isStripeTestLink } from "./post-job-view";
 
 const link = "https://buy.stripe.com/test_example";
 
@@ -36,7 +36,15 @@ test("a priced link names the price and the listing length", () => {
     ctaLabel: "Post a job for $99",
     durationLabel: "Listed for 30 days",
     priceLabel: "$99",
+    testMode: true,
   });
+});
+
+test("only a Stripe test link counts as test mode", () => {
+  expect(isStripeTestLink("https://buy.stripe.com/test_abc")).toBe(true);
+  expect(isStripeTestLink("https://buy.stripe.com/abc")).toBe(false);
+  expect(isStripeTestLink("https://example.com/test_abc")).toBe(false);
+  expect(isStripeTestLink("not a url")).toBe(false);
 });
 
 test("an empty price label uses a plain call to action and singular day", () => {
@@ -52,5 +60,6 @@ test("an empty price label uses a plain call to action and singular day", () => 
     ctaLabel: "Post a job",
     durationLabel: "Listed for 1 day",
     priceLabel: null,
+    testMode: true,
   });
 });
