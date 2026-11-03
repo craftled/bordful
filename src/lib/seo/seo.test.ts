@@ -294,13 +294,13 @@ test("marketing sitemap starts with the marketing pages", () => {
   expect(entries.slice(0, 9).map((entry) => entry.url)).toEqual([
     "https://board.example/",
     "https://board.example/jobs",
+    "https://board.example/companies",
     "https://board.example/pricing",
     "https://board.example/showcase",
     "https://board.example/changelog",
     "https://board.example/about",
     "https://board.example/privacy",
     "https://board.example/terms",
-    "https://board.example/companies",
   ]);
   expect(entries.some((entry) => entry.url.includes("sample-remote"))).toBe(
     false

@@ -5,6 +5,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 import { DocsCodeBlock } from "./docs-code-block";
 
 // A small markdown renderer for the repo's /docs files. It covers headings,
@@ -168,6 +170,19 @@ export function resolveDocHref(href: string, repoBase: string): string {
 const INLINE = /(`[^`]+`|\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/gu;
 const linkClass = "text-foreground underline underline-offset-4";
 
+// Tables fit the 680px column: the first column (a variable or path) stays on
+// one line, the others wrap anywhere, even inside long inline code, with a
+// floor so a phone scrolls the table instead of crushing a column.
+function cellClass(index: number, count: number): string {
+  if (index === 0) {
+    return "px-3 py-2 align-top whitespace-nowrap";
+  }
+  return cn(
+    "px-3 py-2 align-top [overflow-wrap:anywhere]",
+    index === count - 1 && count > 2 ? "min-w-[180px]" : "min-w-[96px]"
+  );
+}
+
 function renderInline(text: string, repoBase: string): ReactNode[] {
   return text.split(INLINE).map((part, index) => {
     const key = `${index}-${part}`;
@@ -300,9 +315,12 @@ export function DocsMarkdown({
                 <table className="w-full text-left text-[13px] leading-5">
                   <thead className="bg-surface-sub text-foreground">
                     <tr>
-                      {block.header.map((cell) => (
+                      {block.header.map((cell, cellIndex) => (
                         <th
-                          className="px-3 py-2 font-medium"
+                          className={cn(
+                            cellClass(cellIndex, block.header.length),
+                            "font-medium whitespace-nowrap"
+                          )}
                           key={cell}
                           scope="col"
                         >
@@ -319,7 +337,7 @@ export function DocsMarkdown({
                       >
                         {row.map((cell, cellIndex) => (
                           <td
-                            className="px-3 py-2 align-top"
+                            className={cellClass(cellIndex, row.length)}
                             key={`${cellIndex}-${cell}`}
                           >
                             {renderInline(cell, repoBase)}

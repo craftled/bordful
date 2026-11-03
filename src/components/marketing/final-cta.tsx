@@ -9,21 +9,67 @@ import { GITHUB_URL } from "./site";
 // .marketing-dark pins the dark palette, and the band shade follows the theme.
 export function FinalCta() {
   return (
-    <section className="marketing-dark border-line text-foreground relative overflow-hidden border-b bg-(--band) md:h-[320px]">
+    <>
+      <PhoneCta />
+      <DesktopCta />
+    </>
+  );
+}
+
+// Paper's phone close: centered, in the page's own theme, with full-width
+// buttons. "Clone now" is the same Vercel clone as Deploy to Vercel.
+function PhoneCta() {
+  return (
+    <section
+      aria-labelledby="marketing-cta-phone-heading"
+      className="border-line flex flex-col gap-5 border-b px-4 py-10 md:hidden"
+    >
+      <h2
+        className="text-foreground flex flex-col text-center text-[28px] leading-[34px] font-medium tracking-[-0.035em]"
+        id="marketing-cta-phone-heading"
+      >
+        <span>Launch your board.</span>
+        <span className="text-subtle"> Make it yours later.</span>
+      </h2>
+      <p className="text-muted-foreground text-center text-[15px] leading-[18px]">
+        Deploy free. Change everything after.
+      </p>
+      <div className="flex flex-col gap-2">
+        <Button asChild className="h-11 px-3.5 text-[15px]">
+          <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
+            Clone now
+          </a>
+        </Button>
+        <Button
+          asChild
+          className="h-11 px-3.5 text-[15px] shadow-xs"
+          variant="outline"
+        >
+          <a href="/jobs">
+            <span>
+              Live demo <span aria-hidden="true">&#8599;</span>
+            </span>
+          </a>
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function DesktopCta() {
+  return (
+    <section className="marketing-dark border-line text-foreground relative hidden h-[320px] overflow-hidden border-b bg-(--band) md:block">
       <div
         aria-hidden="true"
         className="marketing-cta-glow pointer-events-none absolute inset-0"
       />
-      <div className="relative flex flex-col gap-[18px] px-4 py-12 md:px-10 md:py-[72px]">
-        <h2 className="flex max-w-[480px] flex-col text-[30px] leading-9 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[44px]">
+      <div className="relative flex flex-col gap-[18px] px-10 py-[72px]">
+        <h2 className="flex max-w-[480px] flex-col text-[40px] leading-[44px] font-medium tracking-[-0.035em]">
           <span>Launch your board.</span>
           <span className="text-foreground/42"> Make it yours later.</span>
         </h2>
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-1.5">
-          <Button
-            asChild
-            className="h-11 gap-[7px] px-3.5 text-[15px] sm:h-9 sm:text-[13px]"
-          >
+        <div className="flex flex-row gap-1.5">
+          <Button asChild className="h-9 gap-[7px] px-3.5 text-[13px]">
             <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
               Deploy to Vercel
               <Kbd className="bg-primary-foreground/8 text-primary-foreground/60">
@@ -33,7 +79,7 @@ export function FinalCta() {
           </Button>
           <Button
             asChild
-            className="text-foreground ring-foreground/15 hover:bg-tag h-11 gap-[7px] border-0 bg-transparent px-3.5 text-[15px] shadow-none ring-1 ring-inset sm:h-9 sm:text-[13px]"
+            className="text-foreground ring-foreground/15 hover:bg-tag h-9 gap-[7px] border-0 bg-transparent px-3.5 text-[13px] shadow-none ring-1 ring-inset"
             variant="outline"
           >
             <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">

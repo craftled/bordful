@@ -6,7 +6,7 @@ import { Container } from "./container";
 import { KBD_ON_PRIMARY, Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
 import { Section } from "./section";
-import { PhoneShot, ThemedBoardShot } from "./shots";
+import { PhoneShot, ThemedBoardShot, ThemedImage } from "./shots";
 
 const STACK_TAGS = ["MIT", "Next.js", "Payload", "Postgres"] as const;
 
@@ -14,7 +14,7 @@ export function Hero() {
   return (
     <>
       <Section padding="hero">
-        <Container className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+        <Container className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="flex max-w-[720px] flex-col gap-5">
             <Link
               className="bg-card ring-line-strong inline-flex h-6 items-center gap-2 self-start rounded-full pr-[9px] pl-[3px] ring-1 ring-inset"
@@ -27,7 +27,7 @@ export function Hero() {
                 Now on Payload and Postgres <span aria-hidden="true">→</span>
               </span>
             </Link>
-            <h1 className="flex flex-col text-[32px] leading-10 font-medium tracking-[-0.035em] text-balance md:text-[52px] md:leading-[56px] md:tracking-[-0.04em]">
+            <h1 className="flex flex-col text-[34px] leading-[42px] font-medium tracking-[-0.035em] text-balance md:text-[52px] md:leading-[56px] md:tracking-[-0.04em]">
               <span className="text-foreground">The job board you own.</span>
               <span className="text-(--text-faint)"> Live in two minutes.</span>
             </h1>
@@ -64,15 +64,29 @@ export function Hero() {
               </Button>
             </div>
           </div>
-          <ul className="text-subtle flex gap-3 font-mono text-[11px] leading-[14px]">
+          {/* Paper's phone hero: the board's own phone list, at a size that
+              reads, in place of the scaled-down desktop window. */}
+          <a
+            aria-label="Open the live demo board"
+            className="bg-card block overflow-hidden rounded-2xl shadow-[0_0_0_1px_var(--shot-ring),0_1px_2px_rgb(0_0_0/4%),0_28px_56px_-20px_var(--shot-shadow)] md:hidden"
+            href="/jobs"
+          >
+            <ThemedImage
+              alt="The demo board's job list on a phone"
+              className="block h-auto w-full"
+              loading="eager"
+              name="mobileListLight"
+            />
+          </a>
+          <ul className="text-subtle hidden gap-3 font-mono text-[11px] leading-[14px] md:flex">
             {STACK_TAGS.map((tag) => (
               <li key={tag}>{tag}</li>
             ))}
           </ul>
         </Container>
       </Section>
-      <div className="marketing-shot border-line relative h-[240px] overflow-hidden border-b sm:h-[400px] md:h-[560px]">
-        <div className="absolute top-6 left-4 w-[1120px] max-w-none origin-top-left scale-[0.32] overflow-hidden rounded-xl bg-(--window) shadow-[0_0_0_1px_var(--shot-ring),0_30px_60px_-24px_var(--shot-shadow)] sm:scale-50 md:top-10 md:left-10 md:scale-100">
+      <div className="marketing-shot border-line relative hidden h-[560px] overflow-hidden border-b md:block">
+        <div className="absolute top-10 left-10 w-[1120px] max-w-none overflow-hidden rounded-xl bg-(--window) shadow-[0_0_0_1px_var(--shot-ring),0_30px_60px_-24px_var(--shot-shadow)]">
           <div
             aria-hidden="true"
             className="relative flex h-[30px] items-center gap-1.5 px-3"

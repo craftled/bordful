@@ -62,6 +62,7 @@ export default async function DocPage({
   return (
     <DocsFrame
       active={slug}
+      editHref={`${GITHUB_URL}/edit/main/docs/${slug}.md`}
       entries={entries}
       headings={extractHeadings(source)}
     >
@@ -100,16 +101,6 @@ export default async function DocPage({
             : { href: "/docs", label: "Overview" }
         }
       />
-      <p className="text-muted-foreground text-[13px] leading-5">
-        <a
-          className="text-foreground underline underline-offset-4"
-          href={`${GITHUB_URL}/edit/main/docs/${slug}.md`}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          Edit this page on GitHub
-        </a>
-      </p>
     </DocsFrame>
   );
 }

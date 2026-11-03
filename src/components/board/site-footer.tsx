@@ -5,6 +5,8 @@ import { isMarketingEnabled } from "@/config/flags";
 import { boardHomePath, type FooterColumn } from "@/config/nav";
 import { companiesFromPool } from "@/lib/board/companies";
 import { BOARD_POOL_LIMIT } from "@/lib/board/constants";
+import { buildBoardFacets } from "@/lib/board/filter";
+import { BOARD_SEARCH_PATH } from "@/lib/board/paths";
 import { countTaxonomy, type TaxonomyFacet } from "@/lib/board/taxonomy";
 import { getSiteSettings, listPublishedJobs } from "@/lib/read";
 
@@ -12,6 +14,43 @@ const FACET_LIMIT = 5;
 
 // These columns are replaced by the facet columns and the RSS button.
 const REPLACED_COLUMN_IDS = new Set(["feeds", "jobs"]);
+
+// Paper's footer keeps Privacy and Terms under Company, not a sixth column.
+function mergeLegal(columns: FooterColumn[]): FooterColumn[] {
+  const legal = columns.find((column) => column.id === "legal");
+  const company = columns.find((column) => column.id === "company");
+  if (!(legal && company)) {
+    return columns;
+  }
+
+  return columns
+    .filter((column) => column.id !== "legal")
+    .map((column) =>
+      column.id === "company"
+        ? { ...column, items: [...column.items, ...legal.items] }
+        : column
+    );
+}
+
+// "Jobs by category" links into the board search.
+export function categoryColumn(
+  items: Parameters<typeof buildBoardFacets>[0]
+): FooterColumn | null {
+  const categories = buildBoardFacets(items).categories.slice(0, FACET_LIMIT);
+  if (categories.length === 0) {
+    return null;
+  }
+
+  return {
+    id: "category",
+    items: categories.map((facet) => ({
+      href: `${BOARD_SEARCH_PATH}?${new URLSearchParams({ categories: facet.value })}`,
+      id: `category-${facet.value}`,
+      label: facet.label ?? facet.value,
+    })),
+    title: "Jobs by category",
+  };
+}
 
 function facetColumn(
   id: string,
@@ -80,7 +119,9 @@ export async function SiteFooter({
     title: "Employers",
   };
 
+  const categories = categoryColumn(items);
   const footerColumns = [
+    categories,
     facetColumn("location", "Jobs by location", taxonomy.locations, (facet) =>
       facet.slug === "remote" ? "Remote jobs" : `Jobs in ${facet.label}`
     ),
@@ -90,14 +131,19 @@ export async function SiteFooter({
       taxonomy.levels,
       (facet) => `${facet.label} jobs`
     ),
-    facetColumn(
-      "type",
-      "Jobs by type",
-      taxonomy.types,
-      (facet) => `${facet.label} jobs`
-    ),
+    // Paper swaps types for categories; the types hub stays one click away.
+    categories
+      ? null
+      : facetColumn(
+          "type",
+          "Jobs by type",
+          taxonomy.types,
+          (facet) => `${facet.label} jobs`
+        ),
     employers,
-    ...columns.filter((column) => !REPLACED_COLUMN_IDS.has(column.id)),
+    ...mergeLegal(
+      columns.filter((column) => !REPLACED_COLUMN_IDS.has(column.id))
+    ),
   ].filter((column): column is FooterColumn => column !== null);
 
   return (
@@ -117,7 +163,9 @@ export async function SiteFooter({
               }
             : null
         }
-        tagline={tagline}
+        // The board description is the site's own blurb, as the RSS feed
+        // uses it; Paper shows it under the logo when no tagline is set.
+        tagline={tagline || data?.settings.board.description || ""}
       />
       <TabBar
         alertsEnabled={alertsEnabled}

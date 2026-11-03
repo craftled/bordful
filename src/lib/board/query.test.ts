@@ -40,7 +40,7 @@ test("drops unknown per page values and non positive pages", () => {
 
 test("parses categories and featured, lowercased and de-duplicated", () => {
   const query = parseBoardQuery(
-    new URLSearchParams("categories=Design,%20design%20,Data&featured=true"),
+    new URLSearchParams("categories=Design,design%20,Data&featured=true"),
     options
   );
 
@@ -52,4 +52,16 @@ test("parses categories and featured, lowercased and de-duplicated", () => {
   expect(
     parseBoardQuery(new URLSearchParams("featured=1"), options).featured
   ).toBe(false);
+});
+
+test("a comma followed by a space stays inside one category", () => {
+  const query = parseBoardQuery(
+    new URLSearchParams({ categories: "Art, Fashion & Design,Data" }),
+    options
+  );
+
+  expect(query.categories).toEqual(["art, fashion & design", "data"]);
+  expect(
+    parseBoardQuery(serializeBoardQuery(query, options), options).categories
+  ).toEqual(query.categories);
 });

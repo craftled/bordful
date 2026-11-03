@@ -24,6 +24,28 @@ const JOB_POSTING_CODE = [
 const EXAMPLE_PRICE_LABEL = "$99";
 const DEFAULT_DURATION_DAYS = 30;
 
+// The four cards' copy, shared by the phone list and the desktop bento.
+const CARDS = {
+  alerts: {
+    description: "Visitors sign up for a daily or weekly email of new jobs.",
+    title: "Visitors come back on their own",
+  },
+  brand: {
+    description: "Neutral by default, so every board looks like its owner.",
+    title: "Your colors, not ours",
+  },
+  paid: {
+    description: "Your Stripe payment link. Listings expire on their own.",
+    title: "Employers pay to post",
+  },
+  seo: {
+    description: "JobPosting data, sitemaps and a clean URL per job.",
+    title: "Found on Google from day one",
+  },
+} as const;
+
+const PHONE_ORDER = ["alerts", "brand", "seo", "paid"] as const;
+
 function Card({
   children,
   className,
@@ -61,38 +83,47 @@ export function Bento() {
       className="border-line scroll-mt-14 border-b"
       id="features"
     >
-      <Container className="border-line border-b pt-10 pb-8 md:pt-16 md:pb-10">
+      <Container className="md:border-line pt-10 pb-5 md:border-b md:pt-16 md:pb-10">
         <SectionHeader
           eyebrow="Features"
           id="marketing-bento-heading"
+          phone="mono"
           title="Everything a board needs."
           titleMuted="Nothing it does not."
         />
       </Container>
-      <div className="bg-line grid gap-px md:grid-cols-2">
-        <Card
-          className="h-[400px] md:h-[440px]"
-          description="Visitors sign up for a daily or weekly email of new jobs."
-          title="Visitors come back on their own"
-        >
-          <div className="absolute top-[100px] left-1/2 flex -translate-x-1/2 items-start gap-[30px] md:left-[70px] md:translate-x-0">
+      {/* Paper's phone home keeps the copy and drops the pictures. */}
+      <ul className="flex flex-col gap-5 px-4 pb-10 md:hidden">
+        {PHONE_ORDER.map((key) => (
+          <li
+            className="bg-card ring-line flex flex-col gap-1.5 rounded-[14px] p-[18px] ring-1 ring-inset"
+            key={key}
+          >
+            <h3 className="text-foreground text-[15px] leading-[18px] font-medium">
+              {CARDS[key].title}
+            </h3>
+            <p className="text-muted-foreground text-[13px] leading-[19px]">
+              {CARDS[key].description}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="bg-line hidden gap-px md:grid md:grid-cols-2">
+        <Card className="h-[440px]" {...CARDS.alerts}>
+          <div className="absolute top-[100px] left-[70px] flex items-start gap-[30px]">
             <PhoneShot
               alt="The board home on a phone"
-              className="w-[160px] md:w-[190px]"
+              className="w-[190px]"
               name="mobileHome"
             />
             <PhoneShot
               alt="A job page on a phone"
-              className="mt-8 w-[160px] md:w-[190px]"
+              className="mt-8 w-[190px]"
               name="mobileJob"
             />
           </div>
         </Card>
-        <Card
-          className="h-[360px] md:h-[440px]"
-          description="Neutral by default, so every board looks like its owner."
-          title="Your colors, not ours"
-        >
+        <Card className="h-[440px]" {...CARDS.brand}>
           <Shot
             alt="The board in the light theme"
             className="absolute top-[110px] left-4 h-[273px] w-[480px] rounded-lg shadow-[0_0_0_1px_var(--line),0_16px_32px_-12px_rgb(0_0_0/20%)] md:left-7 md:h-[319px] md:w-[560px]"
@@ -104,21 +135,14 @@ export function Bento() {
             name="boardDark"
           />
         </Card>
-        <Card
-          className="min-h-[300px] md:h-[300px]"
-          description="JobPosting data, sitemaps and a clean URL per job."
-          title="Found on Google from day one"
-        >
-          <pre className="ring-line text-muted-foreground mt-[31px] overflow-x-auto rounded-[10px] bg-(--panel) p-4 font-mono text-[12px] leading-[19px] whitespace-pre ring-1 ring-inset">
+        <Card className="min-h-[300px]" {...CARDS.seo}>
+          {/* Long lines wrap inside the card instead of running off its
+              edge on narrower screens. */}
+          <pre className="ring-line text-muted-foreground mt-[31px] rounded-[10px] bg-(--panel) p-4 font-mono text-[12px] leading-[19px] break-words whitespace-pre-wrap ring-1 ring-inset">
             <code>{JOB_POSTING_CODE}</code>
           </pre>
         </Card>
-        <Card
-          className="min-h-[300px] md:h-[300px]"
-          description="Your Stripe payment link. Listings expire on their own."
-          inverse
-          title="Employers pay to post"
-        >
+        <Card className="min-h-[300px]" inverse {...CARDS.paid}>
           <div className="mt-[31px] flex flex-col">
             <dl className="flex gap-2.5">
               <div className="flex flex-1 flex-col gap-1 rounded-[10px] p-3.5 ring-1 ring-(--kbd-on-outline) ring-inset">

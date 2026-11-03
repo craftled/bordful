@@ -15,7 +15,7 @@ const parts = [
 
 export function Statement() {
   return (
-    <Section className="md:py-14">
+    <Section className="hidden md:block md:py-14">
       <Container>
         <p className="max-w-[760px] text-[22px] leading-[34px] font-medium tracking-[-0.025em] text-(--text-faint) [word-spacing:1px] md:text-[28px] md:leading-[38px]">
           {parts.map((part, index) => (

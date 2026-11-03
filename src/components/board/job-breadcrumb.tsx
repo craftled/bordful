@@ -69,13 +69,14 @@ export function JobBreadcrumb({
           </li>
         </ol>
       </nav>
-      <div className="-my-2 flex shrink-0 items-center gap-1 sm:my-0">
+      {/* Paper's phone trail is crumbs only: Save lives in the sticky bar. */}
+      <div className="hidden shrink-0 items-center gap-1 sm:flex">
         <Link
-          className="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-md font-medium sm:inline sm:size-auto"
+          className="text-muted-foreground hover:text-foreground inline font-medium"
           href={jobsHref}
         >
           <span aria-hidden="true">←</span>
-          <span className="sr-only sm:not-sr-only">&nbsp;All jobs</span>
+          <span>&nbsp;All jobs</span>
         </Link>
         {actions}
       </div>

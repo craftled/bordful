@@ -1,5 +1,6 @@
 import {
   Bell,
+  ChevronRight,
   CreditCard,
   FileText,
   type LucideIcon,
@@ -11,8 +12,9 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listDocs } from "@/components/marketing/docs-content";
+import { firstSentence, listDocs } from "@/components/marketing/docs-content";
 import { DocsFrame } from "@/components/marketing/docs-layout";
+import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = {
@@ -36,7 +38,11 @@ export default function DocsHomePage() {
   const entries = listDocs();
 
   return (
-    <DocsFrame active="" entries={entries}>
+    <DocsFrame
+      active=""
+      editHref={`${GITHUB_URL}/edit/main/src/app/(marketing)/docs/page.tsx`}
+      entries={entries}
+    >
       <div className="flex flex-col gap-3">
         <p className="text-foreground text-[13px] leading-[19px] font-medium">
           Docs
@@ -49,7 +55,31 @@ export default function DocsHomePage() {
           make it yours.
         </p>
       </div>
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="bg-card ring-line flex flex-col overflow-hidden rounded-[14px] ring-1 md:hidden">
+        {entries.map((entry) => (
+          <li className="border-line border-b last:border-b-0" key={entry.slug}>
+            <Link
+              className="hover:bg-surface-sub flex items-center gap-3 px-4 py-3.5"
+              href={`/docs/${entry.slug}`}
+            >
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="text-foreground text-[15px] leading-[18px] font-medium">
+                  {entry.title}
+                </span>
+                <span className="text-muted-foreground text-[13px] leading-4">
+                  {firstSentence(entry.summary)}
+                </span>
+              </span>
+              <ChevronRight
+                aria-hidden="true"
+                className="text-subtle size-3.5 shrink-0"
+                strokeWidth={1.8}
+              />
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <ul className="hidden gap-3 md:grid md:grid-cols-2">
         {entries.map((entry) => {
           const Icon = ICONS[entry.slug] ?? FileText;
 
@@ -69,8 +99,8 @@ export default function DocsHomePage() {
                 <span className="text-foreground text-[14px] leading-5 font-medium">
                   {entry.title}
                 </span>
-                <span className="text-muted-foreground line-clamp-3 text-[13px] leading-[19px]">
-                  {entry.summary}
+                <span className="text-muted-foreground text-[13px] leading-[19px]">
+                  {firstSentence(entry.summary)}
                 </span>
               </Link>
             </li>

@@ -1,5 +1,6 @@
 import * as migration_20261023_084704_initial from './20261023_084704_initial';
 import * as migration_20261103_014022_sync_budget from './20261103_014022_sync_budget';
+import * as migration_20261103_172311_settings_paper_defaults from './20261103_172311_settings_paper_defaults';
 
 export const migrations = [
   {
@@ -10,6 +11,11 @@ export const migrations = [
   {
     up: migration_20261103_014022_sync_budget.up,
     down: migration_20261103_014022_sync_budget.down,
-    name: '20261103_014022_sync_budget'
+    name: '20261103_014022_sync_budget',
+  },
+  {
+    up: migration_20261103_172311_settings_paper_defaults.up,
+    down: migration_20261103_172311_settings_paper_defaults.down,
+    name: '20261103_172311_settings_paper_defaults'
   },
 ];

@@ -15,6 +15,41 @@ export const metadata: Metadata = {
   title: "Features",
 };
 
+// Paper's stats strip, with facts the site already states: the license, the
+// 1.0 release on Payload and Postgres, and "live in two minutes" from the
+// home hero. Paper's "100% TypeScript" and "5 min" cells are not claims the
+// site makes, so they are swapped for these.
+const STATS = [
+  { label: "Open source license", value: "MIT" },
+  { label: "Now on Payload and Postgres", value: "1.0" },
+  { label: "From Deploy to a live board", value: "2 min" },
+] as const;
+
+function FeaturesStats() {
+  return (
+    <section
+      aria-label="Bordful at a glance"
+      className="border-line border-b px-4 py-6 md:px-0 md:py-0"
+    >
+      <dl className="flex flex-col md:flex-row">
+        {STATS.map((stat) => (
+          <div
+            className="border-line flex flex-col gap-1.5 border-b py-4 last:border-b-0 md:flex-1 md:border-b-0 md:border-l md:px-8 md:py-9 md:first:border-l-0"
+            key={stat.value}
+          >
+            <dt className="text-muted-foreground order-2 text-[13px] leading-[18px] md:text-[14px] md:leading-[21px]">
+              {stat.label}
+            </dt>
+            <dd className="text-foreground order-1 text-[30px] leading-9 font-medium tracking-[-0.03em] md:text-[40px] md:leading-[44px]">
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export default function FeaturesPage() {
   assertMarketingEnabled();
 
@@ -51,16 +86,21 @@ export default function FeaturesPage() {
           </div>
         </Container>
       </Section>
+      <FeaturesStats />
       <FeaturesPageGrid />
-      <MarketingCta
-        actions={[
-          { external: true, href: GITHUB_URL, label: "Clone now" },
-          { href: "/jobs", label: "Live demo" },
-        ]}
-        description="Clone the repository and launch your board today."
-        title="Ready to launch your"
-        titleMuted="job board?"
-      />
+      {/* Paper's features CTA sits on the page color, not the tinted band
+          MarketingCta draws elsewhere. */}
+      <div className="[&>section]:bg-transparent">
+        <MarketingCta
+          actions={[
+            { external: true, href: GITHUB_URL, label: "Clone now" },
+            { href: "/jobs", label: "Live demo" },
+          ]}
+          description="Clone the repository and launch your board today."
+          title="Ready to launch your"
+          titleMuted="job board?"
+        />
+      </div>
     </>
   );
 }

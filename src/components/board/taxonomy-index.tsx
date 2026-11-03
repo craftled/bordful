@@ -12,11 +12,14 @@ import {
   filterByTaxonomy,
   type TaxonomyFacet,
 } from "@/lib/board/taxonomy";
+import type { JobEmploymentType } from "@/lib/domain/job-vocab";
 import { getSiteSettings } from "@/lib/read";
 import {
   countWorkplaces,
   formatMedianUsd,
   medianSalaryUsd,
+  rolesWithTaxonomy,
+  TYPE_DESCRIPTION,
 } from "@/lib/read/taxonomy-stats";
 
 const POPULAR_COUNT = 4;
@@ -78,12 +81,17 @@ function subtitle(kind: TaxonomyKind, roles: number, groups: number): string {
 }
 
 function PopularCard({
+  detail,
   facet,
-  median,
+  inlineDetail,
 }: {
+  detail: string | null;
   facet: TaxonomyFacet;
-  median: string | null;
+  // When only some cards in the row have a median, it rides on the count
+  // line so no card carries an empty bottom row.
+  inlineDetail: boolean;
 }) {
+  const count = `${facet.count} ${facet.count === 1 ? "role" : "roles"}`;
   return (
     <Link
       className="bg-card ring-line hover:ring-line-strong flex h-full flex-col gap-1 rounded-[14px] p-4 ring-1 transition-shadow md:gap-[6px] md:p-5"
@@ -102,11 +110,14 @@ function PopularCard({
         </span>
       </span>
       <span className="text-muted-foreground text-[13px] leading-4 md:text-[14px] md:leading-5">
-        {facet.count} {facet.count === 1 ? "role" : "roles"}
+        {count}
+        {inlineDetail && detail ? (
+          <span className="text-subtle"> · {detail}</span>
+        ) : null}
       </span>
-      {median ? (
+      {!inlineDetail && detail ? (
         <span className="text-subtle text-[12px] leading-4 md:text-[13px] md:leading-[19px]">
-          {median}
+          {detail}
         </span>
       ) : null}
     </Link>
@@ -123,7 +134,16 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
       ? "locations"
       : (`${kind}s` as "languages" | "levels" | "types")
   ].filter((facet) => facet.count > 0);
-  const popular = facets.slice(0, POPULAR_COUNT);
+  const popular = facets.slice(0, POPULAR_COUNT).map((facet) => ({
+    detail:
+      kind === "type"
+        ? (TYPE_DESCRIPTION[facet.slug as JobEmploymentType] ?? null)
+        : formatMedianUsd(
+            medianSalaryUsd(filterByTaxonomy(cards, kind, facet.slug) ?? [])
+          ),
+    facet,
+  }));
+  const inlineDetail = popular.some((card) => card.detail === null);
   const rest = facets.slice(POPULAR_COUNT);
   const workplaces = kind === "type" ? countWorkplaces(cards) : [];
   const alert = ALERT_COPY[kind];
@@ -138,7 +158,11 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
       />
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-4">
         <PageTitle
-          subtitle={subtitle(kind, cards.length, facets.length)}
+          subtitle={subtitle(
+            kind,
+            rolesWithTaxonomy(cards, kind),
+            facets.length
+          )}
           tight={kind === "location"}
         >
           {HEADING[kind]}
@@ -160,15 +184,12 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
             {POPULAR_LABEL[kind]}
           </h2>
           <ul className="grid max-w-[1064px] grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            {popular.map((facet) => (
-              <li key={facet.slug}>
+            {popular.map((card) => (
+              <li key={card.facet.slug}>
                 <PopularCard
-                  facet={facet}
-                  median={formatMedianUsd(
-                    medianSalaryUsd(
-                      filterByTaxonomy(cards, kind, facet.slug) ?? []
-                    )
-                  )}
+                  detail={card.detail}
+                  facet={card.facet}
+                  inlineDetail={inlineDetail}
                 />
               </li>
             ))}

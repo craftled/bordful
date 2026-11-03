@@ -65,20 +65,20 @@ export const SiteSettings: GlobalConfig = {
       fields: [
         { fields: colorFields, name: "colors", type: "group" },
         {
-          defaultValue: "system",
+          defaultValue: "sans",
           name: "fontHeading",
           options: toOptions(FONT_IDS),
           type: "select",
         },
         {
-          defaultValue: "system",
+          defaultValue: "sans",
           name: "fontBody",
           options: toOptions(FONT_IDS),
           type: "select",
         },
         {
           admin: { step: 0.125 },
-          defaultValue: 0.625,
+          defaultValue: 0.5,
           max: 2,
           min: 0,
           name: "radius",

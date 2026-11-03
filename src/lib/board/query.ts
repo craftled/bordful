@@ -40,13 +40,17 @@ const Q_MAX = 200;
 const PER_PAGE_SET = new Set<number>(PER_PAGE_OPTIONS);
 const SORTS = new Set<BoardSort>(["newest", "oldest", "salary"]);
 
+// Lists are joined with a bare ",". A comma followed by a space belongs to a
+// value, as in the category "Art, Fashion & Design".
+const LIST_SEPARATOR = /,(?!\s)/u;
+
 function splitCsv(value: string | null): string[] {
   if (!value) {
     return [];
   }
 
   return value
-    .split(",")
+    .split(LIST_SEPARATOR)
     .map((part) => part.trim())
     .filter((part) => part.length > 0);
 }

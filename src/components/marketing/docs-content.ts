@@ -43,6 +43,15 @@ export function docSummary(source: string): string {
   return text.replace(/`/gu, "").replace(/\[([^\]]+)\]\([^)]+\)/gu, "$1");
 }
 
+// The docs index shows a doc's opening sentence, so a long first paragraph
+// never ends mid-word. A lead-in that ends with a colon reads as a sentence.
+export function firstSentence(text: string): string {
+  const trimmed = text.trim();
+  const match = /^.*?[.!?](?=\s|$)/u.exec(trimmed);
+  const sentence = (match?.[0] ?? trimmed).trim();
+  return sentence.endsWith(":") ? `${sentence.slice(0, -1)}.` : sentence;
+}
+
 export interface DocsEntry {
   slug: string;
   summary: string;

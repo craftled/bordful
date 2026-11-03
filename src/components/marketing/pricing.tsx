@@ -246,6 +246,7 @@ export function Pricing({
       <Container className="border-line border-b pt-10 pb-8 md:pt-16 md:pb-10">
         <SectionHeader
           eyebrow="Pricing"
+          phone="mono"
           title="Free to run."
           titleMuted="Help if you want it."
         />

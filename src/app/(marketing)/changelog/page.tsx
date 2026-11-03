@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-
 import {
   changelogDateLabel,
   changelogEntries,
 } from "@/components/marketing/changelog-entries";
 import { Container } from "@/components/marketing/container";
+import { Section } from "@/components/marketing/section";
+import { SectionHeader } from "@/components/marketing/section-header";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = {
@@ -17,75 +17,68 @@ export default function ChangelogPage() {
   assertMarketingEnabled();
 
   return (
-    <Container className="md:px-10">
-      <div className="mx-auto flex w-full max-w-[1072px] flex-col gap-8 pt-7 pb-[72px]">
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center gap-2 text-[13px] leading-4"
-        >
-          <Link className="text-subtle hover:text-foreground" href="/jobs">
-            Jobs
-          </Link>
-          <span aria-hidden="true" className="text-subtle">
-            /
-          </span>
-          <span aria-current="page" className="text-foreground">
-            Changelog
-          </span>
-        </nav>
-        <h1 className="flex flex-col text-[30px] leading-[40px] font-medium tracking-[-0.035em] sm:text-[40px] sm:leading-[48px]">
-          <span className="text-foreground">Changelog.</span>
-          <span className="text-subtle">
-            Releases of the open-source template.
-          </span>
-        </h1>
-        <ol className="flex flex-col gap-4">
-          {changelogEntries.map((entry) => (
-            <li
-              className="bg-card ring-line flex flex-col gap-3 rounded-[14px] p-[22px] ring-1"
-              key={entry.version}
-            >
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-foreground font-mono text-[11px] font-medium tracking-[0.04em]">
-                    v{entry.version}
-                  </span>
-                  <h2 className="text-foreground text-[16px] leading-5 font-medium">
-                    {entry.href ? (
-                      <a
-                        className="underline-offset-4 hover:underline"
-                        href={entry.href}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        {entry.title}
-                      </a>
-                    ) : (
-                      entry.title
-                    )}
-                  </h2>
-                </div>
-                <p className="text-subtle text-[13px] leading-4">
-                  {changelogDateLabel(entry)}
-                </p>
-              </div>
-              <ul className="flex flex-col gap-3">
-                {entry.bullets.map((bullet) => (
-                  <li
-                    className="text-muted-foreground flex gap-2.5 text-[14px] leading-[18px]"
-                    key={bullet}
-                  >
-                    <span aria-hidden="true" className="text-subtle">
-                      •
+    <>
+      <Section className="md:py-14">
+        <Container>
+          <SectionHeader
+            description="Releases of the open-source template."
+            eyebrow="Changelog"
+            headingLevel="h1"
+            title="What changed"
+            titleMuted="in Bordful."
+          />
+        </Container>
+      </Section>
+      <Section className="md:py-14">
+        <Container className="mx-auto max-w-[880px] md:px-10">
+          <ol className="flex flex-col gap-4">
+            {changelogEntries.map((entry) => (
+              <li
+                className="bg-card ring-line flex flex-col gap-3 rounded-[14px] p-[22px] ring-1"
+                key={entry.version}
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-foreground font-mono text-[11px] font-medium tracking-[0.04em]">
+                      v{entry.version}
                     </span>
-                    <span>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </Container>
+                    <h2 className="text-foreground text-[16px] leading-5 font-medium">
+                      {entry.href ? (
+                        <a
+                          className="underline-offset-4 hover:underline"
+                          href={entry.href}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          {entry.title}
+                        </a>
+                      ) : (
+                        entry.title
+                      )}
+                    </h2>
+                  </div>
+                  <p className="text-subtle text-[13px] leading-4">
+                    {changelogDateLabel(entry)}
+                  </p>
+                </div>
+                <ul className="flex flex-col gap-3">
+                  {entry.bullets.map((bullet) => (
+                    <li
+                      className="text-muted-foreground flex gap-2.5 text-[14px] leading-[18px]"
+                      key={bullet}
+                    >
+                      <span aria-hidden="true" className="text-subtle">
+                        •
+                      </span>
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </Container>
+      </Section>
+    </>
   );
 }
