@@ -30,3 +30,18 @@ test("redirects a single facet to its archive and cleans query order", () => {
     canonicalSearchRedirect(new URLSearchParams("q=a&remote=true"), options)
   ).toBeNull();
 });
+
+test("keeps a category or featured search on the search page", () => {
+  expect(
+    canonicalSearchRedirect(
+      new URLSearchParams("categories=design&remote=true"),
+      options
+    )
+  ).toBeNull();
+  expect(
+    canonicalSearchRedirect(
+      new URLSearchParams("featured=true&types=contract"),
+      options
+    )
+  ).toBeNull();
+});

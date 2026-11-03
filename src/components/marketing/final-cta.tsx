@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 
+import { Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
-import { MarketingImage } from "./marketing-image";
+import { Shot } from "./shots";
 import { GITHUB_URL } from "./site";
 
 // Paper's closing band on the home page. It stays dark in both themes: the
@@ -25,29 +26,33 @@ export function FinalCta() {
         <div className="flex flex-wrap gap-1.5">
           <Button
             asChild
-            className="bg-background text-foreground hover:bg-background/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 px-3.5"
+            className="bg-background text-foreground hover:bg-background/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 gap-[7px] px-3.5"
           >
             <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
               Deploy to Vercel
+              <Kbd className="bg-foreground/8 text-muted-foreground dark:bg-primary-foreground/8">
+                D
+              </Kbd>
             </a>
           </Button>
           <Button
             asChild
-            className="text-background ring-background/15 hover:bg-background/10 dark:text-foreground dark:ring-line-strong dark:hover:bg-tag border-0 bg-transparent px-3.5 ring-1 ring-inset"
+            className="text-background ring-background/15 hover:bg-background/10 dark:text-foreground dark:ring-line-strong dark:hover:bg-tag gap-[7px] border-0 bg-transparent px-3.5 ring-1 ring-inset"
             variant="outline"
           >
             <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
               Star on GitHub
+              <Kbd className="bg-background/15 text-background dark:bg-foreground/15 dark:text-foreground">
+                G
+              </Kbd>
             </a>
           </Button>
         </div>
       </div>
-      <MarketingImage
+      <Shot
         alt=""
-        className="ring-background/10 dark:ring-line-strong absolute top-14 left-[53.33%] hidden w-[46.67%] rounded-[10px] ring-1 lg:block"
-        height={1692}
-        src="/marketing/bordful-demo.png"
-        width={2880}
+        className="ring-background/10 dark:ring-line-strong absolute top-14 left-[53.33%] hidden h-[319px] w-[46.67%] rounded-[10px] shadow-none lg:block"
+        name="boardDark"
       />
     </section>
   );

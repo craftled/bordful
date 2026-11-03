@@ -13,6 +13,8 @@ test("parses csv filters and serializes the canonical query string", () => {
   );
 
   expect(query).toEqual({
+    categories: [],
+    featured: false,
     languages: [],
     page: 2,
     perPage: 50,
@@ -34,4 +36,20 @@ test("drops unknown per page values and non positive pages", () => {
     parseBoardQuery(new URLSearchParams("per_page=7"), options).perPage
   ).toBe(20);
   expect(parseBoardQuery(new URLSearchParams("page=-3"), options).page).toBe(1);
+});
+
+test("parses categories and featured, lowercased and de-duplicated", () => {
+  const query = parseBoardQuery(
+    new URLSearchParams("categories=Design,%20design%20,Data&featured=true"),
+    options
+  );
+
+  expect(query.categories).toEqual(["design", "data"]);
+  expect(query.featured).toBe(true);
+  expect(serializeBoardQuery(query, options).toString()).toBe(
+    "categories=design%2Cdata&featured=true"
+  );
+  expect(
+    parseBoardQuery(new URLSearchParams("featured=1"), options).featured
+  ).toBe(false);
 });

@@ -14,6 +14,7 @@ import {
   getJobBySlug,
   getSiteSettings,
 } from "@/lib/read";
+import { getCompanyJobCount } from "@/lib/read/company-count";
 import { buildJobPostingJsonLd } from "@/lib/seo/job-posting";
 
 export async function generateMetadata({
@@ -77,6 +78,11 @@ export default async function JobPage({
     }
   );
 
+  // The company's live job count is optional too.
+  const openRoles = job.companySlug
+    ? await getCompanyJobCount(job.companySlug, includeSamples).catch(() => 0)
+    : 0;
+
   const jsonLd = job.indexable
     ? buildJobPostingJsonLd(job, {
         siteName: settings.name,
@@ -94,7 +100,9 @@ export default async function JobPage({
         marketing={isMarketingEnabled()}
         nonce={nonce}
         now={Date.now()}
+        openRoles={openRoles}
         postJob={settings.postJob}
+        shareUrl={`${resolveServerUrl()}${buildJobPath(job.slug)}`}
         similarJobs={similarJobs}
       />
     </BoardShell>

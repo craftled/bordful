@@ -6,7 +6,7 @@ import { afterEach, expect, test } from "vitest";
 import type { BoardFacets } from "@/lib/board/filter";
 import { type BoardQuery, parseBoardQuery } from "@/lib/board/query";
 
-import { BoardFilters } from "./board-filters";
+import { BoardFilters, buildFilterGroups, FilterChips } from "./board-filters";
 
 afterEach(() => {
   cleanup();
@@ -15,6 +15,8 @@ afterEach(() => {
 const OPTIONS = { defaultPerPage: 10 };
 
 const FACETS: BoardFacets = {
+  categories: [{ count: 2, label: "Design", value: "design" }],
+  featured: 0,
   languages: [{ count: 2, value: "en" }],
   remote: 0,
   salary: [{ count: 0, value: "< $50K" }],
@@ -44,17 +46,17 @@ function renderFilters(query: BoardQuery, facets: BoardFacets = FACETS) {
   );
 }
 
-// Below lg the rail is a native popover, so jsdom reports it as hidden;
+// The sheet is a native popover, so jsdom reports it as hidden;, so jsdom reports it as hidden;
 // role queries opt in with hidden: true.
 test("hides zero-count options", () => {
   renderFilters(queryWith({}));
 
-  expect(screen.getByTestId("filter-type-full-time")).toBeTruthy();
-  expect(screen.queryByTestId("filter-type-contract")).toBeNull();
-  expect(screen.queryByTestId("filter-salary-0")).toBeNull();
-  expect(screen.queryByTestId("filter-level-intern")).toBeNull();
-  expect(screen.queryByTestId("filter-remote")).toBeNull();
-  expect(screen.queryByTestId("filter-visa")).toBeNull();
+  expect(screen.getByTestId("sheet-filter-type-full-time")).toBeTruthy();
+  expect(screen.queryByTestId("sheet-filter-type-contract")).toBeNull();
+  expect(screen.queryByTestId("sheet-filter-salary-0")).toBeNull();
+  expect(screen.queryByTestId("sheet-filter-level-intern")).toBeNull();
+  expect(screen.queryByTestId("sheet-filter-remote")).toBeNull();
+  expect(screen.queryByTestId("sheet-filter-visa")).toBeNull();
   expect(
     screen.getByRole("group", { hidden: true, name: "Level" })
   ).toBeTruthy();
@@ -63,9 +65,9 @@ test("hides zero-count options", () => {
 test("keeps an active zero-count option so it can be cleared", () => {
   renderFilters(queryWith({ types: ["contract"] }));
 
-  const active = screen.getByTestId("filter-type-contract");
+  const active = screen.getByTestId("sheet-filter-type-contract");
   expect(active.getAttribute("aria-current")).toBe("true");
-  expect(screen.getByTestId("filter-type-full-time")).toBeTruthy();
+  expect(screen.getByTestId("sheet-filter-type-full-time")).toBeTruthy();
 });
 
 test("the phone sheet has a reset link only when filters are active", () => {
@@ -102,7 +104,7 @@ test("the sheet's show button counts the matching jobs", () => {
 test("active options are marked with aria-current and a selected label", () => {
   renderFilters(queryWith({ types: ["full-time"] }));
 
-  const option = screen.getByTestId("filter-type-full-time");
+  const option = screen.getByTestId("sheet-filter-type-full-time");
   expect(option.getAttribute("aria-current")).toBe("true");
   expect(option.textContent).toContain("(selected)");
 });
@@ -128,9 +130,9 @@ test("folds options past the first five behind show more", () => {
   const more = screen.getByText("Show more").closest("details");
   expect(more).not.toBeNull();
   expect(more?.hasAttribute("open")).toBe(false);
-  expect(screen.getByTestId("filter-language-pt").closest("details")).toBe(
-    more
-  );
+  expect(
+    screen.getByTestId("sheet-filter-language-pt").closest("details")
+  ).toBe(more);
 });
 
 test("opens show more when a hidden option is active", () => {
@@ -142,4 +144,42 @@ test("opens show more when a hidden option is active", () => {
 
   const more = screen.getByText("Show more").closest("details");
   expect(more?.hasAttribute("open")).toBe(true);
+});
+
+function renderChips(query: BoardQuery, facets: BoardFacets = FACETS) {
+  render(
+    <FilterChips
+      groups={buildFilterGroups({
+        facets,
+        marketing: false,
+        options: OPTIONS,
+        query,
+      })}
+    />
+  );
+}
+
+test("the desktop chips carry the filter test ids, once each", () => {
+  renderChips(queryWith({ types: ["full-time"] }));
+
+  const option = screen.getByTestId("filter-type-full-time");
+  expect(option.getAttribute("aria-current")).toBe("true");
+  expect(option.getAttribute("href")).toBe("/");
+  expect(screen.getByTestId("filter-chip-type")).toBeTruthy();
+});
+
+test("categories filter by the lowercased name and show its label", () => {
+  renderChips(queryWith({}));
+
+  const option = screen.getByTestId("filter-category-design");
+  expect(option.textContent).toContain("Design");
+  expect(option.getAttribute("href")).toBe("/jobs/search?categories=design");
+});
+
+test("an active category with no jobs left can still be cleared", () => {
+  renderChips(queryWith({ categories: ["ops"] }));
+
+  const option = screen.getByTestId("filter-category-ops");
+  expect(option.getAttribute("aria-current")).toBe("true");
+  expect(option.getAttribute("href")).toBe("/");
 });

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { boardHomePath } from "@/config/nav";
 
@@ -12,9 +13,11 @@ function Separator() {
 
 // In board mode the site root is the job list, so a separate Home crumb would link to the same page.
 export function JobBreadcrumb({
+  actions,
   marketing,
   title,
 }: {
+  actions?: ReactNode;
   marketing: boolean;
   title: string;
 }) {
@@ -51,12 +54,16 @@ export function JobBreadcrumb({
           </li>
         </ol>
       </nav>
-      <Link
-        className="text-muted-foreground hover:text-foreground hidden shrink-0 font-medium sm:inline"
-        href={jobsHref}
-      >
-        <span aria-hidden="true">← </span>All jobs
-      </Link>
+      <div className="flex shrink-0 items-center gap-1">
+        <Link
+          className="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-md font-medium sm:inline sm:size-auto"
+          href={jobsHref}
+        >
+          <span aria-hidden="true">←</span>
+          <span className="sr-only sm:not-sr-only">&nbsp;All jobs</span>
+        </Link>
+        {actions}
+      </div>
     </div>
   );
 }

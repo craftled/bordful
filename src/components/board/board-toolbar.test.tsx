@@ -132,6 +132,8 @@ test("hides the menus when controls are off", () => {
 });
 
 const FACETS: BoardFacets = {
+  categories: [],
+  featured: 0,
   languages: [],
   remote: 2,
   salary: [],

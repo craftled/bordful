@@ -1,3 +1,4 @@
+import { jobApplyHref } from "@/lib/board/apply";
 import {
   ALERT_FREQUENCIES,
   type AlertFrequency,
@@ -152,6 +153,10 @@ export function toJobListItem(doc: unknown): JobListItem {
   const origin = jobOrigin(row.origin);
 
   return {
+    applyHref: jobApplyHref({
+      applyEmail: stringOrNull(row.applyEmail),
+      applyUrl: stringOrNull(row.applyUrl),
+    }),
     careerLevel: choiceList(CAREER_LEVELS, row.careerLevel),
     categories: stringList(row.categories),
     companyLogoUrl:

@@ -49,7 +49,7 @@ export default async function BoardPageNumber({
   }
 
   return (
-    <BoardShell fullBleed>
+    <BoardShell fullBleed search={{ options, query }}>
       <BoardListing
         alertsEnabled={settings.alerts.enabled}
         cards={cards}

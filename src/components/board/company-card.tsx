@@ -4,10 +4,12 @@ import { buildCompanyPath } from "@/lib/board/paths";
 
 export function CompanyCard({
   count,
+  logoUrl = null,
   name,
   slug,
 }: {
   count: number;
+  logoUrl?: string | null;
   name: string;
   slug: string;
 }) {
@@ -18,9 +20,21 @@ export function CompanyCard({
     >
       <span
         aria-hidden="true"
-        className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md text-[14px] font-medium"
+        className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] text-[14px] font-medium"
       >
-        {name.trim().charAt(0).toUpperCase()}
+        {logoUrl ? (
+          // biome-ignore lint/performance/noImgElement: a 40px company mark, served as-is
+          <img
+            alt=""
+            className="size-full object-cover"
+            height={40}
+            loading="lazy"
+            src={logoUrl}
+            width={40}
+          />
+        ) : (
+          name.trim().charAt(0).toUpperCase()
+        )}
       </span>
       <span className="flex min-w-0 grow flex-col gap-[2px]">
         <span

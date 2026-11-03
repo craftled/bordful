@@ -42,6 +42,7 @@ function makeCard(
 const cards = [
   makeCard({
     careerLevel: ["Senior"],
+    categories: ["Engineering"],
     companyName: "Example Co",
     countryCode: "US",
     employmentType: "full-time",
@@ -57,9 +58,11 @@ const cards = [
   }),
   makeCard({
     careerLevel: ["Mid"],
+    categories: ["Design", "engineering"],
     companyName: "Acme Example Ltd",
     countryCode: "DE",
     employmentType: "contract",
+    featured: true,
     languages: ["de", "en"],
     publishedAt: "2026-10-21T09:00:00.000Z",
     salaryMaxUsd: null,
@@ -115,6 +118,11 @@ test("builds the default board view", () => {
     { count: 2, value: "en" },
     { count: 1, value: "de" },
   ]);
+  expect(view.facets.categories).toEqual([
+    { count: 2, label: "Engineering", value: "engineering" },
+    { count: 1, label: "Design", value: "design" },
+  ]);
+  expect(view.facets.featured).toBe(1);
   expect(view.facets.remote).toBe(2);
   expect(view.facets.visa).toBe(1);
 });
@@ -183,4 +191,15 @@ test("paginates a generated pool and flags pages past the end", () => {
   expect(pageThree.totalPages).toBe(3);
   expect(pageFour.outOfRange).toBe(true);
   expect(pageFour.docs).toEqual([]);
+});
+
+test("filters the board by category and featured", () => {
+  expect(slugs("categories=engineering")).toEqual(["b-designer", "a-backend"]);
+  expect(slugs("categories=Design")).toEqual(["b-designer"]);
+  expect(slugs("categories=design,engineering")).toEqual([
+    "b-designer",
+    "a-backend",
+  ]);
+  expect(slugs("featured=true")).toEqual(["b-designer"]);
+  expect(slugs("featured=true&categories=data")).toEqual([]);
 });

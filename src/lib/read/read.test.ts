@@ -17,6 +17,7 @@ test("isIndexable is false only for sample jobs", () => {
 test("toJobListItem maps a populated card logo and language values", () => {
   expect(
     toJobListItem({
+      applyUrl: "https://example.com/apply",
       careerLevel: ["Senior"],
       categories: [{ value: "Engineering" }],
       company: { logoUrl: "https://example.com/logo.png" },
@@ -48,6 +49,7 @@ test("toJobListItem maps a populated card logo and language values", () => {
       workplaceType: "remote",
     })
   ).toEqual({
+    applyHref: "https://example.com/apply",
     careerLevel: ["Senior"],
     categories: ["Engineering"],
     companyLogoUrl: "/api/media/file/logo-320x320.png",

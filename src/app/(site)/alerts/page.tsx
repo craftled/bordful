@@ -5,6 +5,8 @@ import { getPayload } from "payload";
 
 import { AlertsForm } from "@/components/alerts/alerts-form";
 import { BoardShell } from "@/components/board/board-shell";
+import { isMarketingEnabled } from "@/config/flags";
+import { boardHomePath } from "@/config/nav";
 import { alertsReady } from "@/lib/alerts/config";
 import { parseAlertQueryFromSearchParams } from "@/lib/alerts/query";
 import { querySiteSettings } from "@/lib/read/queries";
@@ -54,6 +56,7 @@ export default async function AlertsPage({
     <BoardShell>
       <AlertsForm
         defaultFrequency={settings.alerts.defaultFrequency}
+        jobsHref={boardHomePath(isMarketingEnabled())}
         query={query}
       />
     </BoardShell>

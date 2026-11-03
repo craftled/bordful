@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { subscribeAction } from "@/app/(site)/alerts/actions";
@@ -16,17 +17,17 @@ import {
 } from "@/lib/domain/job-vocab";
 
 const selectClass =
-  "h-10 w-full rounded-md border border-line-strong bg-card px-3 text-[14px] text-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
+  "h-10 w-full rounded-lg border border-line-strong bg-card px-3 text-[14px] leading-[18px] text-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 // Paper chip: the native checkbox stays in the DOM, transparent over the
 // whole chip, so names, values, clicks and keyboard behaviour are unchanged.
 const chipClass =
-  "relative flex h-[30px] cursor-pointer items-center rounded-full border border-line-strong bg-card px-3 text-[12px] font-medium text-foreground has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50";
+  "relative flex h-[30px] cursor-pointer items-center rounded-full border border-line-strong bg-card px-3 text-[13px] leading-4 font-medium text-foreground has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50";
 
 const checkboxClass =
   "absolute inset-0 m-0 cursor-pointer appearance-none rounded-full opacity-0";
 
-const fieldLabelClass = "text-[12px] font-medium leading-4 text-foreground";
+const fieldLabelClass = "text-[13px] font-medium leading-4 text-foreground";
 
 const STEPS = [
   "Pick what you want to see.",
@@ -48,28 +49,46 @@ const SENIORITY_LABELS: Record<(typeof SENIORITIES)[number], string> = {
 
 export function AlertsForm({
   defaultFrequency,
+  jobsHref,
   query,
 }: {
   defaultFrequency: AlertFrequency;
+  jobsHref: string;
   query: JobAlertQuery;
 }) {
   const [state, formAction, pending] = useActionState(subscribeAction, null);
   const failed = state !== null && !state.ok;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1072px] flex-col gap-8 py-4 md:pt-7 md:pb-[72px]">
-      <h1 className="flex flex-col text-[30px] leading-9 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
+    <div className="mx-auto flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:gap-8 md:pt-7 md:pb-[72px]">
+      <nav aria-label="Breadcrumb" className="text-[13px] leading-4">
+        <ol className="flex items-center gap-2">
+          <li>
+            <Link className="text-subtle hover:text-foreground" href={jobsHref}>
+              Jobs
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-subtle">
+            /
+          </li>
+          <li aria-current="page" className="text-foreground">
+            Job alerts
+          </li>
+        </ol>
+      </nav>
+
+      <h1 className="flex flex-col text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
         <span className="text-foreground">Get new roles by email.</span>
         <span className="text-subtle">Once a day or once a week.</span>
       </h1>
 
-      <div className="flex flex-col items-start gap-8 md:flex-row">
+      <div className="flex flex-col items-start gap-5 md:flex-row md:gap-8">
         <form
           action={formAction}
-          className="bg-card border-line flex w-full flex-col gap-[22px] rounded-[14px] border p-5 md:w-[660px] md:shrink-0 md:p-7"
+          className="bg-card border-line flex w-full flex-col gap-[18px] rounded-[14px] border p-5 md:w-[660px] md:shrink-0 md:gap-[22px] md:p-7"
           data-testid="alerts-form"
         >
-          <div className="flex flex-col gap-3 md:flex-row">
+          <div className="flex flex-col gap-[18px] md:flex-row md:gap-3">
             <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
               <Label className={fieldLabelClass} htmlFor="alerts-email">
                 Email *
@@ -80,7 +99,7 @@ export function AlertsForm({
                 }
                 aria-invalid={failed || undefined}
                 autoComplete="email"
-                className="h-10"
+                className="h-10 px-3 text-[14px] leading-[18px]"
                 data-testid="alerts-email"
                 id="alerts-email"
                 maxLength={254}
@@ -109,9 +128,7 @@ export function AlertsForm({
           </div>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={`${fieldLabelClass} mb-2`}>
-              Employment type
-            </legend>
+            <legend className={fieldLabelClass}>Employment type</legend>
             <div className="flex flex-wrap gap-2">
               {JOB_EMPLOYMENT_TYPES.map((type) => (
                 <label className={chipClass} key={type}>
@@ -130,7 +147,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={`${fieldLabelClass} mb-2`}>Work</legend>
+            <legend className={fieldLabelClass}>Work</legend>
             <div className="flex flex-wrap gap-2">
               <label className={chipClass}>
                 <input
@@ -158,7 +175,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={`${fieldLabelClass} mb-2`}>Seniority</legend>
+            <legend className={fieldLabelClass}>Seniority</legend>
             <div className="flex flex-wrap gap-2">
               {SENIORITIES.map((level) => (
                 <label className={chipClass} key={level}>
@@ -177,7 +194,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={`${fieldLabelClass} mb-2`}>Salary</legend>
+            <legend className={fieldLabelClass}>Salary</legend>
             <div className="flex flex-wrap gap-2">
               {SALARY_BAND_IDS.map((band, index) => (
                 <label className={chipClass} key={band}>
@@ -211,7 +228,7 @@ export function AlertsForm({
 
           <div className="flex items-center gap-3">
             <Button
-              className="h-9"
+              className="h-11 w-full text-[15px] leading-[18px] md:h-9 md:w-fit md:text-[14px] md:leading-4"
               data-testid="alerts-submit"
               disabled={pending}
               type="submit"
@@ -244,7 +261,7 @@ export function AlertsForm({
           <ol className="flex flex-col gap-[10px]">
             {STEPS.map((step, index) => (
               <li
-                className="text-muted-foreground flex gap-[10px] text-[12px] leading-4"
+                className="text-muted-foreground flex gap-[10px] text-[13px] leading-4"
                 key={step}
               >
                 <span className="text-subtle font-medium">{index + 1}</span>

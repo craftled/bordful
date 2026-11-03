@@ -90,11 +90,17 @@ function SimilarJob({ job, now }: { job: JobListItem; now: number }) {
 }
 
 export function SimilarJobs({
+  companyHref,
+  companyName,
   jobs,
   now,
+  openRoles,
 }: {
+  companyHref: string | null;
+  companyName: string;
   jobs: readonly JobListItem[];
   now: number;
+  openRoles: number;
 }) {
   if (jobs.length === 0) {
     return null;
@@ -106,12 +112,23 @@ export function SimilarJobs({
       className="flex flex-col gap-2.5 sm:gap-5"
       data-testid="similar-jobs"
     >
-      <h2
-        className="text-subtle sm:text-foreground font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase sm:font-sans sm:text-[22px] sm:leading-7 sm:tracking-[-0.015em] sm:normal-case"
-        id="similar-jobs-title"
-      >
-        Similar jobs
-      </h2>
+      <div className="flex items-end justify-between gap-4">
+        <h2
+          className="text-subtle sm:text-foreground font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase sm:font-sans sm:text-[22px] sm:leading-7 sm:tracking-[-0.015em] sm:normal-case"
+          id="similar-jobs-title"
+        >
+          Similar jobs
+        </h2>
+        {companyHref && openRoles > 1 ? (
+          <Link
+            className="text-foreground shrink-0 text-[13px] leading-[18px] font-medium hover:underline"
+            href={companyHref}
+          >
+            See all {openRoles} {companyName} jobs
+            <span aria-hidden="true"> →</span>
+          </Link>
+        ) : null}
+      </div>
       <ul className="bg-card ring-line divide-line overflow-clip rounded-[14px] ring-1 max-sm:divide-y sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:rounded-none sm:bg-transparent sm:ring-0 lg:grid-cols-3">
         {jobs.map((job) => (
           <SimilarJob job={job} key={job.id} now={now} />

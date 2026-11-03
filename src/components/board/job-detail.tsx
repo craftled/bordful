@@ -1,6 +1,11 @@
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import Link from "next/link";
 
+import {
+  JobApplyLink,
+  JobSaveButton,
+  JobShareCard,
+} from "@/components/board/job-actions";
 import { JobBreadcrumb } from "@/components/board/job-breadcrumb";
 import { formatClosingDate, JobFacts } from "@/components/board/job-facts";
 import { PostJobCard } from "@/components/board/post-job-card";
@@ -82,10 +87,12 @@ const RAIL_BUTTON =
 function AboutCompany({
   companyHref,
   job,
+  openRoles,
   website,
 }: {
   companyHref: string | null;
   job: JobDetail;
+  openRoles: number;
   website: string | null;
 }) {
   const { company } = job;
@@ -98,6 +105,7 @@ function AboutCompany({
         : "",
     },
     { label: "Based in", value: company?.location?.trim() ?? "" },
+    { label: "Open roles", value: openRoles > 0 ? String(openRoles) : "" },
   ].filter((row) => row.value.length > 0);
 
   return (
@@ -258,10 +266,6 @@ function ActionBar({
   closes: string;
   job: JobDetail;
 }) {
-  if (!(applyHref || closes)) {
-    return null;
-  }
-
   return (
     <div className="border-line bg-card hidden items-center justify-between gap-3 border-t py-4 pr-6 pl-12 md:sticky md:bottom-0 md:z-10 md:flex xl:pl-[88px]">
       {closes ? (
@@ -275,19 +279,26 @@ function ActionBar({
       ) : (
         <span />
       )}
-      {applyHref ? (
-        <a
-          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 min-w-0 shrink-0 items-center justify-center rounded-md px-5 text-[14px] leading-[18px] font-medium"
-          data-testid="job-apply"
-          href={applyHref}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          Apply at {job.companyName}
-          <span aria-hidden="true">&nbsp;↗</span>
-          <span className="sr-only"> to {job.title}</span>
-        </a>
-      ) : null}
+      <div className="flex gap-2">
+        <JobSaveButton
+          className="h-10 shrink-0 px-4 text-[14px] leading-[18px]"
+          slug={job.slug}
+          testId="job-save"
+          variant="text"
+        />
+        {applyHref ? (
+          <JobApplyLink
+            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 min-w-0 shrink-0 items-center justify-center rounded-md px-5 text-[14px] leading-[18px] font-medium"
+            href={applyHref}
+            slug={job.slug}
+            testId="job-apply"
+          >
+            Apply at {job.companyName}
+            <span aria-hidden="true">&nbsp;↗</span>
+            <span className="sr-only"> to {job.title}</span>
+          </JobApplyLink>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -296,19 +307,20 @@ function SideRail({
   alertsEnabled,
   companyHref,
   job,
+  openRoles,
   postJob,
+  shareUrl,
   website,
 }: {
   alertsEnabled: boolean;
   companyHref: string | null;
   job: JobDetail;
+  openRoles: number;
   postJob: { enabled: boolean; priceLabel: string; durationDays: number };
+  shareUrl: string;
   website: string | null;
 }) {
   const showAbout = Boolean(job.company || companyHref || website);
-  if (!(showAbout || alertsEnabled || postJob.enabled)) {
-    return null;
-  }
 
   return (
     <aside
@@ -316,9 +328,15 @@ function SideRail({
       className="hidden gap-4 md:grid md:grid-cols-2 lg:flex lg:flex-col"
     >
       {showAbout ? (
-        <AboutCompany companyHref={companyHref} job={job} website={website} />
+        <AboutCompany
+          companyHref={companyHref}
+          job={job}
+          openRoles={openRoles}
+          website={website}
+        />
       ) : null}
       {alertsEnabled ? <AlertCard /> : null}
+      <JobShareCard title={job.title} url={shareUrl} />
       {postJob.enabled ? (
         <PostJobCard
           durationDays={postJob.durationDays}
@@ -337,7 +355,9 @@ export function JobPosting({
   marketing,
   nonce,
   now,
+  openRoles,
   postJob,
+  shareUrl,
   similarJobs,
 }: {
   alertsEnabled: boolean;
@@ -347,7 +367,9 @@ export function JobPosting({
   marketing: boolean;
   nonce: string | undefined;
   now: number;
+  openRoles: number;
   postJob: { enabled: boolean; priceLabel: string; durationDays: number };
+  shareUrl: string;
   similarJobs: readonly JobListItem[];
 }) {
   const applyHref = jobApplyHref(job);
@@ -362,7 +384,18 @@ export function JobPosting({
 
   return (
     <div className="flex flex-col gap-5">
-      <JobBreadcrumb marketing={marketing} title={job.title} />
+      <JobBreadcrumb
+        actions={
+          <JobSaveButton
+            className="md:hidden"
+            slug={job.slug}
+            testId="job-top-save"
+            variant="icon"
+          />
+        }
+        marketing={marketing}
+        title={job.title}
+      />
       <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
         <article className="md:bg-card md:ring-line min-w-0 md:overflow-clip md:rounded-2xl md:shadow-[0_1px_2px_rgb(0_0_0/0.04),0_28px_56px_-20px_rgb(0_0_0/0.16)] md:ring-1">
           <div className="flex flex-col gap-5 md:gap-9 md:px-12 md:pt-14 md:pb-12 xl:px-[88px]">
@@ -393,22 +426,29 @@ export function JobPosting({
           alertsEnabled={alertsEnabled}
           companyHref={companyHref}
           job={job}
+          openRoles={openRoles}
           postJob={postJob}
+          shareUrl={shareUrl}
           website={website}
         />
       </div>
       {similarJobs.length > 0 ? (
         <div className="md:pt-9 md:pb-8">
-          <SimilarJobs jobs={similarJobs} now={now} />
+          <SimilarJobs
+            companyHref={companyHref}
+            companyName={job.companyName}
+            jobs={similarJobs}
+            now={now}
+            openRoles={openRoles}
+          />
         </div>
       ) : null}
-      {applyHref ? (
-        <StickyApply
-          companyName={job.companyName}
-          href={applyHref}
-          title={job.title}
-        />
-      ) : null}
+      <StickyApply
+        companyName={job.companyName}
+        href={applyHref}
+        slug={job.slug}
+        title={job.title}
+      />
     </div>
   );
 }

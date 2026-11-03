@@ -1,10 +1,10 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 
 import {
   buildFilterGroups,
   FilterChips,
 } from "@/components/board/board-filters";
+import { SaveSearchButton } from "@/components/board/save-search-button";
 import type { BoardFacets } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
 import {
@@ -98,16 +98,16 @@ function LinkMenu({
   );
 }
 
-// The filter bar: search, filter chips and Clear on the left, the result
-// count and sort on the right. Below lg it stacks into rows: search, a
-// scrolling chip row, then count and sort.
+// The filter bar: filter chips, Clear and Save this search on the left, the
+// result count and sort on the right. Search lives in the site header. Below
+// lg it stacks into a scrolling chip row, then count and sort.
 export function BoardToolbar({
   className,
   facets,
   marketing,
   options,
   query,
-  search,
+  saveSearch,
   showControls,
   title = DEFAULT_TITLE,
   total,
@@ -118,7 +118,8 @@ export function BoardToolbar({
   marketing: boolean;
   options: BoardQueryOptions;
   query: BoardQuery;
-  search?: ReactNode;
+  // The current filter URL and a suggested name, when it can be saved.
+  saveSearch?: { href: string; name: string } | null;
   showControls: boolean;
   title?: string;
   total: number;
@@ -133,16 +134,12 @@ export function BoardToolbar({
   return (
     <div
       className={cn(
-        "border-line flex flex-wrap items-center gap-y-3 border-b px-4 pt-3 lg:min-h-12 lg:gap-x-1.5 lg:gap-y-2 lg:py-2",
+        "border-line flex flex-wrap items-center gap-y-3 border-b px-4 lg:min-h-12 lg:gap-x-1.5 lg:gap-y-2 lg:py-2",
+        !groups && "pt-3",
         className
       )}
     >
       <h2 className="sr-only">{title}</h2>
-      {search ? (
-        <div className="basis-full lg:mr-1.5 lg:w-64 lg:shrink-0 lg:basis-auto">
-          {search}
-        </div>
-      ) : null}
       {groups ? (
         <div className="-mx-4 flex min-w-0 basis-full [scrollbar-width:none] items-center gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:shrink-0 lg:basis-auto lg:overflow-visible lg:px-0">
           <FilterChips groups={groups} />
@@ -161,6 +158,12 @@ export function BoardToolbar({
             >
               Clear
             </Link>
+          ) : null}
+          {saveSearch && boardQueryHasFilters(query) ? (
+            <SaveSearchButton
+              defaultName={saveSearch.name}
+              href={saveSearch.href}
+            />
           ) : null}
         </div>
       ) : null}

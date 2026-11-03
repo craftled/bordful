@@ -7,8 +7,10 @@ import {
 import { BoardHero, heroStats } from "@/components/board/board-hero";
 import { BoardList } from "@/components/board/board-list";
 import { BoardPagination } from "@/components/board/board-pagination";
-import { BoardSearchForm } from "@/components/board/board-search-form";
+import { BoardRail } from "@/components/board/board-rail";
 import { BoardToolbar } from "@/components/board/board-toolbar";
+import { BoardWorkspace } from "@/components/board/board-workspace";
+import { HINT_CLASS } from "@/components/board/job-row-save";
 import { PostJobCard } from "@/components/board/post-job-card";
 import { filterBoard, usdBounds } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
@@ -114,19 +116,66 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+const SHORTCUTS: { keys: string; label: string }[] = [
+  { keys: "J K", label: "Move through roles" },
+  { keys: "↵", label: "Open the selected role" },
+  { keys: "S", label: "Save for later" },
+];
+
+// Shown in the right column until a row is opened in the preview.
+export function PickRoleCard() {
+  return (
+    <section
+      aria-labelledby="board-pick-title"
+      className="bg-card ring-line flex flex-col gap-3.5 rounded-[14px] p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_28px_56px_-20px_rgb(0_0_0/0.16)] ring-1"
+    >
+      <h2
+        className="text-foreground text-[16px] leading-[22px] font-medium"
+        id="board-pick-title"
+      >
+        Pick a role to see the details
+      </h2>
+      <p className="text-muted-foreground text-[13px] leading-5">
+        Salary, level and location open here, next to the list, so you can
+        compare without losing your place.
+      </p>
+      <ul className="flex flex-col gap-2 pt-1">
+        {SHORTCUTS.map((shortcut) => (
+          <li className="flex items-center gap-2.5" key={shortcut.keys}>
+            <kbd
+              className={cn(
+                HINT_CLASS,
+                "h-5 min-w-[22px] justify-center font-sans leading-5"
+              )}
+            >
+              {shortcut.keys}
+            </kbd>
+            <span className="text-muted-foreground text-[13px] leading-[18px]">
+              {shortcut.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function OverviewPanel({
   alerts,
   filterSummary,
+  pickRole,
   postJob,
   stats,
 }: {
   alerts: string | null;
   filterSummary: string;
+  pickRole: boolean;
   postJob: { durationDays: number; priceLabel: string } | null;
   stats: ListStats;
 }) {
   return (
     <div className="hidden flex-col gap-4 py-2 pr-2 xl:flex">
+      {pickRole ? <PickRoleCard /> : null}
       {alerts ? (
         <section
           aria-labelledby="board-alert-title"
@@ -238,7 +287,6 @@ export function BoardListing({
   showControls = true,
   showFilters = true,
   showHeading = true,
-  showSearch = showControls,
 }: {
   alertsEnabled?: boolean;
   archiveKind?: TaxonomyKind;
@@ -259,7 +307,6 @@ export function BoardListing({
   showControls?: boolean;
   showFilters?: boolean;
   showHeading?: boolean;
-  showSearch?: boolean;
 }) {
   const now = Date.now();
   const view = buildBoardView(cards, query, now);
@@ -285,8 +332,15 @@ export function BoardListing({
     .join(" · ");
   const alerts = alertsEnabled ? alertsHref(query) : null;
 
+  const searchName = [query.q ? `“${query.q}”` : "", filterSummary]
+    .filter((part) => part.length > 0)
+    .join(" · ");
+
+  // The phone filter sheet sits with the rail; it is a popover, so it takes
+  // no room in the layout.
   const rail = showFilters ? (
-    <div className="border-line lg:border-r lg:px-2 lg:py-3">
+    <div className="border-line lg:border-r">
+      <BoardRail marketing={marketing} options={options} query={query} />
       <BoardFilters
         facets={view.facets}
         marketing={marketing}
@@ -363,21 +417,31 @@ export function BoardListing({
         marketing={marketing}
         options={options}
         query={query}
-        search={
-          showSearch ? (
-            <BoardSearchForm
-              count={cards.length}
-              options={options}
-              query={query}
-            />
-          ) : undefined
+        saveSearch={
+          showControls
+            ? {
+                href: boardStateHref({ ...query, page: 1 }, options, marketing),
+                name: searchName,
+              }
+            : null
         }
         showControls={showControls}
         title={listingTitle}
         total={view.matchCount}
         updated={updated}
       />
-      <div
+      <BoardWorkspace
+        aside={
+          app ? (
+            <OverviewPanel
+              alerts={alerts}
+              filterSummary={filterSummary}
+              pickRole={view.docs.length > 0}
+              postJob={postJob}
+              stats={listStats(filterBoard(cards, query), now)}
+            />
+          ) : undefined
+        }
         className={cn(
           "flex-1 lg:grid",
           showFilters
@@ -388,18 +452,19 @@ export function BoardListing({
               ? "xl:grid-cols-[216px_minmax(0,1fr)_400px]"
               : "xl:grid-cols-[minmax(0,1fr)_400px]")
         )}
-      >
-        {rail}
-        {list}
-        {app ? (
-          <OverviewPanel
-            alerts={alerts}
-            filterSummary={filterSummary}
-            postJob={postJob}
-            stats={listStats(filterBoard(cards, query), now)}
-          />
-        ) : null}
-      </div>
+        jobs={view.docs}
+        list={list}
+        now={now}
+        offset={(view.page - 1) * query.perPage}
+        openClassName={
+          showFilters
+            ? "xl:grid-cols-[216px_520px_minmax(0,1fr)]"
+            : "xl:grid-cols-[520px_minmax(0,1fr)]"
+        }
+        preview={app}
+        rail={rail}
+        total={view.matchCount}
+      />
     </div>
   );
 }

@@ -34,7 +34,7 @@ export default async function LevelArchivePagedPage({
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="level" page={page} value={value} />
     </BoardShell>
   );

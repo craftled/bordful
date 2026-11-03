@@ -21,6 +21,9 @@ export const PUBLIC_DETAIL_FIELDS = [
 export type PublicDetailField = (typeof PUBLIC_DETAIL_FIELDS)[number];
 
 export interface JobListItem {
+  // Where the Apply button goes: a checked http(s) URL or a mailto link.
+  // Optional so hand-built cards (fixtures, previews) can leave it out.
+  applyHref?: string | null;
   careerLevel: JobCareerLevel[];
   categories: string[];
   companyLogoUrl: string | null;

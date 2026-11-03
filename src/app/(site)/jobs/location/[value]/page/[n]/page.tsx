@@ -34,7 +34,7 @@ export default async function LocationArchivePagedPage({
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="location" page={page} value={value} />
     </BoardShell>
   );

@@ -25,7 +25,7 @@ export default async function TypeArchivePage({
   redirectTaxonomyAlias("type", value, 1);
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="type" page={1} value={value} />
     </BoardShell>
   );

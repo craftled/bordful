@@ -1,7 +1,9 @@
 import { ListFilter, X } from "lucide-react";
 import Link from "next/link";
 import type { BoardFacets } from "@/lib/board/filter";
+import { SENIORITY_LABELS } from "@/lib/board/format";
 import { boardStateHref } from "@/lib/board/links";
+import { slugifyTaxonomyValue } from "@/lib/board/paths";
 import {
   type BoardQuery,
   type BoardQueryOptions,
@@ -13,24 +15,11 @@ import { languageLabel } from "@/lib/board/taxonomy";
 import {
   JOB_EMPLOYMENT_LABELS,
   type JobEmploymentType,
-  type JobSeniority,
   SALARY_BAND_IDS,
   type SalaryBandId,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
 import { cn } from "@/lib/utils";
-
-const SENIORITY_LABELS: Record<JobSeniority, string> = {
-  c_level: "C-level",
-  director: "Director",
-  entry: "Entry",
-  intern: "Intern",
-  lead: "Lead",
-  mid: "Mid",
-  principal: "Principal",
-  senior: "Senior",
-  vp: "VP",
-};
 
 // The rail doubles as the phone filter sheet. The toolbar's filter buttons
 // open it with the native popover API, so it needs no client JS.
@@ -74,6 +63,18 @@ function toggleValue<T extends string>(
   return [...values, value];
 }
 
+// An active category no job carries any more still gets an option, so it
+// can be cleared.
+function categoryFacets(facets: BoardFacets, query: BoardQuery) {
+  const known = new Set(facets.categories.map((facet) => facet.value));
+  return [
+    ...facets.categories,
+    ...query.categories
+      .filter((value) => !known.has(value))
+      .map((value) => ({ count: 0, label: value, value })),
+  ];
+}
+
 // Options with no results are dropped, but an active one stays so the user
 // can always clear it.
 export function visibleOptions(group: FacetGroup): FacetOption[] {
@@ -104,6 +105,26 @@ export function buildFilterGroups({
   );
 
   return [
+    {
+      chip: "Category",
+      clearHref: hrefFor({ ...query, categories: [] }),
+      id: "category",
+      options: categoryFacets(facets, query).map((facet) => {
+        const active = query.categories.includes(facet.value);
+        return {
+          active,
+          count: facet.count,
+          href: hrefFor({
+            ...query,
+            categories: toggleValue(query.categories, facet.value, active),
+          }),
+          label: facet.label ?? facet.value,
+          testId: `filter-category-${slugifyTaxonomyValue(facet.value)}`,
+        };
+      }),
+      title: "Category",
+      toggle: false,
+    },
     {
       chip: "Type",
       clearHref: hrefFor({ ...query, types: [] }),
@@ -242,10 +263,10 @@ function Switch({ on, size }: { on: boolean; size: "lg" | "sm" }) {
   );
 }
 
-// Phone: a pill in the sheet. Desktop: a rail row with its count.
+// A pill in the phone sheet, or a row with a switch for on/off groups. The
+// desktop chips carry the e2e test ids, so these get a "sheet-" prefix.
 function FilterLink({
   active,
-  count,
   href,
   label,
   testId,
@@ -263,32 +284,17 @@ function FilterLink({
         !toggle &&
           (active
             ? "bg-primary text-primary-foreground ring-primary"
-            : "text-foreground ring-line-strong"),
-        "lg:flex lg:h-[30px] lg:w-full lg:justify-between lg:rounded-[6px] lg:px-2 lg:text-[13px] lg:ring-0",
-        active
-          ? "lg:bg-card lg:text-foreground lg:ring-line lg:shadow-xs lg:ring-1"
-          : "lg:text-muted-foreground lg:hover:bg-card/60 lg:hover:text-foreground lg:font-normal"
+            : "text-foreground ring-line-strong")
       )}
       data-active={active ? "true" : undefined}
-      data-testid={testId}
+      data-testid={`sheet-${testId}`}
       href={href}
     >
       <span className="min-w-0 truncate">
         {label}
         {active ? <span className="sr-only"> (selected)</span> : null}
       </span>
-      <span
-        className="text-subtle hidden text-[12px] font-normal tabular-nums lg:inline"
-        data-count={count}
-        data-testid="facet-count"
-      >
-        {count}
-      </span>
-      {toggle ? (
-        <span className="lg:hidden">
-          <Switch on={active} size="lg" />
-        </span>
-      ) : null}
+      {toggle ? <Switch on={active} size="lg" /> : null}
     </Link>
   );
 }
@@ -301,15 +307,14 @@ function FilterGroupView({ group }: { group: FacetGroup }) {
 
   const shown = visible.slice(0, GROUP_PREVIEW);
   const more = visible.slice(GROUP_PREVIEW);
-  const list = "flex flex-wrap gap-2 lg:flex-col lg:flex-nowrap lg:gap-0.5";
+  const list = "flex flex-wrap gap-2";
 
   return (
-    <fieldset className="border-line min-w-0 border-t px-5 py-4 lg:border-0 lg:p-0">
+    <fieldset className="border-line min-w-0 border-t px-5 py-4">
       <legend
         className={cn(
           "float-left mb-2.5 w-full text-[15px] font-medium",
-          "lg:text-subtle lg:mb-0 lg:px-2 lg:pb-1 lg:text-[11px] lg:leading-[14px]",
-          group.toggle && "max-lg:sr-only"
+          group.toggle && "sr-only"
         )}
       >
         {group.title}
@@ -321,19 +326,19 @@ function FilterGroupView({ group }: { group: FacetGroup }) {
       </div>
       {more.length > 0 ? (
         <details
-          className="group mt-2 lg:mt-0.5"
+          className="group mt-2"
           open={more.some((option) => option.active)}
         >
           <summary
             className={cn(
-              "text-muted-foreground hover:text-foreground w-fit cursor-pointer list-none rounded-[6px] text-[13px] lg:px-2 lg:py-1.5 [&::-webkit-details-marker]:hidden",
+              "text-muted-foreground hover:text-foreground w-fit cursor-pointer list-none rounded-[6px] text-[13px] [&::-webkit-details-marker]:hidden",
               ROW_FOCUS
             )}
           >
             <span className="group-open:hidden">Show more</span>
             <span className="hidden group-open:inline">Show less</span>
           </summary>
-          <div className={cn("mt-2 lg:mt-0", list)}>
+          <div className={cn("mt-2", list)}>
             {more.map((option) => (
               <FilterLink
                 {...option}
@@ -352,9 +357,9 @@ function resultsLabel(total: number): string {
   return total === 1 ? "Show 1 job" : `Show ${total} jobs`;
 }
 
-// One DOM tree for both breakpoints. From lg up it is the left rail, always
-// visible. Below lg it is a native popover styled as a bottom sheet, opened
-// by the toolbar's filter chips; links keep it open across navigations.
+// The phone filter sheet: a native popover styled as a bottom sheet, opened
+// by the toolbar's filter chips, so it needs no client JS. From lg up the
+// toolbar chips do this job and the sheet stays hidden.
 export function BoardFilters({
   facets,
   marketing,
@@ -374,16 +379,11 @@ export function BoardFilters({
   return (
     <aside
       aria-label="Filters"
-      className={cn(
-        // Phone: bottom sheet.
-        "bg-card text-foreground fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-2xl border-0 p-0 shadow-2xl backdrop:bg-black/40",
-        // Desktop: static rail column.
-        "lg:static lg:inset-auto lg:block lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:shadow-none"
-      )}
+      className="bg-card text-foreground fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-2xl border-0 p-0 shadow-2xl backdrop:bg-black/40 lg:hidden"
       id={FILTERS_SHEET_ID}
       popover="auto"
     >
-      <div className="bg-card sticky top-0 z-10 lg:hidden">
+      <div className="bg-card sticky top-0 z-10">
         <div className="flex justify-center pt-2">
           <span className="bg-line-strong h-[5px] w-9 rounded-full" />
         </div>
@@ -413,13 +413,13 @@ export function BoardFilters({
           </button>
         </div>
       </div>
-      <div className="lg:flex lg:flex-col lg:gap-5">
+      <div>
         {groups.map((group) => (
           <FilterGroupView group={group} key={group.id} />
         ))}
       </div>
       {total === undefined ? null : (
-        <div className="bg-card border-line sticky bottom-0 border-t px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] lg:hidden">
+        <div className="bg-card border-line sticky bottom-0 border-t px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             className={cn(
               "bg-primary text-primary-foreground flex h-12 w-full items-center justify-center rounded-lg text-[16px] font-medium",
@@ -464,6 +464,7 @@ function ChipMenu({ group }: { group: FacetGroup }) {
           "group-open:ring-foreground/30 cursor-pointer list-none [&::-webkit-details-marker]:hidden",
           ROW_FOCUS
         )}
+        data-testid={`filter-chip-${group.id}`}
       >
         <span className="text-muted-foreground">{group.chip}</span>
         {active.length > 0 ? (
@@ -485,6 +486,8 @@ function ChipMenu({ group }: { group: FacetGroup }) {
                   : "text-muted-foreground hover:bg-selected hover:text-foreground",
                 ROW_FOCUS
               )}
+              data-active={option.active ? "true" : undefined}
+              data-testid={option.testId}
               href={option.href}
             >
               <span className="flex items-center gap-2">
@@ -500,8 +503,15 @@ function ChipMenu({ group }: { group: FacetGroup }) {
                   {option.active ? "✓" : null}
                 </span>
                 {option.label}
+                {option.active ? (
+                  <span className="sr-only"> (selected)</span>
+                ) : null}
               </span>
-              <span className="text-subtle text-[12px] tabular-nums">
+              <span
+                className="text-subtle text-[12px] tabular-nums"
+                data-count={option.count}
+                data-testid="facet-count"
+              >
                 {option.count}
               </span>
             </Link>
@@ -522,6 +532,8 @@ function ToggleChip({ group }: { group: FacetGroup }) {
     <Link
       aria-current={option.active ? "true" : undefined}
       className={cn(CHIP, "hidden gap-2 lg:flex", ROW_FOCUS)}
+      data-active={option.active ? "true" : undefined}
+      data-testid={option.testId}
       href={option.href}
     >
       <span

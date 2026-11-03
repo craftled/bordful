@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HINT_CLASS, RowSaveButton } from "@/components/board/job-row-save";
 import { RelativeTime } from "@/components/board/relative-time";
 import { customSlots } from "@/custom";
 import {
@@ -134,9 +135,13 @@ function CompanyLogo({ job }: { job: JobListItem }) {
 
 // One DOM tree, two grids. Phone: title and age on top, company line, then
 // salary with the status pill. Desktop: title with the pill, company line
-// below, salary and age stacked on the right.
+// below, the hover hints, then salary and age stacked on the right.
 const ROW_GRID =
-  "grid grid-cols-[2.25rem_minmax(0,max-content)_minmax(0,1fr)_auto] gap-x-3 [grid-template-areas:'logo_title_title_time'_'logo_meta_meta_meta'_'logo_salary_badges_badges'] lg:h-[60px] lg:grid-cols-[1.75rem_minmax(0,max-content)_minmax(0,1fr)_auto] lg:items-center lg:gap-x-1.5 lg:[grid-template-areas:'logo_title_badges_salary'_'logo_meta_meta_time']";
+  "grid grid-cols-[2.25rem_minmax(0,max-content)_minmax(0,1fr)_auto] gap-x-3 [grid-template-areas:'logo_title_title_time'_'logo_meta_meta_meta'_'logo_salary_badges_badges'] lg:h-[60px] lg:grid-cols-[1.75rem_minmax(0,max-content)_minmax(0,1fr)_auto_auto] lg:items-center lg:gap-x-1.5 lg:[grid-template-areas:'logo_title_badges_hints_salary'_'logo_meta_meta_hints_time']";
+
+// The board's preview script marks the open row with data-selected.
+const ROW_SELECTED =
+  "group-data-[selected=true]/row:bg-card group-data-[selected=true]/row:ring-line group-data-[selected=true]/row:ring-1 group-data-[selected=true]/row:shadow-xs lg:group-data-[selected=true]/row:before:bg-foreground lg:before:absolute lg:before:top-1/2 lg:before:-left-[11px] lg:before:h-6 lg:before:w-[3px] lg:before:-translate-y-1/2 lg:before:rounded-full";
 
 // The title link stretches over the whole row. Other links and slot content
 // sit above it (z-10) so they stay clickable; the focus ring sits on the row.
@@ -173,10 +178,16 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
   }
 
   return (
-    <li data-job-slug={job.slug} data-origin={job.origin} data-testid="job-row">
+    <li
+      className="group/row"
+      data-job-slug={job.slug}
+      data-origin={job.origin}
+      data-testid="job-row"
+    >
       <article
         className={cn(
           ROW_GRID,
+          ROW_SELECTED,
           "has-[:focus-visible]:ring-ring hover:bg-card hover:ring-line active:bg-card relative rounded-lg px-2.5 py-3 transition-colors hover:ring-1 has-[:focus-visible]:ring-2 lg:rounded-[10px] lg:px-3 lg:py-0"
         )}
       >
@@ -222,8 +233,15 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
             </span>
           ))}
         </p>
+        <div className="hidden items-center gap-1.5 pr-2 pl-3 [grid-area:hints] lg:group-focus-within/row:flex lg:group-hover/row:flex">
+          <RowSaveButton slug={job.slug} title={job.title} />
+          <span aria-hidden="true" className={HINT_CLASS}>
+            <kbd className="font-sans">↵</kbd>
+            Open
+          </span>
+        </div>
         {salary ? (
-          <p className="text-foreground lg:text-muted-foreground mt-1 truncate text-[13px] leading-[18px] font-medium [grid-area:salary] lg:mt-0 lg:self-end lg:text-right lg:font-normal">
+          <p className="text-foreground mt-1 truncate text-[13px] leading-[18px] font-medium [grid-area:salary] lg:mt-0 lg:self-end lg:text-right lg:font-normal">
             {salary}
           </p>
         ) : null}

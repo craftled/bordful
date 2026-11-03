@@ -25,7 +25,7 @@ export default async function LanguageArchivePage({
   redirectTaxonomyAlias("language", value, 1);
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="language" page={1} value={value} />
     </BoardShell>
   );

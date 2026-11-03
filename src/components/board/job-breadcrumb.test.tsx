@@ -37,3 +37,15 @@ test("the last crumb is the current page and carries the full title", () => {
   expect(current.parentElement?.getAttribute("title")).toBe("Backend Engineer");
   expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeTruthy();
 });
+
+test("renders trailing actions next to the back link", () => {
+  render(
+    <JobBreadcrumb
+      actions={<button type="button">Save job</button>}
+      marketing={false}
+      title="Backend Engineer"
+    />
+  );
+
+  expect(screen.getByRole("button", { name: "Save job" })).toBeTruthy();
+});

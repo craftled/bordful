@@ -1,144 +1,128 @@
-import Link from "next/link";
+import { FooterView } from "@/components/board/footer-view";
+import type { SocialProfiles } from "@/components/board/social-links";
+import { TabBar } from "@/components/board/tab-bar";
+import { isMarketingEnabled } from "@/config/flags";
+import { boardHomePath, type FooterColumn } from "@/config/nav";
+import { companiesFromPool } from "@/lib/board/companies";
+import { BOARD_POOL_LIMIT } from "@/lib/board/constants";
+import { countTaxonomy, type TaxonomyFacet } from "@/lib/board/taxonomy";
+import { getSiteSettings, listPublishedJobs } from "@/lib/read";
 
-import { BordfeedCredit } from "@/components/board/bordfeed-credit";
-import { BrandMark } from "@/components/board/brand-mark";
-import {
-  SocialLinks,
-  type SocialProfiles,
-} from "@/components/board/social-links";
-import type { FooterColumn } from "@/config/nav";
+const FACET_LIMIT = 5;
 
-const FEED_IDS = new Set(["feed-atom", "feed-json", "feed-rss"]);
+// These columns are replaced by the facet columns and the RSS button.
+const REPLACED_COLUMN_IDS = new Set(["feeds", "jobs"]);
 
-// Sub-labels for feed links whose label does not already name the format.
-const FEED_PILLS: Record<string, string> = {
-  "feed-atom": "XML",
-  "feed-rss": "XML",
-};
+function facetColumn(
+  id: string,
+  title: string,
+  facets: readonly TaxonomyFacet[],
+  label: (facet: TaxonomyFacet) => string
+): FooterColumn | null {
+  if (facets.length === 0) {
+    return null;
+  }
 
-const FOOTER_LINK_CLASS =
-  "text-muted-foreground hover:text-foreground transition-colors";
-const FOOTER_ICON_CLASS = "text-muted-foreground hover:text-foreground";
+  return {
+    id,
+    items: facets.slice(0, FACET_LIMIT).map((facet) => ({
+      href: facet.href,
+      id: `${id}-${facet.slug}`,
+      label: label(facet),
+    })),
+    title,
+  };
+}
 
-export function SiteFooter({
+async function loadFooterData() {
+  try {
+    const [pool, settings] = await Promise.all([
+      listPublishedJobs({ limit: BOARD_POOL_LIMIT, page: 1 }),
+      getSiteSettings(),
+    ]);
+    return { pool, settings };
+  } catch {
+    return null;
+  }
+}
+
+export async function SiteFooter({
   columns,
-  durationDays,
   logoUrl,
   name,
-  priceLabel,
   showAttribution,
   showCta,
   social,
   tagline,
 }: {
   columns: FooterColumn[];
-  durationDays: number;
+  // Accepted for compatibility with BoardShell. The Post a Job band is gone.
+  durationDays?: number;
   logoUrl: string | null;
   name: string;
-  priceLabel: string;
+  priceLabel?: string;
   showAttribution: boolean;
   showCta: boolean;
   social: SocialProfiles;
   tagline: string;
 }) {
-  const year = new Date().getFullYear();
+  const data = await loadFooterData();
+  const items = data?.pool.items ?? [];
+  const taxonomy = countTaxonomy(items);
+  const alertsEnabled = data?.settings.alerts.enabled ?? false;
+
+  const employers: FooterColumn = {
+    id: "employers",
+    items: [
+      ...(showCta ? [{ href: "/post", id: "post", label: "Post a job" }] : []),
+      { href: "/companies", id: "companies", label: "Companies" },
+    ],
+    title: "Employers",
+  };
+
+  const footerColumns = [
+    facetColumn("location", "Jobs by location", taxonomy.locations, (facet) =>
+      facet.slug === "remote" ? "Remote jobs" : `Jobs in ${facet.label}`
+    ),
+    facetColumn(
+      "level",
+      "Jobs by level",
+      taxonomy.levels,
+      (facet) => `${facet.label} jobs`
+    ),
+    facetColumn(
+      "type",
+      "Jobs by type",
+      taxonomy.types,
+      (facet) => `${facet.label} jobs`
+    ),
+    employers,
+    ...columns.filter((column) => !REPLACED_COLUMN_IDS.has(column.id)),
+  ].filter((column): column is FooterColumn => column !== null);
 
   return (
-    <footer
-      className="bg-muted text-foreground border-line border-t"
-      data-testid="site-footer"
-    >
-      {showCta ? (
-        <div className="border-line border-b">
-          <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-6">
-            <div>
-              <h2 className="text-[16px] font-medium">
-                Post a Job for {durationDays} Days
-              </h2>
-              <p className="text-muted-foreground mt-1 text-[13px]">
-                {priceLabel
-                  ? `${priceLabel} per listing. Reach candidates browsing this board.`
-                  : "Reach candidates browsing this board."}
-              </p>
-            </div>
-            <Link
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 items-center rounded-md px-2.5 text-[13px] font-medium"
-              href="/post"
-            >
-              Post a Job
-            </Link>
-          </div>
-        </div>
-      ) : null}
-      <div className="flex w-full flex-col gap-7 px-4 pt-10 pb-7">
-        <div className="flex flex-wrap justify-between gap-x-12 gap-y-10">
-          <div className="flex w-full max-w-[300px] flex-col gap-2.5">
-            <div className="flex items-center gap-2 text-[14px] font-medium tracking-[-0.01em]">
-              {logoUrl ? (
-                // biome-ignore lint/performance/noImgElement: footer logo is a native img at 20px
-                <img
-                  alt=""
-                  className="h-5 w-auto"
-                  height={20}
-                  src={logoUrl}
-                  width={20}
-                />
-              ) : (
-                <BrandMark />
-              )}
-              <span>{name}</span>
-            </div>
-            {tagline ? (
-              <p className="text-subtle text-[13px] leading-5">{tagline}</p>
-            ) : null}
-            <SocialLinks
-              className="pt-1"
-              linkClassName={FOOTER_ICON_CLASS}
-              links={social}
-            />
-          </div>
-          <div className="flex flex-wrap gap-x-10 gap-y-8">
-            {columns.map((column) => (
-              <nav
-                aria-label={column.title}
-                className="w-[140px]"
-                key={column.id}
-              >
-                <h2 className="text-subtle text-[12px] font-medium">
-                  {column.title}
-                </h2>
-                <ul className="mt-[9px] space-y-[9px] text-[13px]">
-                  {column.items.map((item) => (
-                    <li className="flex items-center gap-2" key={item.id}>
-                      {FEED_IDS.has(item.id) ? (
-                        // Feeds are route handlers, not pages. next/link would prefetch them with ?_rsc, which never settles.
-                        <a className={FOOTER_LINK_CLASS} href={item.href}>
-                          {item.label}
-                        </a>
-                      ) : (
-                        <Link className={FOOTER_LINK_CLASS} href={item.href}>
-                          {item.label}
-                        </Link>
-                      )}
-                      {FEED_PILLS[item.id] ? (
-                        <span className="border-line-strong text-subtle rounded-xs border px-1.5 text-[10px] leading-4 uppercase">
-                          {FEED_PILLS[item.id]}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            ))}
-          </div>
-        </div>
-        <div className="border-line text-subtle flex flex-wrap items-center justify-between gap-4 border-t pt-[18px] text-[12px]">
-          <p>
-            © {year} {name}
-          </p>
-          {showAttribution ? <BordfeedCredit /> : null}
-        </div>
-      </div>
-    </footer>
+    <>
+      <FooterView
+        columns={footerColumns}
+        logoUrl={logoUrl}
+        name={name}
+        showAlert={alertsEnabled}
+        showAttribution={showAttribution}
+        social={social}
+        stats={
+          data
+            ? {
+                companies: companiesFromPool(items).length,
+                openRoles: data.pool.totalDocs,
+              }
+            : null
+        }
+        tagline={tagline}
+      />
+      <TabBar
+        alertsEnabled={alertsEnabled}
+        homeHref={boardHomePath(isMarketingEnabled())}
+      />
+    </>
   );
 }

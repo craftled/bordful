@@ -49,6 +49,8 @@ function isArchiveCandidate(
 ): boolean {
   return (
     query.q.length === 0 &&
+    query.categories.length === 0 &&
+    !query.featured &&
     query.salary.length === 0 &&
     !query.visa &&
     query.sort === "newest" &&

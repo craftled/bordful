@@ -10,6 +10,7 @@ export function SectionHeader({
   description,
   eyebrow,
   headingLevel = "h2",
+  id,
   title,
   titleMuted,
 }: {
@@ -17,6 +18,7 @@ export function SectionHeader({
   description?: ReactNode;
   eyebrow?: string;
   headingLevel?: "h1" | "h2";
+  id?: string;
   title: string;
   titleMuted?: string;
 }) {
@@ -50,6 +52,7 @@ export function SectionHeader({
             ? "text-[32px] leading-10 tracking-[-0.035em] md:text-[48px] md:leading-[54px]"
             : "text-[26px] leading-8 tracking-[-0.025em] md:text-[30px] md:leading-9"
         )}
+        id={id}
       >
         <span>{title}</span>
         {titleMuted ? <span className="text-subtle"> {titleMuted}</span> : null}

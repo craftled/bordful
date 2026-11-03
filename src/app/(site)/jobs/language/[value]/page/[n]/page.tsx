@@ -34,7 +34,7 @@ export default async function LanguageArchivePagedPage({
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyArchive kind="language" page={page} value={value} />
     </BoardShell>
   );

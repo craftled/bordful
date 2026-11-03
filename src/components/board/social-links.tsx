@@ -81,10 +81,12 @@ export function SocialLinks({
   className = "",
   linkClassName = DEFAULT_LINK_CLASS,
   links,
+  showRss = true,
 }: {
   className?: string;
   linkClassName?: string;
   links: SocialProfiles;
+  showRss?: boolean;
 }) {
   const networks = (Object.keys(NETWORK_LABELS) as SocialNetwork[]).filter(
     (network) => links[network]
@@ -92,16 +94,18 @@ export function SocialLinks({
 
   return (
     <ul className={`flex items-center gap-3 ${className}`}>
-      <li>
-        {/* Plain anchor: feeds are route handlers, and next/link would prefetch them. */}
-        <a
-          aria-label="RSS feed"
-          className={`transition-colors ${linkClassName}`}
-          href="/feed.xml"
-        >
-          <Rss aria-hidden="true" className="size-4" />
-        </a>
-      </li>
+      {showRss ? (
+        <li>
+          {/* Plain anchor: feeds are route handlers, and next/link would prefetch them. */}
+          <a
+            aria-label="RSS feed"
+            className={`transition-colors ${linkClassName}`}
+            href="/feed.xml"
+          >
+            <Rss aria-hidden="true" className="size-4" />
+          </a>
+        </li>
+      ) : null}
       {networks.map((network) => (
         <li key={network}>
           <a

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { BoardShell } from "@/components/board/board-shell";
-import { CompanyCard } from "@/components/board/company-card";
+import { CompanyDirectory } from "@/components/board/company-directory";
 import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
 import { companiesFromPool } from "@/lib/board/companies";
 import { loadBoardPool } from "@/lib/board/pool";
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default async function CompaniesPage() {
-  const rows = companiesFromPool(await loadBoardPool());
+  const pool = await loadBoardPool();
+  const rows = companiesFromPool(pool);
 
   return (
     <BoardShell>
@@ -20,33 +21,12 @@ export default async function CompaniesPage() {
           items={[{ href: "/jobs", label: "Jobs" }, { label: "Companies" }]}
         />
         <PageTitle
-          subtitle={
-            rows.length === 1
-              ? "1 company with open jobs."
-              : `${rows.length} companies with open jobs.`
-          }
+          subtitle={`${rows.length} ${rows.length === 1 ? "company" : "companies"}, ${pool.length} open ${pool.length === 1 ? "role" : "roles"}.`}
         >
           Companies hiring
         </PageTitle>
         {rows.length > 0 ? (
-          <ul
-            className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3"
-            data-testid="company-list"
-          >
-            {rows.map((row) => (
-              <li
-                data-company-slug={row.slug}
-                data-testid="company-row"
-                key={row.slug}
-              >
-                <CompanyCard
-                  count={row.count}
-                  name={row.name}
-                  slug={row.slug}
-                />
-              </li>
-            ))}
-          </ul>
+          <CompanyDirectory rows={rows} />
         ) : (
           <p className="text-muted-foreground">No companies with open jobs.</p>
         )}

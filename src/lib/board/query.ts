@@ -15,6 +15,9 @@ export const PER_PAGE_OPTIONS = [10, 20, 50, 100] as const;
 export type BoardSort = "newest" | "oldest" | "salary";
 
 export interface BoardQuery {
+  // Lowercased category names; jobs match case-insensitively.
+  categories: string[];
+  featured: boolean;
   languages: string[];
   page: number;
   perPage: number;
@@ -67,17 +70,18 @@ function parseEnum<T extends string>(
   return result;
 }
 
-function parseLanguages(values: string[]): string[] {
+// Languages and categories are free text, kept lowercased and de-duplicated.
+function parseLowerList(values: string[]): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
 
   for (const value of values) {
-    const language = value.trim().toLowerCase();
-    if (language.length === 0 || seen.has(language)) {
+    const item = value.trim().toLowerCase();
+    if (item.length === 0 || seen.has(item)) {
       continue;
     }
-    seen.add(language);
-    result.push(language);
+    seen.add(item);
+    result.push(item);
   }
 
   return result;
@@ -118,7 +122,9 @@ export function parseBoardQuery(
   options: BoardQueryOptions
 ): BoardQuery {
   return {
-    languages: parseLanguages(splitCsv(params.get("languages"))),
+    categories: parseLowerList(splitCsv(params.get("categories"))),
+    featured: params.get("featured") === "true",
+    languages: parseLowerList(splitCsv(params.get("languages"))),
     page: parsePage(params.get("page")),
     perPage: parsePerPage(params.get("per_page"), options.defaultPerPage),
     q: (params.get("q") ?? "").trim().slice(0, Q_MAX),
@@ -139,6 +145,12 @@ export function serializeBoardQuery(
 
   if (query.q) {
     params.set("q", query.q);
+  }
+  if (query.categories.length > 0) {
+    params.set("categories", query.categories.join(","));
+  }
+  if (query.featured) {
+    params.set("featured", "true");
   }
   if (query.types.length > 0) {
     params.set("types", query.types.join(","));
@@ -203,6 +215,8 @@ export function boardQueryFromSearchParams(
 export function boardQueryHasFilters(query: BoardQuery): boolean {
   return (
     query.q.length > 0 ||
+    query.categories.length > 0 ||
+    query.featured ||
     query.types.length > 0 ||
     query.seniority.length > 0 ||
     query.remote ||
@@ -214,6 +228,8 @@ export function boardQueryHasFilters(query: BoardQuery): boolean {
 
 export function clearBoardFilters(query: BoardQuery): BoardQuery {
   return {
+    categories: [],
+    featured: false,
     languages: [],
     page: 1,
     perPage: query.perPage,

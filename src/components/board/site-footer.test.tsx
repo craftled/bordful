@@ -3,64 +3,75 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
-import { getNav } from "@/config/nav";
-
-import { SiteFooter } from "./site-footer";
+import { FooterView } from "./footer-view";
 
 afterEach(() => {
   cleanup();
 });
 
 function renderFooter(
-  overrides: Partial<Parameters<typeof SiteFooter>[0]> = {}
+  overrides: Partial<Parameters<typeof FooterView>[0]> = {}
 ) {
-  const nav = getNav({
-    alertsEnabled: false,
-    marketing: false,
-    postJobEnabled: overrides.showCta ?? false,
-  });
   return render(
-    <SiteFooter
-      columns={nav.footerColumns}
-      durationDays={30}
+    <FooterView
+      columns={[
+        {
+          id: "location",
+          items: [
+            {
+              href: "/jobs/location/remote",
+              id: "l-remote",
+              label: "Remote jobs",
+            },
+          ],
+          title: "Jobs by location",
+        },
+        {
+          id: "employers",
+          items: [{ href: "/companies", id: "companies", label: "Companies" }],
+          title: "Employers",
+        },
+      ]}
       logoUrl={null}
       name="Bordful"
-      priceLabel=""
+      showAlert={false}
       showAttribution={false}
-      showCta={false}
       social={{}}
+      stats={{ companies: 48, openRoles: 143 }}
       tagline="Jobs, curated."
       {...overrides}
     />
   );
 }
 
-test("shows the Post a Job band only when postJob is enabled", () => {
-  const { unmount } = renderFooter({ showCta: false });
-  expect(screen.queryByText("Post a Job for 30 Days")).toBeNull();
-  unmount();
-
-  renderFooter({ showCta: true });
-  expect(screen.getByText("Post a Job for 30 Days")).toBeTruthy();
-  expect(
-    screen.getByRole("link", { name: "Post a Job" }).getAttribute("href")
-  ).toBe("/post");
-});
-
-test("lists feed formats and omits marketing pages in board-only mode", () => {
+test("renders facet columns as real links", () => {
   renderFooter();
 
+  expect(
+    screen.getByRole("link", { name: "Remote jobs" }).getAttribute("href")
+  ).toBe("/jobs/location/remote");
+  expect(screen.getByRole("navigation", { name: "Employers" })).toBeTruthy();
+});
+
+test("shows Create alert only when alerts are enabled; RSS is always linked", () => {
+  const { unmount } = renderFooter({ showAlert: false });
+  expect(screen.queryByRole("link", { name: "Create alert" })).toBeNull();
   expect(screen.getByRole("link", { name: "RSS" }).getAttribute("href")).toBe(
     "/feed.xml"
   );
-  expect(screen.getByRole("link", { name: "Atom" }).getAttribute("href")).toBe(
-    "/atom.xml"
+  unmount();
+
+  renderFooter({ showAlert: true });
+  expect(
+    screen.getByRole("link", { name: "Create alert" }).getAttribute("href")
+  ).toBe("/alerts");
+});
+
+test("bottom row shows real role and company counts", () => {
+  renderFooter();
+  expect(screen.getByTestId("footer-stats").textContent).toContain(
+    "143 open roles from 48 companies"
   );
-  expect(screen.getByRole("link", { name: "JSON" }).getAttribute("href")).toBe(
-    "/feed.json"
-  );
-  expect(screen.queryByRole("link", { name: "Privacy" })).toBeNull();
-  expect(screen.queryByRole("link", { name: "About" })).toBeNull();
 });
 
 test("footer text uses opacity-free colors and social links match the footer", () => {

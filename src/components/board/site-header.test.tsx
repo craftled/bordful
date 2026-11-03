@@ -149,3 +149,45 @@ test("mobile menu closes when focus leaves it", () => {
   });
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
 });
+
+test("view pills show the board counts and ⌘K focuses the search", () => {
+  render(
+    <SiteHeader
+      cta={CTA}
+      homeHref="/"
+      logoUrl={null}
+      name="Bordful"
+      navItems={NAV}
+      search={
+        <input data-testid="board-search-input" id="board-search-input" />
+      }
+      social={SOCIAL}
+      views={{
+        allCount: 143,
+        allHref: "/",
+        remoteCount: 38,
+        remoteHref: "/jobs/location/remote",
+      }}
+    />
+  );
+
+  const views = screen.getByRole("navigation", { hidden: true, name: "Views" });
+  const all = within(views).getByRole("link", {
+    hidden: true,
+    name: "All 143",
+  });
+  expect(all.getAttribute("aria-current")).toBe("page");
+  expect(
+    within(views)
+      .getByRole("link", { hidden: true, name: "Remote 38" })
+      .getAttribute("href")
+  ).toBe("/jobs/location/remote");
+  expect(
+    within(views)
+      .getByRole("link", { hidden: true, name: "Saved" })
+      .getAttribute("href")
+  ).toBe("/saved");
+
+  fireEvent.keyDown(document, { key: "k", metaKey: true });
+  expect(document.activeElement).toBe(screen.getByTestId("board-search-input"));
+});

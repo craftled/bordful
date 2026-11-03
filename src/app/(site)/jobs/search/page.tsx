@@ -39,7 +39,7 @@ export default async function SearchPage({
   }
 
   return (
-    <BoardShell fullBleed>
+    <BoardShell fullBleed search={{ options, query }}>
       <BoardListing
         alertsEnabled={settings.alerts.enabled}
         cards={cards}

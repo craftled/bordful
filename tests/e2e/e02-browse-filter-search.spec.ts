@@ -95,6 +95,8 @@ test.describe("E2 browse-filter-search", { tag: ["@E2"] }, () => {
     await expect(page.getByTestId("job-row")).toHaveCount(2);
     expect(10 + 2).toBe(Number(pagedCount));
 
+    // Desktop filters are toolbar chips; each opens a menu of option links.
+    await page.getByTestId("filter-chip-type").click();
     await page.getByTestId("filter-type-full-time").click();
     await expect(page.getByTestId("job-count")).toHaveAttribute(
       "data-count",

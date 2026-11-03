@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 import { Container } from "./container";
+import { KBD_ON_PRIMARY, Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
 import { MarketingImage } from "./marketing-image";
 import { Section } from "./section";
@@ -28,16 +29,16 @@ export function Hero() {
               </span>
             </Link>
             <h1 className="flex flex-col text-[36px] leading-[42px] font-medium tracking-[-0.04em] text-balance md:text-[52px] md:leading-[56px]">
-              <span className="text-foreground">Live in two minutes</span>
-              <span className="text-subtle"> with real jobs from Bordfeed</span>
+              <span className="text-foreground">The job board you own.</span>
+              <span className="text-subtle"> Live in two minutes.</span>
             </h1>
-            <p className="text-muted-foreground max-w-[560px] text-[16px] leading-[25px]">
-              Deploy the template and the board is already filled with sample
-              jobs. Connect Bordfeed for your own feed, post jobs through a
-              Stripe payment link, and send email alerts with Resend.
+            <p className="text-muted-foreground max-w-[520px] text-[16px] leading-[25px]">
+              An open-source template that deploys with real jobs already
+              listed. Brand it, take paid posts and send alerts on your own
+              domain.
             </p>
             <div className="flex flex-wrap gap-1.5">
-              <Button asChild className="px-3.5">
+              <Button asChild className="gap-[7px] px-3.5">
                 <a
                   data-testid="marketing-deploy-button"
                   href={DEPLOY_URL}
@@ -45,6 +46,7 @@ export function Hero() {
                   target="_blank"
                 >
                   Deploy to Vercel
+                  <Kbd className={KBD_ON_PRIMARY}>D</Kbd>
                 </a>
               </Button>
               <Button asChild className="px-3.5 shadow-xs" variant="outline">

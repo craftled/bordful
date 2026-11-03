@@ -48,10 +48,10 @@ function job(overrides: Partial<JobListItem>): JobListItem {
 
 test("formats salary for min only, max only, both and none", () => {
   expect(formatSalary({ salaryCurrency: "USD", salaryMin: 45_000 })).toBe(
-    "$45k (USD)"
+    "$45k"
   );
   expect(formatSalary({ salaryCurrency: "USD", salaryMax: 65_000 })).toBe(
-    "$65k (USD)"
+    "$65k"
   );
   expect(
     formatSalary({
@@ -59,7 +59,7 @@ test("formats salary for min only, max only, both and none", () => {
       salaryMax: 65_000,
       salaryMin: 45_000,
     })
-  ).toBe("$45k-65k (USD)");
+  ).toBe("$45k-65k");
   expect(formatSalary({ salaryCurrency: "USD" })).toBe("");
   expect(formatSalary({ salaryMin: Number.NaN })).toBe("");
 });
@@ -75,7 +75,7 @@ test("never renders undefined in the salary or the meta row", () => {
   );
 
   expect(container.textContent).not.toContain("undefined");
-  expect(container.textContent).toContain("$45k (USD)");
+  expect(container.textContent).toContain("$45k");
 });
 
 test("omits the salary, date and featured badge when they are missing", () => {

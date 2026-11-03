@@ -15,6 +15,9 @@ const ROOT = process.cwd();
 const ROUTE_FILES: Record<string, string> = {
   "/about": "src/app/(marketing)/about/page.tsx",
   "/changelog": "src/app/(marketing)/changelog/page.tsx",
+  "/docs": "src/app/(marketing)/docs/page.tsx",
+  "/faq": "src/app/(marketing)/faq/page.tsx",
+  "/features": "src/app/(marketing)/features/page.tsx",
   "/feed.xml": "src/app/feed.xml/route.ts",
   "/jobs": "src/app/(site)/jobs/page.tsx",
   "/pricing": "src/app/(marketing)/pricing/page.tsx",
@@ -48,6 +51,6 @@ test("every in-app marketing link points at an existing route", () => {
 
 test("header and footer links have no dead anchors", () => {
   const hrefs = allLinks().map((link) => link.href);
-  expect(hrefs).toContain("/#features");
+  expect(hrefs).toContain("/features");
   expect(hrefs.filter((href) => href.startsWith("#"))).toEqual([]);
 });

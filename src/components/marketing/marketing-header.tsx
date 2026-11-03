@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
+import { KBD_ON_OUTLINE, KBD_ON_PRIMARY, Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
+import { MarketingHotkeys } from "./marketing-hotkeys";
 import { MarketingImage } from "./marketing-image";
 import { MARKETING_HEADER_LINKS, type MarketingLink } from "./nav-links";
 import { GITHUB_URL } from "./site";
@@ -73,6 +75,7 @@ export function MarketingHeader() {
       className="bg-background border-line sticky top-0 z-50 border-b"
       data-testid="marketing-header"
     >
+      <MarketingHotkeys />
       <div className="border-line mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between px-4 min-[1200px]:border-x md:h-[52px] md:px-5">
         <div className="flex items-center gap-8">
           <Logo />
@@ -83,19 +86,21 @@ export function MarketingHeader() {
         <div className="flex items-center gap-2 lg:gap-1.5">
           <Button
             asChild
-            className="hidden h-[30px] rounded-lg px-2.5 shadow-xs lg:inline-flex"
+            className="hidden h-[30px] gap-[7px] rounded-lg px-2.5 shadow-xs lg:inline-flex"
             variant="outline"
           >
             <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
               GitHub
+              <Kbd className={KBD_ON_OUTLINE}>G</Kbd>
             </a>
           </Button>
           <Button
             asChild
-            className="h-9 rounded-lg px-3.5 text-[14px] lg:h-[30px] lg:px-2.5 lg:text-[13px]"
+            className="h-9 gap-[7px] rounded-lg px-3.5 text-[14px] lg:h-[30px] lg:px-2.5 lg:text-[13px]"
           >
             <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
               Deploy
+              <Kbd className={KBD_ON_PRIMARY}>D</Kbd>
             </a>
           </Button>
           <details className="relative lg:hidden">

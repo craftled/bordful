@@ -7,12 +7,20 @@ import {
   serializeBoardQuery,
 } from "@/lib/board/query";
 
-function hiddenFields(
+export const BOARD_SEARCH_INPUT_ID = "board-search-input";
+
+export interface SearchField {
+  name: string;
+  value: string;
+}
+
+// The filters a search keeps, minus the text and the page.
+export function searchHiddenFields(
   query: BoardQuery,
   options: BoardQueryOptions
-): { name: string; value: string }[] {
+): SearchField[] {
   const params = serializeBoardQuery({ ...query, page: 1, q: "" }, options);
-  const fields: { name: string; value: string }[] = [];
+  const fields: SearchField[] = [];
 
   for (const [name, value] of params.entries()) {
     fields.push({ name, value });
@@ -21,27 +29,32 @@ function hiddenFields(
   return fields;
 }
 
-export function searchPlaceholder(count?: number): string {
+export function searchPlaceholder(count?: number, long = false): string {
+  const suffix = long ? " by role or company" : "";
   if (count === undefined || count <= 0) {
-    return "Search jobs";
+    return `Search jobs${suffix}`;
   }
-  return count === 1 ? "Search 1 job" : `Search ${count} jobs`;
+  return count === 1
+    ? `Search 1 job${suffix}`
+    : `Search ${count} jobs${suffix}`;
 }
 
-// The search icon is the submit button, so Enter and a tap both search.
+// Rendered once per page, in the site header. The search icon is the submit
+// button, so Enter and a tap both search. On phones it is a full-width row
+// under the brand bar; from lg up it sits in the bar with the ⌘K hint.
 export function BoardSearchForm({
   count,
-  options,
-  query,
+  hidden = [],
+  q = "",
 }: {
   count?: number;
-  options: BoardQueryOptions;
-  query: BoardQuery;
+  hidden?: SearchField[];
+  q?: string;
 }) {
   return (
     <form
       action={BOARD_SEARCH_PATH}
-      className="bg-card ring-line-strong focus-within:ring-ring/40 relative flex h-10 w-full items-center rounded-[10px] ring-1 ring-inset lg:h-7 lg:rounded-[6px]"
+      className="bg-card ring-line-strong focus-within:ring-ring/40 relative flex h-10 w-full items-center rounded-[10px] ring-1 ring-inset lg:h-8 lg:rounded-[6px]"
       data-testid="board-search"
       method="get"
     >
@@ -53,19 +66,25 @@ export function BoardSearchForm({
       >
         <SearchIcon aria-hidden="true" className="size-4 lg:size-3.5" />
       </button>
-      <label className="sr-only" htmlFor="board-search-input">
+      <label className="sr-only" htmlFor={BOARD_SEARCH_INPUT_ID}>
         Search jobs by title or company
       </label>
       <input
-        className="text-foreground placeholder:text-subtle h-full min-w-0 flex-1 bg-transparent pr-3 text-[15px] outline-none lg:text-[13px] [&::-webkit-search-cancel-button]:hidden"
+        className="text-foreground placeholder:text-subtle peer h-full min-w-0 flex-1 bg-transparent pr-3 text-[15px] outline-none lg:pr-2 lg:text-[14px] [&::-webkit-search-cancel-button]:hidden"
         data-testid="board-search-input"
-        defaultValue={query.q}
-        id="board-search-input"
+        defaultValue={q}
+        id={BOARD_SEARCH_INPUT_ID}
         name="q"
-        placeholder={searchPlaceholder(count)}
+        placeholder={searchPlaceholder(count, true)}
         type="search"
       />
-      {hiddenFields(query, options).map((field) => (
+      <span
+        aria-hidden="true"
+        className="bg-tag text-subtle mr-2.5 hidden shrink-0 rounded-[4px] px-[5px] font-sans text-[10px] leading-4 peer-focus:invisible lg:inline-block"
+      >
+        ⌘K
+      </span>
+      {hidden.map((field) => (
         <input
           key={field.name}
           name={field.name}

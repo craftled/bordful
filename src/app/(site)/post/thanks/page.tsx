@@ -27,7 +27,7 @@ export default async function PostJobThanksPage() {
 
   return (
     <BoardShell>
-      <article className="mx-auto flex w-full max-w-[520px] flex-col items-center gap-5 px-4 py-12 text-center">
+      <article className="mx-auto flex w-full max-w-[520px] flex-col items-center gap-5 px-4 pt-8 pb-7 text-center md:pt-12 md:pb-[72px]">
         <div
           aria-hidden="true"
           className="bg-new/10 text-new flex size-12 items-center justify-center rounded-full"
@@ -47,17 +47,17 @@ export default async function PostJobThanksPage() {
           </svg>
         </div>
         <h1
-          className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]"
+          className="text-foreground text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]"
           data-testid="post-job-thanks"
         >
           Thanks for your payment
         </h1>
-        <p className="text-muted-foreground text-[15px] leading-[18px]">
+        <p className="text-muted-foreground text-[14px] leading-[18px] md:text-[15px]">
           The board owner will collect the job details and publish the listing,
           usually within one business day.
         </p>
         <a
-          className="bg-card text-foreground border-line-strong inline-flex h-[34px] items-center rounded-md border px-[14px] text-[12px] font-medium"
+          className="bg-card text-foreground border-line-strong inline-flex h-[34px] items-center rounded-lg border px-[14px] text-[13px] leading-4 font-medium"
           href={boardHomePath(isMarketingEnabled())}
         >
           Back to the board

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 
 import type { PostJobView } from "./post-job-view";
@@ -16,11 +18,32 @@ const INCLUDED = [
   "A JobPosting page that search engines can read",
 ];
 
-export function PostJobPage({ view }: { view: PostJobView }) {
+export function PostJobPage({
+  jobsHref,
+  view,
+}: {
+  jobsHref: string;
+  view: PostJobView;
+}) {
   return (
-    <article className="mx-auto flex w-full max-w-[1072px] flex-col gap-8 py-4 md:pt-7 md:pb-[72px]">
+    <article className="mx-auto flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:gap-8 md:pt-7 md:pb-[72px]">
+      <nav aria-label="Breadcrumb" className="text-[13px] leading-4">
+        <ol className="flex items-center gap-2">
+          <li>
+            <Link className="text-subtle hover:text-foreground" href={jobsHref}>
+              Jobs
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-subtle">
+            /
+          </li>
+          <li aria-current="page" className="text-foreground">
+            Post a job
+          </li>
+        </ol>
+      </nav>
       <header className="flex flex-col gap-3">
-        <h1 className="flex flex-col text-[30px] leading-9 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
+        <h1 className="flex flex-col text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
           <span className="text-foreground">Post a job.</span>
           <span className="text-subtle">Pay once with Stripe.</span>
         </h1>
@@ -30,7 +53,7 @@ export function PostJobPage({ view }: { view: PostJobView }) {
           publishes your listing.
         </p>
       </header>
-      <div className="flex flex-col items-start gap-8 md:flex-row">
+      <div className="flex flex-col items-start gap-5 md:flex-row md:gap-8">
         <section
           className={`${cardClass} flex w-full flex-col gap-3 p-5 md:w-[640px] md:shrink-0 md:p-7`}
         >
@@ -53,7 +76,7 @@ export function PostJobPage({ view }: { view: PostJobView }) {
           className={`${cardClass} flex w-full flex-col gap-3 p-5 md:w-[400px] md:shrink-0`}
           data-testid="post-job-pricing"
         >
-          <p className="text-subtle text-[12px] leading-4">Job listing</p>
+          <p className="text-subtle text-[13px] leading-4">Job listing</p>
           {view.priceLabel ? (
             <p
               className="text-foreground text-[22px] leading-7 font-medium tracking-tight"
@@ -76,7 +99,7 @@ export function PostJobPage({ view }: { view: PostJobView }) {
               </li>
             ))}
           </ul>
-          <Button asChild className="h-10 w-full">
+          <Button asChild className="h-10 w-full text-[14px] leading-[18px]">
             <a
               data-testid="post-job-cta"
               href={view.ctaHref}
