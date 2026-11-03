@@ -36,7 +36,7 @@ export default async function SiteLayout({
         <ThemeScript nonce={nonce} />
         <style nonce={nonce}>{`:root{${css}}`}</style>
       </head>
-      <body>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

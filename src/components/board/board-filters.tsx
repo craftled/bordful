@@ -287,7 +287,7 @@ function FilterLink({
         ROW_FOCUS,
         "items-center gap-2 transition-colors",
         toggle
-          ? "flex w-full justify-between text-[15px] font-medium"
+          ? "flex w-full justify-between text-[15px] font-semibold"
           : "inline-flex h-9 rounded-full px-3.5 text-[14px] font-medium ring-1 ring-inset",
         !toggle &&
           (active
@@ -321,7 +321,7 @@ function FilterGroupView({ group }: { group: FacetGroup }) {
     <fieldset className="border-line min-w-0 border-t px-5 py-4">
       <legend
         className={cn(
-          "float-left mb-2.5 w-full text-[15px] font-medium",
+          "float-left mb-2.5 w-full text-[15px] font-semibold",
           group.toggle && "sr-only"
         )}
       >
@@ -410,7 +410,7 @@ export function BoardFilters({
           ) : (
             <span className="text-subtle text-[15px]">Reset</span>
           )}
-          <h2 className="text-[17px] leading-[22px] font-medium">Filters</h2>
+          <h2 className="text-[17px] leading-[22px] font-semibold">Filters</h2>
           <button
             className={cn("text-[15px] font-medium", ROW_FOCUS)}
             popoverTarget={FILTERS_SHEET_ID}
