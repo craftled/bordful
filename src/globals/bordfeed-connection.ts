@@ -153,12 +153,6 @@ export const BordfeedConnection: GlobalConfig = {
       type: "number",
     },
     {
-      access: { read: isAdminField, update: denyAll },
-      admin: { readOnly: true },
-      name: "syncState",
-      type: "json",
-    },
-    {
       defaultValue: true,
       name: "showAttribution",
       type: "checkbox",

@@ -625,7 +625,7 @@ describe("bordfeed connect", () => {
     });
 
     expect(result.message).toBe(
-      "Connected. The first sync failed: This Bordfeed workspace is out of credits. Each job a sync fetches for the first time uses one credit. Top up in Bordfeed, then sync again. The board keeps its current jobs until then."
+      "Connected. The first sync failed: This Bordfeed workspace does not have enough credits for this sync. Each job a sync fetches for the first time uses one credit. Top up in Bordfeed, then sync again. The board keeps its current jobs until then."
     );
     expect(samples.totalDocs).toBe(3);
   });

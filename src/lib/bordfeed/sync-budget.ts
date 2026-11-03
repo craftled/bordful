@@ -12,11 +12,18 @@ export interface SyncLimits {
   jobsPerSync: number;
 }
 
-// A delta series reads open jobs, then closed, then expired, all updated
-// after `since`. It can span several syncs.
+// A delta series reads jobs closed, then expired, updated after `since`, then
+// open jobs that first became visible after `since`. Removals come first so
+// they never wait behind new jobs. Bordfeed bumps `updated_at` on routine
+// scrape writes, so open jobs are read by `first_visible`, not `updated`.
+// A series can span several syncs.
 export type SeriesPhase = "closed" | "expired" | "open";
 
-const PHASES: readonly SeriesPhase[] = ["open", "closed", "expired"];
+const PHASES: readonly SeriesPhase[] = ["closed", "expired", "open"];
+
+export function sinceFieldFor(phase: SeriesPhase): "first_visible" | "updated" {
+  return phase === "open" ? "first_visible" : "updated";
+}
 
 export interface SeriesPosition {
   cursor: string | null;
@@ -176,7 +183,11 @@ export function planFetch(
   return {
     kind: "delta",
     limit,
-    position: state.position ?? { cursor: null, offset: null, phase: "open" },
+    position: state.position ?? {
+      cursor: null,
+      offset: null,
+      phase: PHASES[0] ?? "closed",
+    },
     seriesStart: state.seriesStart ?? watermark(now),
     since: state.since,
   };
@@ -229,24 +240,6 @@ export function afterDelta(
 
 const SLUG = "bordfeed-connection";
 
-export async function readSyncBudget(
-  payload: Payload,
-  feedId: string | null
-): Promise<{ limits: SyncLimits; state: SyncState }> {
-  const doc = (await payload.findGlobal({
-    depth: 0,
-    overrideAccess: true,
-    slug: SLUG,
-  })) as unknown as Record<string, unknown>;
-  return {
-    limits: resolveLimits({
-      jobsPerDay: doc.jobsPerDay,
-      jobsPerSync: doc.jobsPerSync,
-    }),
-    state: parseSyncState(doc.syncState, feedId),
-  };
-}
-
 interface DrizzleExecutor {
   execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;
 }
@@ -255,43 +248,87 @@ function database(payload: Payload): DrizzleExecutor {
   return (payload.db as unknown as { drizzle: DrizzleExecutor }).drizzle;
 }
 
-// Writes the state but keeps the lease the running sync holds.
-export async function writeSyncState(
+// Sync state and the lease live in their own one-row table that only this
+// module writes. Payload rewrites every column of the global on each save,
+// so state kept there could be wound back by an admin save mid-sync.
+export async function readSyncBudget(
   payload: Payload,
-  state: SyncState
-): Promise<void> {
-  const value = JSON.stringify(state);
-  await database(payload).execute(sql`
-    update "bordfeed_connection"
-    set "sync_state" = ${value}::jsonb
-      || jsonb_build_object('leaseUntil', "sync_state"->'leaseUntil')
-  `);
+  feedId: string | null
+): Promise<{ limits: SyncLimits; state: SyncState }> {
+  const [doc, result] = await Promise.all([
+    payload.findGlobal({ depth: 0, overrideAccess: true, slug: SLUG }),
+    database(payload).execute(
+      sql`select "state" from "bordfeed_sync_state" where "id" = 1`
+    ),
+  ]);
+  const settings = doc as unknown as Record<string, unknown>;
+  const row = result.rows[0] as { state?: unknown } | undefined;
+  return {
+    limits: resolveLimits({
+      jobsPerDay: settings.jobsPerDay,
+      jobsPerSync: settings.jobsPerSync,
+    }),
+    state: parseSyncState(row?.state ?? null, feedId),
+  };
+}
+
+export class SyncLeaseLostError extends Error {
+  constructor() {
+    super("Another Bordfeed sync took over this one.");
+    this.name = "SyncLeaseLostError";
+  }
 }
 
 // Max sync time (route maxDuration is 300 s) plus a margin.
 export const SYNC_LEASE_MS = 6 * 60 * 1000;
 
 // One feed sync at a time, so two runs never spend the same budget. The
-// update is atomic: only one caller sees an expired lease and takes it.
+// upsert is atomic: only one caller takes a free or expired lease. Returns
+// the lease token, or null when another sync holds it.
 export async function acquireSyncLease(
   payload: Payload,
   now: Date
-): Promise<boolean> {
+): Promise<string | null> {
+  const token = crypto.randomUUID();
   const until = new Date(now.getTime() + SYNC_LEASE_MS).toISOString();
   const result = await database(payload).execute(sql`
-    update "bordfeed_connection"
-    set "sync_state" = coalesce("sync_state", '{}'::jsonb)
-      || jsonb_build_object('leaseUntil', ${until}::text)
-    where coalesce("sync_state"->>'leaseUntil', '') < ${now.toISOString()}
+    insert into "bordfeed_sync_state" ("id", "state", "lease_token", "lease_until")
+    values (1, '{}'::jsonb, ${token}, ${until}::timestamptz)
+    on conflict ("id") do update
+      set "lease_token" = excluded."lease_token",
+        "lease_until" = excluded."lease_until"
+      where "bordfeed_sync_state"."lease_until" is null
+        or "bordfeed_sync_state"."lease_until" < ${now.toISOString()}::timestamptz
     returning "id"
   `);
-  return result.rows.length > 0;
+  return result.rows.length > 0 ? token : null;
 }
 
-export async function releaseSyncLease(payload: Payload): Promise<void> {
+// Writes only while this sync still holds the lease, so a sync that ran
+// past its lease can never wind back a newer sync's usage.
+export async function writeSyncState(
+  payload: Payload,
+  token: string,
+  state: SyncState
+): Promise<void> {
+  const result = await database(payload).execute(sql`
+    update "bordfeed_sync_state"
+    set "state" = ${JSON.stringify(state)}::jsonb
+    where "id" = 1 and "lease_token" = ${token}
+    returning "id"
+  `);
+  if (result.rows.length === 0) {
+    throw new SyncLeaseLostError();
+  }
+}
+
+export async function releaseSyncLease(
+  payload: Payload,
+  token: string
+): Promise<void> {
   await database(payload).execute(sql`
-    update "bordfeed_connection"
-    set "sync_state" = "sync_state" - 'leaseUntil'
-    where "sync_state" is not null
+    update "bordfeed_sync_state"
+    set "lease_token" = null, "lease_until" = null
+    where "id" = 1 and "lease_token" = ${token}
   `);
 }

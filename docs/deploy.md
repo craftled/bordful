@@ -50,7 +50,7 @@ Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never com
 | `/api/cron/expire` | 05:30 (`30 5 * * *`) |
 | `/api/cron/alerts` | 08:00 (`0 8 * * *`) |
 
-The Bordfeed cron fetches only jobs that changed since the last sync, capped per sync and per day, so one run spends at most `jobsPerSync` credits and a day at most `jobsPerDay`. See [Credits per sync](bordfeed.md#credits-per-sync).
+The Bordfeed cron fetches only new, closed and expired jobs since the last sync, capped per sync and per day, so one run spends at most `jobsPerSync` credits and a day at most `jobsPerDay`. See [Credits per sync](bordfeed.md#credits-per-sync).
 
 ## Custom domain
 

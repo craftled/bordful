@@ -5650,12 +5650,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "sync_state": {
-          "name": "sync_state",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
         "show_attribution": {
           "name": "show_attribution",
           "type": "boolean",
@@ -6113,6 +6107,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "72aded4b-f4fd-4a19-93ba-7f05e043ab9d",
+  "id": "efd34077-084c-45ce-b78e-0881d8f2d239",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

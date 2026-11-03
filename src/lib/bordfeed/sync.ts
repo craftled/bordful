@@ -36,8 +36,10 @@ import {
   readSyncBudget,
   recordSpend,
   releaseSyncLease,
+  type SeriesPhase,
   type SeriesPosition,
   type SyncState,
+  sinceFieldFor,
   writeSyncState,
 } from "./sync-budget";
 
@@ -914,6 +916,8 @@ function skippedSummary(
 
 interface SeriesRead {
   budget: number;
+  // Set when a request failed after earlier pages landed.
+  error?: unknown;
   pages: number;
   position: SeriesPosition | null;
   removedIds: Set<string>;
@@ -921,39 +925,34 @@ interface SeriesRead {
   updated: BordfeedJob[];
 }
 
-// Reads the delta series from `position`: open, then closed, then expired
-// jobs updated after `since`. Each request asks for what is left of this
-// sync's budget. It stops when the budget is spent or a phase has more
-// pages; the returned position is where the next sync resumes (null once
-// every phase is read). Usage is saved as soon as Bordfeed answers.
-async function readSeries(
-  payload: Payload,
-  client: BordfeedClient,
-  feedId: string,
-  since: string,
-  position: SeriesPosition,
+type SaveState = (state: SyncState) => Promise<void>;
+
+// Offset pages shift when a job leaves a search feed mid-series, so a resumed
+// offset steps back a little. Re-sent jobs are free.
+const OFFSET_OVERLAP = 10;
+
+function requestOffset(offset: number | null, budget: number): number | null {
+  if (offset === null || budget < OFFSET_OVERLAP * 2) {
+    return offset;
+  }
+
+  return Math.max(0, offset - OFFSET_OVERLAP);
+}
+
+function withPage(
   read: SeriesRead,
-  startedAt: Date
-): Promise<SeriesRead> {
-  const page = await client.fetchFeedPage(feedId, {
-    cursor: position.cursor,
-    limit: read.budget,
-    offset: position.offset,
-    since,
-    sinceField: "updated",
-    status: position.phase === "open" ? undefined : position.phase,
-  });
-  const state = recordSpend(read.state, page.data.length, startedAt);
-  await writeSyncState(payload, state);
+  phase: SeriesPhase,
+  page: { data: BordfeedJob[] },
+  state: SyncState
+): SeriesRead {
   const next: SeriesRead = {
+    ...read,
     budget: read.budget - page.data.length,
     pages: read.pages + 1,
     position: null,
-    removedIds: read.removedIds,
     state,
-    updated: read.updated,
   };
-  if (position.phase === "open") {
+  if (phase === "open") {
     next.updated = [...read.updated, ...page.data];
   } else {
     next.removedIds = new Set([
@@ -962,6 +961,42 @@ async function readSeries(
     ]);
   }
 
+  return next;
+}
+
+// Reads the delta series from `position`. Each request asks for what is left
+// of this sync's budget. It stops when the budget is spent or a phase has
+// more pages; the returned position is where the next sync resumes (null
+// once every phase is read). Usage is saved as soon as Bordfeed answers. A
+// failure after earlier pages keeps those pages and their position.
+async function readSeries(
+  client: BordfeedClient,
+  feedId: string,
+  since: string,
+  position: SeriesPosition,
+  read: SeriesRead,
+  context: { save: SaveState; startedAt: Date }
+): Promise<SeriesRead> {
+  let page: Awaited<ReturnType<BordfeedClient["fetchFeedPage"]>>;
+  try {
+    page = await client.fetchFeedPage(feedId, {
+      cursor: position.cursor,
+      limit: read.budget,
+      offset: requestOffset(position.offset, read.budget),
+      since,
+      sinceField: sinceFieldFor(position.phase),
+      status: position.phase === "open" ? undefined : position.phase,
+    });
+  } catch (error) {
+    if (read.pages === 0) {
+      throw error;
+    }
+    return { ...read, error, position };
+  }
+
+  const state = recordSpend(read.state, page.data.length, context.startedAt);
+  await context.save(state);
+  const next = withPage(read, position.phase, page, state);
   if (page.nextCursor || page.nextOffset) {
     next.position = {
       cursor: page.nextCursor,
@@ -981,15 +1016,7 @@ async function readSeries(
     return next;
   }
 
-  return readSeries(
-    payload,
-    client,
-    feedId,
-    since,
-    next.position,
-    next,
-    startedAt
-  );
+  return readSeries(client, feedId, since, next.position, next, context);
 }
 
 async function firstSync(
@@ -997,12 +1024,13 @@ async function firstSync(
   deps: SyncDeps | undefined,
   client: BordfeedClient,
   feedId: string,
-  budget: { limit: number; state: SyncState },
+  budget: { limit: number; save: SaveState; state: SyncState },
   startedAt: Date
 ): Promise<SyncSummary> {
+  const stamp: SyncStamp = { feedId, mode: "feed" };
   const page = await client.fetchFeedPage(feedId, { limit: budget.limit });
   const state = recordSpend(budget.state, page.data.length, startedAt);
-  await writeSyncState(payload, state);
+  await budget.save(state);
   const summary = await runSync(
     payload,
     deps,
@@ -1014,22 +1042,27 @@ async function firstSync(
       pages: 1,
     },
     "bordfeed",
-    { feedId, mode: "feed" }
+    stamp
   );
-  await writeSyncState(payload, afterFirst(state, startedAt));
+  // A reset or reconnect mid-sync discards the page, so `since` stays.
+  if (await connectionStillMatches(payload, stamp)) {
+    await budget.save(afterFirst(state, startedAt));
+  }
   return summary;
 }
 
 // Every sync fetches at most `jobsPerSync` jobs and never more than is left
 // of `jobsPerDay`. The first sync reads one page of the newest jobs. Later
-// syncs read only jobs updated since the last finished series.
+// syncs read only removals and new jobs since the last finished series.
 async function syncFeedWithBudget(
   payload: Payload,
   deps: SyncDeps | undefined,
   client: BordfeedClient,
-  feedId: string
+  feedId: string,
+  save: SaveState
 ): Promise<SyncSummary> {
   const startedAt = clockOf(deps)();
+  const stamp: SyncStamp = { feedId, mode: "feed" };
   const budget = await readSyncBudget(payload, feedId);
   const plan = planFetch(budget.state, budget.limits, startedAt);
   if (plan.kind === "skip") {
@@ -1042,13 +1075,12 @@ async function syncFeedWithBudget(
       deps,
       client,
       feedId,
-      { limit: plan.limit, state: budget.state },
+      { limit: plan.limit, save, state: budget.state },
       startedAt
     );
   }
 
   const read = await readSeries(
-    payload,
     client,
     feedId,
     plan.since,
@@ -1061,7 +1093,7 @@ async function syncFeedWithBudget(
       state: budget.state,
       updated: [],
     },
-    startedAt
+    { save, startedAt }
   );
   const summary = await runSync(
     payload,
@@ -1075,9 +1107,14 @@ async function syncFeedWithBudget(
       removedIds: read.removedIds,
     },
     "bordfeed",
-    { feedId, mode: "feed" }
+    stamp
   );
-  await writeSyncState(payload, afterDelta(read.state, plan, read.position));
+  if (await connectionStillMatches(payload, stamp)) {
+    await save(afterDelta(read.state, plan, read.position));
+  }
+  if (read.error !== undefined) {
+    throw read.error;
+  }
   return summary;
 }
 
@@ -1087,14 +1124,17 @@ async function leasedSync(
   client: BordfeedClient,
   feedId: string
 ): Promise<SyncSummary> {
-  if (!(await acquireSyncLease(payload, clockOf(deps)()))) {
+  const token = await acquireSyncLease(payload, clockOf(deps)());
+  if (!token) {
     return skippedSummary("busy", deps);
   }
 
   try {
-    return await syncFeedWithBudget(payload, deps, client, feedId);
+    return await syncFeedWithBudget(payload, deps, client, feedId, (state) =>
+      writeSyncState(payload, token, state)
+    );
   } finally {
-    await releaseSyncLease(payload);
+    await releaseSyncLease(payload, token);
   }
 }
 

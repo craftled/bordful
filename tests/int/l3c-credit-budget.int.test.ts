@@ -6,6 +6,8 @@ if (existsSync(".env")) {
   process.loadEnvFile(".env");
 }
 
+import { sql } from "@payloadcms/db-postgres";
+
 import {
   createBordfeedMock,
   MOCK_API_KEY,
@@ -85,13 +87,20 @@ async function setLimits(limits: {
   });
 }
 
+interface Executor {
+  execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;
+}
+
+function database(): Executor {
+  return (payload.db as unknown as { drizzle: Executor }).drizzle;
+}
+
 async function storedSince(): Promise<string | null> {
-  const doc = (await payload.findGlobal({
-    depth: 0,
-    overrideAccess: true,
-    slug: "bordfeed-connection",
-  })) as { syncState?: { since?: string } | null };
-  return doc.syncState?.since ?? null;
+  const result = await database().execute(
+    sql`select "state"->>'since' as "since" from "bordfeed_sync_state"`
+  );
+  const row = result.rows[0] as { since?: string | null } | undefined;
+  return row?.since ?? null;
 }
 
 function boardJobs(where: Record<string, unknown> = {}) {
@@ -150,30 +159,37 @@ describe("bordfeed credit budget", () => {
       .filter((request) => request.path === FEED_PATH)
       .slice(1)
       .map((request) => request.query);
-    // Open, then closed, then expired jobs updated since the first sync.
+    // Closed and expired jobs updated since the first sync, then new jobs.
     expect(deltaQueries).toHaveLength(3);
     for (const query of deltaQueries) {
-      expect(query).toMatchObject({ limit: "50", since_field: "updated" });
+      expect(query).toMatchObject({ limit: "50" });
       expect(typeof query.since).toBe("string");
     }
-    expect(deltaQueries.map((query) => query.status)).toEqual([
-      undefined,
-      "closed",
-      "expired",
+    expect(
+      deltaQueries.map((query) => [query.status, query.since_field])
+    ).toEqual([
+      ["closed", "updated"],
+      ["expired", "updated"],
+      [undefined, "first_visible"],
     ]);
 
-    mock.touchFeedJobs([3, 4, 1500]);
+    // Live bumps updated_at on routine scrapes. That alone fetches nothing.
+    mock.touchFeedJobs(Array.from({ length: 2000 }, (_, index) => index + 1));
+    const scraped = await runBordfeedSync(payload);
+    expect(scraped).toMatchObject({ fetch: "delta", fetchedJobs: 0 });
+
+    mock.surfaceFeedJobs([1500]);
     mock.closeFeedJobs([7]);
     mock.expireFeedJobs([9]);
     const delta = await runBordfeedSync(payload);
     expect(delta).toMatchObject({
       created: 1,
       fetch: "delta",
-      fetchedJobs: 5,
+      fetchedJobs: 3,
       unpublished: 2,
     });
-    // Jobs 3, 4, 7 and 9 were already received, so only job 1500 is billed.
-    expect(mock.state.servedJobs).toBe(55);
+    // Jobs 7 and 9 were already received, so only job 1500 is billed.
+    expect(mock.state.servedJobs).toBe(53);
     expect(mock.state.billedJobs).toBe(51);
     expect(mock.balance()).toBe(1949);
     expect(
@@ -189,8 +205,8 @@ describe("bordfeed credit budget", () => {
     await runBordfeedSync(payload);
     expect(mock.state.billedJobs).toBe(50);
 
-    // A busy day: 900 jobs change after the first sync.
-    mock.touchFeedJobs(Array.from({ length: 900 }, (_, index) => index + 1));
+    // A busy day: 900 jobs surface after the first sync.
+    mock.surfaceFeedJobs(Array.from({ length: 900 }, (_, index) => index + 1));
     expect(await cronRuns(6)).toEqual([true, true, true, true, true, true]);
 
     // 50 + 50 + 20 jobs fetched. Jobs 1 to 50 came in the first page, so
@@ -246,12 +262,8 @@ describe("bordfeed credit budget", () => {
     await connectFeed();
     await runBordfeedSync(payload);
     // A board from before this change has no sync state.
-    await payload.updateGlobal({
-      data: { jobsPerSync: 20, syncState: null },
-      depth: 0,
-      overrideAccess: true,
-      slug: "bordfeed-connection",
-    });
+    await setLimits({ jobsPerSync: 20 });
+    await database().execute(sql`delete from "bordfeed_sync_state"`);
 
     const again = await runBordfeedSync(payload);
     expect(again).toMatchObject({ fetch: "first", fetchedJobs: 20 });

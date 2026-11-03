@@ -47,7 +47,7 @@ export interface FeedPageQuery {
   limit: number;
   offset?: number | null;
   since?: string | null;
-  sinceField?: "updated";
+  sinceField?: "first_visible" | "updated";
   status?: "closed" | "expired";
 }
 

@@ -96,11 +96,15 @@ export interface BordfeedMock {
   handle: (request: Request) => Promise<Response>;
   reset: () => void;
   state: BordfeedMockState;
-  // Marks feed jobs (1-based) updated now.
+  // Marks feed jobs (1-based) as first visible now, like new jobs.
+  surfaceFeedJobs: (indexes: number[]) => void;
+  // Marks feed jobs (1-based) updated now. Live bumps updated_at on routine
+  // scrape writes too, so this is not a content change.
   touchFeedJobs: (indexes: number[]) => void;
 }
 
 interface FeedMeta {
+  firstVisibleAt: number;
   status: "active" | "closed" | "expired";
   updatedAt: number;
 }
@@ -401,7 +405,7 @@ function feedFilter(url: URL): ((meta: FeedMeta) => boolean) | string {
     if (since === null) {
       return true;
     }
-    const stamp = field === "updated" ? meta.updatedAt : FEED_BASE_UPDATED_AT;
+    const stamp = field === "updated" ? meta.updatedAt : meta.firstVisibleAt;
     return stamp > since;
   };
 }
@@ -486,6 +490,7 @@ export function createBordfeedMock(
   const feed = feedJobs(options.feedTotal ?? FEED_TOTAL);
   const now = options.now ?? Date.now;
   let feedMeta: FeedMeta[] = feed.map(() => ({
+    firstVisibleAt: FEED_BASE_UPDATED_AT,
     status: "active",
     updatedAt: FEED_BASE_UPDATED_AT,
   }));
@@ -865,11 +870,19 @@ export function createBordfeedMock(
     });
   }
 
-  function markFeedJobs(indexes: number[], status?: FeedMeta["status"]): void {
+  function markFeedJobs(
+    indexes: number[],
+    change: { status?: FeedMeta["status"]; surfaced?: boolean }
+  ): void {
     const at = now();
+    const picked = new Set(indexes);
     feedMeta = feedMeta.map((meta, index) =>
-      indexes.includes(index + 1)
-        ? { status: status ?? meta.status, updatedAt: at }
+      picked.has(index + 1)
+        ? {
+            firstVisibleAt: change.surfaced ? at : meta.firstVisibleAt,
+            status: change.status ?? meta.status,
+            updatedAt: at,
+          }
         : meta
     );
   }
@@ -880,10 +893,10 @@ export function createBordfeedMock(
       return credits;
     },
     closeFeedJobs(indexes) {
-      markFeedJobs(indexes, "closed");
+      markFeedJobs(indexes, { status: "closed" });
     },
     expireFeedJobs(indexes) {
-      markFeedJobs(indexes, "expired");
+      markFeedJobs(indexes, { status: "expired" });
     },
     async handle(request) {
       const url = new URL(request.url);
@@ -920,6 +933,7 @@ export function createBordfeedMock(
       state.servedJobs = 0;
       delivered.clear();
       feedMeta = feed.map(() => ({
+        firstVisibleAt: FEED_BASE_UPDATED_AT,
         status: "active",
         updatedAt: FEED_BASE_UPDATED_AT,
       }));
@@ -932,8 +946,11 @@ export function createBordfeedMock(
       creditsExhausted = false;
     },
     state,
+    surfaceFeedJobs(indexes) {
+      markFeedJobs(indexes, { surfaced: true });
+    },
     touchFeedJobs(indexes) {
-      markFeedJobs(indexes);
+      markFeedJobs(indexes, {});
     },
   };
 }

@@ -1066,15 +1066,6 @@ export interface BordfeedConnection {
    * Most jobs fetched per UTC day across every sync (20 to 5000). Syncs fetch nothing once it is reached. Leave empty to use bordful.config.ts (200).
    */
   jobsPerDay?: number | null;
-  syncState?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
   showAttribution?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1192,7 +1183,6 @@ export interface BordfeedConnectionSelect<T extends boolean = true> {
   lastError?: T;
   jobsPerSync?: T;
   jobsPerDay?: T;
-  syncState?: T;
   showAttribution?: T;
   updatedAt?: T;
   createdAt?: T;

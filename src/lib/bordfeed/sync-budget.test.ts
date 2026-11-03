@@ -8,6 +8,7 @@ import {
   planFetch,
   recordSpend,
   resolveLimits,
+  sinceFieldFor,
   WATERMARK_OVERLAP_MS,
 } from "./sync-budget";
 
@@ -46,7 +47,7 @@ test("a fresh feed plans one capped first page", () => {
   });
 });
 
-test("after the first page, syncs read open jobs updated since it began", () => {
+test("after the first page, syncs read removals since it began", () => {
   const state = afterFirst(
     recordSpend(parseSyncState(null, FEED), 50, NOW),
     NOW
@@ -55,16 +56,18 @@ test("after the first page, syncs read open jobs updated since it began", () => 
   expect(planFetch(state, resolveLimits({}), later)).toEqual({
     kind: "delta",
     limit: 50,
-    position: { cursor: null, offset: null, phase: "open" },
+    position: { cursor: null, offset: null, phase: "closed" },
     seriesStart: new Date(later.getTime() - WATERMARK_OVERLAP_MS).toISOString(),
     since: new Date(NOW.getTime() - WATERMARK_OVERLAP_MS).toISOString(),
   });
 });
 
-test("since moves only after open, closed and expired are all read", () => {
-  expect(nextPhase("open")).toBe("closed");
+test("since moves only after closed, expired and open are all read", () => {
   expect(nextPhase("closed")).toBe("expired");
-  expect(nextPhase("expired")).toBeNull();
+  expect(nextPhase("expired")).toBe("open");
+  expect(nextPhase("open")).toBeNull();
+  expect(sinceFieldFor("closed")).toBe("updated");
+  expect(sinceFieldFor("open")).toBe("first_visible");
 
   const started = afterFirst(parseSyncState(null, FEED), NOW);
   const plan1 = delta(
