@@ -1,0 +1,60 @@
+.card {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 40rem;
+  padding: 1rem 1.25rem;
+  margin: 0 0 1.5rem;
+  color: var(--theme-text);
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-150);
+}
+
+.card h2 {
+  margin: 0;
+}
+
+.form,
+.stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form label,
+.stack label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.form input,
+.form select,
+.stack input {
+  padding: 0.4rem 0.5rem;
+  color: var(--theme-text);
+  background: var(--theme-input-bg, var(--theme-elevation-0));
+  border: 1px solid var(--theme-elevation-150);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.message {
+  margin: 0;
+}
+
+.error {
+  margin: 0;
+  color: var(--theme-error-500);
+}
+
+.hint {
+  margin: 0;
+}
+
+.check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

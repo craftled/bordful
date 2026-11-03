@@ -1,0 +1,62 @@
+/* Brand HSL triplets from the marketing source, wrapped in hsl() because this app maps var(--token) straight through as a color. */
+.bordful-marketing {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 0%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 0%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 0%);
+  --primary: hsl(0 0% 0%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 0%);
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 45%);
+  --accent: hsl(0 0% 96%);
+  --accent-foreground: hsl(0 0% 0%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --border: hsl(0 0% 90%);
+  --input: hsl(0 0% 90%);
+  --ring: hsl(0 0% 0%);
+  --radius: 0.5rem;
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  color: var(--foreground);
+  color-scheme: light;
+  background: var(--background);
+}
+
+@media (prefers-color-scheme: dark) {
+  .bordful-marketing {
+    --background: hsl(0 0% 0%);
+    --foreground: hsl(0 0% 100%);
+    --card: hsl(0 0% 0%);
+    --card-foreground: hsl(0 0% 100%);
+    --popover: hsl(0 0% 0%);
+    --popover-foreground: hsl(0 0% 100%);
+    --primary: hsl(0 0% 100%);
+    --primary-foreground: hsl(0 0% 0%);
+    --secondary: hsl(0 0% 10%);
+    --secondary-foreground: hsl(0 0% 100%);
+    --muted: hsl(0 0% 10%);
+    --muted-foreground: hsl(0 0% 60%);
+    --accent: hsl(0 0% 10%);
+    --accent-foreground: hsl(0 0% 100%);
+    --destructive: hsl(0 84.2% 60.2%);
+    --border: hsl(0 0% 10%);
+    --input: hsl(0 0% 10%);
+    --ring: hsl(0 0% 30%);
+    color-scheme: dark;
+  }
+
+  .bordful-marketing .marketing-mono {
+    filter: invert(1);
+  }
+}
+
+.bordful-marketing summary {
+  list-style: none;
+}
+
+.bordful-marketing summary::-webkit-details-marker {
+  display: none;
+}

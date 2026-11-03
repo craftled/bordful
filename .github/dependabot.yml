@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Payload is pinned to a beta and bumped by hand. This also suppresses Dependabot security PRs for Payload, so watch Payload advisories manually.
+      - dependency-name: payload
+      - dependency-name: "@payloadcms/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch

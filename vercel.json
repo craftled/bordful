@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/cron/bordfeed", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/expire", "schedule": "30 5 * * *" },
+    { "path": "/api/cron/alerts", "schedule": "0 8 * * *" }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "demo.bordful.com" }],
+      "destination": "https://bordful.com/jobs",
+      "statusCode": 301
+    }
+  ]
+}
