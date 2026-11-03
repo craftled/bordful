@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { MarketingFrame } from "@/app/(marketing)/_components/marketing-frame";
 import { MarketingNotFound } from "@/app/(marketing)/not-found";
 import BoardNotFound from "@/app/(site)/not-found";
+import { ThemeScript } from "@/components/theme/theme-script";
 import { isMarketingEnabled } from "@/config/flags";
 import { getSiteSettings } from "@/lib/read";
 import { FONT_VARIABLE_CLASSES } from "@/theme/fonts";
@@ -38,8 +39,9 @@ export default async function GlobalNotFound() {
   }
 
   return (
-    <html className={FONT_VARIABLE_CLASSES} lang="en">
+    <html className={FONT_VARIABLE_CLASSES} lang="en" suppressHydrationWarning>
       <head>
+        <ThemeScript nonce={nonce} />
         <style nonce={nonce}>{`:root{${css}}`}</style>
       </head>
       <body>

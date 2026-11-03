@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 import { KBD_ON_OUTLINE, KBD_ON_PRIMARY, Kbd } from "./kbd";
@@ -58,6 +59,7 @@ export function MarketingHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-1.5">
+          <ThemeToggle className="size-9 lg:size-[30px]" />
           <Button
             asChild
             className="hidden h-[30px] gap-[7px] rounded-lg px-2.5 shadow-xs lg:inline-flex"
