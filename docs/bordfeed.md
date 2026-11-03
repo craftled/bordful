@@ -84,7 +84,8 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 - If more new jobs appeared than `jobsPerSync`, the next sync continues from where this one stopped. The `since` point moves forward only after all of them are read, so no new job is skipped. A sync adds at most `jobsPerSync` jobs, so on a busy feed raise `jobsPerSync` or run the sync more often (the `/api/cron/bordfeed` schedule in `vercel.json`, which some Vercel plans limit to once a day).
 - A job that closes and later reopens keeps its first-appeared time, so it does not come back as a new job. It stays unpublished.
 - Checks run one request at a time, about two a second, to stay inside Bordfeed's rate limit. A sync with 200 checks takes about 100 seconds, and checks stop after 120 seconds so the rest of the sync fits in the cron's time limit. A failed check never holds back new jobs.
-- Unpublishing is permanent, so the sync guards against a Bordfeed incident: if at least 20 jobs were checked and more than half came back gone, it unpublishes nothing and the admin shows: "Bordfeed reported most of the checked jobs as gone, so the board kept them published." If the feed really changed, reconnect it.
+- Unpublishing is permanent, so the sync guards against a Bordfeed incident. If at least 10 jobs were checked and 80% or more came back gone (or at least 5 and all of them), it unpublishes nothing and the admin shows: "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now." If a sync at least 12 hours later sees the same, the jobs really closed and it unpublishes them. Normal churn stays well under that line.
+- A job whose lookup keeps failing with an unexpected answer is skipped, so it cannot stop later checks. New jobs are read for at most 210 seconds of the sync, so the board write still fits in the cron's time limit.
 - Sample jobs are replaced when you connect, not unpublished one by one.
 
 ## Credits per sync

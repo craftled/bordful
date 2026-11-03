@@ -78,6 +78,7 @@ test("since moves only after the additions series is read", () => {
       offset: null,
     }),
     checkAfter: "job-0042",
+    removalHold: { after: "job-0042", at: NOW.toISOString() },
   };
   expect(mid.additions.since).toBe(started.additions.since);
 
@@ -92,6 +93,10 @@ test("since moves only after the additions series is read", () => {
     since: started.additions.since,
   });
   expect(plan2.checkAfter).toBe("job-0042");
+  expect(reread.removalHold).toEqual({
+    after: "job-0042",
+    at: NOW.toISOString(),
+  });
 
   expect(afterAdditions(reread.additions, plan2.additions, null)).toEqual({
     position: null,
@@ -126,5 +131,6 @@ test("a new feed id starts over but keeps the day's usage", () => {
     additions: { since: null },
     checkAfter: null,
     jobsToday: 60,
+    removalHold: null,
   });
 });

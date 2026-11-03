@@ -34,6 +34,13 @@ export interface TrackState {
   since: string | null;
 }
 
+// A check slice that looked like a Bordfeed incident: most of it came back
+// gone. Its removals wait for a second sync to confirm them.
+export interface RemovalHold {
+  after: string | null;
+  at: string;
+}
+
 export interface SyncState {
   additions: TrackState;
   // Last board job checked, by Bordfeed id. The next sync goes on after it
@@ -42,6 +49,7 @@ export interface SyncState {
   day: string | null;
   feedId: string | null;
   jobsToday: number;
+  removalHold: RemovalHold | null;
 }
 
 export interface TrackPlan {
@@ -134,6 +142,12 @@ function trackOf(value: unknown): TrackState {
   };
 }
 
+function holdOf(value: unknown): RemovalHold | null {
+  const row = record(value);
+  const at = text(row.at);
+  return at ? { after: text(row.after), at } : null;
+}
+
 // A different feed starts over with a capped first sync. Usage for the day
 // carries across feeds, since the same Bordfeed workspace pays.
 export function parseSyncState(
@@ -152,6 +166,7 @@ export function parseSyncState(
     day: text(row.day),
     feedId,
     jobsToday,
+    removalHold: sameFeed ? holdOf(row.removalHold) : null,
   };
 }
 

@@ -384,27 +384,77 @@ describe("bordfeed sync", () => {
     expect(published.totalDocs).toBe(30);
   });
 
-  test("most checked jobs gone unpublishes nothing and says so", async () => {
+  test("most checked jobs gone waits for a second sync 12 hours later", async () => {
     await connectFeed();
     const jobs = feedJobs(25);
     await runFeedSync(payload, { client: feedClient(jobs) });
 
-    // 15 of 25 gone at once looks like a Bordfeed incident, not churn.
-    const error = await runFeedSync(payload, {
-      client: feedClient([], jobs.slice(0, 15)),
-    }).catch((caught: unknown) => caught);
-    expect(error).toBeInstanceOf(SyncGuardError);
-    expect(error).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
-    const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
-    expect(published.totalDocs).toBe(25);
+    // 22 of 25 gone at once looks like a Bordfeed incident, not churn.
+    const gone = () => feedClient([], jobs.slice(0, 22));
+    const start = Date.now();
+    const at = (hours: number) => () => new Date(start + hours * 3_600_000);
+    const published = async () =>
+      (await queryPublishedJobs(payload, { limit: 50, page: 1 })).totalDocs;
+
+    for (const hours of [0, 1]) {
+      // biome-ignore lint/performance/noAwaitInLoops: syncs run in order
+      const error = await runFeedSync(payload, {
+        client: gone(),
+        now: at(hours),
+      }).catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(SyncGuardError);
+      expect(error).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
+      expect(await published()).toBe(25);
+    }
     const connection = await readConnection(payload);
     expect(connection.lastError?.message).toBe(MASS_REMOVAL_MESSAGE);
 
-    // A normal share of closures is still unpublished.
-    const next = await runFeedSync(payload, {
-      client: feedClient([], jobs.slice(0, 5)),
+    // Still the same 12 hours later: the jobs really closed.
+    const confirmed = await runFeedSync(payload, {
+      client: gone(),
+      now: at(13),
     });
-    expect(next.unpublished).toBe(5);
+    expect(confirmed.unpublished).toBe(22);
+    expect(await published()).toBe(3);
+  });
+
+  test("a normal share of closures is unpublished at once", async () => {
+    await connectFeed();
+    const jobs = feedJobs(25);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+    // 15 of 25 is a lot, but under the 80% incident line.
+    const run = await runFeedSync(payload, {
+      client: feedClient([], jobs.slice(0, 15)),
+    });
+    expect(run.unpublished).toBe(15);
+  });
+
+  test("a job whose lookup keeps failing is skipped, not a wall", async () => {
+    await connectFeed();
+    const jobs = feedJobs(25);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+
+    const base = feedClient([], jobs.slice(0, 3));
+    let calls = 0;
+    const flaky: BordfeedClient & { queries: FeedPageQuery[] } = {
+      ...base,
+      checkJob: (jobId) => {
+        calls += 1;
+        if (calls === 1) {
+          return Promise.reject(
+            new BordfeedApiError({
+              code: "invalid_response",
+              message: "Bordfeed returned an unexpected response.",
+              status: 200,
+            })
+          );
+        }
+        return base.checkJob(jobId);
+      },
+    };
+    const run = await runFeedSync(payload, { client: flaky });
+    expect(run.checkedJobs).toBe(24);
+    expect(run.unpublished).toBeGreaterThanOrEqual(2);
   });
 
   test("checks stop at their time limit", async () => {

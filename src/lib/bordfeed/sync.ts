@@ -962,9 +962,10 @@ async function readSeries(
   since: string,
   position: SeriesPosition,
   read: SeriesRead,
-  context: { save: SaveState; startedAt: Date }
+  context: TimedContext
 ): Promise<SeriesRead> {
-  if (read.budget <= 0) {
+  const late = read.pages > 0 && context.now().getTime() >= context.deadline;
+  if (read.budget <= 0 || late) {
     return { ...read, position };
   }
 
@@ -984,24 +985,31 @@ async function readSeries(
     return { ...read, error, position };
   }
 
-  const state = recordSpend(read.state, page.data.length, context.startedAt);
-  await context.save(state);
+  const more = Boolean(page.nextCursor || page.nextOffset);
   const next: SeriesRead = {
     ...read,
     budget: read.budget - page.data.length,
     pages: read.pages + 1,
-    position: null,
-    state,
+    position: more
+      ? {
+          cursor: page.nextCursor,
+          offset: page.nextCursor ? null : page.nextOffset,
+        }
+      : null,
+    state: recordSpend(read.state, page.data.length, context.startedAt),
     updated: [...read.updated, ...page.data],
   };
-  if (!(page.nextCursor || page.nextOffset)) {
-    return next;
+  // A failed save keeps the page and its usage, so the final save still
+  // counts what Bordfeed billed.
+  try {
+    await context.save(next.state);
+  } catch (error) {
+    return { ...next, error };
   }
 
-  next.position = {
-    cursor: page.nextCursor,
-    offset: page.nextCursor ? null : page.nextOffset,
-  };
+  if (!next.position) {
+    return next;
+  }
   return readSeries(client, feedId, since, next.position, next, context);
 }
 
@@ -1012,6 +1020,8 @@ interface CheckRun {
   checked: number;
   error?: unknown;
   removedIds: Set<string>;
+  // Last per-job failure that was skipped past.
+  skipError?: unknown;
   state: SyncState;
 }
 
@@ -1065,23 +1075,32 @@ async function nextBoardJobs(
   return [...tail, ...head.filter((id) => id <= after)];
 }
 
-interface CheckContext {
-  // Checks stop here, so the feed read and the board write still fit in
-  // the cron's 300 s.
+// Work stops at `deadline`, so the whole sync fits in the cron's 300 s.
+interface TimedContext {
   deadline: number;
   now: () => Date;
   save: SaveState;
   startedAt: Date;
 }
 
-// Checks spend at most this long per sync.
+// Checks spend at most this long per sync, and the feed read stops paging
+// at the second mark. The board write gets the rest of the 300 s.
 const CHECK_TIME_MS = 120_000;
+const READ_TIME_MS = 210_000;
+
+// One job whose lookup keeps failing must not stop every later check.
+function skippable(error: unknown): boolean {
+  return (
+    error instanceof BordfeedApiError &&
+    (error.code === "invalid_response" || error.status >= 500)
+  );
+}
 
 async function checkEach(
   client: BordfeedClient,
   ids: string[],
   run: CheckRun,
-  context: CheckContext
+  context: TimedContext
 ): Promise<CheckRun> {
   const [id, ...rest] = ids;
   if (id === undefined || context.now().getTime() >= context.deadline) {
@@ -1092,6 +1111,10 @@ async function checkEach(
   try {
     result = await client.checkJob(id);
   } catch (error) {
+    if (skippable(error)) {
+      const skipped = { ...run, checkAfter: id, skipError: error };
+      return checkEach(client, rest, skipped, context);
+    }
     return { ...run, error };
   }
 
@@ -1111,21 +1134,45 @@ async function checkEach(
   // checks can never spend more than one credit per sync.
   next.charged = run.charged + charged;
   next.state = recordSpend(run.state, charged, context.startedAt);
-  await context.save(next.state);
+  try {
+    await context.save(next.state);
+  } catch (error) {
+    return { ...next, error };
+  }
   return next;
 }
 
-// When at least this many jobs were checked and more than half are gone,
-// Bordfeed is more likely wrong than the board. Unpublishing is permanent,
-// so the sync then unpublishes nothing and reports it.
-const MASS_REMOVAL_MIN_CHECKS = 20;
+// A Bordfeed incident shows nearly every checked job gone. Normal churn
+// stays far below 80%: closures per sync match jobs added per sync, at
+// most jobsPerSync (100) against up to 200 checks.
+function looksLikeIncident(run: CheckRun): boolean {
+  const gone = run.removedIds.size;
+  return (
+    (run.checked >= 10 && gone * 5 >= run.checked * 4) ||
+    (run.checked >= 5 && gone === run.checked)
+  );
+}
 
-function guardMassRemoval(run: CheckRun, checkAfter: string | null): CheckRun {
-  if (
-    run.checked < MASS_REMOVAL_MIN_CHECKS ||
-    run.removedIds.size * 2 <= run.checked
-  ) {
-    return run;
+// Hold removals that look like an incident for one sync at least 12 hours
+// later. If the same slice still looks that way, the jobs really closed:
+// unpublish them and move on, so the guard can never stall the checks.
+export const REMOVAL_HOLD_MS = 12 * 60 * 60 * 1000;
+
+function guardMassRemoval(
+  run: CheckRun,
+  checkAfter: string | null,
+  startedAt: Date
+): CheckRun {
+  const hold = run.state.removalHold;
+  if (!looksLikeIncident(run)) {
+    return { ...run, state: { ...run.state, removalHold: null } };
+  }
+
+  const sameSlice = hold !== null && hold.after === checkAfter;
+  const confirmed =
+    sameSlice && startedAt.getTime() - Date.parse(hold.at) >= REMOVAL_HOLD_MS;
+  if (confirmed) {
+    return { ...run, state: { ...run.state, removalHold: null } };
   }
 
   return {
@@ -1133,7 +1180,21 @@ function guardMassRemoval(run: CheckRun, checkAfter: string | null): CheckRun {
     checkAfter,
     error: run.error ?? new SyncGuardError(MASS_REMOVAL_MESSAGE),
     removedIds: new Set(),
+    state: {
+      ...run.state,
+      removalHold: sameSlice
+        ? hold
+        : { after: checkAfter, at: startedAt.toISOString() },
+    },
   };
+}
+
+// A run where every lookup failed and was skipped reports the failure.
+function withSkipError(run: CheckRun): CheckRun {
+  if (run.error !== undefined || run.checked > 0 || !run.skipError) {
+    return run;
+  }
+  return { ...run, error: run.skipError };
 }
 
 // Looks up the next slice of the board's published Bordfeed jobs by id and
@@ -1145,7 +1206,7 @@ async function checkBoardJobs(
   client: BordfeedClient,
   plan: Extract<FetchPlan, { kind: "delta" }>,
   state: SyncState,
-  context: CheckContext
+  context: TimedContext
 ): Promise<CheckRun> {
   const ids = await nextBoardJobs(payload, plan.checkAfter, plan.checks);
   const run = await checkEach(
@@ -1160,7 +1221,11 @@ async function checkBoardJobs(
     },
     context
   );
-  return guardMassRemoval(run, plan.checkAfter);
+  return guardMassRemoval(
+    withSkipError(run),
+    plan.checkAfter,
+    context.startedAt
+  );
 }
 
 async function firstSync(
@@ -1225,13 +1290,15 @@ async function syncFeedWithBudget(
     );
   }
 
-  const context = { save, startedAt };
+  const timed = { now: clockOf(deps), save, startedAt };
   const checks = await checkBoardJobs(payload, client, plan, budget.state, {
-    ...context,
+    ...timed,
     deadline: startedAt.getTime() + CHECK_TIME_MS,
-    now: clockOf(deps),
   });
-  const additions = await readAdditions(client, feedId, plan, checks, context);
+  const additions = await readAdditions(client, feedId, plan, checks, {
+    ...timed,
+    deadline: startedAt.getTime() + READ_TIME_MS,
+  });
   const state = additions.read?.state ?? checks.state;
   const summary = await runSync(
     payload,
@@ -1276,7 +1343,7 @@ async function readAdditions(
   feedId: string,
   plan: Extract<FetchPlan, { kind: "delta" }>,
   checks: CheckRun,
-  context: { save: SaveState; startedAt: Date }
+  context: TimedContext
 ): Promise<{ error?: unknown; read: SeriesRead | null }> {
   try {
     const read = await readSeries(

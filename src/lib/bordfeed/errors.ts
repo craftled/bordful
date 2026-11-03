@@ -26,7 +26,7 @@ export const EMPTY_FEED_MESSAGE =
   "The Bordfeed feed came back empty, so the board kept its current jobs.";
 
 export const MASS_REMOVAL_MESSAGE =
-  "Bordfeed reported most of the checked jobs as gone, so the board kept them published. If the feed really changed, reconnect it in the Bordfeed Connection settings.";
+  "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now. If a sync at least 12 hours later sees the same, it unpublishes them.";
 
 export class SyncGuardError extends Error {
   constructor(message = EMPTY_FEED_MESSAGE) {
