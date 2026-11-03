@@ -1,6 +1,6 @@
 import { THEME_COLOR_KEYS, type ThemeColorKey } from "./tokens";
 
-const HEX_COLOR = /^#([0-9a-f]{6})$/i;
+const HEX_COLOR = /^#([0-9a-f]{6})$/iu;
 const SRGB_BREAKPOINT = 0.039_28;
 const SRGB_OFFSET = 0.055;
 const SRGB_SCALE = 1.055;

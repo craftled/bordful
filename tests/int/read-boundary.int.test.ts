@@ -20,14 +20,14 @@ import type { Job, User } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
 import { loadBoardFixture } from "../fixtures/load";
 
-const INSTALL_ID = /^[a-f0-9]{64}$/;
+const INSTALL_ID = /^[a-f0-9]{64}$/u;
 
 const databaseUrl = process.env.DATABASE_URL_TEST;
 if (!databaseUrl) {
   throw new Error("DATABASE_URL_TEST is required for test:int");
 }
 
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
 if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
   throw new Error(
     `DATABASE_URL_TEST database must end with _int or _test (${databaseName})`

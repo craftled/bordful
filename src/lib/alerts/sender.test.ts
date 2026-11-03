@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "vitest";
 
 import { resendSender } from "./sender";
 
-const MISSING_API_KEY = /Missing API key/;
+const MISSING_API_KEY = /Missing API key/u;
 
 const previousKey = process.env.RESEND_API_KEY;
 

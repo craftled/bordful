@@ -71,7 +71,7 @@ const startSchema = z.strictObject({
   workspace: z.string().trim().min(1).max(100).optional(),
 });
 
-const codeSchema = z.string().regex(/^\d{6}$/);
+const codeSchema = z.string().regex(/^\d{6}$/u);
 const keySchema = z.string().trim().min(10).max(200);
 
 function clock(deps?: ConnectDeps): () => Date {

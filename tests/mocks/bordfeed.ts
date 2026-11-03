@@ -39,11 +39,11 @@ const PREVIEW_PARAMS = new Set([
   "limit",
   "workplace_type",
 ]);
-const ISO2 = /^[A-Z]{2}$/;
-const DIGITS = /^\d+$/;
-const PREVIEW_PATH = /^\/api\/v1\/templates\/([^/]+)\/preview$/;
-const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/;
-const JOB_PATH = /^\/api\/v1\/jobs\/([^/]+)$/;
+const ISO2 = /^[A-Z]{2}$/u;
+const DIGITS = /^\d+$/u;
+const PREVIEW_PATH = /^\/api\/v1\/templates\/([^/]+)\/preview$/u;
+const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/u;
+const JOB_PATH = /^\/api\/v1\/jobs\/([^/]+)$/u;
 
 const WORKPLACES = new Set(["Remote", "Hybrid", "On-site"]);
 // Default page when no limit is sent. Live caps limit at 100.
@@ -51,7 +51,7 @@ const FEED_PAGE = 10;
 const FEED_LIMIT_MAX = 100;
 const FEED_TOTAL = 25;
 const FEED_BASE_UPDATED_AT = Date.parse("2026-01-15T12:00:00.000Z");
-const CURSOR = /^c(\d+)$/;
+const CURSOR = /^c(\d+)$/u;
 const PREVIEW_TOTAL = 20;
 const STARTING_CREDITS = 2000;
 const CODE_TTL_SECONDS = 600;

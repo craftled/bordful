@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 
 import type { Page } from "@playwright/test";
 
-const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
-const NONCE_VALUE = /(?:^|\s)nonce\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i;
-const POLICY_NONCE = /'nonce-([^']+)'/;
+const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/giu;
+const NONCE_VALUE = /(?:^|\s)nonce\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/iu;
+const POLICY_NONCE = /'nonce-([^']+)'/u;
 
 export interface HtmlScript {
   attrs: string;
@@ -12,7 +12,7 @@ export interface HtmlScript {
 }
 
 export function readScripts(html: string): HtmlScript[] {
-  const pattern = new RegExp(SCRIPT_TAG.source, "gi");
+  const pattern = new RegExp(SCRIPT_TAG.source, "giu");
   const scripts: HtmlScript[] = [];
   for (const match of html.matchAll(pattern)) {
     scripts.push({ attrs: match[1] ?? "", body: match[2] ?? "" });

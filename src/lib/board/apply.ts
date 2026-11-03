@@ -1,4 +1,4 @@
-const UNSAFE_EMAIL_RE = /[\s"<>]/;
+const UNSAFE_EMAIL_RE = /[\s"<>]/u;
 
 export function httpUrl(value: string): string | null {
   try {

@@ -7,8 +7,8 @@ import {
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
 
-const PAGE_RE = /^-?\d+$/;
-const PER_PAGE_RE = /^\d+$/;
+const PAGE_RE = /^-?\d+$/u;
+const PER_PAGE_RE = /^\d+$/u;
 
 export const PER_PAGE_OPTIONS = [10, 20, 50, 100] as const;
 

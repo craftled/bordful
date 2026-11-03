@@ -60,7 +60,7 @@ const COLOR_CSS: Record<ThemeColorKey, string> = {
   ring: "--ring",
 };
 
-const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const HEX_COLOR = /^#[0-9a-f]{6}$/iu;
 
 function record(value: unknown): Record<string, unknown> {
   if (value !== null && typeof value === "object") {

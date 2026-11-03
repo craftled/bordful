@@ -29,7 +29,7 @@ const NETWORK_RETRY_MS = 1000;
 // One slow request must not eat the cron's 300 s budget.
 const REQUEST_TIMEOUT_MS = 30_000;
 const FEED_ID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 export interface BordfeedClient {
   checkJob: (jobId: string) => Promise<JobCheck>;

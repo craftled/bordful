@@ -22,9 +22,9 @@ import {
   slugify,
 } from "./map-company";
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const CURRENCY = /^[A-Z]{3}$/;
-const COUNTRY = /^[A-Z]{2}$/;
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const CURRENCY = /^[A-Z]{3}$/u;
+const COUNTRY = /^[A-Z]{2}$/u;
 
 const EMPLOYMENT: Record<string, JobEmploymentType> = {
   Contract: "contract",

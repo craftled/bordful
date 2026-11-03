@@ -11,7 +11,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL_TEST is required for test:int");
 }
 
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
 if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
   throw new Error(
     `DATABASE_URL_TEST database must end with _int or _test (${databaseName})`
@@ -43,7 +43,7 @@ const { default: config } = await import("@payload-config");
 const payload = await getPayload({ config });
 
 const INBOX_MESSAGE = "Check your inbox to confirm your job alerts.";
-const CONFIRM_TOKEN = /[?&]token=([A-Za-z0-9_-]+)/;
+const CONFIRM_TOKEN = /[?&]token=([A-Za-z0-9_-]+)/u;
 
 interface CapturedEmail {
   idempotencyKey: string;

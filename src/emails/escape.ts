@@ -8,5 +8,5 @@ export function escapeHtml(value: string): string {
 }
 
 export function headerSafe(value: string): string {
-  return value.replaceAll(/[\r\n]+/g, " ").trim();
+  return value.replaceAll(/[\r\n]+/gu, " ").trim();
 }

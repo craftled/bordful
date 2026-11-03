@@ -3,10 +3,10 @@ import type {
   TextFieldSingleValidation,
 } from "payload";
 
-const ISO2 = /^[A-Z]{2}$/;
-const ISO4217 = /^[A-Z]{3}$/;
-const HOSTNAME = /^[a-z0-9.-]+\.[a-z]{2,}$/;
-const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const ISO2 = /^[A-Z]{2}$/u;
+const ISO4217 = /^[A-Z]{3}$/u;
+const HOSTNAME = /^[a-z0-9.-]+\.[a-z]{2,}$/u;
+const HEX_COLOR = /^#[0-9a-f]{6}$/iu;
 
 function isBlank(
   value: string | null | undefined

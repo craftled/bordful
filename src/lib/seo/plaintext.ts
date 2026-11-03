@@ -1,6 +1,6 @@
 import { convertLexicalToPlaintext } from "@payloadcms/richtext-lexical/plaintext";
 
-const WHITESPACE = /\s+/g;
+const WHITESPACE = /\s+/gu;
 const FEED_DESCRIPTION_LIMIT = 500;
 
 function isLexicalState(

@@ -91,7 +91,7 @@ function clockOf(deps?: SyncDeps): () => Date {
   return deps?.now ?? (() => new Date());
 }
 
-const NUMERIC_ID = /^\d+$/;
+const NUMERIC_ID = /^\d+$/u;
 
 function docId(id: string): number | string {
   return NUMERIC_ID.test(id) ? Number(id) : id;

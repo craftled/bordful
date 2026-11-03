@@ -8,7 +8,7 @@ import {
   sha256Base64,
 } from "./support/html";
 
-const ADMIN_HOME = /\/admin\/?$/;
+const ADMIN_HOME = /\/admin\/?$/u;
 
 test("an admin can register and sign in without CSP violations", async ({
   page,

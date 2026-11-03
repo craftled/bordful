@@ -48,7 +48,10 @@ test.describe("E10 marketing-flag", { tag: ["@E10"] }, () => {
     await expect(page.getByTestId("marketing-home")).toBeVisible();
     await expect(page.getByTestId("marketing-deploy-button")).toHaveAttribute(
       "href",
-      new RegExp(`^${DEPLOY_PREFIX.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&")}`)
+      new RegExp(
+        `^${DEPLOY_PREFIX.replaceAll(/[.*+?^${}()|[\]\\]/gu, "\\$&")}`,
+        "u"
+      )
     );
     await page.goto(new URL("/jobs", marketing).href);
     await expect(page.getByTestId("job-list")).toBeVisible();

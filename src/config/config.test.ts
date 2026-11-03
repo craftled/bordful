@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 
-const HTTP_BASE_URL = /Invalid bordful.config.ts: bordfeed\.baseUrl:/;
-const STEP_CRON = /Invalid bordful.config.ts: bordfeed\.syncCron:/;
+const HTTP_BASE_URL = /Invalid bordful.config.ts: bordfeed\.baseUrl:/u;
+const STEP_CRON = /Invalid bordful.config.ts: bordfeed\.syncCron:/u;
 
 import { defineBordfulConfig } from "./define-config";
 import { bordfulConfig } from "./index";

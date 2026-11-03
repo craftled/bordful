@@ -2,8 +2,8 @@ import { z } from "zod";
 
 import { isValidAgentName, isValidBoardName } from "./signup-names";
 
-export const UTM_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
-export const INSTALL_ID_PATTERN = /^[a-f0-9]{16,64}$/;
+export const UTM_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/u;
+export const INSTALL_ID_PATTERN = /^[a-f0-9]{16,64}$/u;
 
 const optionalUtm = z.string().regex(UTM_PATTERN).optional();
 const optionalName = z.string().min(1).max(100).optional();
@@ -22,7 +22,7 @@ export const registerRequestSchema = z.strictObject({
 });
 
 export const verifyRequestSchema = z.strictObject({
-  code: z.string().regex(/^\d{6}$/),
+  code: z.string().regex(/^\d{6}$/u),
   registration_id: z.uuid(),
   workspace: optionalName,
 });
