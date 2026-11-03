@@ -4,7 +4,7 @@
 
 There is no in-place upgrade. 1.0 is a new app: Payload 4 and Postgres, not Airtable.
 
-Stay on the [legacy-airtable branch](https://github.com/craftled/bordful/tree/legacy-airtable), or deploy 1.0 fresh and re-enter jobs. The Deploy button in the [README](README.md) starts a new project. It does not attach to an Airtable base.
+Stay on the [airtable branch](https://github.com/craftled/bordful/tree/airtable), or deploy 1.0 fresh and re-enter jobs. The Deploy button in the [README](README.md) starts a new project. It does not attach to an Airtable base.
 
 ## Within 1.x
 
@@ -63,7 +63,7 @@ bun install
 bun run check
 ```
 
-Releases ship on `main`. The `v1` branch was the 1.0 beta line and merged into `main` with a merge commit, so its commits are on `main` and the base search above also finds a beta-era Deploy button project.
+Releases ship on `main`. The pre-release 1.0 commits are on `main` too, so the base search above also finds a Deploy button project created before 1.0.0.
 
 If you have not deployed yet and you plan to pull upgrades, fork `craftled/bordful` and import that fork in Vercel. A fork shares history, so the first merge does not need the base step above.
 

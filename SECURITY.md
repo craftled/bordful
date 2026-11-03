@@ -4,8 +4,8 @@
 
 | Version | Supported |
 | --- | --- |
-| 1.0.x beta | Supported |
-| 0.1.x (legacy-airtable) | Critical fixes, best effort |
+| 1.0.x | Supported |
+| 0.1.x (airtable branch) | Critical fixes, best effort |
 
 ## Reporting a Vulnerability
 

@@ -8,9 +8,9 @@ import {
 } from "./client-header";
 
 test("the client header names this bordful version", () => {
-  expect(bordfeedClientHeaderValue()).toBe("bordful/1.0.0-beta.2");
+  expect(bordfeedClientHeaderValue()).toBe("bordful/1.0.0");
   expect(bordfeedClientHeaders(defineBordfulConfig({}))).toEqual({
-    "X-Bordfeed-Client": "bordful/1.0.0-beta.2",
+    "X-Bordfeed-Client": "bordful/1.0.0",
   });
   expect(
     bordfeedClientHeaders(
