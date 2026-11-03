@@ -94,7 +94,7 @@ export function JobApplyLink({
 }
 
 const SHARE_BUTTON =
-  "bg-card ring-line-strong hover:bg-selected inline-flex h-7 shrink-0 items-center rounded-md px-2.5 text-[13px] leading-[18px] font-medium ring-1 ring-inset";
+  "bg-card ring-line-strong hover:bg-selected inline-flex h-7 shrink-0 items-center rounded-lg px-2.5 text-[13px] leading-[18px] font-medium ring-1 ring-inset";
 
 export function JobShareCard({ title, url }: { title: string; url: string }) {
   const [copied, setCopied] = useState(false);

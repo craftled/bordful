@@ -138,7 +138,7 @@ function RemoveButton({
   const onClick = useCallback(() => onRemove(slug), [onRemove, slug]);
   return (
     <button
-      className="text-subtle hover:text-foreground hover:bg-tag flex size-8 items-center justify-center rounded-md transition-colors"
+      className="text-subtle hover:text-foreground hover:bg-tag flex size-8 items-center justify-center rounded-lg transition-colors"
       data-testid="saved-remove"
       onClick={onClick}
       type="button"
@@ -185,7 +185,7 @@ function Tabs({
     [onChange]
   );
   return (
-    <fieldset className="md:bg-tag m-0 flex min-w-0 gap-1.5 self-start border-0 p-0 md:gap-0.5 md:rounded-md md:p-0.5">
+    <fieldset className="md:bg-tag m-0 flex min-w-0 gap-1.5 self-start border-0 p-0 md:gap-0.5 md:rounded-lg md:p-0.5">
       <legend className="sr-only">Filter saved jobs</legend>
       {tabs.map((value) => {
         const active = value === tab;
@@ -231,7 +231,7 @@ function AlertCard() {
         New jobs from this board, sent to you by email.
       </p>
       <Link
-        className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 w-fit items-center rounded-md px-3.5 text-[13px] leading-4 font-medium md:h-8"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 w-fit items-center rounded-lg px-3.5 text-[13px] leading-4 font-medium md:h-8"
         href="/alerts"
       >
         Create alert
@@ -301,7 +301,7 @@ export function SavedJobsView({
   const clearButton =
     hydrated && closed.length > 0 ? (
       <button
-        className="bg-card ring-line-strong text-foreground hover:bg-surface-sub h-[30px] shrink-0 rounded-full px-3 text-[13px] leading-4 font-medium ring-1 transition-colors md:h-[34px] md:rounded-md md:px-3.5"
+        className="bg-card ring-line-strong text-foreground hover:bg-surface-sub h-[30px] shrink-0 rounded-full px-3 text-[13px] leading-4 font-medium ring-1 transition-colors md:h-[34px] md:rounded-lg md:px-3.5"
         data-testid="saved-clear-closed"
         onClick={clearClosed}
         type="button"

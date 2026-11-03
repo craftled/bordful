@@ -81,7 +81,7 @@ export function ExampleEmail({
   return (
     <section
       aria-labelledby="alerts-example-title"
-      className="bg-card border-line flex w-full flex-col gap-3 rounded-[14px] border p-[18px] md:gap-[14px] md:p-5"
+      className="bg-card ring-line flex w-full flex-col gap-3 rounded-[14px] p-[18px] ring-1 md:gap-[14px] md:p-5"
       data-testid="alerts-example"
     >
       <p className="text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase">

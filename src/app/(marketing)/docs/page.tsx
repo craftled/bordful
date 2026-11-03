@@ -43,14 +43,14 @@ export default function DocsHomePage() {
       editHref={`${GITHUB_URL}/edit/main/src/app/(marketing)/docs/page.tsx`}
       entries={entries}
     >
-      <div className="flex flex-col gap-3">
-        <p className="text-foreground text-[13px] leading-[19px] font-medium">
+      <div className="flex flex-col gap-6 md:gap-3">
+        <p className="text-foreground text-[13px] leading-4 font-medium md:leading-[19px]">
           Docs
         </p>
         <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.03em] md:text-[34px] md:leading-10">
           Documentation
         </h1>
-        <p className="text-muted-foreground text-[16px] leading-[25px]">
+        <p className="text-muted-foreground text-[16px] leading-6 md:leading-[25px]">
           Everything you need to deploy a Bordful board, connect Bordfeed, and
           make it yours.
         </p>

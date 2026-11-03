@@ -77,12 +77,13 @@ const PILL =
   "inline-flex h-[30px] shrink-0 items-center rounded-full px-3 text-[13px] leading-[19px] font-medium transition-colors";
 
 // The job rows (JobRow's archive variant) sit inside one bordered card with
-// hairline dividers.
+// hairline dividers. The divider sits on the row's article (border-box), so a
+// 72px desktop row keeps its height with the hairline inside, as in Paper.
 const LIST_CARD = cn(
   CARD,
   "overflow-clip",
   "[&_[data-testid=job-list]]:gap-0",
-  "[&_[data-testid=job-row]:not(:last-child)]:border-line [&_[data-testid=job-row]:not(:last-child)]:border-b"
+  "[&_[data-testid=job-row]:not(:last-child)>article]:border-line [&_[data-testid=job-row]:not(:last-child)>article]:border-b"
 );
 
 // Levels and seniorities share names, so a level archive can prefill the
@@ -574,8 +575,8 @@ export async function TaxonomyArchive({
           </p>
         ) : null}
       </div>
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_324px] lg:gap-8">
-        <div className="flex min-w-0 flex-col gap-4">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_324px] lg:gap-8">
+        <div className="flex min-w-0 flex-col gap-5 lg:gap-4">
           <FilterPills
             cards={archiveCards}
             kind={kind}
@@ -623,7 +624,7 @@ export async function TaxonomyArchive({
         </div>
         <aside
           aria-label={`About ${title.toLowerCase()}`}
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-5 lg:gap-4"
         >
           {alerts ? (
             <AlertCard

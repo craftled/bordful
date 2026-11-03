@@ -35,14 +35,14 @@ function PhoneCta() {
         Deploy free. Change everything after.
       </p>
       <div className="flex flex-col gap-2">
-        <Button asChild className="h-11 px-3.5 text-[15px]">
+        <Button asChild className="h-11 px-3.5 text-[15px] leading-[18px]">
           <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
             Clone now
           </a>
         </Button>
         <Button
           asChild
-          className="h-11 px-3.5 text-[15px] shadow-xs"
+          className="h-11 px-3.5 text-[15px] leading-[18px] shadow-xs"
           variant="outline"
         >
           <a href="/jobs">

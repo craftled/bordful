@@ -42,7 +42,7 @@ function SimilarJob({ job, now }: { job: JobListItem; now: number }) {
     <li className="has-[:focus-visible]:ring-ring sm:bg-card sm:ring-line hover:bg-selected relative flex gap-3 p-3.5 transition-colors has-[:focus-visible]:ring-2 sm:flex-col sm:rounded-[14px] sm:p-[18px] sm:ring-1 sm:ring-inset">
       <span
         aria-hidden="true"
-        className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md text-[13px] font-medium sm:size-8"
+        className="bg-logo-tile text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-lg text-[13px] leading-4 font-semibold sm:size-8"
       >
         {job.companyName.trim().charAt(0).toUpperCase()}
       </span>
