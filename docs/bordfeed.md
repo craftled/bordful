@@ -66,7 +66,7 @@ Register (`POST /api/agent/register`) sends:
 | `template_id` | The connection template id |
 | `workspace` | Only when you picked a workspace |
 
-Every Bordfeed call also sends `X-Bordfeed-Client: bordful/<version>` (this release: `bordful/1.0.0-beta.1`).
+Every Bordfeed call also sends `X-Bordfeed-Client: bordful/<version>` (this release: `bordful/1.0.0-beta.2`).
 
 To turn off the header and `install_id`, set `telemetry.clientHeader` to `false` in `bordful.config.ts`. `ref` and the `utm_*` fields stay.
 

@@ -8,6 +8,12 @@ export interface GithubRelease {
 export const DEFAULT_RELEASES: GithubRelease[] = [
   {
     draft: false,
+    html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.0-beta.3",
+    prerelease: true,
+    tag_name: "v1.0.0-beta.3",
+  },
+  {
+    draft: false,
     html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.0-beta.2",
     prerelease: true,
     tag_name: "v1.0.0-beta.2",
