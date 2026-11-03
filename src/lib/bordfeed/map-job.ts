@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { bulletLinesToLists } from "@/lib/board/bullet-lists";
 
 import {
   CAREER_LEVELS,
@@ -190,9 +191,9 @@ export function mapBordfeedJob(
   const html = job.description_html;
   const missingHtml = html === null || html === undefined;
   const source = missingHtml ? (job.description ?? "") : html;
-  const description = missingHtml
-    ? textToLexical(job.description ?? "")
-    : htmlToLexical(html);
+  const description = bulletLinesToLists(
+    missingHtml ? textToLexical(job.description ?? "") : htmlToLexical(html)
+  );
   const levels = careerLevels(job.career_level);
   const [firstLevel] = levels;
 

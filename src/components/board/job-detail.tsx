@@ -13,6 +13,7 @@ import { RelativeTime } from "@/components/board/relative-time";
 import { SimilarJobs } from "@/components/board/similar-jobs";
 import { StickyApply } from "@/components/board/sticky-apply";
 import { httpUrl, jobApplyHref } from "@/lib/board/apply";
+import { bulletLinesToLists } from "@/lib/board/bullet-lists";
 import { formatRelativePosted } from "@/lib/board/format";
 import { buildCompanyPath } from "@/lib/board/paths";
 import { editorState } from "@/lib/board/plaintext";
@@ -373,7 +374,8 @@ export function JobPosting({
   similarJobs: readonly JobListItem[];
 }) {
   const applyHref = jobApplyHref(job);
-  const description = editorState(job.description);
+  // Rows synced before list detection still render dash lines as lists.
+  const description = bulletLinesToLists(editorState(job.description));
   const website = httpUrl(job.company?.website?.trim() ?? "");
   const companyHref = job.companySlug
     ? buildCompanyPath(job.companySlug)
