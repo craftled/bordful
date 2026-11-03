@@ -22,11 +22,15 @@ export class BordfeedApiError extends Error {
   }
 }
 
+export const EMPTY_FEED_MESSAGE =
+  "The Bordfeed feed came back empty, so the board kept its current jobs.";
+
+export const MASS_REMOVAL_MESSAGE =
+  "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now. If a sync at least 12 hours later sees the same, it unpublishes them.";
+
 export class SyncGuardError extends Error {
-  constructor() {
-    super(
-      "The Bordfeed feed came back empty, so the board kept its current jobs."
-    );
+  constructor(message = EMPTY_FEED_MESSAGE) {
+    super(message);
     this.name = "SyncGuardError";
   }
 }
@@ -49,7 +53,7 @@ const MESSAGES = {
   network: "Could not reach Bordfeed.",
   not_found: "Bordfeed could not find this template or feed.",
   payment_required:
-    "Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
+    "This Bordfeed workspace does not have enough credits for this sync. Each job a sync fetches for the first time uses one credit. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
   rate_limited: "Bordfeed is rate limiting this board. Try again later.",
   unknown: "The Bordfeed request failed.",
   workspace_required: "Choose which Bordfeed workspace to connect.",
@@ -106,12 +110,7 @@ export function toSafeError(error: unknown, now = new Date()): SafeError {
   const at = now.toISOString();
 
   if (error instanceof SyncGuardError) {
-    return {
-      at,
-      code: "invalid_response",
-      message:
-        "The Bordfeed feed came back empty, so the board kept its current jobs.",
-    };
+    return { at, code: "invalid_response", message: error.message };
   }
 
   if (error instanceof BordfeedApiError) {

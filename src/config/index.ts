@@ -4,4 +4,6 @@ export {
   type BordfulConfig,
   type BordfulConfigInput,
   defineBordfulConfig,
+  JOBS_PER_DAY,
+  JOBS_PER_SYNC,
 } from "./define-config";

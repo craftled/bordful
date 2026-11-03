@@ -6,7 +6,7 @@ import type {
 } from "payload";
 
 import { anyone, denyAll, isAdmin, isAdminField } from "@/access/roles";
-import { bordfulConfig } from "@/config";
+import { bordfulConfig, JOBS_PER_DAY, JOBS_PER_SYNC } from "@/config";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { revalidateReadTags } from "@/lib/read/revalidate";
 
@@ -131,6 +131,26 @@ export const BordfeedConnection: GlobalConfig = {
       admin: { readOnly: true },
       name: "lastError",
       type: "json",
+    },
+    {
+      access: { read: isAdminField },
+      admin: {
+        description: `Most jobs one sync fetches (20 to 100), including the first sync. Bordfeed bills one credit per job the workspace has not received before. Leave empty to use bordful.config.ts (${bordfulConfig.bordfeed.sync.jobsPerSync}).`,
+      },
+      max: JOBS_PER_SYNC.max,
+      min: JOBS_PER_SYNC.min,
+      name: "jobsPerSync",
+      type: "number",
+    },
+    {
+      access: { read: isAdminField },
+      admin: {
+        description: `Most jobs fetched per UTC day across every sync (20 to 5000). Syncs fetch nothing once it is reached. Leave empty to use bordful.config.ts (${bordfulConfig.bordfeed.sync.jobsPerDay}).`,
+      },
+      max: JOBS_PER_DAY.max,
+      min: JOBS_PER_DAY.min,
+      name: "jobsPerDay",
+      type: "number",
     },
     {
       defaultValue: true,

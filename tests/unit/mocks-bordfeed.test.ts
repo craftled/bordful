@@ -166,24 +166,28 @@ test("feed pages are 10, 10 and 5 with one 429 before page 2", async () => {
   expect(first.data).toHaveLength(10);
   expect(first.data[0]?.title).toBe("Mock Feed Engineer 01");
   expect(first.data[0]?.description_html).toBeNull();
-  expect(first.pagination.next_cursor).toBe("c2");
+  expect(first.pagination.next_cursor).toBe("c10");
 
-  const delayed = await call(mock, `${path}?cursor=c2`, { headers });
+  const delayed = await call(mock, `${path}?cursor=c10`, { headers });
   expect(delayed.status).toBe(429);
   expect(delayed.headers.get("retry-after")).toBe("1");
 
-  const page2 = await call(mock, `${path}?cursor=c2`, { headers });
+  const page2 = await call(mock, `${path}?cursor=c10`, { headers });
   expect(page2.status).toBe(200);
   const second = (await page2.json()) as {
     data: unknown[];
     pagination: { next_cursor: string | null };
   };
   expect(second.data).toHaveLength(10);
-  expect(second.pagination.next_cursor).toBe("c3");
+  expect(second.pagination.next_cursor).toBe("c20");
 
-  const page3 = await call(mock, `${path}?cursor=c3&include=description_html`, {
-    headers,
-  });
+  const page3 = await call(
+    mock,
+    `${path}?cursor=c20&include=description_html`,
+    {
+      headers,
+    }
+  );
   expect(page3.status).toBe(200);
   const third = (await page3.json()) as {
     data: { description_html: string }[];
@@ -192,6 +196,61 @@ test("feed pages are 10, 10 and 5 with one 429 before page 2", async () => {
   expect(third.data).toHaveLength(5);
   expect(third.pagination.next_cursor).toBeNull();
   expect(third.data[0]?.description_html).toContain("Mock Feed Engineer");
+});
+
+test("feed reads bill new jobs once and honor limit, since and status", async () => {
+  let clock = Date.parse("2026-11-03T00:00:00.000Z");
+  const mock = createBordfeedMock({ feedTotal: 300, now: () => clock });
+  const headers = { authorization: `Bearer ${MOCK_API_KEY}` };
+  const path = `/api/v1/feeds/${MOCK_FEED_ID}/jobs`;
+  expect(mock.balance()).toBe(2000);
+
+  const big = await call(mock, `${path}?limit=50`, { headers });
+  const bigBody = (await big.json()) as {
+    data: unknown[];
+    pagination: { has_more: boolean };
+  };
+  expect(bigBody.data).toHaveLength(50);
+  expect(bigBody.pagination.has_more).toBe(true);
+  expect(mock.balance()).toBe(1950);
+
+  const tooBig = await call(mock, `${path}?limit=101`, { headers });
+  expect(tooBig.status).toBe(400);
+
+  const since = new Date(clock).toISOString();
+  clock += 60_000;
+  mock.touchFeedJobs([3, 4]);
+  mock.closeFeedJobs([7]);
+  const delta = await call(
+    mock,
+    `${path}?limit=50&since=${encodeURIComponent(since)}&since_field=updated`,
+    { headers }
+  );
+  const deltaBody = (await delta.json()) as { data: { title: string }[] };
+  expect(deltaBody.data.map((job) => job.title)).toEqual([
+    "Mock Feed Engineer 03",
+    "Mock Feed Engineer 04",
+  ]);
+
+  const closed = await call(
+    mock,
+    `${path}?limit=50&since=${encodeURIComponent(since)}&since_field=updated&status=closed`,
+    { headers }
+  );
+  const closedBody = (await closed.json()) as { data: { title: string }[] };
+  expect(closedBody.data.map((job) => job.title)).toEqual([
+    "Mock Feed Engineer 07",
+  ]);
+  // Jobs 3, 4 and 7 came in the first page, so sending them again is free.
+  expect(mock.state.servedJobs).toBe(53);
+  expect(mock.state.billedJobs).toBe(50);
+  expect(mock.balance()).toBe(1950);
+
+  const next = await call(mock, `${path}?limit=10&cursor=c50`, { headers });
+  expect(next.status).toBe(429);
+  const fresh = await call(mock, `${path}?limit=10&cursor=c50`, { headers });
+  expect(((await fresh.json()) as { data: unknown[] }).data).toHaveLength(10);
+  expect(mock.balance()).toBe(1940);
 });
 
 function createFeed(
