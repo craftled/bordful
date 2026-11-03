@@ -31,7 +31,7 @@ interface Plan {
   price: string;
 }
 
-const SETUP_URL = "https://buy.stripe.com/bIY5mJdyAdYc1pKdRe";
+const SETUP_URL = "https://buy.stripe.com/14A5kE3sN6D34HL6X2dnW0r";
 
 const plans: readonly Plan[] = [
   {
