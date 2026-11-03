@@ -84,7 +84,7 @@ const plans: readonly Plan[] = [
     },
     href: SETUP_URL,
     name: "Custom Setup",
-    price: "$499",
+    price: "$999",
   },
 ];
 
