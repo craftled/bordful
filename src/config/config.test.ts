@@ -1,10 +1,9 @@
 import { expect, test } from "vitest";
+import { defineBordfulConfig } from "./define-config";
+import { bordfulConfig } from "./index";
 
 const HTTP_BASE_URL = /Invalid bordful.config.ts: bordfeed\.baseUrl:/u;
 const STEP_CRON = /Invalid bordful.config.ts: bordfeed\.syncCron:/u;
-
-import { defineBordfulConfig } from "./define-config";
-import { bordfulConfig } from "./index";
 
 const defaults = {
   alerts: { provider: "resend" },

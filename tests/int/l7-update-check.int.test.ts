@@ -1,13 +1,12 @@
 import { existsSync } from "node:fs";
 
 import { afterAll, beforeAll, expect, test } from "vitest";
+import { BORDFUL_VERSION } from "@/lib/bordfeed/client-header";
+import { checkForUpdate } from "@/lib/update-check/check";
 
 if (existsSync(".env")) {
   process.loadEnvFile(".env");
 }
-
-import { BORDFUL_VERSION } from "@/lib/bordfeed/client-header";
-import { checkForUpdate } from "@/lib/update-check/check";
 
 const databaseUrl = process.env.DATABASE_URL_TEST;
 if (!databaseUrl) {

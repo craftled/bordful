@@ -1,15 +1,14 @@
 import { existsSync } from "node:fs";
 
 import { afterAll, beforeAll, expect, test } from "vitest";
-
-if (existsSync(".env")) {
-  process.loadEnvFile(".env");
-}
-
 import { queryFeedJobs, querySitemapJobs } from "@/lib/seo/queries";
 import type { Job } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
 import { loadBoardFixture } from "../fixtures/load";
+
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
 
 const databaseUrl = process.env.DATABASE_URL_TEST;
 if (!databaseUrl) {

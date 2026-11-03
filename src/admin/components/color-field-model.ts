@@ -32,10 +32,7 @@ export function colorFieldLabel(key: string, label: unknown): string {
     return label;
   }
 
-  const spaced = key
-    .replaceAll(/([A-Z])/gu, " $1")
-    .trim()
-    .toLowerCase();
+  const spaced = key.replaceAll(/[A-Z]/gu, " $&").trim().toLowerCase();
   if (spaced.length === 0) {
     return "Color";
   }

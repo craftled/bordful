@@ -1,18 +1,15 @@
 import { existsSync } from "node:fs";
-
-import { beforeEach, describe, expect, test } from "vitest";
-
-if (existsSync(".env")) {
-  process.loadEnvFile(".env");
-}
-
 import { sql } from "@payloadcms/db-postgres";
-
+import { beforeEach, describe, expect, test } from "vitest";
 import {
   createBordfeedMock,
   MOCK_API_KEY,
   MOCK_FEED_ID,
 } from "../mocks/bordfeed";
+
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
 
 const MOCK_ORIGIN = "http://bordfeed.credit.test";
 process.env.BORDFEED_BASE_URL = MOCK_ORIGIN;

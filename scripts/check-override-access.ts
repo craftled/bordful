@@ -9,7 +9,7 @@ export interface PayloadCallViolation {
 }
 
 const CALL_PATTERN =
-  /\b(?:payload|req\.payload)\.(findByID|findVersionByID|findGlobalVersions|findVersions|findGlobal|find|count|create|updateGlobal|update|delete|duplicate|jobs\.queue|jobs\.runByID|jobs\.run|jobs\.cancel)\s*\(/yu;
+  /\b(?:payload|req\.payload)\.(?:findByID|findVersionByID|findGlobalVersions|findVersions|findGlobal|find|count|create|updateGlobal|update|delete|duplicate|jobs\.queue|jobs\.runByID|jobs\.run|jobs\.cancel)\s*\(/uy;
 
 const TRAILING_CALL = /\s*\($/u;
 

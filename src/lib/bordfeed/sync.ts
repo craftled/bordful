@@ -1,13 +1,6 @@
+import type { Payload, Where } from "payload";
 import { bordfulConfig } from "@/config";
 import type { Company, Job } from "@/payload-types";
-
-type JobWrite = Omit<
-  Job,
-  "collection" | "createdAt" | "deletedAt" | "id" | "updatedAt"
->;
-
-import type { Payload, Where } from "payload";
-
 import { resolveBordfeedBaseUrl } from "./base-url";
 import { type BordfeedClient, createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
@@ -45,6 +38,11 @@ import {
   type SyncState,
   writeSyncState,
 } from "./sync-budget";
+
+type JobWrite = Omit<
+  Job,
+  "collection" | "createdAt" | "deletedAt" | "id" | "updatedAt"
+>;
 
 export interface SyncDeps {
   client?: BordfeedClient;
