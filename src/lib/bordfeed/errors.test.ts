@@ -108,6 +108,7 @@ test("toSafeError maps each Bordfeed failure to a fixed sentence", () => {
   });
   expect(
     toSafeError(
+      // biome-ignore lint/complexity/noUnnecessaryTemplateExpression: split literal keeps secret scanners from flagging the test key
       new TypeError(`fetch failed for Bearer bf_${"test_key_0001"}`),
       now
     )
@@ -142,6 +143,7 @@ test("toSafeError maps each Bordfeed failure to a fixed sentence", () => {
     message: "The Bordfeed request failed.",
   });
 
+  // biome-ignore lint/complexity/noUnnecessaryTemplateExpression: split literal keeps secret scanners from flagging the test key
   const secret = `bf_${"test_key_0001"}`;
   const thrown = new TypeError(`fetch failed for Bearer ${secret}`);
   const safe = toSafeError(thrown, now);

@@ -350,7 +350,7 @@ export async function runAlertDigests(
     }
 
     lastId = result.docs.reduce(
-      (highest, doc) => (doc.id > highest ? doc.id : highest),
+      (highest, doc) => Math.max(doc.id, highest),
       lastId
     );
     await mapWithConcurrency(result.docs, SEND_CONCURRENCY, async (doc) => {
