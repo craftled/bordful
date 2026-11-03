@@ -44,6 +44,7 @@ import {
   REGISTRATION_EXPIRED_MESSAGE,
   RESET_MESSAGE,
   registeredMessage,
+  skippedSyncMessage,
   syncedMessage,
   WORKSPACE_REQUIRED_MESSAGE,
   WRONG_CODE_MESSAGE,
@@ -302,7 +303,11 @@ async function syncFeed(
       now,
     });
     const record = await readConnection(payload);
-    return step(record, connectedMessage(syncedCount(summary)), { summary });
+    const skipped = skippedSyncMessage(summary.fetch);
+    const message = skipped
+      ? `Connected. ${skipped}`
+      : connectedMessage(syncedCount(summary));
+    return step(record, message, { summary });
   } catch (error) {
     const record = await readConnection(payload);
     const safe = toSafeError(error, now());
@@ -668,7 +673,9 @@ export async function syncNow(
       now,
     });
     const record = await readConnection(payload);
-    return step(record, syncedMessage(syncedCount(summary)), { summary });
+    const message =
+      skippedSyncMessage(summary.fetch) ?? syncedMessage(syncedCount(summary));
+    return step(record, message, { summary });
   } catch (error) {
     const record = await readConnection(payload);
     return step(record, toSafeError(error, now()).message);

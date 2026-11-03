@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 
 import { BordfeedApiError, safeMessage } from "./errors";
 import type { BordfeedJob } from "./job-schema";
@@ -22,16 +22,19 @@ import type {
   VerifyResponse,
 } from "./types";
 
-const PAGE_CAP = 200;
 const DEFAULT_MIN_INTERVAL_MS = 500;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const MAX_WAIT_SECONDS = 10;
+const NETWORK_RETRY_MS = 1000;
+// One slow request must not eat the cron's 300 s budget.
+const REQUEST_TIMEOUT_MS = 30_000;
 const FEED_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface BordfeedClient {
+  checkJob: (jobId: string) => Promise<JobCheck>;
   createFeed: (body: CreateFeedRequest) => Promise<{ id: string }>;
-  listFeedJobs: (feedId: string) => AsyncGenerator<BordfeedJob[]>;
+  fetchFeedPage: (feedId: string, query: FeedPageQuery) => Promise<FeedPage>;
   listTemplates: () => Promise<TemplatesResponse>;
   previewTemplate: (
     templateId: string,
@@ -40,6 +43,38 @@ export interface BordfeedClient {
   register: (body: RegisterRequest) => Promise<RegisterResponse>;
   verify: (body: VerifyRequest) => Promise<VerifyResponse>;
 }
+
+// One billed request: Bordfeed charges one credit per job returned, so the
+// caller sets `limit` from its sync budget and never pages on its own.
+export interface FeedPageQuery {
+  cursor?: string | null;
+  limit: number;
+  offset?: number | null;
+  since?: string | null;
+  sinceField?: "first_visible" | "updated";
+  status?: "closed" | "expired";
+}
+
+export interface FeedPage {
+  data: BordfeedJob[];
+  hasMore: boolean;
+  // Date-sorted feeds page by cursor, search feeds by offset.
+  nextCursor: string | null;
+  nextOffset: number | null;
+}
+
+export const FEED_PAGE_MAX = 100;
+
+// GET /api/v1/jobs/{id}: 404 for a job that is no longer active, answered
+// before any charge. An active job the workspace already received is free;
+// `charged` is what Bordfeed billed for this lookup (null when not reported).
+export type JobCheck =
+  | { charged: number | null; status: "active" }
+  | { status: "gone" };
+
+const jobCheckSchema = z.object({
+  jobs_charged: z.number().int().min(0).nullable().optional(),
+});
 
 export interface BordfeedClientOptions {
   apiKey?: string;
@@ -259,7 +294,12 @@ export function createBordfeedClient(
         body: init.body,
         headers: headers(init.body !== undefined),
         method: init.method ?? "GET",
-        signal: options.signal,
+        signal: options.signal
+          ? AbortSignal.any([
+              options.signal,
+              AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            ])
+          : AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch {
       return null;
@@ -282,17 +322,26 @@ export function createBordfeedClient(
 
   async function request(
     target: string,
-    init: { body?: string; method?: string },
+    init: { allowNotFound?: boolean; body?: string; method?: string },
     attempt = 1
   ): Promise<{ body: unknown; status: number }> {
     await pace();
     const response = await call(target, init);
     if (!response) {
+      // A read is safe to repeat, so a dropped connection gets one retry.
+      if (
+        (init.method ?? "GET") === "GET" &&
+        attempt === 1 &&
+        maxAttempts > 1
+      ) {
+        await sleep(NETWORK_RETRY_MS);
+        return request(target, init, attempt + 1);
+      }
       throw apiError({ code: "network", status: 0 });
     }
 
     const body = await readJson(response);
-    if (response.ok) {
+    if (response.ok || (init.allowNotFound && response.status === 404)) {
       return { body, status: response.status };
     }
 
@@ -319,50 +368,50 @@ export function createBordfeedClient(
     return parsed.toString();
   }
 
-  async function* feedPages(
-    feedId: string,
-    cursor: string | null,
-    offset: number | null,
-    page: number
-  ): AsyncGenerator<BordfeedJob[]> {
-    if (page >= PAGE_CAP) {
-      throw invalidResponse();
-    }
-
+  function feedPageSearch(query: FeedPageQuery): string {
     const params = new URLSearchParams();
-    params.set("limit", "100");
+    const limit = Math.min(FEED_PAGE_MAX, Math.max(1, Math.floor(query.limit)));
+    params.set("limit", String(limit));
     params.set("include", "description_html");
-    if (cursor) {
-      params.set("cursor", cursor);
-    } else if (typeof offset === "number") {
-      params.set("offset", String(offset));
+    if (query.since) {
+      params.set("since", query.since);
+      params.set("since_field", query.sinceField ?? "updated");
+    }
+    if (query.status) {
+      params.set("status", query.status);
+    }
+    if (query.cursor) {
+      params.set("cursor", query.cursor);
+    } else if (typeof query.offset === "number" && query.offset > 0) {
+      params.set("offset", String(query.offset));
     }
 
-    const response = await request(
-      endpoint(`/api/v1/feeds/${feedId}/jobs`, params.toString()),
-      {}
-    );
-    const parsed = parseSchema(jobsPageSchema, response.body, response.status);
-    yield parsed.data;
-    if (!parsed.pagination.has_more) {
-      return;
-    }
-
-    const nextCursor = parsed.pagination.next_cursor;
-    if (nextCursor) {
-      yield* feedPages(feedId, nextCursor, null, page + 1);
-      return;
-    }
-
-    const nextOffset = parsed.pagination.next_offset;
-    if (typeof nextOffset !== "number") {
-      throw invalidResponse(response.status);
-    }
-
-    yield* feedPages(feedId, null, nextOffset, page + 1);
+    return params.toString();
   }
 
   return {
+    async checkJob(jobId) {
+      const response = await request(
+        endpoint(`/api/v1/jobs/${encodeURIComponent(jobId)}`),
+        { allowNotFound: true }
+      );
+      if (response.status === 404) {
+        // Only Bordfeed's own not_found means the job is gone. Any other 404,
+        // such as a wrong base URL, must never unpublish jobs.
+        if (readErrorBody(response.body).code === "not_found") {
+          return { status: "gone" };
+        }
+        throw invalidResponse(404);
+      }
+
+      const parsed = parseSchema(
+        jobCheckSchema,
+        response.body,
+        response.status
+      );
+      return { charged: parsed.jobs_charged ?? null, status: "active" };
+    },
+
     async createFeed(body) {
       const response = await request(endpoint("/api/v1/feeds"), {
         body: JSON.stringify(body),
@@ -376,12 +425,29 @@ export function createBordfeedClient(
       return { id: parsed.data.id };
     },
 
-    async *listFeedJobs(feedId) {
+    async fetchFeedPage(feedId, query) {
       if (!FEED_ID.test(feedId)) {
         throw invalidResponse(400);
       }
 
-      yield* feedPages(feedId, null, null, 0);
+      const response = await request(
+        endpoint(`/api/v1/feeds/${feedId}/jobs`, feedPageSearch(query)),
+        {}
+      );
+      const parsed = parseSchema(
+        jobsPageSchema,
+        response.body,
+        response.status
+      );
+      const more = parsed.pagination.has_more;
+      const nextCursor = more ? parsed.pagination.next_cursor : null;
+      const nextOffset = more ? (parsed.pagination.next_offset ?? null) : null;
+      // has_more without a way to continue would end a delta series early.
+      if (more && !(nextCursor || nextOffset)) {
+        throw invalidResponse(response.status);
+      }
+
+      return { data: parsed.data, hasMore: more, nextCursor, nextOffset };
     },
 
     async listTemplates() {

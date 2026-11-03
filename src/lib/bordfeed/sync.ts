@@ -6,14 +6,19 @@ type JobWrite = Omit<
   "collection" | "createdAt" | "deletedAt" | "id" | "updatedAt"
 >;
 
-import type { Payload } from "payload";
+import type { Payload, Where } from "payload";
 
 import { resolveBordfeedBaseUrl } from "./base-url";
 import { type BordfeedClient, createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
 import type { ConnectionRecord } from "./connection-machine";
 import { dispatchConnectionEvent, readConnection } from "./connection-store";
-import { BordfeedApiError, SyncGuardError, toSafeError } from "./errors";
+import {
+  BordfeedApiError,
+  MASS_REMOVAL_MESSAGE,
+  SyncGuardError,
+  toSafeError,
+} from "./errors";
 import type { BordfeedJob } from "./job-schema";
 import { openApiKey } from "./key";
 import { companyKey, type MappedCompany } from "./map-company";
@@ -27,22 +32,57 @@ import {
   type SyncPlan,
 } from "./planner";
 import { previewQuerySchema } from "./preview-query";
+import {
+  acquireSyncLease,
+  afterAdditions,
+  afterFirst,
+  type FetchPlan,
+  planFetch,
+  readSyncBudget,
+  recordSpend,
+  releaseSyncLease,
+  type SeriesPosition,
+  type SyncState,
+  writeSyncState,
+} from "./sync-budget";
 
 export interface SyncDeps {
   client?: BordfeedClient;
+  // Gap between Bordfeed requests. Tests set 0; the default suits live
+  // rate limits.
+  minIntervalMs?: number;
   now?: () => Date;
   signal?: AbortSignal;
 }
 
 export interface SyncSummary {
+  // Board jobs this sync looked up by id to see whether they are still
+  // active. Free: the workspace already received them.
+  checkedJobs: number;
   created: number;
   deletedSamples: number;
   durationMs: number;
+  // first: one capped page. delta: changed jobs only. capped: daily cap
+  // used up. busy: another sync was running. Nothing is fetched for either.
+  fetch: "busy" | "capped" | "delta" | "first" | "sample";
+  // Jobs this sync fetched from the feed. Bordfeed bills at most one credit
+  // each, only for jobs the workspace never received before. Samples are free.
+  fetchedJobs: number;
   mode: "feed" | "sample";
   pages: number;
   skipped: number;
   unpublished: number;
   updated: number;
+}
+
+interface SyncInput {
+  checkedJobs?: number;
+  fetch: SyncSummary["fetch"];
+  fetchedJobs: number;
+  incoming: BordfeedJob[];
+  pages: number;
+  // Bordfeed ids no longer active, to unpublish.
+  removedIds?: ReadonlySet<string>;
 }
 
 type SyncOrigin = "bordfeed" | "bordfeed_sample";
@@ -230,6 +270,7 @@ function clientFor(
     apiKey,
     baseUrl: resolveBordfeedBaseUrl(),
     clientHeaders: bordfeedClientHeaders(bordfulConfig),
+    minIntervalMs: deps?.minIntervalMs,
     signal: deps?.signal,
   });
 }
@@ -667,16 +708,19 @@ async function connectionStillMatches(
 
 function idleSummary(
   mode: "feed" | "sample",
-  pages: number,
+  input: SyncInput,
   started: Date,
   deps: SyncDeps | undefined
 ): SyncSummary {
   return {
+    checkedJobs: input.checkedJobs ?? 0,
     created: 0,
     deletedSamples: 0,
     durationMs: clockOf(deps)().getTime() - started.getTime(),
+    fetch: input.fetch,
+    fetchedJobs: input.fetchedJobs,
     mode,
-    pages,
+    pages: input.pages,
     skipped: 0,
     unpublished: 0,
     updated: 0,
@@ -736,12 +780,13 @@ async function runSync(
   payload: Payload,
   deps: SyncDeps | undefined,
   mode: "feed" | "sample",
-  incomingJobs: BordfeedJob[],
-  pages: number,
+  input: SyncInput,
   origin: SyncOrigin,
   stamp: SyncStamp
 ): Promise<SyncSummary> {
   const started = clockOf(deps)();
+  const incomingJobs = input.incoming;
+  const delta = input.fetch === "delta";
   const jobs = incomingJobs.map((job) => mapBordfeedJob(job, origin));
   const [existingJobs, companies] = await Promise.all([
     loadJobs(payload),
@@ -750,11 +795,13 @@ async function runSync(
 
   // A connect or reset can land while the feed is downloading.
   if (!(await connectionStillMatches(payload, stamp))) {
-    return idleSummary(mode, pages, started, deps);
+    return idleSummary(mode, input, started, deps);
   }
 
+  // A delta sync with nothing new is normal, not an empty feed.
   if (
     (mode === "feed" &&
+      !delta &&
       emptyFeedWouldUnpublish(existingJobs, incomingJobs.length)) ||
     (mode === "sample" &&
       emptySampleWouldDelete(existingJobs, incomingJobs.length))
@@ -764,7 +811,7 @@ async function runSync(
 
   const companyIds = await upsertCompanies(payload, jobs, companies, origin);
   if (!(await connectionStillMatches(payload, stamp))) {
-    return idleSummary(mode, pages, started, deps);
+    return idleSummary(mode, input, started, deps);
   }
 
   const incomingIds = new Set(jobs.map((job) => job.bordfeedJobId));
@@ -774,6 +821,7 @@ async function runSync(
     existing,
     incoming: jobs,
     mode,
+    removedIds: input.removedIds,
     takenSlugs: guardedSlugs(existingJobs, mode, incomingIds),
   });
   await applyPlan(payload, plan, companyIds);
@@ -783,11 +831,14 @@ async function runSync(
     existing.some((row) => row.id === id && row.origin === "bordfeed_sample")
   ).length;
   const summary: SyncSummary = {
+    checkedJobs: input.checkedJobs ?? 0,
     created: plan.create.length,
     deletedSamples,
     durationMs: clockOf(deps)().getTime() - started.getTime(),
+    fetch: input.fetch,
+    fetchedJobs: input.fetchedJobs,
     mode,
-    pages,
+    pages: input.pages,
     skipped: plan.skipped,
     unpublished: plan.unpublish.length,
     updated: plan.update.length,
@@ -836,8 +887,7 @@ export function runSampleSync(
       payload,
       deps,
       "sample",
-      preview.data,
-      1,
+      { fetch: "sample", fetchedJobs: 0, incoming: preview.data, pages: 1 },
       "bordfeed_sample",
       { feedId: record.feedId, mode: "sample" }
     );
@@ -859,18 +909,481 @@ export function runFeedSync(
     }
 
     const client = await clientFor(payload, record, deps, true);
-    const incoming: BordfeedJob[] = [];
-    let pages = 0;
-    for await (const page of client.listFeedJobs(record.feedId)) {
-      pages += 1;
-      incoming.push(...page);
-    }
-
-    return runSync(payload, deps, "feed", incoming, pages, "bordfeed", {
-      feedId: record.feedId,
-      mode: "feed",
-    });
+    return leasedSync(payload, deps, client, record.feedId);
   });
+}
+
+// Nothing was fetched: the daily cap is used up or another sync holds the
+// lease. The connection state and last sync are left as they are.
+function skippedSummary(
+  fetch: "busy" | "capped",
+  deps: SyncDeps | undefined
+): SyncSummary {
+  return idleSummary(
+    "feed",
+    { fetch, fetchedJobs: 0, incoming: [], pages: 0 },
+    clockOf(deps)(),
+    deps
+  );
+}
+
+interface SeriesRead {
+  budget: number;
+  // Set when a request failed after earlier pages landed.
+  error?: unknown;
+  pages: number;
+  position: SeriesPosition | null;
+  state: SyncState;
+  updated: BordfeedJob[];
+}
+
+type SaveState = (state: SyncState) => Promise<void>;
+
+// Offset pages shift when a job leaves a search feed mid-series, so a resumed
+// offset steps back a little. Re-sent jobs are free.
+const OFFSET_OVERLAP = 10;
+
+function requestOffset(offset: number | null, budget: number): number | null {
+  if (offset === null || budget < OFFSET_OVERLAP * 2) {
+    return offset;
+  }
+
+  return Math.max(0, offset - OFFSET_OVERLAP);
+}
+
+// Reads new jobs from `position`. Each request asks for what is left of the
+// budget. It stops when the budget is spent; the returned position is where
+// the next sync resumes (null once the series is read). Usage is saved as
+// soon as Bordfeed answers. A failure after earlier pages keeps those pages
+// and their position.
+async function readSeries(
+  client: BordfeedClient,
+  feedId: string,
+  since: string,
+  position: SeriesPosition,
+  read: SeriesRead,
+  context: TimedContext
+): Promise<SeriesRead> {
+  const late = read.pages > 0 && context.now().getTime() >= context.deadline;
+  if (read.budget <= 0 || late) {
+    return { ...read, position };
+  }
+
+  let page: Awaited<ReturnType<BordfeedClient["fetchFeedPage"]>>;
+  try {
+    page = await client.fetchFeedPage(feedId, {
+      cursor: position.cursor,
+      limit: read.budget,
+      offset: requestOffset(position.offset, read.budget),
+      since,
+      sinceField: "first_visible",
+    });
+  } catch (error) {
+    if (read.pages === 0) {
+      throw error;
+    }
+    return { ...read, error, position };
+  }
+
+  const more = Boolean(page.nextCursor || page.nextOffset);
+  const next: SeriesRead = {
+    ...read,
+    budget: read.budget - page.data.length,
+    pages: read.pages + 1,
+    position: more
+      ? {
+          cursor: page.nextCursor,
+          offset: page.nextCursor ? null : page.nextOffset,
+        }
+      : null,
+    state: recordSpend(read.state, page.data.length, context.startedAt),
+    updated: [...read.updated, ...page.data],
+  };
+  // A failed save keeps the page and its usage, so the final save still
+  // counts what Bordfeed billed.
+  try {
+    await context.save(next.state);
+  } catch (error) {
+    return { ...next, error };
+  }
+
+  if (!next.position) {
+    return next;
+  }
+  return readSeries(client, feedId, since, next.position, next, context);
+}
+
+interface CheckRun {
+  // Credits Bordfeed billed for checks. Normally 0: see checkBoardJobs.
+  charged: number;
+  checkAfter: string | null;
+  checked: number;
+  error?: unknown;
+  removedIds: Set<string>;
+  // Last per-job failure that was skipped past.
+  skipError?: unknown;
+  state: SyncState;
+}
+
+// Published Bordfeed jobs on the board, by Bordfeed id, after `after`.
+async function boardJobIds(
+  payload: Payload,
+  after: string | null,
+  limit: number
+): Promise<string[]> {
+  if (limit <= 0) {
+    return [];
+  }
+
+  const where: Where[] = [
+    { origin: { equals: "bordfeed" } },
+    { _status: { equals: "published" } },
+    { bordfeedJobId: { exists: true } },
+  ];
+  if (after) {
+    where.push({ bordfeedJobId: { greater_than: after } });
+  }
+  const result = await payload.find({
+    collection: "jobs",
+    depth: 0,
+    limit,
+    overrideAccess: true,
+    pagination: false,
+    select: { bordfeedJobId: true },
+    sort: "bordfeedJobId",
+    where: { and: where },
+  });
+  return result.docs.flatMap((doc) =>
+    typeof doc.bordfeedJobId === "string" && doc.bordfeedJobId.length > 0
+      ? [doc.bordfeedJobId]
+      : []
+  );
+}
+
+// The next `count` board jobs after `after`, wrapping to the start once.
+async function nextBoardJobs(
+  payload: Payload,
+  after: string | null,
+  count: number
+): Promise<string[]> {
+  const tail = await boardJobIds(payload, after, count);
+  if (after === null || tail.length >= count) {
+    return tail;
+  }
+
+  const head = await boardJobIds(payload, null, count - tail.length);
+  return [...tail, ...head.filter((id) => id <= after)];
+}
+
+// Work stops at `deadline`, so the whole sync fits in the cron's 300 s.
+interface TimedContext {
+  deadline: number;
+  now: () => Date;
+  save: SaveState;
+  startedAt: Date;
+}
+
+// Checks spend at most this long per sync, and the feed read stops paging
+// at the second mark. The board write gets the rest of the 300 s.
+const CHECK_TIME_MS = 120_000;
+const READ_TIME_MS = 210_000;
+
+// One job whose lookup keeps failing must not stop every later check.
+function skippable(error: unknown): boolean {
+  return (
+    error instanceof BordfeedApiError &&
+    (error.code === "invalid_response" || error.status >= 500)
+  );
+}
+
+async function checkEach(
+  client: BordfeedClient,
+  ids: string[],
+  run: CheckRun,
+  context: TimedContext
+): Promise<CheckRun> {
+  const [id, ...rest] = ids;
+  if (id === undefined || context.now().getTime() >= context.deadline) {
+    return run;
+  }
+
+  let result: Awaited<ReturnType<BordfeedClient["checkJob"]>>;
+  try {
+    result = await client.checkJob(id);
+  } catch (error) {
+    if (skippable(error)) {
+      const skipped = { ...run, checkAfter: id, skipError: error };
+      return checkEach(client, rest, skipped, context);
+    }
+    return { ...run, error };
+  }
+
+  const next: CheckRun = { ...run, checkAfter: id, checked: run.checked + 1 };
+  if (result.status === "gone") {
+    next.removedIds = new Set([...run.removedIds, id]);
+    return checkEach(client, rest, next, context);
+  }
+
+  const charged = result.charged ?? 0;
+  if (charged <= 0) {
+    return checkEach(client, rest, next, context);
+  }
+
+  // A board job this workspace was never billed for, such as one fetched
+  // under an earlier workspace. Count the credit and stop checking, so
+  // checks can never spend more than one credit per sync.
+  next.charged = run.charged + charged;
+  next.state = recordSpend(run.state, charged, context.startedAt);
+  try {
+    await context.save(next.state);
+  } catch (error) {
+    return { ...next, error };
+  }
+  return next;
+}
+
+// A Bordfeed incident shows nearly every checked job gone. Normal churn
+// stays far below 80%: closures per sync match jobs added per sync, at
+// most jobsPerSync (100) against up to 200 checks.
+function looksLikeIncident(run: CheckRun): boolean {
+  const gone = run.removedIds.size;
+  return (
+    (run.checked >= 10 && gone * 5 >= run.checked * 4) ||
+    (run.checked >= 5 && gone === run.checked)
+  );
+}
+
+// Hold removals that look like an incident for one sync at least 12 hours
+// later. If the same slice still looks that way, the jobs really closed:
+// unpublish them and move on, so the guard can never stall the checks.
+export const REMOVAL_HOLD_MS = 12 * 60 * 60 * 1000;
+
+function guardMassRemoval(
+  run: CheckRun,
+  checkAfter: string | null,
+  startedAt: Date
+): CheckRun {
+  const hold = run.state.removalHold;
+  if (!looksLikeIncident(run)) {
+    return { ...run, state: { ...run.state, removalHold: null } };
+  }
+
+  const sameSlice = hold !== null && hold.after === checkAfter;
+  const confirmed =
+    sameSlice && startedAt.getTime() - Date.parse(hold.at) >= REMOVAL_HOLD_MS;
+  if (confirmed) {
+    return { ...run, state: { ...run.state, removalHold: null } };
+  }
+
+  return {
+    ...run,
+    checkAfter,
+    error: run.error ?? new SyncGuardError(MASS_REMOVAL_MESSAGE),
+    removedIds: new Set(),
+    state: {
+      ...run.state,
+      removalHold: sameSlice
+        ? hold
+        : { after: checkAfter, at: startedAt.toISOString() },
+    },
+  };
+}
+
+// A run where every lookup failed and was skipped reports the failure.
+function withSkipError(run: CheckRun): CheckRun {
+  if (run.error !== undefined || run.checked > 0 || !run.skipError) {
+    return run;
+  }
+  return { ...run, error: run.skipError };
+}
+
+// Looks up the next slice of the board's published Bordfeed jobs by id and
+// collects the ones Bordfeed no longer shows. Bordfeed answers 404 for a job
+// that is not active before any charge, and a job the workspace already
+// received is free, so a check costs nothing.
+async function checkBoardJobs(
+  payload: Payload,
+  client: BordfeedClient,
+  plan: Extract<FetchPlan, { kind: "delta" }>,
+  state: SyncState,
+  context: TimedContext
+): Promise<CheckRun> {
+  const ids = await nextBoardJobs(payload, plan.checkAfter, plan.checks);
+  const run = await checkEach(
+    client,
+    ids,
+    {
+      charged: 0,
+      checkAfter: plan.checkAfter,
+      checked: 0,
+      removedIds: new Set(),
+      state,
+    },
+    context
+  );
+  return guardMassRemoval(
+    withSkipError(run),
+    plan.checkAfter,
+    context.startedAt
+  );
+}
+
+async function firstSync(
+  payload: Payload,
+  deps: SyncDeps | undefined,
+  client: BordfeedClient,
+  feedId: string,
+  budget: { limit: number; save: SaveState; state: SyncState },
+  startedAt: Date
+): Promise<SyncSummary> {
+  const stamp: SyncStamp = { feedId, mode: "feed" };
+  const page = await client.fetchFeedPage(feedId, { limit: budget.limit });
+  const state = recordSpend(budget.state, page.data.length, startedAt);
+  await budget.save(state);
+  const summary = await runSync(
+    payload,
+    deps,
+    "feed",
+    {
+      fetch: "first",
+      fetchedJobs: page.data.length,
+      incoming: page.data,
+      pages: 1,
+    },
+    "bordfeed",
+    stamp
+  );
+  // A reset or reconnect mid-sync discards the page, so `since` stays.
+  if (await connectionStillMatches(payload, stamp)) {
+    await budget.save(afterFirst(state, startedAt));
+  }
+  return summary;
+}
+
+// Every sync fetches at most `jobsPerSync` jobs and never more than is left
+// of `jobsPerDay`. The first sync reads one page of the newest jobs. Later
+// syncs check a slice of the board's jobs by id (free) and read only jobs
+// new to the feed since the last finished series.
+async function syncFeedWithBudget(
+  payload: Payload,
+  deps: SyncDeps | undefined,
+  client: BordfeedClient,
+  feedId: string,
+  save: SaveState
+): Promise<SyncSummary> {
+  const startedAt = clockOf(deps)();
+  const stamp: SyncStamp = { feedId, mode: "feed" };
+  const budget = await readSyncBudget(payload, feedId);
+  const plan = planFetch(budget.state, budget.limits, startedAt);
+  if (plan.kind === "skip") {
+    return skippedSummary("capped", deps);
+  }
+
+  if (plan.kind === "first") {
+    return firstSync(
+      payload,
+      deps,
+      client,
+      feedId,
+      { limit: plan.limit, save, state: budget.state },
+      startedAt
+    );
+  }
+
+  const timed = { now: clockOf(deps), save, startedAt };
+  const checks = await checkBoardJobs(payload, client, plan, budget.state, {
+    ...timed,
+    deadline: startedAt.getTime() + CHECK_TIME_MS,
+  });
+  const additions = await readAdditions(client, feedId, plan, checks, {
+    ...timed,
+    deadline: startedAt.getTime() + READ_TIME_MS,
+  });
+  const state = additions.read?.state ?? checks.state;
+  const summary = await runSync(
+    payload,
+    deps,
+    "feed",
+    {
+      checkedJobs: checks.checked,
+      fetch: "delta",
+      fetchedJobs: additions.read ? additions.read.updated.length : 0,
+      incoming: additions.read?.updated ?? [],
+      pages: additions.read?.pages ?? 0,
+      removedIds: checks.removedIds,
+    },
+    "bordfeed",
+    stamp
+  );
+  if (await connectionStillMatches(payload, stamp)) {
+    await save({
+      ...state,
+      additions: additions.read
+        ? afterAdditions(
+            state.additions,
+            plan.additions,
+            additions.read.position
+          )
+        : state.additions,
+      checkAfter: checks.checkAfter,
+    });
+  }
+  const failure = checks.error ?? additions.error;
+  if (failure !== undefined) {
+    throw failure;
+  }
+  return summary;
+}
+
+// New jobs get the sync's budget, less any credit a check was billed. They
+// do not depend on the checks, so a failed check never holds them back. A
+// failure here still lets the checks already made be applied.
+async function readAdditions(
+  client: BordfeedClient,
+  feedId: string,
+  plan: Extract<FetchPlan, { kind: "delta" }>,
+  checks: CheckRun,
+  context: TimedContext
+): Promise<{ error?: unknown; read: SeriesRead | null }> {
+  try {
+    const read = await readSeries(
+      client,
+      feedId,
+      plan.additions.since,
+      plan.additions.position,
+      {
+        budget: plan.limit - checks.charged,
+        pages: 0,
+        position: null,
+        state: checks.state,
+        updated: [],
+      },
+      context
+    );
+    return { error: read.error, read };
+  } catch (error) {
+    return { error, read: null };
+  }
+}
+
+async function leasedSync(
+  payload: Payload,
+  deps: SyncDeps | undefined,
+  client: BordfeedClient,
+  feedId: string
+): Promise<SyncSummary> {
+  const token = await acquireSyncLease(payload, clockOf(deps)());
+  if (!token) {
+    return skippedSummary("busy", deps);
+  }
+
+  try {
+    return await syncFeedWithBudget(payload, deps, client, feedId, (state) =>
+      writeSyncState(payload, token, state)
+    );
+  } finally {
+    await releaseSyncLease(payload, token);
+  }
 }
 
 export async function runBordfeedSync(

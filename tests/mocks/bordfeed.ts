@@ -43,10 +43,15 @@ const ISO2 = /^[A-Z]{2}$/;
 const DIGITS = /^\d+$/;
 const PREVIEW_PATH = /^\/api\/v1\/templates\/([^/]+)\/preview$/;
 const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/;
+const JOB_PATH = /^\/api\/v1\/jobs\/([^/]+)$/;
 
 const WORKPLACES = new Set(["Remote", "Hybrid", "On-site"]);
+// Default page when no limit is sent. Live caps limit at 100.
 const FEED_PAGE = 10;
+const FEED_LIMIT_MAX = 100;
 const FEED_TOTAL = 25;
+const FEED_BASE_UPDATED_AT = Date.parse("2026-01-15T12:00:00.000Z");
+const CURSOR = /^c(\d+)$/;
 const PREVIEW_TOTAL = 20;
 const STARTING_CREDITS = 2000;
 const CODE_TTL_SECONDS = 600;
@@ -70,13 +75,41 @@ interface Registration {
 }
 
 export interface BordfeedMockState {
+  // Like live: one credit per job the first time this workspace receives it.
+  // A job sent again, even after it changed or closed, is free.
+  billedJobs: number;
+  // Single-job lookups (GET /api/v1/jobs/{id}), any outcome.
+  checkedJobs: number;
   requests: BordfeedRequestLog[];
+  // Every job a feed read returned, billed or not.
+  servedJobs: number;
+}
+
+export interface BordfeedMockOptions {
+  feedTotal?: number;
+  now?: () => number;
 }
 
 export interface BordfeedMock {
+  balance: () => number;
+  // Marks feed jobs (1-based) closed and updated now.
+  closeFeedJobs: (indexes: number[]) => void;
+  // Marks feed jobs (1-based) expired and updated now.
+  expireFeedJobs: (indexes: number[]) => void;
   handle: (request: Request) => Promise<Response>;
   reset: () => void;
   state: BordfeedMockState;
+  // Marks feed jobs (1-based) as first visible now, like new jobs.
+  surfaceFeedJobs: (indexes: number[]) => void;
+  // Marks feed jobs (1-based) updated now. Live bumps updated_at on routine
+  // scrape writes too, so this is not a content change.
+  touchFeedJobs: (indexes: number[]) => void;
+}
+
+interface FeedMeta {
+  firstVisibleAt: number;
+  status: "active" | "closed" | "expired";
+  updatedAt: number;
 }
 
 interface PreviewFilters {
@@ -197,10 +230,10 @@ function previewJobs(): MockJob[] {
   return jobs;
 }
 
-function feedJobs(): MockJob[] {
+function feedJobs(total: number): MockJob[] {
   const jobs: MockJob[] = [];
   const feedCountries = ["US", "DE", "GB"] as const;
-  for (let index = 1; index <= FEED_TOTAL; index += 1) {
+  for (let index = 1; index <= total; index += 1) {
     const title = `Mock Feed Engineer ${String(index).padStart(2, "0")}`;
     jobs.push(
       buildMockJob({
@@ -316,16 +349,12 @@ function templateById(id: string) {
   return TEMPLATES.find((template) => template.id === id) ?? null;
 }
 
+// Cursors are "c<offset>", opaque to the client like live.
 function feedStart(url: URL): number | null {
   const cursor = url.searchParams.get("cursor");
-  if (cursor === "c2") {
-    return FEED_PAGE;
-  }
-  if (cursor === "c3") {
-    return FEED_PAGE * 2;
-  }
   if (cursor !== null) {
-    return null;
+    const match = CURSOR.exec(cursor);
+    return match ? Number(match[1]) : null;
   }
 
   const offsetRaw = url.searchParams.get("offset");
@@ -339,15 +368,72 @@ function feedStart(url: URL): number | null {
   return Number(offsetRaw);
 }
 
-function nextCursor(end: number): string | null {
-  if (end === FEED_PAGE) {
-    return "c2";
+function feedLimit(url: URL): number | null {
+  const limitRaw = url.searchParams.get("limit");
+  if (limitRaw === null) {
+    return FEED_PAGE;
   }
-  if (end === FEED_PAGE * 2) {
-    return "c3";
+  if (!DIGITS.test(limitRaw)) {
+    return null;
   }
 
-  return null;
+  const limit = Number(limitRaw);
+  return limit >= 1 && limit <= FEED_LIMIT_MAX ? limit : null;
+}
+
+// Live: status lists closed or expired jobs, otherwise active ones, and since
+// keeps jobs whose since_field timestamp is after it.
+function feedFilter(url: URL): ((meta: FeedMeta) => boolean) | string {
+  const status = url.searchParams.get("status");
+  if (status !== null && status !== "closed" && status !== "expired") {
+    return "status must be closed or expired";
+  }
+
+  const sinceRaw = url.searchParams.get("since");
+  const since = sinceRaw === null ? null : Date.parse(sinceRaw);
+  if (since !== null && Number.isNaN(since)) {
+    return "since must be an ISO datetime";
+  }
+
+  const field = url.searchParams.get("since_field") ?? "first_visible";
+  if (field !== "updated" && field !== "first_visible") {
+    return "since_field must be first_visible, updated or created";
+  }
+
+  const wanted = status ?? "active";
+  return (meta) => {
+    if (meta.status !== wanted) {
+      return false;
+    }
+    if (since === null) {
+      return true;
+    }
+    const stamp = field === "updated" ? meta.updatedAt : meta.firstVisibleAt;
+    return stamp > since;
+  };
+}
+
+function feedQuery(
+  url: URL
+):
+  | Response
+  | { filter: (meta: FeedMeta) => boolean; pageSize: number; start: number } {
+  const start = feedStart(url);
+  if (start === null) {
+    return invalidRequest("Unknown cursor");
+  }
+
+  const pageSize = feedLimit(url);
+  if (pageSize === null) {
+    return invalidRequest("limit must be an integer from 1 to 100");
+  }
+
+  const filter = feedFilter(url);
+  if (typeof filter === "string") {
+    return invalidRequest(filter);
+  }
+
+  return { filter, pageSize, start };
 }
 
 interface FieldError {
@@ -393,14 +479,28 @@ function feedCreateErrors(record: Record<string, unknown>): FieldError[] {
   return errors;
 }
 
-export function createBordfeedMock(): BordfeedMock {
-  const state: BordfeedMockState = { requests: [] };
+export function createBordfeedMock(
+  options: BordfeedMockOptions = {}
+): BordfeedMock {
+  const state: BordfeedMockState = {
+    billedJobs: 0,
+    checkedJobs: 0,
+    requests: [],
+    servedJobs: 0,
+  };
+  const delivered = new Set<string>();
   const registrations = new Map<string, Registration>();
   const samples = previewJobs();
-  const feed = feedJobs();
+  const feed = feedJobs(options.feedTotal ?? FEED_TOTAL);
+  const now = options.now ?? Date.now;
+  let feedMeta: FeedMeta[] = feed.map(() => ({
+    firstVisibleAt: FEED_BASE_UPDATED_AT,
+    status: "active",
+    updatedAt: FEED_BASE_UPDATED_AT,
+  }));
   let sequence = 0;
   let registrationsIssued = 0;
-  // First cursor=c2 read is a one-shot 429 so clients exercise Retry-After.
+  // The first cursor read is a one-shot 429 so clients exercise Retry-After.
   let delayedPageTwo = false;
   // Like live: a new account reads 0 credits until the first balance read or
   // billed call grants the starting credit. Feed create is free.
@@ -716,7 +816,7 @@ export function createBordfeedMock(): BordfeedMock {
     grantCredits();
 
     const cursor = url.searchParams.get("cursor");
-    if (cursor === "c2" && !delayedPageTwo) {
+    if (cursor !== null && !delayedPageTwo) {
       delayedPageTwo = true;
       sequence += 1;
       return envelope(
@@ -729,53 +829,140 @@ export function createBordfeedMock(): BordfeedMock {
       );
     }
 
-    const start = feedStart(url);
-    if (start === null) {
-      return invalidRequest("Unknown cursor");
+    const query = feedQuery(url);
+    if (query instanceof Response) {
+      return query;
     }
 
-    const limitRaw = url.searchParams.get("limit");
-    let requested = FEED_PAGE;
-    if (limitRaw !== null) {
-      if (!DIGITS.test(limitRaw) || Number(limitRaw) < 1) {
-        return invalidRequest("limit must be a positive integer");
-      }
-      requested = Number(limitRaw);
-    }
-
-    const pageSize = Math.min(requested, FEED_PAGE);
-    const end = Math.min(start + pageSize, feed.length);
+    const { filter, pageSize, start } = query;
+    const matching = feed.filter((_, index) => {
+      const meta = feedMeta[index];
+      return meta !== undefined && filter(meta);
+    });
+    const end = Math.min(start + pageSize, matching.length);
     const include = url.searchParams.get("include") === "description_html";
-    const data = withDescriptionHtml(feed.slice(start, end), include);
-    const more = end < feed.length;
-    credits = Math.max(0, credits - data.length);
+    const data = withDescriptionHtml(matching.slice(start, end), include);
+    const more = end < matching.length;
+    // Live bills new jobs only and refuses a page it cannot pay.
+    const charge = data.filter((job) => !delivered.has(String(job.id))).length;
+    if (charge > credits) {
+      sequence += 1;
+      return envelope(
+        402,
+        "insufficient_credits",
+        "Insufficient credits",
+        sequence,
+        { balance_jobs: credits, topup_url: TOPUP_URL }
+      );
+    }
+    for (const job of data) {
+      delivered.add(String(job.id));
+    }
+    state.billedJobs += charge;
+    state.servedJobs += data.length;
+    credits = Math.max(0, credits - charge);
     sequence += 1;
     return Response.json({
       data,
       pagination: {
         has_more: more,
         limit: pageSize,
-        next_cursor: more ? nextCursor(end) : null,
+        next_cursor: more ? `c${end}` : null,
         next_offset: more ? end : null,
       },
       request_id: requestId(sequence),
     });
   }
 
+  // Live (app/api/v1/jobs/[id]): 404 before any charge when the job is not
+  // active, otherwise one credit only if this workspace never received it.
+  function handleJob(request: Request, id: string): Response {
+    const denied = requireKey(request);
+    if (denied !== null) {
+      return denied;
+    }
+
+    state.checkedJobs += 1;
+    sequence += 1;
+    const index = feed.findIndex((item) => String(item.id) === id);
+    const job = feed[index];
+    if (job === undefined || feedMeta[index]?.status !== "active") {
+      return envelope(404, "not_found", "Job not found", sequence);
+    }
+
+    grantCredits();
+    const charge = delivered.has(id) ? 0 : 1;
+    if (charge > credits) {
+      return envelope(
+        402,
+        "insufficient_credits",
+        "Insufficient credits",
+        sequence,
+        {
+          balance_jobs: credits,
+          topup_url: TOPUP_URL,
+        }
+      );
+    }
+    delivered.add(id);
+    state.billedJobs += charge;
+    credits -= charge;
+    return Response.json({
+      data: job,
+      jobs_charged: charge,
+      request_id: requestId(sequence),
+    });
+  }
+
+  function handleRead(request: Request, url: URL): Response {
+    if (url.pathname === "/api/v1/billing/balance") {
+      return handleBalance(request);
+    }
+    if (FEED_JOBS_PATH.test(url.pathname)) {
+      return handleFeedJobs(request, url);
+    }
+    const jobMatch = JOB_PATH.exec(url.pathname);
+    if (jobMatch?.[1]) {
+      return handleJob(request, decodeURIComponent(jobMatch[1]));
+    }
+    return handleTemplates(url);
+  }
+
+  function markFeedJobs(
+    indexes: number[],
+    change: { status?: FeedMeta["status"]; surfaced?: boolean }
+  ): void {
+    const at = now();
+    const picked = new Set(indexes);
+    feedMeta = feedMeta.map((meta, index) =>
+      picked.has(index + 1)
+        ? {
+            firstVisibleAt: change.surfaced ? at : meta.firstVisibleAt,
+            status: change.status ?? meta.status,
+            updatedAt: at,
+          }
+        : meta
+    );
+  }
+
   return {
+    balance() {
+      grantCredits();
+      return credits;
+    },
+    closeFeedJobs(indexes) {
+      markFeedJobs(indexes, { status: "closed" });
+    },
+    expireFeedJobs(indexes) {
+      markFeedJobs(indexes, { status: "expired" });
+    },
     async handle(request) {
       const url = new URL(request.url);
       const body = await readBody(request);
       log(request, url, body);
 
       if (request.method === "GET" && url.pathname.startsWith("/api/v1/")) {
-        if (url.pathname === "/api/v1/billing/balance") {
-          return handleBalance(request);
-        }
-        if (FEED_JOBS_PATH.test(url.pathname)) {
-          return handleFeedJobs(request, url);
-        }
-        return handleTemplates(url);
+        return handleRead(request, url);
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/register") {
@@ -793,7 +980,16 @@ export function createBordfeedMock(): BordfeedMock {
       return new Response("not found", { status: 404 });
     },
     reset() {
+      state.billedJobs = 0;
+      state.checkedJobs = 0;
       state.requests = [];
+      state.servedJobs = 0;
+      delivered.clear();
+      feedMeta = feed.map(() => ({
+        firstVisibleAt: FEED_BASE_UPDATED_AT,
+        status: "active",
+        updatedAt: FEED_BASE_UPDATED_AT,
+      }));
       registrations.clear();
       registrationsIssued = 0;
       sequence = 0;
@@ -803,5 +999,11 @@ export function createBordfeedMock(): BordfeedMock {
       creditsExhausted = false;
     },
     state,
+    surfaceFeedJobs(indexes) {
+      markFeedJobs(indexes, { surfaced: true });
+    },
+    touchFeedJobs(indexes) {
+      markFeedJobs(indexes, {});
+    },
   };
 }

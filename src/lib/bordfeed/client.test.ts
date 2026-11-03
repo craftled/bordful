@@ -82,63 +82,82 @@ function client(options: {
   });
 }
 
-test("listFeedJobs follows cursors with the pinned query order", async () => {
+test("fetchFeedPage makes one request with the pinned query order", async () => {
   const calls: Call[] = [];
   const time = clock();
-  const bodies = [
-    page(["a"], { has_more: true, next_cursor: "c2" }),
-    page(["b"], { has_more: true, next_cursor: "c3" }),
-    page(["c"], { has_more: false, next_cursor: null }),
-  ];
   const fetchImpl: typeof fetch = (input, init) => {
     calls.push({ headers: lowerHeaders(init?.headers), url: String(input) });
-    const body = bodies.shift();
-    return Promise.resolve(jsonResponse(body));
+    return Promise.resolve(
+      jsonResponse(page(["a"], { has_more: true, next_cursor: "c2" }))
+    );
   };
-  const pages: string[][] = [];
-  for await (const batch of client({
+  const result = await client({
     fetch: fetchImpl,
     now: time.now,
     sleep: time.sleep,
-  }).listFeedJobs(FEED)) {
-    pages.push(batch.map((item) => item.id));
-  }
+  }).fetchFeedPage(FEED, { limit: 50 });
 
   expect(calls.map((call) => call.url)).toEqual([
-    JOBS,
-    `${JOBS}&cursor=c2`,
-    `${JOBS}&cursor=c3`,
+    `http://bf.test/api/v1/feeds/${FEED}/jobs?limit=50&include=description_html`,
   ]);
-  expect(pages).toEqual([["a"], ["b"], ["c"]]);
+  expect(result.data.map((item) => item.id)).toEqual(["a"]);
+  expect(result).toMatchObject({
+    hasMore: true,
+    nextCursor: "c2",
+    nextOffset: null,
+  });
   expect(calls[0]?.headers.authorization).toBe(`Bearer ${KEY}`);
   expect(calls[0]?.headers["x-bordfeed-client"]).toBe("bordful/1.0.0-beta.1");
 });
 
-test("listFeedJobs follows next_offset when the cursor is null", async () => {
+test("fetchFeedPage sends delta params and clamps the limit to 100", async () => {
   const calls: string[] = [];
   const time = clock();
-  const bodies = [
-    page(["a"], { has_more: true, next_cursor: null, next_offset: 100 }),
-    page(["b"], { has_more: false, next_cursor: null }),
-  ];
   const fetchImpl: typeof fetch = (input) => {
     calls.push(String(input));
-    return Promise.resolve(jsonResponse(bodies.shift()));
+    return Promise.resolve(
+      jsonResponse(
+        page(["b"], { has_more: true, next_cursor: null, next_offset: 40 })
+      )
+    );
   };
-  const pages: string[][] = [];
-  for await (const batch of client({
-    fetch: fetchImpl,
-    now: time.now,
-    sleep: time.sleep,
-  }).listFeedJobs(FEED)) {
-    pages.push(batch.map((item) => item.id));
-  }
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+  const result = await api.fetchFeedPage(FEED, {
+    cursor: "c9",
+    limit: 500,
+    since: "2026-11-02T23:00:00.000Z",
+    sinceField: "updated",
+  });
+  await api.fetchFeedPage(FEED, {
+    limit: 20,
+    offset: 40,
+    since: "2026-11-02T23:00:00.000Z",
+    status: "closed",
+  });
 
-  expect(calls).toEqual([JOBS, `${JOBS}&offset=100`]);
-  expect(pages).toEqual([["a"], ["b"]]);
+  expect(calls).toEqual([
+    `${JOBS}&since=2026-11-02T23%3A00%3A00.000Z&since_field=updated&cursor=c9`,
+    `http://bf.test/api/v1/feeds/${FEED}/jobs?limit=20&include=description_html&since=2026-11-02T23%3A00%3A00.000Z&since_field=updated&status=closed&offset=40`,
+  ]);
+  expect(result).toMatchObject({ nextCursor: null, nextOffset: 40 });
 });
 
-test("listFeedJobs rejects a non-uuid feed id before any fetch", async () => {
+test("fetchFeedPage rejects has_more without a cursor or offset", async () => {
+  const time = clock();
+  const fetchImpl: typeof fetch = () =>
+    Promise.resolve(
+      jsonResponse(page(["a"], { has_more: true, next_cursor: null }))
+    );
+  await expect(
+    client({
+      fetch: fetchImpl,
+      now: time.now,
+      sleep: time.sleep,
+    }).fetchFeedPage(FEED, { limit: 50 })
+  ).rejects.toMatchObject({ code: "invalid_response" });
+});
+
+test("fetchFeedPage rejects a non-uuid feed id before any fetch", async () => {
   let fetched = 0;
   const time = clock();
   const fetchImpl: typeof fetch = () => {
@@ -148,9 +167,11 @@ test("listFeedJobs rejects a non-uuid feed id before any fetch", async () => {
     );
   };
   await expect(
-    client({ fetch: fetchImpl, now: time.now, sleep: time.sleep })
-      .listFeedJobs("not-a-uuid")
-      .next()
+    client({
+      fetch: fetchImpl,
+      now: time.now,
+      sleep: time.sleep,
+    }).fetchFeedPage("not-a-uuid", { limit: 50 })
   ).rejects.toMatchObject({ code: "invalid_response" });
   expect(fetched).toBe(0);
 });
@@ -368,4 +389,75 @@ test("503 waits 1000ms and then accepts the retry", async () => {
   }).listTemplates();
   expect(fetches).toBe(2);
   expect(time.sleeps).toEqual([1000]);
+});
+
+test("checkJob reads a free lookup, a billed one and Bordfeed's not_found", async () => {
+  const time = clock();
+  const urls: string[] = [];
+  const answers = [
+    jsonResponse({ data: job("a"), jobs_charged: 0, request_id: "r1" }),
+    jsonResponse({ data: job("b"), jobs_charged: 1, request_id: "r2" }),
+    jsonResponse(
+      { error: { code: "not_found", message: "Job not found" } },
+      404
+    ),
+  ];
+  const fetchImpl: typeof fetch = (input) => {
+    urls.push(String(input));
+    const answer = answers.shift();
+    return answer
+      ? Promise.resolve(answer)
+      : Promise.reject(new Error("extra"));
+  };
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+  await expect(api.checkJob("a")).resolves.toEqual({
+    charged: 0,
+    status: "active",
+  });
+  await expect(api.checkJob("b")).resolves.toEqual({
+    charged: 1,
+    status: "active",
+  });
+  await expect(api.checkJob("c/d")).resolves.toEqual({ status: "gone" });
+  expect(urls).toEqual([
+    "http://bf.test/api/v1/jobs/a",
+    "http://bf.test/api/v1/jobs/b",
+    "http://bf.test/api/v1/jobs/c%2Fd",
+  ]);
+});
+
+test("checkJob never reads a 404 without Bordfeed's not_found as gone", async () => {
+  const time = clock();
+  const fetchImpl: typeof fetch = () =>
+    Promise.resolve(new Response("Not Found", { status: 404 }));
+  const error = await client({
+    fetch: fetchImpl,
+    now: time.now,
+    sleep: time.sleep,
+  })
+    .checkJob("a")
+    .catch((caught: unknown) => caught);
+  expect(error).toBeInstanceOf(BordfeedApiError);
+  expect(error).toMatchObject({ code: "invalid_response", status: 404 });
+});
+
+test("a dropped connection on a read is retried once", async () => {
+  const time = clock();
+  let fetches = 0;
+  const fetchImpl: typeof fetch = () => {
+    fetches += 1;
+    if (fetches === 1) {
+      return Promise.reject(new TypeError("fetch failed"));
+    }
+    return Promise.resolve(jsonResponse({ data: job("a"), jobs_charged: 0 }));
+  };
+  const result = await client({
+    fetch: fetchImpl,
+    now: time.now,
+    sleep: time.sleep,
+  }).checkJob("a");
+  expect(result).toEqual({ charged: 0, status: "active" });
+  expect(fetches).toBe(2);
+  expect(time.sleeps).toContain(1000);
 });

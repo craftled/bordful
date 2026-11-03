@@ -6,12 +6,16 @@ if (existsSync(".env")) {
   process.loadEnvFile(".env");
 }
 
-import type { BordfeedClient } from "@/lib/bordfeed/client";
+import type { BordfeedClient, FeedPageQuery } from "@/lib/bordfeed/client";
 import {
   dispatchConnectionEvent,
   readConnection,
 } from "@/lib/bordfeed/connection-store";
-import { SyncGuardError } from "@/lib/bordfeed/errors";
+import {
+  BordfeedApiError,
+  MASS_REMOVAL_MESSAGE,
+  SyncGuardError,
+} from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
@@ -92,15 +96,6 @@ function feedJobs(count: number): BordfeedJob[] {
   });
 }
 
-function pagesOf(jobs: BordfeedJob[], size: number): BordfeedJob[][] {
-  const pages: BordfeedJob[][] = [];
-  for (let index = 0; index < jobs.length; index += size) {
-    pages.push(jobs.slice(index, index + size));
-  }
-
-  return pages;
-}
-
 globalThis.fetch = (input, init) => {
   const url = String(input);
   if (url.includes("/api/v1/templates/") && url.includes("/preview")) {
@@ -138,13 +133,20 @@ function unused<T>(): Promise<T> {
   return Promise.reject(new Error("unused"));
 }
 
+function emptyPage() {
+  return Promise.resolve({
+    data: [],
+    hasMore: false,
+    nextCursor: null,
+    nextOffset: null,
+  });
+}
+
 function sampleClient(jobs: BordfeedJob[] = sampleJobs()): BordfeedClient {
   return {
+    checkJob: unused,
     createFeed: () => Promise.resolve({ id: FEED_ID }),
-    async *listFeedJobs() {
-      await Promise.resolve();
-      yield [];
-    },
+    fetchFeedPage: emptyPage,
     listTemplates: unused,
     previewTemplate: () => Promise.resolve(previewBody(jobs)),
     register: unused,
@@ -152,18 +154,38 @@ function sampleClient(jobs: BordfeedJob[] = sampleJobs()): BordfeedClient {
   };
 }
 
-function feedClient(jobs: BordfeedJob[]): BordfeedClient {
-  const pages = pagesOf(jobs, 10);
+// A feed whose jobs all changed just now: a delta sync sees every job, and
+// `closed` lists the jobs Bordfeed no longer shows (404 on a check).
+function feedClient(
+  jobs: BordfeedJob[],
+  closed: BordfeedJob[] = []
+): BordfeedClient & { queries: FeedPageQuery[] } {
+  const queries: FeedPageQuery[] = [];
+  const gone = new Set(closed.map((job) => job.id));
   return {
+    checkJob: (jobId) =>
+      Promise.resolve(
+        gone.has(jobId)
+          ? { status: "gone" as const }
+          : { charged: 0, status: "active" as const }
+      ),
     createFeed: () => Promise.resolve({ id: FEED_ID }),
-    async *listFeedJobs() {
-      await Promise.resolve();
-      for (const page of pages) {
-        yield page;
-      }
+    fetchFeedPage(_feedId, query) {
+      queries.push(query);
+      const source = jobs;
+      const start = query.cursor ? Number(query.cursor.slice(1)) : 0;
+      const end = Math.min(start + query.limit, source.length);
+      const more = end < source.length;
+      return Promise.resolve({
+        data: source.slice(start, end),
+        hasMore: more,
+        nextCursor: more ? `c${end}` : null,
+        nextOffset: null,
+      });
     },
     listTemplates: unused,
     previewTemplate: () => Promise.resolve(previewBody([])),
+    queries,
     register: unused,
     verify: unused,
   };
@@ -238,7 +260,7 @@ describe("bordfeed sync", () => {
     expect(jobs.totalDocs).toBe(3);
   });
 
-  test("feed sync publishes, unpublishes missing rows, and guards an empty feed", async () => {
+  test("feed sync publishes one page, then unpublishes closed jobs", async () => {
     await runSampleSync(payload, { client: sampleClient() });
     const [sampleBefore] = sampleJobs();
     if (!sampleBefore?.slug) {
@@ -284,7 +306,8 @@ describe("bordfeed sync", () => {
     const summary = connection.lastSyncSummary;
 
     expect(first.created).toBe(25);
-    expect(first.pages).toBe(3);
+    expect(first.pages).toBe(1);
+    expect(first.fetchedJobs).toBe(25);
     expect(bordfeedJobs.totalDocs).toBe(25);
     expect(sampleJobsLeft.totalDocs).toBe(0);
     expect(sampleCompaniesLeft.totalDocs).toBe(0);
@@ -299,24 +322,175 @@ describe("bordfeed sync", () => {
     expect(rerun.created).toBe(0);
     expect(rerun.updated).toBe(0);
 
+    expect(rerun.fetch).toBe("delta");
+
     const second = await runFeedSync(payload, {
-      client: feedClient(connectedJobs.slice(0, 23)),
+      client: feedClient([], connectedJobs.slice(23)),
     });
     const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
     expect(second.unpublished).toBe(2);
     expect(published.totalDocs).toBe(23);
 
-    await expect(
-      runFeedSync(payload, { client: feedClient([]) })
-    ).rejects.toBeInstanceOf(SyncGuardError);
-    const afterGuard = await readConnection(payload);
+    // A delta that finds nothing changed keeps every job.
+    const quiet = await runFeedSync(payload, { client: feedClient([]) });
     const stillPublished = await queryPublishedJobs(payload, {
       limit: 50,
       page: 1,
     });
+    expect(quiet).toMatchObject({ created: 0, unpublished: 0, updated: 0 });
+    expect(stillPublished.totalDocs).toBe(23);
+  });
+
+  test("a billed check stops the checks and shrinks the feed read", async () => {
+    await connectFeed();
+    await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
+
+    // A board job this workspace was never billed for: the first check
+    // costs one credit, so no more checks run and the feed read asks for 49.
+    const base = feedClient(feedJobs(25));
+    let checks = 0;
+    const billed: BordfeedClient & { queries: FeedPageQuery[] } = {
+      ...base,
+      checkJob: () => {
+        checks += 1;
+        return Promise.resolve({ charged: 1, status: "active" as const });
+      },
+    };
+    const run = await runFeedSync(payload, { client: billed });
+    expect(checks).toBe(1);
+    expect(run.checkedJobs).toBe(1);
+    expect(base.queries.at(-1)?.limit).toBe(49);
+  });
+
+  test("a failed check keeps the jobs and still adds new ones", async () => {
+    await connectFeed();
+    await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
+
+    const base = feedClient(feedJobs(30));
+    const failing: BordfeedClient & { queries: FeedPageQuery[] } = {
+      ...base,
+      checkJob: () =>
+        Promise.reject(
+          new BordfeedApiError({
+            code: "rate_limited",
+            message: "Bordfeed is rate limiting this workspace.",
+            status: 429,
+          })
+        ),
+    };
+    await expect(runFeedSync(payload, { client: failing })).rejects.toThrow();
+    expect(base.queries).toHaveLength(1);
+    const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
+    expect(published.totalDocs).toBe(30);
+  });
+
+  test("most checked jobs gone waits for a second sync 12 hours later", async () => {
+    await connectFeed();
+    const jobs = feedJobs(25);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+
+    // 22 of 25 gone at once looks like a Bordfeed incident, not churn.
+    const gone = () => feedClient([], jobs.slice(0, 22));
+    const start = Date.now();
+    const at = (hours: number) => () => new Date(start + hours * 3_600_000);
+    const published = async () =>
+      (await queryPublishedJobs(payload, { limit: 50, page: 1 })).totalDocs;
+
+    for (const hours of [0, 1]) {
+      // biome-ignore lint/performance/noAwaitInLoops: syncs run in order
+      const error = await runFeedSync(payload, {
+        client: gone(),
+        now: at(hours),
+      }).catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(SyncGuardError);
+      expect(error).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
+      expect(await published()).toBe(25);
+    }
+    const connection = await readConnection(payload);
+    expect(connection.lastError?.message).toBe(MASS_REMOVAL_MESSAGE);
+
+    // Still the same 12 hours later: the jobs really closed.
+    const confirmed = await runFeedSync(payload, {
+      client: gone(),
+      now: at(13),
+    });
+    expect(confirmed.unpublished).toBe(22);
+    expect(await published()).toBe(3);
+  });
+
+  test("a normal share of closures is unpublished at once", async () => {
+    await connectFeed();
+    const jobs = feedJobs(25);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+    // 15 of 25 is a lot, but under the 80% incident line.
+    const run = await runFeedSync(payload, {
+      client: feedClient([], jobs.slice(0, 15)),
+    });
+    expect(run.unpublished).toBe(15);
+  });
+
+  test("a job whose lookup keeps failing is skipped, not a wall", async () => {
+    await connectFeed();
+    const jobs = feedJobs(25);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+
+    const base = feedClient([], jobs.slice(0, 3));
+    let calls = 0;
+    const flaky: BordfeedClient & { queries: FeedPageQuery[] } = {
+      ...base,
+      checkJob: (jobId) => {
+        calls += 1;
+        if (calls === 1) {
+          return Promise.reject(
+            new BordfeedApiError({
+              code: "invalid_response",
+              message: "Bordfeed returned an unexpected response.",
+              status: 200,
+            })
+          );
+        }
+        return base.checkJob(jobId);
+      },
+    };
+    const run = await runFeedSync(payload, { client: flaky });
+    expect(run.checkedJobs).toBe(24);
+    expect(run.unpublished).toBeGreaterThanOrEqual(2);
+  });
+
+  test("checks stop at their time limit", async () => {
+    await connectFeed();
+    await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
+
+    // Every clock read moves 10 s, so the 120 s check budget runs out early.
+    let time = Date.parse("2026-11-03T06:00:00.000Z");
+    const now = () => {
+      time += 10_000;
+      return new Date(time);
+    };
+    const run = await runFeedSync(payload, {
+      client: feedClient(feedJobs(25)),
+      now,
+    });
+    expect(run.checkedJobs).toBeGreaterThan(0);
+    expect(run.checkedJobs).toBeLessThan(25);
+  });
+
+  test("an empty first feed keeps the samples and records an error", async () => {
+    await runSampleSync(payload, { client: sampleClient() });
+    await connectFeed();
+    await expect(
+      runFeedSync(payload, { client: feedClient([]) })
+    ).rejects.toBeInstanceOf(SyncGuardError);
+    const afterGuard = await readConnection(payload);
+    const samples = await queryPublishedJobs(payload, { limit: 50, page: 1 });
     expect(afterGuard.state).toBe("error");
     expect(afterGuard.previousState).toBe("connected");
-    expect(stillPublished.totalDocs).toBe(23);
+    expect(samples.totalDocs).toBe(3);
+
+    const retry = await runFeedSync(payload, {
+      client: feedClient(feedJobs(4)),
+    });
+    expect(retry).toMatchObject({ created: 4, fetch: "first" });
   });
 
   test("reusing a manual company by domain does not rewrite jobs", async () => {
@@ -554,10 +728,10 @@ describe("bordfeed sync", () => {
     await connectFeed();
     const jobs = feedJobs(2);
     const client = feedClient(jobs);
-    const { listFeedJobs } = client;
-    client.listFeedJobs = async function* listFeedJobsAfterReset(feedId) {
+    const { fetchFeedPage } = client;
+    client.fetchFeedPage = async (feedId, query) => {
       await dispatchConnectionEvent(payload, { type: "reset" });
-      yield* listFeedJobs.call(client, feedId);
+      return fetchFeedPage(feedId, query);
     };
 
     const summary = await runFeedSync(payload, { client });

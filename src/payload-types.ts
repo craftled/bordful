@@ -1058,6 +1058,14 @@ export interface BordfeedConnection {
     | number
     | boolean
     | null;
+  /**
+   * Most jobs one sync fetches (20 to 100), including the first sync. Bordfeed bills one credit per job the workspace has not received before. Leave empty to use bordful.config.ts (50).
+   */
+  jobsPerSync?: number | null;
+  /**
+   * Most jobs fetched per UTC day across every sync (20 to 5000). Syncs fetch nothing once it is reached. Leave empty to use bordful.config.ts (200).
+   */
+  jobsPerDay?: number | null;
   showAttribution?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1173,6 +1181,8 @@ export interface BordfeedConnectionSelect<T extends boolean = true> {
   lastSyncAt?: T;
   lastSyncSummary?: T;
   lastError?: T;
+  jobsPerSync?: T;
+  jobsPerDay?: T;
   showAttribution?: T;
   updatedAt?: T;
   createdAt?: T;

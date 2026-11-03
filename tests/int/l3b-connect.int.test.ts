@@ -48,7 +48,7 @@ const exampleCompany = {
 interface Call {
   body?: CreateFeedRequest | RegisterRequest | { code: string };
   feedId?: string;
-  type: "createFeed" | "listFeedJobs" | "preview" | "register" | "verify";
+  type: "createFeed" | "fetchFeedPage" | "preview" | "register" | "verify";
 }
 
 const calls: Call[] = [];
@@ -114,6 +114,7 @@ function rejectApi(error: BordfeedApiError): Promise<never> {
 
 function client(): BordfeedClient {
   return {
+    checkJob: () => Promise.resolve({ charged: 0, status: "active" }),
     createFeed(body) {
       calls.push({ body, type: "createFeed" });
       if (behavior.createFeedFailures > 0) {
@@ -139,8 +140,8 @@ function client(): BordfeedClient {
 
       return Promise.resolve({ id: FEED_ID });
     },
-    async *listFeedJobs(feedId: string) {
-      calls.push({ feedId, type: "listFeedJobs" });
+    async fetchFeedPage(feedId: string) {
+      calls.push({ feedId, type: "fetchFeedPage" });
       await Promise.resolve();
       if (behavior.feedThrows) {
         throw new BordfeedApiError({
@@ -154,7 +155,12 @@ function client(): BordfeedClient {
         throw behavior.feedError;
       }
 
-      yield behavior.feedJobs > 0 ? jobs("feed", behavior.feedJobs) : [];
+      return {
+        data: behavior.feedJobs > 0 ? jobs("feed", behavior.feedJobs) : [],
+        hasMore: false,
+        nextCursor: null,
+        nextOffset: null,
+      };
     },
     listTemplates: () =>
       Promise.resolve({
@@ -620,7 +626,7 @@ describe("bordfeed connect", () => {
     });
 
     expect(result.message).toBe(
-      "Connected. The first sync failed: Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then."
+      "Connected. The first sync failed: This Bordfeed workspace does not have enough credits for this sync. Each job a sync fetches for the first time uses one credit. Top up in Bordfeed, then sync again. The board keeps its current jobs until then."
     );
     expect(samples.totalDocs).toBe(3);
   });

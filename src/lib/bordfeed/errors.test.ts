@@ -47,7 +47,7 @@ test("toSafeError maps each Bordfeed failure to a fixed sentence", () => {
     at,
     code: "payment_required",
     message:
-      "Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
+      "This Bordfeed workspace does not have enough credits for this sync. Each job a sync fetches for the first time uses one credit. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
   });
   expect(
     toSafeError(

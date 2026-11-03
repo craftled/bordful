@@ -288,19 +288,29 @@ function placeIncoming(
   return { create, seen, skipped, update };
 }
 
-function missingPublishedFeed(row: ExistingRow, seen: Set<string>): boolean {
+// Feed syncs fetch one capped page or only changed jobs, so a job missing
+// from the response says nothing. Only ids Bordfeed's job lookup no longer
+// shows are unpublished.
+function removedPublishedFeed(
+  row: ExistingRow,
+  seen: Set<string>,
+  removedIds: ReadonlySet<string>
+): boolean {
+  const id = row.bordfeedJobId ?? "";
   return (
     row.origin === "bordfeed" &&
     row.status === "published" &&
-    Boolean(row.bordfeedJobId) &&
-    !seen.has(row.bordfeedJobId ?? "")
+    id.length > 0 &&
+    !seen.has(id) &&
+    removedIds.has(id)
   );
 }
 
 function removalFor(
   row: ExistingRow,
   mode: "feed" | "sample",
-  seen: Set<string>
+  seen: Set<string>,
+  removedIds: ReadonlySet<string>
 ): "delete" | "keep" | "unpublish" {
   if (mode === "feed" && row.origin === "bordfeed_sample") {
     return "delete";
@@ -310,7 +320,7 @@ function removalFor(
     return row.bordfeedJobId && seen.has(row.bordfeedJobId) ? "keep" : "delete";
   }
 
-  return mode === "feed" && missingPublishedFeed(row, seen)
+  return mode === "feed" && removedPublishedFeed(row, seen, removedIds)
     ? "unpublish"
     : "keep";
 }
@@ -318,13 +328,14 @@ function removalFor(
 function removals(
   existing: ExistingRow[],
   mode: "feed" | "sample",
-  seen: Set<string>
+  seen: Set<string>,
+  removedIds: ReadonlySet<string>
 ) {
   const deleteIds: string[] = [];
   const unpublish: string[] = [];
 
   for (const row of existing) {
-    const action = removalFor(row, mode, seen);
+    const action = removalFor(row, mode, seen, removedIds);
     if (action === "delete") {
       deleteIds.push(row.id);
     }
@@ -342,6 +353,8 @@ export function planSync(input: {
   existing: ExistingRow[];
   incoming: MappedJob[];
   mode: "feed" | "sample";
+  // Bordfeed ids its job lookup no longer shows. Feed mode unpublishes these.
+  removedIds?: ReadonlySet<string>;
   takenSlugs: Set<string>;
 }): SyncPlan {
   const taken = new Set(input.takenSlugs);
@@ -353,7 +366,12 @@ export function planSync(input: {
     taken,
     input.companyIds
   );
-  const removed = removals(input.existing, input.mode, placed.seen);
+  const removed = removals(
+    input.existing,
+    input.mode,
+    placed.seen,
+    input.removedIds ?? new Set()
+  );
   return {
     create: placed.create,
     deleteIds: removed.deleteIds,

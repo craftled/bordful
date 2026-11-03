@@ -28,7 +28,7 @@ The API key is stored encrypted with `PAYLOAD_SECRET`. It is hidden from every A
 
 The feed Bordful creates uses your site name from Site settings. If the site still has the default name "Job Board", the feed takes the template name, for example "Fully Remote". It keeps the template filters.
 
-A new Bordfeed account shows 0 credits until its first feed read, which adds the free starting credit. If Bordfeed answers with a credits or payment error, the admin card says so, and the sample jobs stay on the board until a sync succeeds.
+A new Bordfeed account shows 0 credits until its first feed read, which adds the free starting credit (2,000 jobs on pay as you go). If Bordfeed answers with a credits or payment error, the admin card says so, and the sample jobs stay on the board until a sync succeeds.
 
 The first successful sync removes the sample jobs. If the feed comes back empty, the samples stay, so the board is never blank. Later syncs are described below.
 
@@ -74,4 +74,33 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 
 ## Daily sync
 
-`/api/cron/bordfeed` runs at 06:00 UTC. Jobs that disappeared from the feed are unpublished, not deleted. A later sync can publish them again if Bordfeed still lists them. Sample jobs are replaced when you connect, not unpublished one by one.
+`/api/cron/bordfeed` runs at 06:00 UTC. "Sync now" in the admin and `bun run bordful sync` run the same sync. Only one sync runs at a time. A sync that starts while another is running fetches nothing and says so.
+
+- The first sync after you connect fetches one page of the newest jobs: `jobsPerSync` jobs, 50 by default. It does not page through the rest of the feed, and it does not unpublish jobs that are not in that page.
+- Every later sync does two things:
+  - **Checks the board's jobs.** It looks up the next 200 published Bordfeed jobs on the board by id (`GET /api/v1/jobs/{id}`) and unpublishes the ones Bordfeed no longer shows, whether they closed, expired, filled or were archived. Unpublished jobs are not deleted. The next sync goes on from where this one stopped and wraps to the start, so a board of up to 200 Bordfeed jobs is fully checked every sync. With the daily cron, a board of 1,000 Bordfeed jobs notices a closed job within 5 days, and a board of 2,000 within 10. Jobs past their own expiry date (`valid_through`) are also handled by the board's expire cron.
+  - **Adds new jobs.** It reads jobs that first appeared in the feed since the last sync (`since_field=first_visible`) and adds them, up to `jobsPerSync`.
+- A job already on the board is not fetched again when Bordfeed edits it. Bordfeed touches `updated_at` on routine scrapes, so asking for every updated job would refetch most of the feed each day.
+- If more new jobs appeared than `jobsPerSync`, the next sync continues from where this one stopped. The `since` point moves forward only after all of them are read, so no new job is skipped. A sync adds at most `jobsPerSync` jobs, so on a busy feed raise `jobsPerSync` or run the sync more often (the `/api/cron/bordfeed` schedule in `vercel.json`, which some Vercel plans limit to once a day).
+- A job that closes and later reopens keeps its first-appeared time, so it does not come back as a new job. It stays unpublished.
+- Checks run one request at a time, about two a second, to stay inside Bordfeed's rate limit. A sync with 200 checks takes about 100 seconds, and checks stop after 120 seconds so the rest of the sync fits in the cron's time limit. A failed check never holds back new jobs.
+- Unpublishing is permanent, so the sync guards against a Bordfeed incident. If at least 10 jobs were checked and 80% or more came back gone (or at least 5 and all of them), it unpublishes nothing and the admin shows: "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now." If a sync at least 12 hours later sees the same, the jobs really closed and it unpublishes them. Normal churn stays well under that line.
+- A job whose lookup keeps failing with an unexpected answer is skipped, so it cannot stop later checks. New jobs are read for at most 210 seconds of the sync, so the board write still fits in the cron's time limit.
+- Sample jobs are replaced when you connect, not unpublished one by one.
+
+## Credits per sync
+
+Bordfeed charges one credit for each job your workspace receives for the first time. A job it sends again, even after it changed or closed, is free, and an empty page is free. Checks are free too: Bordfeed answers a lookup of a job that is no longer active with a 404 before it charges anything, and the board only checks jobs it already received. If a check is ever billed (a job fetched under a different workspace), the sync counts the credit against its caps and stops checking for that run. On pay as you go one credit is $0.01, and a new account starts with 2,000 credits ($20).
+
+Two caps bound what a sync can fetch, so a schedule can never drain the balance:
+
+| Setting | Default | Range | What it caps |
+| --- | --- | --- | --- |
+| `jobsPerSync` | 50 | 20 to 100 | Jobs one sync fetches. The first sync is one page of this size; later syncs fetch at most this many new jobs. |
+| `jobsPerDay` | 200 | 20 to 5000 | Jobs fetched per UTC day across every sync, cron and manual. At the cap a sync makes no request and the admin says so. |
+
+Set the defaults in `bordful.config.ts` under `bordfeed.sync`. Config values outside the range are clamped. Admins can set either one for this board in the Bordfeed Connection global, which rejects values outside the range. A value there wins. Leave it empty to use the config value.
+
+With the defaults, a sync uses at most 50 credits and a board uses at most 200 credits a day. The daily cron uses about one credit per new job, because jobs the board already has are not fetched again and closures are found by free checks. The caps count jobs fetched, so the credits used are never more than the cap and often fewer.
+
+If the balance cannot cover a page, Bordfeed answers 402 and the admin shows: "This Bordfeed workspace does not have enough credits for this sync." The board keeps its jobs. Top up in Bordfeed, then sync again.

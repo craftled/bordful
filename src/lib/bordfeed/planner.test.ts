@@ -91,10 +91,20 @@ test("feed planning removes missing rows and is idempotent", () => {
     row("id-manual", null, "manual", "published", null, job("manual", "hm")),
   ];
   const incoming = [j1, j3];
+  const withoutRemovals = planSync({
+    existing,
+    incoming,
+    mode: "feed",
+    takenSlugs: new Set(existing.map((item) => item.slug)),
+  });
+  // A job missing from a capped page or a delta is kept.
+  expect(withoutRemovals.unpublish).toEqual([]);
+
   const plan = planSync({
     existing,
     incoming,
     mode: "feed",
+    removedIds: new Set(["j2", "manual"]),
     takenSlugs: new Set(existing.map((item) => item.slug)),
   });
 
