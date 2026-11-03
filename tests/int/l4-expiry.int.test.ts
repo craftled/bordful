@@ -1,6 +1,9 @@
 import { existsSync } from "node:fs";
 
 import { afterAll, beforeAll, expect, test } from "vitest";
+import type { Job } from "@/payload-types";
+import { exampleDescription } from "../fixtures/board";
+import { loadBoardFixture } from "../fixtures/load";
 
 if (existsSync(".env")) {
   process.loadEnvFile(".env");
@@ -11,7 +14,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL_TEST is required for test:int");
 }
 
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
 if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
   throw new Error(
     `DATABASE_URL_TEST database must end with _int or _test (${databaseName})`
@@ -24,10 +27,6 @@ process.env.DATABASE_URL = databaseUrl;
 const cronSecret =
   process.env.CRON_SECRET || ["int-cron-secret", "0123456789"].join("-");
 process.env.CRON_SECRET = cronSecret;
-
-import type { Job } from "@/payload-types";
-import { exampleDescription } from "../fixtures/board";
-import { loadBoardFixture } from "../fixtures/load";
 
 const { getPayload } = await import("payload");
 const { default: config } = await import("@payload-config");

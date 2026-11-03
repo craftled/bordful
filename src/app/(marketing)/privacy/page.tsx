@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 function Block({ children, title }: { children: ReactNode; title: string }) {
   return (
     <div className="space-y-4">
-      <h2 className="font-medium text-xl">{title}</h2>
-      <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
+      <h2 className="text-xl font-medium">{title}</h2>
+      <div className="text-muted-foreground space-y-3 text-sm leading-relaxed">
         {children}
       </div>
     </div>
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
               headingLevel="h1"
               title="Privacy Policy"
             />
-            <p className="mt-2 text-muted-foreground text-sm">
+            <p className="text-muted-foreground mt-2 text-sm">
               Last updated: October 23, 2026
             </p>
           </div>

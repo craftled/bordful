@@ -33,8 +33,8 @@ export default async function UnsubscribePage({
 
   return (
     <BoardShell>
-      <section className="mx-auto flex w-full max-w-xl flex-col gap-4 rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
-        <h1 className="font-semibold text-2xl tracking-tight">
+      <section className="bg-card text-card-foreground mx-auto flex w-full max-w-xl flex-col gap-4 rounded-xl border p-6 shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight">
           Unsubscribe from job alerts
         </h1>
         {subscriber ? (

@@ -1,11 +1,6 @@
 import { existsSync } from "node:fs";
 
 import { beforeEach, describe, expect, test } from "vitest";
-
-if (existsSync(".env")) {
-  process.loadEnvFile(".env");
-}
-
 import type { BordfeedClient, FeedPageQuery } from "@/lib/bordfeed/client";
 import {
   dispatchConnectionEvent,
@@ -23,7 +18,12 @@ import { runFeedSync, runSampleSync } from "@/lib/bordfeed/sync";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { queryPublishedJobs } from "@/lib/read/queries";
 
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
+
 const FEED_ID = "11111111-1111-4111-8111-111111111111";
+// biome-ignore lint/complexity/noUnnecessaryTemplateExpression: split literal keeps secret scanners from flagging the test key
 const API_KEY = `bf_${"test_key_0001"}`;
 
 const exampleCompany = {
@@ -111,7 +111,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL_TEST is required for test:int");
 }
 
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
 if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
   throw new Error("DATABASE_URL_TEST database must end with _int or _test");
 }

@@ -31,12 +31,12 @@ export function SiteHeader({
 
   return (
     <header
-      className="relative z-30 border-border border-b bg-background"
+      className="border-border bg-background relative z-30 border-b"
       data-testid="site-header"
     >
-      <div className="mx-auto flex h-14 w-full max-w-board items-center gap-3 px-4">
+      <div className="max-w-board mx-auto flex h-14 w-full items-center gap-3 px-4">
         <Link
-          className="flex min-w-0 items-center gap-2 font-semibold text-base"
+          className="flex min-w-0 items-center gap-2 text-base font-semibold"
           data-testid="site-name"
           href={homeHref}
         >
@@ -83,7 +83,7 @@ export function SiteHeader({
           </div>
           {cta ? (
             <Link
-              className="inline-flex h-8 items-center rounded-md bg-primary px-3 font-medium text-primary-foreground text-sm hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-8 items-center rounded-md px-3 text-sm font-medium"
               href={cta.href}
             >
               {cta.label}

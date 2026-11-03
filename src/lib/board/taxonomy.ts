@@ -24,7 +24,7 @@ import {
 
 export type { TaxonomyKind } from "./paths";
 
-const ISO2_RE = /^[a-z]{2}$/;
+const ISO2_RE = /^[a-z]{2}$/u;
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 

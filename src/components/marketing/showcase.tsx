@@ -25,7 +25,7 @@ function ShowcaseCard({
 
   return (
     <a
-      className="block overflow-hidden rounded-lg border bg-background/50"
+      className="bg-background/50 block overflow-hidden rounded-lg border"
       href={entry.url}
       rel="noopener noreferrer"
       target="_blank"
@@ -38,7 +38,7 @@ function ShowcaseCard({
         width={2880}
       />
       <div className="space-y-2 p-5">
-        <Heading className="font-medium text-sm">{entry.name}</Heading>
+        <Heading className="text-sm font-medium">{entry.name}</Heading>
         <p className="text-muted-foreground text-sm">{entry.description}</p>
       </div>
     </a>
@@ -95,7 +95,7 @@ export function Showcase({
     <div className="space-y-16">
       <ShowcaseCard entry={SHOWCASE_DEMO} headingLevel="h2" />
       <div className="space-y-6">
-        <h2 className="font-medium text-xl">Community boards</h2>
+        <h2 className="text-xl font-medium">Community boards</h2>
         {SHOWCASE_COMMUNITY.length > 0 ? (
           <EntryGrid entries={SHOWCASE_COMMUNITY} headingLevel="h3" />
         ) : (
@@ -106,14 +106,14 @@ export function Showcase({
       </div>
       {SHOWCASE_TEAM.length > 0 ? (
         <div className="space-y-6">
-          <h2 className="font-medium text-xl">
+          <h2 className="text-xl font-medium">
             Built by the team behind Bordful
           </h2>
           <EntryGrid entries={SHOWCASE_TEAM} headingLevel="h3" />
         </div>
       ) : null}
       <div className="space-y-3">
-        <h2 className="font-medium text-xl">List your board</h2>
+        <h2 className="text-xl font-medium">List your board</h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
           Turn on &quot;List my board&quot; in Site settings, Showcase, and open
           an issue at{" "}

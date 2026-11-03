@@ -33,7 +33,7 @@ export async function BoardShell({
   const { social } = bordfulConfig;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="bg-background text-foreground flex min-h-screen flex-col">
       {HeaderSlot ? (
         <HeaderSlot />
       ) : (
@@ -50,7 +50,7 @@ export async function BoardShell({
         {fullBleed ? (
           children
         ) : (
-          <div className="mx-auto w-full max-w-board px-4 py-8">{children}</div>
+          <div className="max-w-board mx-auto w-full px-4 py-8">{children}</div>
         )}
       </main>
       {FooterSlot ? (

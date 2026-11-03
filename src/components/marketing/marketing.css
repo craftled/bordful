@@ -19,6 +19,7 @@
   --input: hsl(0 0% 90%);
   --ring: hsl(0 0% 0%);
   --radius: 0.5rem;
+  /* biome-ignore lint/suspicious/useBaseline: ui-sans-serif is a progressive fallback ahead of system-ui; browsers without it skip to the next family */
   font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   color: var(--foreground);
   color-scheme: light;

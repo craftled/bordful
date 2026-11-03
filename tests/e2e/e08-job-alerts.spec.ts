@@ -23,12 +23,15 @@ function emailSource(email: StoredEmail): string {
 
 function linkWith(email: StoredEmail, path: string): string {
   const source = emailSource(email);
-  const absolute = new RegExp(`https?:\\/\\/[^\\s"'<>]+${path}[^\\s"'<>]*`);
+  const absolute = new RegExp(
+    `https?:\\/\\/[^\\s"'<>]+${path}[^\\s"'<>]*`,
+    "u"
+  );
   const found = absolute.exec(source);
   if (found !== null) {
     return found[0];
   }
-  const relative = new RegExp(`${path}[^\\s"'<>]*`);
+  const relative = new RegExp(`${path}[^\\s"'<>]*`, "u");
   const rel = relative.exec(source);
   if (rel === null) {
     throw new Error(`missing ${path}`);

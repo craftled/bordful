@@ -61,13 +61,13 @@ export function Faq() {
           description="Short answers about the template, Bordfeed, and posting your own jobs."
           title="Frequently asked questions"
         />
-        <div className="mx-auto mt-8 w-full max-w-2xl divide-y divide-border/40">
+        <div className="divide-border/40 mx-auto mt-8 w-full max-w-2xl divide-y">
           {questions.map((item) => (
             <details className="py-1" key={item.question}>
-              <summary className="cursor-pointer py-4 font-medium text-sm">
+              <summary className="cursor-pointer py-4 text-sm font-medium">
                 {item.question}
               </summary>
-              <p className="pb-4 text-muted-foreground text-sm">
+              <p className="text-muted-foreground pb-4 text-sm">
                 {item.answer}
               </p>
             </details>

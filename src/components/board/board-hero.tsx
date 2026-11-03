@@ -56,7 +56,7 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0 space-y-1">
       <dt className="text-primary-foreground/80 text-xs">{label}</dt>
-      <dd className="break-words font-semibold text-sm md:text-base">
+      <dd className="text-sm font-semibold break-words md:text-base">
         {children}
       </dd>
     </div>
@@ -82,17 +82,17 @@ export function BoardHero({
 
   return (
     <section
-      className="bordful-inverse border-b bg-primary text-primary-foreground"
+      className="bordful-inverse bg-primary text-primary-foreground border-b"
       data-testid="board-hero"
     >
-      <div className="mx-auto w-full max-w-board space-y-6 px-4 py-8 md:py-12">
+      <div className="max-w-board mx-auto w-full space-y-6 px-4 py-8 md:py-12">
         <div className="max-w-2xl space-y-4">
           {badge ? (
-            <p className="inline-block rounded-full bg-white px-3 py-1 font-medium text-primary text-xs">
+            <p className="text-primary inline-block rounded-full bg-white px-3 py-1 text-xs font-medium">
               {badge}
             </p>
           ) : null}
-          <h1 className="font-[var(--font-heading)] font-semibold text-3xl tracking-tight md:text-4xl">
+          <h1 className="font-[var(--font-heading)] text-3xl font-semibold tracking-tight md:text-4xl">
             {title || DEFAULT_TITLE}
           </h1>
           <p className="text-primary-foreground/90">{intro || DEFAULT_INTRO}</p>

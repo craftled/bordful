@@ -29,7 +29,7 @@ export default function ChangelogPage() {
           <ol className="mt-16 space-y-12">
             {changelogEntries.map((entry) => (
               <li className="space-y-3" key={entry.version}>
-                <h2 className="font-medium text-xl">
+                <h2 className="text-xl font-medium">
                   {entry.href ? (
                     <a
                       className="underline-offset-4 hover:underline"
@@ -46,7 +46,7 @@ export default function ChangelogPage() {
                 <p className="text-muted-foreground text-sm">
                   {changelogDateLabel(entry)}
                 </p>
-                <ul className="list-disc space-y-2 pl-5 text-muted-foreground text-sm">
+                <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
                   {entry.bullets.map((bullet) => (
                     <li key={bullet}>{bullet}</li>
                   ))}

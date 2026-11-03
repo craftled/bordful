@@ -57,7 +57,7 @@ export function JobPosting({
           <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0 space-y-2">
               <h1
-                className="font-[var(--font-heading)] font-semibold text-2xl"
+                className="font-[var(--font-heading)] text-2xl font-semibold"
                 data-testid="job-title"
               >
                 {job.title}
@@ -76,7 +76,7 @@ export function JobPosting({
                 </p>
               )}
               {meta.length > 0 ? (
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground text-sm">
+                <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                   {meta.map((row, index) => (
                     <Fragment key={row.field}>
                       {index > 0 ? <span aria-hidden="true">•</span> : null}
@@ -88,7 +88,7 @@ export function JobPosting({
             </div>
             {applyHref ? (
               <a
-                className="hidden h-10 shrink-0 items-center justify-center gap-2 rounded-[var(--radius)] bg-primary px-4 font-medium text-primary-foreground text-sm hover:bg-primary/90 md:inline-flex"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 hidden h-10 shrink-0 items-center justify-center gap-2 rounded-[var(--radius)] px-4 text-sm font-medium md:inline-flex"
                 data-testid="job-apply-header"
                 href={applyHref}
                 rel="noopener noreferrer"
@@ -104,7 +104,7 @@ export function JobPosting({
           </div>
           {applyHref ? (
             <a
-              className="inline-flex h-10 items-center justify-center rounded-[var(--radius)] bg-primary px-4 font-medium text-primary-foreground text-sm hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-[var(--radius)] px-4 text-sm font-medium"
               data-testid="job-apply"
               href={applyHref}
               rel="noopener noreferrer"
@@ -117,14 +117,14 @@ export function JobPosting({
           {website || companyHref ? (
             <section
               aria-labelledby="about-company-title"
-              className="space-y-2 rounded-lg border border-border bg-background p-5"
+              className="border-border bg-background space-y-2 rounded-lg border p-5"
             >
-              <h2 className="font-semibold text-base" id="about-company-title">
+              <h2 className="text-base font-semibold" id="about-company-title">
                 About {job.companyName}
               </h2>
               {website ? (
                 <a
-                  className="block break-all text-sm hover:underline"
+                  className="block text-sm break-all hover:underline"
                   href={website}
                   rel="noopener noreferrer"
                 >

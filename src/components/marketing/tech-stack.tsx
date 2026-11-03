@@ -53,7 +53,7 @@ export function TechStack() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {stack.map((item) => (
             <div
-              className="flex items-start gap-4 rounded-lg border bg-background/50 p-5"
+              className="bg-background/50 flex items-start gap-4 rounded-lg border p-5"
               key={item.name}
             >
               {item.src ? (
@@ -65,12 +65,12 @@ export function TechStack() {
                   width={20}
                 />
               ) : (
-                <span className="flex h-5 w-5 items-center justify-center rounded-sm border font-medium text-[10px]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-sm border text-[10px] font-medium">
                   P
                 </span>
               )}
               <div>
-                <h3 className="mb-1 font-medium text-sm">{item.name}</h3>
+                <h3 className="mb-1 text-sm font-medium">{item.name}</h3>
                 <p className="text-muted-foreground text-sm">
                   {item.description}
                 </p>

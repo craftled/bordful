@@ -1,7 +1,7 @@
-const NUMERIC_IDENTIFIER = /^(?:0|[1-9]\d*)$/;
-const ALPHA_MARK = /[A-Za-z-]/;
+const NUMERIC_IDENTIFIER = /^(?:0|[1-9]\d*)$/u;
+const ALPHA_MARK = /[A-Za-z-]/u;
 const VERSION_PATTERN =
-  /^(?:v)?(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<pre>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
+  /^(?:v)?(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<pre>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/u;
 
 type IdentifierKind = "alpha" | "numeric";
 

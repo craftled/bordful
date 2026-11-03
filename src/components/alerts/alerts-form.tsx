@@ -53,7 +53,7 @@ export function AlertsForm({
       data-testid="alerts-form"
     >
       <div className="flex flex-col gap-2">
-        <h1 className="font-semibold text-3xl tracking-tight">Job Alerts</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Job Alerts</h1>
         <p className="text-muted-foreground">
           Get new jobs from this board by email. Weekly is the default, and
           daily is available.
@@ -95,7 +95,7 @@ export function AlertsForm({
           </div>
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 font-medium text-sm leading-none">
+            <legend className="mb-2 text-sm leading-none font-medium">
               Employment type
             </legend>
             {JOB_EMPLOYMENT_TYPES.map((type) => (
@@ -114,7 +114,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 font-medium text-sm leading-none">
+            <legend className="mb-2 text-sm leading-none font-medium">
               Work
             </legend>
             <label className={checkRowClass}>
@@ -142,7 +142,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 font-medium text-sm leading-none">
+            <legend className="mb-2 text-sm leading-none font-medium">
               Seniority
             </legend>
             {SENIORITIES.map((level) => (
@@ -161,7 +161,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 font-medium text-sm leading-none">
+            <legend className="mb-2 text-sm leading-none font-medium">
               Salary
             </legend>
             {SALARY_BAND_IDS.map((band, index) => (

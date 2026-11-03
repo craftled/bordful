@@ -67,7 +67,7 @@ export function BoardPagination({
       ) : (
         <span
           aria-disabled="true"
-          className={cn(CONTROL, "pointer-events-none text-muted-foreground")}
+          className={cn(CONTROL, "text-muted-foreground pointer-events-none")}
         >
           <ChevronLeft aria-hidden="true" className="size-4" />
           Previous
@@ -77,7 +77,7 @@ export function BoardPagination({
         slot === "gap" ? (
           <span
             aria-hidden="true"
-            className="px-2 text-muted-foreground text-sm"
+            className="text-muted-foreground px-2 text-sm"
             // biome-ignore lint/suspicious/noArrayIndexKey: a gap never reorders, so its position is a stable key
             key={`gap-${index}`}
           >
@@ -113,7 +113,7 @@ export function BoardPagination({
       ) : (
         <span
           aria-disabled="true"
-          className={cn(CONTROL, "pointer-events-none text-muted-foreground")}
+          className={cn(CONTROL, "text-muted-foreground pointer-events-none")}
         >
           Next
           <ChevronRight aria-hidden="true" className="size-4" />

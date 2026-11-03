@@ -7,7 +7,7 @@ export const PREVIEW_WORKPLACE_TYPES = ["Remote", "Hybrid", "On-site"] as const;
 export const previewQuerySchema = z.strictObject({
   category: z.array(z.string().trim().min(1).max(100)).max(3).default([]),
   country_code: z
-    .array(z.string().regex(/^[A-Z]{2}$/))
+    .array(z.string().regex(/^[A-Z]{2}$/u))
     .max(5)
     .default([]),
   limit: z.number().int().min(1).max(20).default(10),

@@ -44,7 +44,7 @@ export default async function CompanyPage({
       <div className="space-y-6">
         <header className="space-y-2">
           <h1
-            className="font-[var(--font-heading)] font-semibold text-3xl"
+            className="font-[var(--font-heading)] text-3xl font-semibold"
             data-testid="company-name"
           >
             {loaded.company.name}

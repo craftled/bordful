@@ -1,7 +1,7 @@
 import type { BordfeedCompanyEmbed } from "./job-schema";
 
-const HOSTNAME = /^[a-z0-9.-]+\.[a-z]{2,}$/;
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const HOSTNAME = /^[a-z0-9.-]+\.[a-z]{2,}$/u;
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
 export interface MappedCompany {
   bordfeedCompanyId: string | null;
@@ -23,11 +23,11 @@ function trimToNull(value: string | null | undefined): string | null {
 export function slugify(value: string): string {
   return value
     .normalize("NFKD")
-    .replaceAll(/[\u0300-\u036f]/g, "")
+    .replaceAll(/[\u0300-\u036f]/gu, "")
     .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/^-+|-+$/g, "")
-    .replaceAll(/-{2,}/g, "-");
+    .replaceAll(/[^a-z0-9]+/gu, "-")
+    .replaceAll(/^-+|-+$/gu, "")
+    .replaceAll(/-{2,}/gu, "-");
 }
 
 export function httpUrl(value: string | null | undefined): string | null {
@@ -63,7 +63,7 @@ export function normalizeDomain(
         }
       })()
     : raw;
-  const normalized = host.trim().toLowerCase().replaceAll(/\.$/g, "");
+  const normalized = host.trim().toLowerCase().replaceAll(/\.$/gu, "");
   return HOSTNAME.test(normalized) ? normalized : null;
 }
 

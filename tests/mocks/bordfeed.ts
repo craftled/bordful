@@ -39,11 +39,11 @@ const PREVIEW_PARAMS = new Set([
   "limit",
   "workplace_type",
 ]);
-const ISO2 = /^[A-Z]{2}$/;
-const DIGITS = /^\d+$/;
-const PREVIEW_PATH = /^\/api\/v1\/templates\/([^/]+)\/preview$/;
-const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/;
-const JOB_PATH = /^\/api\/v1\/jobs\/([^/]+)$/;
+const ISO2 = /^[A-Z]{2}$/u;
+const DIGITS = /^\d+$/u;
+const PREVIEW_PATH = /^\/api\/v1\/templates\/(?<templateId>[^/]+)\/preview$/u;
+const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/u;
+const JOB_PATH = /^\/api\/v1\/jobs\/(?<jobId>[^/]+)$/u;
 
 const WORKPLACES = new Set(["Remote", "Hybrid", "On-site"]);
 // Default page when no limit is sent. Live caps limit at 100.
@@ -51,7 +51,7 @@ const FEED_PAGE = 10;
 const FEED_LIMIT_MAX = 100;
 const FEED_TOTAL = 25;
 const FEED_BASE_UPDATED_AT = Date.parse("2026-01-15T12:00:00.000Z");
-const CURSOR = /^c(\d+)$/;
+const CURSOR = /^c(?<offset>\d+)$/u;
 const PREVIEW_TOTAL = 20;
 const STARTING_CREDITS = 2000;
 const CODE_TTL_SECONDS = 600;
@@ -354,7 +354,7 @@ function feedStart(url: URL): number | null {
   const cursor = url.searchParams.get("cursor");
   if (cursor !== null) {
     const match = CURSOR.exec(cursor);
-    return match ? Number(match[1]) : null;
+    return match ? Number(match.groups?.offset) : null;
   }
 
   const offsetRaw = url.searchParams.get("offset");
@@ -550,8 +550,9 @@ export function createBordfeedMock(
       return new Response("not found", { status: 404 });
     }
 
-    const [, rawTemplateId] = previewMatch;
-    const templateId = decodeURIComponent(rawTemplateId ?? "");
+    const templateId = decodeURIComponent(
+      previewMatch.groups?.templateId ?? ""
+    );
     const template = templateById(templateId);
     if (template === null) {
       sequence += 1;
@@ -922,8 +923,8 @@ export function createBordfeedMock(
       return handleFeedJobs(request, url);
     }
     const jobMatch = JOB_PATH.exec(url.pathname);
-    if (jobMatch?.[1]) {
-      return handleJob(request, decodeURIComponent(jobMatch[1]));
+    if (jobMatch?.groups?.jobId) {
+      return handleJob(request, decodeURIComponent(jobMatch.groups.jobId));
     }
     return handleTemplates(url);
   }

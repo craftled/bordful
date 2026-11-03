@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 
 import type { Payload } from "payload";
 
-const INSTALL_ID = /^[a-f0-9]{64}$/;
+const INSTALL_ID = /^[a-f0-9]{64}$/u;
 
 export async function ensureInstallId(payload: Payload): Promise<string> {
   const current = await payload.findGlobal({

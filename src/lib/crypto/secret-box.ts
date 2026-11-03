@@ -1,6 +1,6 @@
 import type { Payload } from "payload";
 
-const ENVELOPE = /^v1:[0-9a-f]{16}:[^:]+:[^:]+:[^:]+$/;
+const ENVELOPE = /^v1:[0-9a-f]{16}:[^:]+:[^:]+:[^:]+$/u;
 
 export function encryptSecret(payload: Payload, plain: string): string {
   return payload.encrypt(plain);

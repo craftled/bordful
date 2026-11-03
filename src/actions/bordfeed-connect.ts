@@ -36,7 +36,7 @@ const connectFields = z.strictObject({
 });
 
 const codeFields = z.strictObject({
-  code: z.string().regex(/^\d{6}$/),
+  code: z.string().regex(/^\d{6}$/u),
 });
 
 const keyFields = z.strictObject({

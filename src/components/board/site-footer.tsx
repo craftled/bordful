@@ -47,19 +47,19 @@ export function SiteFooter({
     <footer className="bg-foreground text-background" data-testid="site-footer">
       {showCta ? (
         <div className="bordful-inverse border-background/20 border-b">
-          <div className="mx-auto flex w-full max-w-board flex-wrap items-center justify-between gap-6 px-4 py-10">
+          <div className="max-w-board mx-auto flex w-full flex-wrap items-center justify-between gap-6 px-4 py-10">
             <div>
-              <h2 className="font-semibold text-xl">
+              <h2 className="text-xl font-semibold">
                 Post a Job for {durationDays} Days
               </h2>
-              <p className="mt-1 text-background text-sm">
+              <p className="text-background mt-1 text-sm">
                 {priceLabel
                   ? `${priceLabel} per listing. Reach candidates browsing this board.`
                   : "Reach candidates browsing this board."}
               </p>
             </div>
             <Link
-              className="inline-flex h-9 items-center rounded-md bg-primary px-4 font-medium text-primary-foreground text-sm hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center rounded-md px-4 text-sm font-medium"
               href="/post"
             >
               Post a Job
@@ -67,10 +67,10 @@ export function SiteFooter({
           </div>
         </div>
       ) : null}
-      <div className="bordful-inverse mx-auto w-full max-w-board px-4 py-10">
+      <div className="bordful-inverse max-w-board mx-auto w-full px-4 py-10">
         <div className="flex flex-wrap gap-x-16 gap-y-10">
           <div className="max-w-xs space-y-4">
-            <div className="flex items-center gap-2 font-semibold text-base">
+            <div className="flex items-center gap-2 text-base font-semibold">
               {logoUrl ? (
                 // biome-ignore lint/performance/noImgElement: footer logo is a native img at 28px
                 <img
@@ -92,8 +92,8 @@ export function SiteFooter({
           </div>
           {columns.map((column) => (
             <nav aria-label={column.title} key={column.id}>
-              <h2 className="font-semibold text-sm">{column.title}</h2>
-              <ul className="mt-3 space-y-2 text-background text-sm">
+              <h2 className="text-sm font-semibold">{column.title}</h2>
+              <ul className="text-background mt-3 space-y-2 text-sm">
                 {column.items.map((item) => (
                   <li className="flex items-center gap-2" key={item.id}>
                     {FEED_IDS.has(item.id) ? (
@@ -107,7 +107,7 @@ export function SiteFooter({
                       </Link>
                     )}
                     {FEED_PILLS[item.id] ? (
-                      <span className="rounded border border-background/30 px-1.5 text-[10px] uppercase leading-4">
+                      <span className="border-background/30 rounded border px-1.5 text-[10px] leading-4 uppercase">
                         {FEED_PILLS[item.id]}
                       </span>
                     ) : null}
@@ -117,7 +117,7 @@ export function SiteFooter({
             </nav>
           ))}
         </div>
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-background/20 border-t pt-6 text-background text-sm">
+        <div className="border-background/20 text-background mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6 text-sm">
           <p>
             © {year} {name}
           </p>

@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 
 import type { Page } from "@playwright/test";
 
-const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
-const NONCE_VALUE = /(?:^|\s)nonce\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i;
-const POLICY_NONCE = /'nonce-([^']+)'/;
+const SCRIPT_TAG = /<script\b(?<attrs>[^>]*)>(?<body>[\s\S]*?)<\/script>/giu;
+const NONCE_VALUE =
+  /(?:^|\s)nonce\s*=\s*(?:"(?<double>[^"]*)"|'(?<single>[^']*)'|(?<bare>[^\s"'>]+))/iu;
+const POLICY_NONCE = /'nonce-(?<nonce>[^']+)'/u;
 
 export interface HtmlScript {
   attrs: string;
@@ -12,17 +13,25 @@ export interface HtmlScript {
 }
 
 export function readScripts(html: string): HtmlScript[] {
-  const pattern = new RegExp(SCRIPT_TAG.source, "gi");
+  const pattern = new RegExp(SCRIPT_TAG.source, "giu");
   const scripts: HtmlScript[] = [];
   for (const match of html.matchAll(pattern)) {
-    scripts.push({ attrs: match[1] ?? "", body: match[2] ?? "" });
+    scripts.push({
+      attrs: match.groups?.attrs ?? "",
+      body: match.groups?.body ?? "",
+    });
   }
   return scripts;
 }
 
 export function nonceFromAttributes(attrs: string): string | null {
   const match = NONCE_VALUE.exec(attrs);
-  return match?.[1] ?? match?.[2] ?? match?.[3] ?? null;
+  return (
+    match?.groups?.double ??
+    match?.groups?.single ??
+    match?.groups?.bare ??
+    null
+  );
 }
 
 export function sha256Base64(body: string): string {
@@ -31,7 +40,7 @@ export function sha256Base64(body: string): string {
 
 export function nonceFromPolicy(policy: string): string | null {
   const match = POLICY_NONCE.exec(policy);
-  return match?.[1] ?? null;
+  return match?.groups?.nonce ?? null;
 }
 
 export async function installCspProbe(page: Page): Promise<void> {

@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-const httpsUrl = z.url({ protocol: /^https$/ });
+const httpsUrl = z.url({ protocol: /^https$/u });
 
 const CRON_FIELD =
-  /^(?:\*|(?:\*|\d{1,2})(?:-\d{1,2})?(?:\/\d{1,2})?|\d{1,2}(?:,\d{1,2})*)$/;
-const STEP_FROM_NUMBER = /^\d+\/\d+$/;
+  /^(?:\*|(?:\*|\d{1,2})(?:-\d{1,2})?(?:\/\d{1,2})?|\d{1,2}(?:,\d{1,2})*)$/u;
+const STEP_FROM_NUMBER = /^\d+\/\d+$/u;
 
 function isFiveFieldCron(value: string): boolean {
   const fields = value.split(" ");

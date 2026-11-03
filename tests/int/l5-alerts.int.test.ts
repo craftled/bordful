@@ -1,26 +1,6 @@
 import { existsSync } from "node:fs";
 
 import { beforeAll, expect, test } from "vitest";
-
-if (existsSync(".env")) {
-  process.loadEnvFile(".env");
-}
-
-const databaseUrl = process.env.DATABASE_URL_TEST;
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL_TEST is required for test:int");
-}
-
-const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
-if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
-  throw new Error(
-    `DATABASE_URL_TEST database must end with _int or _test (${databaseName})`
-  );
-}
-
-process.env.DATABASE_URL = databaseUrl;
-process.env.RESEND_API_KEY = "re_test_fake";
-
 import { resolveServerUrl } from "@/config/server-url";
 import { periodKey, runAlertDigests } from "@/lib/alerts/digest";
 import { alertQueryJson } from "@/lib/alerts/query";
@@ -37,13 +17,32 @@ import type { Job } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
 import { loadBoardFixture } from "../fixtures/load";
 
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
+
+const databaseUrl = process.env.DATABASE_URL_TEST;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL_TEST is required for test:int");
+}
+
+const databaseName = new URL(databaseUrl).pathname.replace(/^\//u, "");
+if (!(databaseName.endsWith("_int") || databaseName.endsWith("_test"))) {
+  throw new Error(
+    `DATABASE_URL_TEST database must end with _int or _test (${databaseName})`
+  );
+}
+
+process.env.DATABASE_URL = databaseUrl;
+process.env.RESEND_API_KEY = "re_test_fake";
+
 const { getPayload } = await import("payload");
 const { default: config } = await import("@payload-config");
 
 const payload = await getPayload({ config });
 
 const INBOX_MESSAGE = "Check your inbox to confirm your job alerts.";
-const CONFIRM_TOKEN = /[?&]token=([A-Za-z0-9_-]+)/;
+const CONFIRM_TOKEN = /[?&]token=(?<token>[A-Za-z0-9_-]+)/u;
 
 interface CapturedEmail {
   idempotencyKey: string;
@@ -65,10 +64,10 @@ function recordingSender(target: CapturedEmail[], delayMs = 0): AlertSender {
 
 function tokenFrom(message: OutgoingEmail): string {
   const match = message.text.match(CONFIRM_TOKEN);
-  if (!match?.[1]) {
+  if (!match?.groups?.token) {
     throw new Error("confirmation email is missing a token");
   }
-  return match[1];
+  return match.groups.token;
 }
 
 beforeAll(async () => {

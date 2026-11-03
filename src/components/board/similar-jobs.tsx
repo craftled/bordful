@@ -10,14 +10,14 @@ export function SimilarJobs({ jobs }: { jobs: readonly JobListItem[] }) {
 
   return (
     <section aria-labelledby="similar-jobs-title" className="space-y-3">
-      <h2 className="font-semibold text-base" id="similar-jobs-title">
+      <h2 className="text-base font-semibold" id="similar-jobs-title">
         Similar jobs
       </h2>
       <ul className="space-y-3">
         {jobs.map((job) => (
           <li key={job.id}>
             <Link
-              className="font-medium text-sm hover:underline"
+              className="text-sm font-medium hover:underline"
               href={buildJobPath(job.slug)}
             >
               {job.title}
