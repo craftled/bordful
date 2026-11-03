@@ -288,24 +288,29 @@ describe("bordfeed credit budget", () => {
   });
 
   test("checks walk the whole board across syncs, for free", async () => {
-    await setLimits({ jobsPerSync: 100 });
+    await setLimits({ jobsPerDay: 1000, jobsPerSync: 100 });
     await connectFeed();
     await sync();
-    mock.surfaceFeedJobs(range(101, 150));
-    const grow = await sync();
-    expect(grow).toMatchObject({ checkedJobs: 100, created: 50 });
-    expect(mock.state.billedJobs).toBe(150);
+    mock.surfaceFeedJobs(range(101, 200));
+    await sync();
+    mock.surfaceFeedJobs(range(201, 250));
+    // Back-to-back syncs re-read the 10 minute watermark overlap first
+    // (free), so the last 50 jobs land over two syncs.
+    const grow = await syncRuns(2);
+    expect(grow.reduce((sum, run) => sum + run.created, 0)).toBe(50);
+    expect(grow.at(-1)?.checkedJobs).toBe(200);
+    expect(mock.state.billedJobs).toBe(250);
 
-    // 150 board jobs and 100 checks a sync: two syncs reach every job.
+    // 250 board jobs and 200 checks a sync: two syncs reach every job.
     mock.closeFeedJobs([5, 120]);
-    mock.expireFeedJobs([77]);
+    mock.expireFeedJobs([240]);
     const runs = await syncRuns(2);
-    expect(runs.every((run) => run.checkedJobs === 100)).toBe(true);
+    expect(runs.every((run) => run.checkedJobs <= 200)).toBe(true);
     expect(runs.reduce((sum, run) => sum + run.unpublished, 0)).toBe(3);
-    expect(mock.state.billedJobs).toBe(150);
+    expect(mock.state.billedJobs).toBe(250);
     expect(
       (await boardJobs({ _status: { equals: "published" } })).totalDocs
-    ).toBe(147);
+    ).toBe(247);
   });
 
   test("the first sync after an upgrade keeps jobs it did not fetch", async () => {

@@ -441,3 +441,23 @@ test("checkJob never reads a 404 without Bordfeed's not_found as gone", async ()
   expect(error).toBeInstanceOf(BordfeedApiError);
   expect(error).toMatchObject({ code: "invalid_response", status: 404 });
 });
+
+test("a dropped connection on a read is retried once", async () => {
+  const time = clock();
+  let fetches = 0;
+  const fetchImpl: typeof fetch = () => {
+    fetches += 1;
+    if (fetches === 1) {
+      return Promise.reject(new TypeError("fetch failed"));
+    }
+    return Promise.resolve(jsonResponse({ data: job("a"), jobs_charged: 0 }));
+  };
+  const result = await client({
+    fetch: fetchImpl,
+    now: time.now,
+    sleep: time.sleep,
+  }).checkJob("a");
+  expect(result).toEqual({ charged: 0, status: "active" });
+  expect(fetches).toBe(2);
+  expect(time.sleeps).toContain(1000);
+});

@@ -22,11 +22,15 @@ export class BordfeedApiError extends Error {
   }
 }
 
+export const EMPTY_FEED_MESSAGE =
+  "The Bordfeed feed came back empty, so the board kept its current jobs.";
+
+export const MASS_REMOVAL_MESSAGE =
+  "Bordfeed reported most of the checked jobs as gone, so the board kept them published. If the feed really changed, reconnect it in the Bordfeed Connection settings.";
+
 export class SyncGuardError extends Error {
-  constructor() {
-    super(
-      "The Bordfeed feed came back empty, so the board kept its current jobs."
-    );
+  constructor(message = EMPTY_FEED_MESSAGE) {
+    super(message);
     this.name = "SyncGuardError";
   }
 }
@@ -106,12 +110,7 @@ export function toSafeError(error: unknown, now = new Date()): SafeError {
   const at = now.toISOString();
 
   if (error instanceof SyncGuardError) {
-    return {
-      at,
-      code: "invalid_response",
-      message:
-        "The Bordfeed feed came back empty, so the board kept its current jobs.",
-    };
+    return { at, code: "invalid_response", message: error.message };
   }
 
   if (error instanceof BordfeedApiError) {

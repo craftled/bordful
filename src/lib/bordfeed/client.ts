@@ -25,6 +25,9 @@ import type {
 const DEFAULT_MIN_INTERVAL_MS = 500;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const MAX_WAIT_SECONDS = 10;
+const NETWORK_RETRY_MS = 1000;
+// One slow request must not eat the cron's 300 s budget.
+const REQUEST_TIMEOUT_MS = 30_000;
 const FEED_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -291,7 +294,12 @@ export function createBordfeedClient(
         body: init.body,
         headers: headers(init.body !== undefined),
         method: init.method ?? "GET",
-        signal: options.signal,
+        signal: options.signal
+          ? AbortSignal.any([
+              options.signal,
+              AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            ])
+          : AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch {
       return null;
@@ -320,6 +328,15 @@ export function createBordfeedClient(
     await pace();
     const response = await call(target, init);
     if (!response) {
+      // A read is safe to repeat, so a dropped connection gets one retry.
+      if (
+        (init.method ?? "GET") === "GET" &&
+        attempt === 1 &&
+        maxAttempts > 1
+      ) {
+        await sleep(NETWORK_RETRY_MS);
+        return request(target, init, attempt + 1);
+      }
       throw apiError({ code: "network", status: 0 });
     }
 

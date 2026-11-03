@@ -11,7 +11,11 @@ import {
   dispatchConnectionEvent,
   readConnection,
 } from "@/lib/bordfeed/connection-store";
-import { BordfeedApiError, SyncGuardError } from "@/lib/bordfeed/errors";
+import {
+  BordfeedApiError,
+  MASS_REMOVAL_MESSAGE,
+  SyncGuardError,
+} from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
@@ -358,7 +362,7 @@ describe("bordfeed sync", () => {
     expect(base.queries.at(-1)?.limit).toBe(49);
   });
 
-  test("a failed check keeps the jobs and skips the feed read", async () => {
+  test("a failed check keeps the jobs and still adds new ones", async () => {
     await connectFeed();
     await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
 
@@ -375,9 +379,50 @@ describe("bordfeed sync", () => {
         ),
     };
     await expect(runFeedSync(payload, { client: failing })).rejects.toThrow();
-    expect(base.queries).toHaveLength(0);
+    expect(base.queries).toHaveLength(1);
+    const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
+    expect(published.totalDocs).toBe(30);
+  });
+
+  test("most checked jobs gone unpublishes nothing and says so", async () => {
+    await connectFeed();
+    const jobs = feedJobs(25);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+
+    // 15 of 25 gone at once looks like a Bordfeed incident, not churn.
+    const error = await runFeedSync(payload, {
+      client: feedClient([], jobs.slice(0, 15)),
+    }).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(SyncGuardError);
+    expect(error).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
     const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
     expect(published.totalDocs).toBe(25);
+    const connection = await readConnection(payload);
+    expect(connection.lastError?.message).toBe(MASS_REMOVAL_MESSAGE);
+
+    // A normal share of closures is still unpublished.
+    const next = await runFeedSync(payload, {
+      client: feedClient([], jobs.slice(0, 5)),
+    });
+    expect(next.unpublished).toBe(5);
+  });
+
+  test("checks stop at their time limit", async () => {
+    await connectFeed();
+    await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
+
+    // Every clock read moves 10 s, so the 120 s check budget runs out early.
+    let time = Date.parse("2026-11-03T06:00:00.000Z");
+    const now = () => {
+      time += 10_000;
+      return new Date(time);
+    };
+    const run = await runFeedSync(payload, {
+      client: feedClient(feedJobs(25)),
+      now,
+    });
+    expect(run.checkedJobs).toBeGreaterThan(0);
+    expect(run.checkedJobs).toBeLessThan(25);
   });
 
   test("an empty first feed keeps the samples and records an error", async () => {

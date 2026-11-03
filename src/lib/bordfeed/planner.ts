@@ -289,8 +289,8 @@ function placeIncoming(
 }
 
 // Feed syncs fetch one capped page or only changed jobs, so a job missing
-// from the response says nothing. Only ids Bordfeed reports closed or
-// expired are unpublished.
+// from the response says nothing. Only ids Bordfeed's job lookup no longer
+// shows are unpublished.
 function removedPublishedFeed(
   row: ExistingRow,
   seen: Set<string>,
@@ -353,7 +353,7 @@ export function planSync(input: {
   existing: ExistingRow[];
   incoming: MappedJob[];
   mode: "feed" | "sample";
-  // Bordfeed ids reported closed or expired. Feed mode unpublishes these.
+  // Bordfeed ids its job lookup no longer shows. Feed mode unpublishes these.
   removedIds?: ReadonlySet<string>;
   takenSlugs: Set<string>;
 }): SyncPlan {

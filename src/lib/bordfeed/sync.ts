@@ -13,7 +13,12 @@ import { type BordfeedClient, createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
 import type { ConnectionRecord } from "./connection-machine";
 import { dispatchConnectionEvent, readConnection } from "./connection-store";
-import { BordfeedApiError, SyncGuardError, toSafeError } from "./errors";
+import {
+  BordfeedApiError,
+  MASS_REMOVAL_MESSAGE,
+  SyncGuardError,
+  toSafeError,
+} from "./errors";
 import type { BordfeedJob } from "./job-schema";
 import { openApiKey } from "./key";
 import { companyKey, type MappedCompany } from "./map-company";
@@ -1060,14 +1065,26 @@ async function nextBoardJobs(
   return [...tail, ...head.filter((id) => id <= after)];
 }
 
+interface CheckContext {
+  // Checks stop here, so the feed read and the board write still fit in
+  // the cron's 300 s.
+  deadline: number;
+  now: () => Date;
+  save: SaveState;
+  startedAt: Date;
+}
+
+// Checks spend at most this long per sync.
+const CHECK_TIME_MS = 120_000;
+
 async function checkEach(
   client: BordfeedClient,
   ids: string[],
   run: CheckRun,
-  context: { save: SaveState; startedAt: Date }
+  context: CheckContext
 ): Promise<CheckRun> {
   const [id, ...rest] = ids;
-  if (id === undefined) {
+  if (id === undefined || context.now().getTime() >= context.deadline) {
     return run;
   }
 
@@ -1098,6 +1115,27 @@ async function checkEach(
   return next;
 }
 
+// When at least this many jobs were checked and more than half are gone,
+// Bordfeed is more likely wrong than the board. Unpublishing is permanent,
+// so the sync then unpublishes nothing and reports it.
+const MASS_REMOVAL_MIN_CHECKS = 20;
+
+function guardMassRemoval(run: CheckRun, checkAfter: string | null): CheckRun {
+  if (
+    run.checked < MASS_REMOVAL_MIN_CHECKS ||
+    run.removedIds.size * 2 <= run.checked
+  ) {
+    return run;
+  }
+
+  return {
+    ...run,
+    checkAfter,
+    error: run.error ?? new SyncGuardError(MASS_REMOVAL_MESSAGE),
+    removedIds: new Set(),
+  };
+}
+
 // Looks up the next slice of the board's published Bordfeed jobs by id and
 // collects the ones Bordfeed no longer shows. Bordfeed answers 404 for a job
 // that is not active before any charge, and a job the workspace already
@@ -1107,10 +1145,10 @@ async function checkBoardJobs(
   client: BordfeedClient,
   plan: Extract<FetchPlan, { kind: "delta" }>,
   state: SyncState,
-  context: { save: SaveState; startedAt: Date }
+  context: CheckContext
 ): Promise<CheckRun> {
   const ids = await nextBoardJobs(payload, plan.checkAfter, plan.checks);
-  return checkEach(
+  const run = await checkEach(
     client,
     ids,
     {
@@ -1122,6 +1160,7 @@ async function checkBoardJobs(
     },
     context
   );
+  return guardMassRemoval(run, plan.checkAfter);
 }
 
 async function firstSync(
@@ -1187,13 +1226,11 @@ async function syncFeedWithBudget(
   }
 
   const context = { save, startedAt };
-  const checks = await checkBoardJobs(
-    payload,
-    client,
-    plan,
-    budget.state,
-    context
-  );
+  const checks = await checkBoardJobs(payload, client, plan, budget.state, {
+    ...context,
+    deadline: startedAt.getTime() + CHECK_TIME_MS,
+    now: clockOf(deps),
+  });
   const additions = await readAdditions(client, feedId, plan, checks, context);
   const state = additions.read?.state ?? checks.state;
   const summary = await runSync(
@@ -1232,8 +1269,8 @@ async function syncFeedWithBudget(
 }
 
 // New jobs get the sync's budget, less any credit a check was billed. They
-// are skipped when a check failed. A failure here still lets the checks
-// already made be applied.
+// do not depend on the checks, so a failed check never holds them back. A
+// failure here still lets the checks already made be applied.
 async function readAdditions(
   client: BordfeedClient,
   feedId: string,
@@ -1241,10 +1278,6 @@ async function readAdditions(
   checks: CheckRun,
   context: { save: SaveState; startedAt: Date }
 ): Promise<{ error?: unknown; read: SeriesRead | null }> {
-  if (checks.error !== undefined) {
-    return { read: null };
-  }
-
   try {
     const read = await readSeries(
       client,

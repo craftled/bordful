@@ -78,12 +78,13 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 
 - The first sync after you connect fetches one page of the newest jobs: `jobsPerSync` jobs, 50 by default. It does not page through the rest of the feed, and it does not unpublish jobs that are not in that page.
 - Every later sync does two things:
-  - **Checks the board's jobs.** It looks up the next 100 published Bordfeed jobs on the board by id (`GET /api/v1/jobs/{id}`) and unpublishes the ones Bordfeed no longer shows, whether they closed, expired, filled or were archived. Unpublished jobs are not deleted. The next sync goes on from where this one stopped and wraps to the start, so a board of up to 100 Bordfeed jobs is fully checked every sync, and a board of 300 every three syncs.
+  - **Checks the board's jobs.** It looks up the next 200 published Bordfeed jobs on the board by id (`GET /api/v1/jobs/{id}`) and unpublishes the ones Bordfeed no longer shows, whether they closed, expired, filled or were archived. Unpublished jobs are not deleted. The next sync goes on from where this one stopped and wraps to the start, so a board of up to 200 Bordfeed jobs is fully checked every sync. With the daily cron, a board of 1,000 Bordfeed jobs notices a closed job within 5 days, and a board of 2,000 within 10. Jobs past their own expiry date (`valid_through`) are also handled by the board's expire cron.
   - **Adds new jobs.** It reads jobs that first appeared in the feed since the last sync (`since_field=first_visible`) and adds them, up to `jobsPerSync`.
 - A job already on the board is not fetched again when Bordfeed edits it. Bordfeed touches `updated_at` on routine scrapes, so asking for every updated job would refetch most of the feed each day.
 - If more new jobs appeared than `jobsPerSync`, the next sync continues from where this one stopped. The `since` point moves forward only after all of them are read, so no new job is skipped. A sync adds at most `jobsPerSync` jobs, so on a busy feed raise `jobsPerSync` or run the sync more often (the `/api/cron/bordfeed` schedule in `vercel.json`, which some Vercel plans limit to once a day).
 - A job that closes and later reopens keeps its first-appeared time, so it does not come back as a new job. It stays unpublished.
-- Checks run one request at a time, about two a second, to stay inside Bordfeed's rate limit. A sync with 100 checks takes about a minute.
+- Checks run one request at a time, about two a second, to stay inside Bordfeed's rate limit. A sync with 200 checks takes about 100 seconds, and checks stop after 120 seconds so the rest of the sync fits in the cron's time limit. A failed check never holds back new jobs.
+- Unpublishing is permanent, so the sync guards against a Bordfeed incident: if at least 20 jobs were checked and more than half came back gone, it unpublishes nothing and the admin shows: "Bordfeed reported most of the checked jobs as gone, so the board kept them published." If the feed really changed, reconnect it.
 - Sample jobs are replaced when you connect, not unpublished one by one.
 
 ## Credits per sync

@@ -51,8 +51,9 @@ export interface TrackPlan {
 }
 
 // Board jobs one sync looks up. Free, but each is one request, and the
-// client paces requests 500 ms apart, so 100 checks take about a minute.
-export const JOB_CHECKS_PER_SYNC = 100;
+// client paces requests 500 ms apart (Bordfeed's free tier allows 2 a
+// second), so 200 checks take about 100 s. Checks also stop after 120 s.
+export const JOB_CHECKS_PER_SYNC = 200;
 
 export type FetchPlan =
   | { kind: "skip"; reason: "daily_cap" }
