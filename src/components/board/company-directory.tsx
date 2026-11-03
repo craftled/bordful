@@ -21,14 +21,14 @@ export function CompanyDirectory({ rows }: { rows: CompanyIndexRow[] }) {
       : rows.filter((row) => row.name.toLowerCase().includes(needle));
 
   return (
-    <div className="space-y-6">
+    <div className="contents">
       <div>
         <label className="sr-only" htmlFor={inputId}>
           Search companies
         </label>
         <input
           autoComplete="off"
-          className="bg-card ring-line-strong text-foreground placeholder:text-subtle focus-visible:ring-foreground/40 h-10 w-full rounded-md px-3 text-[14px] ring-1 outline-none md:max-w-[420px]"
+          className="bg-card ring-line-strong text-foreground placeholder:text-subtle focus-visible:ring-foreground/40 h-10 w-full rounded-md px-3 text-[14px] leading-[18px] ring-1 outline-none md:max-w-[420px]"
           data-testid="company-search"
           id={inputId}
           onChange={onChange}

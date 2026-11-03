@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { HINT_CLASS, RowSaveButton } from "@/components/board/job-row-save";
+import { RowSaveButton } from "@/components/board/job-row-save";
+import { HINT_CLASS } from "@/components/board/rail-styles";
 import { RelativeTime } from "@/components/board/relative-time";
 import { customSlots } from "@/custom";
 import {
@@ -98,7 +99,7 @@ export function StatusPill({ status }: { status: JobStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-[6px] px-1.5 text-[11px] leading-4 font-medium",
+        "inline-flex shrink-0 items-center rounded-[8px] px-1.5 text-[11px] leading-4 font-medium",
         STATUS_CLASS[status]
       )}
       data-status={status}
@@ -114,7 +115,7 @@ function CompanyLogo({ job }: { job: JobListItem }) {
   return (
     <span
       aria-hidden="true"
-      className="bg-tag text-muted-foreground flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] text-[14px] font-medium [grid-area:logo] lg:size-7 lg:rounded-[7px] lg:text-[12px]"
+      className="bg-tag text-muted-foreground lg:group-data-[selected=true]/row:bg-foreground lg:group-data-[selected=true]/row:text-background flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] text-[14px] font-medium [grid-area:logo] lg:size-7 lg:rounded-[7px] lg:text-[12px]"
     >
       {job.companyLogoUrl ? (
         // biome-ignore lint/performance/noImgElement: a 28px company mark, served as-is
@@ -137,11 +138,11 @@ function CompanyLogo({ job }: { job: JobListItem }) {
 // salary with the status pill. Desktop: title with the pill, company line
 // below, the hover hints, then salary and age stacked on the right.
 const ROW_GRID =
-  "grid grid-cols-[2.25rem_minmax(0,max-content)_minmax(0,1fr)_auto] gap-x-3 [grid-template-areas:'logo_title_title_time'_'logo_meta_meta_meta'_'logo_salary_badges_badges'] lg:h-[60px] lg:grid-cols-[1.75rem_minmax(0,max-content)_minmax(0,1fr)_auto_auto] lg:items-center lg:gap-x-1.5 lg:[grid-template-areas:'logo_title_badges_hints_salary'_'logo_meta_meta_hints_time']";
+  "grid grid-cols-[2.25rem_minmax(0,max-content)_minmax(0,1fr)_auto] gap-x-3 [grid-template-areas:'logo_title_title_time'_'logo_meta_meta_meta'_'logo_salary_badges_badges'] lg:h-[60px] lg:grid-cols-[2.125rem_minmax(0,max-content)_minmax(0,1fr)_auto_auto] lg:content-center lg:items-center lg:gap-x-1.5 lg:gap-y-0.5 lg:[grid-template-areas:'logo_title_badges_hints_salary'_'logo_meta_meta_hints_time']";
 
 // The board's preview script marks the open row with data-selected.
 const ROW_SELECTED =
-  "group-data-[selected=true]/row:bg-card group-data-[selected=true]/row:ring-line group-data-[selected=true]/row:ring-1 group-data-[selected=true]/row:shadow-xs lg:group-data-[selected=true]/row:before:bg-foreground lg:before:absolute lg:before:top-1/2 lg:before:-left-[11px] lg:before:h-6 lg:before:w-[3px] lg:before:-translate-y-1/2 lg:before:rounded-full";
+  "group-data-[selected=true]/row:bg-card group-data-[selected=true]/row:ring-line group-data-[selected=true]/row:ring-1 group-data-[selected=true]/row:shadow-xs lg:group-data-[selected=true]/row:before:bg-foreground lg:before:absolute lg:before:top-[18px] lg:before:-left-2 lg:before:h-6 lg:before:w-[3px] lg:before:rounded-r-[3px]";
 
 // The title link stretches over the whole row. Other links and slot content
 // sit above it (z-10) so they stay clickable; the focus ring sits on the row.
@@ -188,11 +189,11 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
         className={cn(
           ROW_GRID,
           ROW_SELECTED,
-          "has-[:focus-visible]:ring-ring hover:bg-card hover:ring-line active:bg-card relative rounded-lg px-2.5 py-3 transition-colors hover:ring-1 has-[:focus-visible]:ring-2 lg:rounded-[10px] lg:px-3 lg:py-0"
+          "has-[:focus-visible]:ring-ring hover:bg-card hover:ring-line active:bg-card relative rounded-[12px] px-2.5 py-3 transition-colors hover:ring-1 has-[:focus-visible]:ring-2 lg:rounded-[10px] lg:px-3 lg:py-0"
         )}
       >
         <CompanyLogo job={job} />
-        <h3 className="text-foreground min-w-0 truncate text-[15px] leading-5 font-normal [grid-area:title] lg:self-end lg:text-[14px]">
+        <h3 className="text-foreground min-w-0 truncate text-[15px] leading-5 font-normal [grid-area:title] lg:self-end lg:text-[14px] lg:group-data-[selected=true]/row:font-medium">
           <Link
             className="rounded-sm outline-none after:absolute after:inset-0"
             data-testid="job-row-link"
@@ -202,7 +203,13 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
           </Link>
         </h3>
         {statuses.length > 0 || Extra ? (
-          <div className="mt-1 flex min-w-0 items-center gap-1.5 [grid-area:badges] lg:mt-0 lg:self-end lg:pb-0.5">
+          <div
+            className={cn(
+              "mt-1 flex min-w-0 items-center gap-1.5 [grid-area:badges] lg:mt-0 lg:ml-0 lg:self-end lg:pb-0.5",
+              // Phone: 6px after the salary, or flush left without one.
+              salary ? "-ml-1.5" : "-ml-3"
+            )}
+          >
             {statuses.map((status) => (
               <StatusPill key={status} status={status} />
             ))}
@@ -213,7 +220,7 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
             ) : null}
           </div>
         ) : null}
-        <p className="text-muted-foreground lg:text-subtle mt-0.5 flex min-w-0 flex-wrap items-center text-[13px] leading-[18px] [grid-area:meta] lg:mt-0 lg:self-start lg:text-[12px] lg:leading-4">
+        <p className="text-muted-foreground lg:text-subtle mt-0.5 min-w-0 truncate text-[13px] leading-[18px] [grid-area:meta] lg:mt-0 lg:self-start lg:text-[12px] lg:leading-4">
           {job.companySlug ? (
             <Link
               className="relative z-10 rounded-sm hover:underline"
@@ -233,7 +240,7 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
             </span>
           ))}
         </p>
-        <div className="hidden items-center gap-1.5 pr-2 pl-3 [grid-area:hints] lg:group-focus-within/row:flex lg:group-hover/row:flex">
+        <div className="hidden items-center gap-1.5 pr-3.5 pl-1.5 [grid-area:hints] lg:group-focus-within/row:flex lg:group-hover/row:flex lg:group-data-[selected=true]/row:hidden!">
           <RowSaveButton slug={job.slug} title={job.title} />
           <span aria-hidden="true" className={HINT_CLASS}>
             <kbd className="font-sans">↵</kbd>
@@ -241,7 +248,7 @@ export function JobRow({ job, now }: { job: JobListItem; now: number }) {
           </span>
         </div>
         {salary ? (
-          <p className="text-foreground mt-1 truncate text-[13px] leading-[18px] font-medium [grid-area:salary] lg:mt-0 lg:self-end lg:text-right lg:font-normal">
+          <p className="text-foreground lg:text-muted-foreground lg:group-hover/row:text-foreground lg:group-data-[selected=true]/row:text-foreground mt-1 truncate text-[13px] leading-[18px] font-medium [grid-area:salary] lg:mt-0 lg:self-end lg:text-right lg:font-normal">
             {salary}
           </p>
         ) : null}

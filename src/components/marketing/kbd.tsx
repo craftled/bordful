@@ -24,6 +24,5 @@ export function Kbd({
 }
 
 // Tones for the hint on a filled (primary) button and on an outline button.
-export const KBD_ON_PRIMARY =
-  "bg-primary-foreground/18 text-primary-foreground";
-export const KBD_ON_OUTLINE = "bg-foreground/6 text-muted-foreground";
+export const KBD_ON_PRIMARY = "bg-(--kbd-on-primary) text-primary-foreground";
+export const KBD_ON_OUTLINE = "bg-(--kbd-on-outline) text-muted-foreground";

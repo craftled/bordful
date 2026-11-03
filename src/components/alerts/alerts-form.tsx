@@ -28,6 +28,8 @@ const checkboxClass =
   "absolute inset-0 m-0 cursor-pointer appearance-none rounded-full opacity-0";
 
 const fieldLabelClass = "text-[13px] font-medium leading-4 text-foreground";
+// A legend ignores the fieldset gap, so the 8px label-to-chips space lives here.
+const legendClass = `${fieldLabelClass} mb-2 p-0`;
 
 const STEPS = [
   "Pick what you want to see.",
@@ -60,7 +62,7 @@ export function AlertsForm({
   const failed = state !== null && !state.ok;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:gap-8 md:pt-7 md:pb-[72px]">
+    <div className="mx-auto -mt-8 -mb-1 flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:-mt-1 md:mb-0 md:gap-8 md:pt-0 md:pb-10">
       <nav aria-label="Breadcrumb" className="text-[13px] leading-4">
         <ol className="flex items-center gap-2">
           <li>
@@ -79,7 +81,10 @@ export function AlertsForm({
 
       <h1 className="flex flex-col text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
         <span className="text-foreground">Get new roles by email.</span>
-        <span className="text-subtle">Once a day or once a week.</span>
+        <span className="text-subtle md:hidden">Daily or weekly.</span>
+        <span className="text-subtle hidden md:inline">
+          Once a day or once a week.
+        </span>
       </h1>
 
       <div className="flex flex-col items-start gap-5 md:flex-row md:gap-8">
@@ -128,7 +133,7 @@ export function AlertsForm({
           </div>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={fieldLabelClass}>Employment type</legend>
+            <legend className={legendClass}>Employment type</legend>
             <div className="flex flex-wrap gap-2">
               {JOB_EMPLOYMENT_TYPES.map((type) => (
                 <label className={chipClass} key={type}>
@@ -147,7 +152,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={fieldLabelClass}>Work</legend>
+            <legend className={legendClass}>Work</legend>
             <div className="flex flex-wrap gap-2">
               <label className={chipClass}>
                 <input
@@ -175,7 +180,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={fieldLabelClass}>Seniority</legend>
+            <legend className={legendClass}>Seniority</legend>
             <div className="flex flex-wrap gap-2">
               {SENIORITIES.map((level) => (
                 <label className={chipClass} key={level}>
@@ -194,7 +199,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={fieldLabelClass}>Salary</legend>
+            <legend className={legendClass}>Salary</legend>
             <div className="flex flex-wrap gap-2">
               {SALARY_BAND_IDS.map((band, index) => (
                 <label className={chipClass} key={band}>
@@ -238,7 +243,7 @@ export function AlertsForm({
           </div>
           {/* Both regions stay mounted so screen readers announce each change. */}
           <p
-            className="text-foreground text-[13px]"
+            className="text-foreground text-[13px] empty:sr-only"
             data-testid="alerts-status"
             id="alerts-status"
             role="status"
@@ -246,7 +251,7 @@ export function AlertsForm({
             {state?.ok ? state.message : ""}
           </p>
           <p
-            className="text-destructive text-[13px]"
+            className="text-destructive text-[13px] empty:sr-only"
             id="alerts-error"
             role="alert"
           >

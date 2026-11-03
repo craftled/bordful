@@ -18,4 +18,9 @@ export const RAIL_COUNT =
   "text-subtle shrink-0 text-[12px] leading-4 tabular-nums";
 
 export const RAIL_HEADING =
-  "text-subtle px-2 pb-1 text-[11px] leading-[14px] font-medium";
+  "text-subtle px-2 pt-px pb-[7px] text-[11px] leading-[14px] font-medium";
+
+// The small key hints ("S Save", "↵ Open", "J K"). Kept in a plain module so
+// server components get the string, not a client reference.
+export const HINT_CLASS =
+  "bg-tag text-muted-foreground inline-flex h-[18px] shrink-0 items-center gap-1 rounded-[5px] px-1.5 text-[11px] leading-[18px]";

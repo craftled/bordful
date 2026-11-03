@@ -2,11 +2,9 @@
 
 import { useCallback } from "react";
 
+import { HINT_CLASS } from "@/components/board/rail-styles";
 import { useJobList } from "@/components/board/saved-jobs";
 import { cn } from "@/lib/utils";
-
-export const HINT_CLASS =
-  "bg-tag text-muted-foreground inline-flex h-[18px] shrink-0 items-center gap-1 rounded-[5px] px-1.5 text-[11px] leading-[18px]";
 
 // The row's "S Save" hint doubles as a button, so mouse users can save
 // without the keyboard. The saved state shows after hydration.

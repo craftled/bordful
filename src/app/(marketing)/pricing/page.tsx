@@ -23,7 +23,7 @@ export default function PricingPage() {
       <Section className="md:py-14">
         <Container>
           <SectionHeader
-            description="Bordful is open source and free to use commercially. Need help getting started? We offer custom setup services for a one-time fee."
+            description="Self-host for free, or let us set everything up for you."
             eyebrow="Pricing"
             headingLevel="h1"
             title="Simple pricing,"
@@ -42,7 +42,7 @@ export default function PricingPage() {
           { external: true, href: GITHUB_URL, label: "Clone now" },
           { href: "/jobs", label: "Live demo" },
         ]}
-        description="Start free. Order the custom setup only if you want us to install it."
+        description="Start free, upgrade only if you want us to do the setup."
         title="Ready to launch your"
         titleMuted="job board?"
       />

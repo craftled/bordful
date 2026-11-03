@@ -64,10 +64,13 @@ export function RailJobLists({
 
 function SavedSearchRow({
   active,
+  count,
   onRemove,
   search,
 }: {
   active: boolean;
+  // The open search's result count; other rows show none.
+  count: number | null;
   onRemove: (id: string) => void;
   search: SavedSearch;
 }) {
@@ -77,10 +80,23 @@ function SavedSearchRow({
     <li className="group/search relative">
       <Link
         aria-current={active ? "page" : undefined}
-        className={cn(railLinkClass(active), "pr-7")}
+        className={cn(
+          railLinkClass(active),
+          !(active && count !== null) && "pr-7"
+        )}
         href={search.href}
       >
         <span className="truncate">{search.name}</span>
+        {active && count !== null ? (
+          <span
+            className={cn(
+              RAIL_COUNT,
+              "group-focus-within/search:invisible group-hover/search:invisible"
+            )}
+          >
+            {count}
+          </span>
+        ) : null}
       </Link>
       <button
         aria-label={`Remove saved search ${search.name}`}
@@ -99,7 +115,13 @@ function SavedSearchRow({
 
 // Searches saved with "Save search" in the toolbar. No unread counts: the
 // board does not know what a visitor has already seen.
-export function RailSavedSearches({ currentHref }: { currentHref: string }) {
+export function RailSavedSearches({
+  currentCount = null,
+  currentHref,
+}: {
+  currentCount?: number | null;
+  currentHref: string;
+}) {
   const { remove, searches } = useSavedSearches();
   if (searches.length === 0) {
     return null;
@@ -114,6 +136,7 @@ export function RailSavedSearches({ currentHref }: { currentHref: string }) {
         {searches.map((search) => (
           <SavedSearchRow
             active={search.href === currentHref}
+            count={currentCount}
             key={search.id}
             onRemove={remove}
             search={search}

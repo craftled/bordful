@@ -1,17 +1,41 @@
 /* Colors come from the shared Paper tokens in globals.css. The marketing site
-   is Bordful's own brand, so it pins the ten keys Site settings can override
-   (light here, dark below) and ignores a board's custom theme. */
+   is Bordful's own brand, so it pins its palette (light here, dark below),
+   ignores a board's custom theme, and uses Paper's marketing values: a
+   lighter page, 8% hairlines and a faint tone for the second heading line.
+   .marketing-dark pins the dark palette on the bands that stay dark in both
+   themes (the paid-posts card and the closing CTA). */
 .bordful-marketing {
-  --background: #f5f5f4;
-  --foreground: #161616;
-  --primary: #161616;
+  --background: #fafaf9;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --surface: #ffffff;
+  --primary: #111111;
   --primary-foreground: #ffffff;
   --muted: #f7f7f6;
   --muted-foreground: #5c5c5c;
   --accent: #f0f0ef;
-  --accent-foreground: #161616;
-  --border: #e4e4e3;
-  --ring: #161616;
+  --accent-foreground: #111111;
+  --border: rgb(0 0 0 / 8%);
+  --line: rgb(0 0 0 / 8%);
+  --line-strong: rgb(0 0 0 / 8%);
+  --tag: rgb(0 0 0 / 5%);
+  --text-subtle: #8a8a8a;
+  --text-faint: #a3a3a3;
+  --wash-from: #ffffff;
+  --wash-via: #f1f1ef;
+  --wash-to: #e7e7e4;
+  --window: #f4f4f3;
+  --window-dot: rgb(0 0 0 / 14%);
+  --panel: #f2f2f0;
+  --shot-ring: rgb(0 0 0 / 10%);
+  --shot-shadow: rgb(0 0 0 / 35%);
+  --kbd-on-primary: rgb(255 255 255 / 18%);
+  --kbd-on-outline: rgb(0 0 0 / 6%);
+  --ring: #111111;
+  --band: #0e0e0e;
+  --band-glow: #262626;
+  --inverse-card: #0e0e0e;
   --radius: 0.5rem;
   /* Site settings may pick a different board font; marketing stays on Geist. */
   --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -20,29 +44,104 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .bordful-marketing {
-    --background: #0e0e0e;
+    --background: #0b0b0b;
     --foreground: #ededed;
+    --card: #111111;
+    --card-foreground: #ededed;
+    --surface: #111111;
     --primary: #ededed;
-    --primary-foreground: #121212;
+    --primary-foreground: #111111;
     --muted: #1f1f1f;
     --muted-foreground: #a0a0a0;
     --accent: rgb(255 255 255 / 5%);
     --accent-foreground: #ededed;
     --border: rgb(255 255 255 / 8%);
+    --line: rgb(255 255 255 / 8%);
+    --line-strong: rgb(255 255 255 / 8%);
+    --tag: rgb(255 255 255 / 7%);
+    --text-subtle: #757575;
+    --text-faint: #5e5e5e;
+    --wash-from: #1f1f1f;
+    --wash-via: #121212;
+    --wash-to: #0b0b0b;
+    --window: #1a1a1a;
+    --window-dot: rgb(255 255 255 / 14%);
+    --panel: #141414;
+    --shot-ring: rgb(255 255 255 / 8%);
+    --shot-shadow: rgb(0 0 0 / 80%);
+    --kbd-on-primary: rgb(0 0 0 / 10%);
+    --kbd-on-outline: rgb(255 255 255 / 10%);
     --ring: #ededed;
+    --band: #151515;
+    --band-glow: #2a2a2a;
+    --inverse-card: #171717;
   }
 }
 
 :root[data-theme="dark"] .bordful-marketing {
-  --background: #0e0e0e;
+  --background: #0b0b0b;
   --foreground: #ededed;
+  --card: #111111;
+  --card-foreground: #ededed;
+  --surface: #111111;
   --primary: #ededed;
-  --primary-foreground: #121212;
+  --primary-foreground: #111111;
   --muted: #1f1f1f;
   --muted-foreground: #a0a0a0;
   --accent: rgb(255 255 255 / 5%);
   --accent-foreground: #ededed;
   --border: rgb(255 255 255 / 8%);
+  --line: rgb(255 255 255 / 8%);
+  --line-strong: rgb(255 255 255 / 8%);
+  --tag: rgb(255 255 255 / 7%);
+  --text-subtle: #757575;
+  --text-faint: #5e5e5e;
+  --wash-from: #1f1f1f;
+  --wash-via: #121212;
+  --wash-to: #0b0b0b;
+  --window: #1a1a1a;
+  --window-dot: rgb(255 255 255 / 14%);
+  --panel: #141414;
+  --shot-ring: rgb(255 255 255 / 8%);
+  --shot-shadow: rgb(0 0 0 / 80%);
+  --kbd-on-primary: rgb(0 0 0 / 10%);
+  --kbd-on-outline: rgb(255 255 255 / 10%);
+  --ring: #ededed;
+  --band: #151515;
+  --band-glow: #2a2a2a;
+  --inverse-card: #171717;
+}
+
+/* The band colors are left out here so a dark band keeps its own theme's
+   shade. */
+.bordful-marketing .marketing-dark {
+  --background: #0b0b0b;
+  --foreground: #ededed;
+  --card: #111111;
+  --card-foreground: #ededed;
+  --surface: #111111;
+  --primary: #ededed;
+  --primary-foreground: #111111;
+  --muted: #1f1f1f;
+  --muted-foreground: #a0a0a0;
+  --accent: rgb(255 255 255 / 5%);
+  --accent-foreground: #ededed;
+  --border: rgb(255 255 255 / 8%);
+  --line: rgb(255 255 255 / 8%);
+  --line-strong: rgb(255 255 255 / 8%);
+  --tag: rgb(255 255 255 / 7%);
+  --text-subtle: #757575;
+  --text-faint: #5e5e5e;
+  --wash-from: #1f1f1f;
+  --wash-via: #121212;
+  --wash-to: #0b0b0b;
+  --window: #1a1a1a;
+  --window-dot: rgb(255 255 255 / 14%);
+  --panel: #141414;
+  --shot-ring: rgb(255 255 255 / 8%);
+  --shot-shadow: rgb(0 0 0 / 80%);
+  --kbd-on-primary: rgb(0 0 0 / 10%);
+  --kbd-on-outline: rgb(255 255 255 / 10%);
   --ring: #ededed;
 }
 
@@ -65,36 +164,26 @@
   filter: invert(1);
 }
 
-/* The home CTA band is inverted in the light theme, so its focus ring is too. */
-.marketing-inverse :focus-visible {
-  outline-color: var(--background);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .marketing-inverse :focus-visible {
-    outline-color: var(--ring);
-  }
-}
-
-:root[data-theme="dark"] .marketing-inverse :focus-visible {
+/* Bands that stay dark in both themes ring focus like the dark theme does. */
+.marketing-dark :focus-visible {
   outline-color: var(--ring);
 }
 
-/* Product shot backdrop: Paper's top-lit radial wash, built from tokens. */
+/* Product shot backdrop: Paper's top-lit radial wash. */
 .marketing-shot {
   background-image: radial-gradient(
-    ellipse 120% 90% at 50% 0%,
-    var(--card) 0%,
-    var(--secondary) 50%,
-    var(--border) 100%
+    ellipse 120% 90% at 50% 0% in oklab,
+    var(--wash-from) 0%,
+    var(--wash-via) 50%,
+    var(--wash-to) 100%
   );
 }
 
-/* Final CTA backdrop: a soft glow in the lower right of the dark band. */
+/* Final CTA backdrop: Paper's lower-right glow on the dark band. */
 .marketing-cta-glow {
   background-image: radial-gradient(
-    ellipse 80% 120% at 85% 100%,
-    rgb(255 255 255 / 10%) 0%,
-    transparent 60%
+    ellipse 80% 120% at 85% 100% in oklab,
+    var(--band-glow) 0%,
+    var(--band) 60%
   );
 }

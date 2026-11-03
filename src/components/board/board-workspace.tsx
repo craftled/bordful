@@ -157,6 +157,7 @@ function handleBoardKey(
 // or Enter on a focused row, opens the job in the right column instead; a
 // second Enter opens the full page. J/K move, S saves, Esc closes.
 export function BoardWorkspace({
+  alertsEnabled = false,
   aside,
   className,
   jobs,
@@ -168,6 +169,8 @@ export function BoardWorkspace({
   rail,
   total,
 }: {
+  // Shows the "Get roles like this" card in the preview.
+  alertsEnabled?: boolean;
   aside?: ReactNode;
   className: string;
   jobs: JobListItem[];
@@ -295,7 +298,15 @@ export function BoardWorkspace({
   return (
     <div className={cn(className, isOpen && openClassName)}>
       {rail}
-      <div className="min-w-0" ref={listRef}>
+      <div
+        className={cn(
+          "min-w-0",
+          // With a job open, the other rows step back.
+          isOpen &&
+            "xl:[&_[data-testid=job-row]:not([data-selected=true])]:opacity-[0.62]"
+        )}
+        ref={listRef}
+      >
         {list}
       </div>
       {aside ? <div className={cn(isOpen && "xl:hidden")}>{aside}</div> : null}
@@ -303,13 +314,16 @@ export function BoardWorkspace({
         <div className="hidden py-2 pr-2 xl:block">
           <div className="sticky top-2 flex h-[calc(100dvh-1rem)] flex-col">
             <JobPreview
+              alertsEnabled={alertsEnabled}
               index={offset + index + 1}
               job={current}
+              jobs={jobs}
               key={current.slug}
               now={now}
               onClose={close}
               onNext={next ? onNext : null}
               onPrev={prev ? onPrev : null}
+              onSelect={goTo}
               total={total}
             />
           </div>

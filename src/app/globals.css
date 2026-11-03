@@ -189,14 +189,20 @@ textarea:focus-visible {
   outline-color: var(--background);
 }
 
-/* Job description type from the Paper job page: 15/24 body (17/28 from md),
+/* Job description type from the Paper job page: 16/20 body (17/28 from md),
    small uppercase section labels. Layered so utilities can still override. */
 @layer components {
   .bordful-prose {
-    @apply max-w-none text-[15px] text-foreground/85 leading-6 md:text-[17px] md:leading-7;
+    @apply max-w-none text-[16px] text-foreground leading-5 md:text-[17px] md:text-foreground/83 md:leading-7 md:dark:text-muted-foreground;
 
-    > :first-child {
+    /* Payload's RichText wraps the blocks in a div; edges are on either level. */
+    > :first-child,
+    > .payload-richtext > :first-child {
       @apply mt-0;
+    }
+    > :last-child,
+    > .payload-richtext > :last-child {
+      @apply mb-0;
     }
 
     h1,
@@ -205,29 +211,54 @@ textarea:focus-visible {
     h4,
     h5,
     h6 {
-      @apply mt-8 mb-2.5 font-medium font-mono text-[11px] text-subtle uppercase leading-[14px] tracking-[0.04em] md:font-sans md:text-[13px] md:leading-4 md:tracking-[0.02em];
+      @apply mt-5 mb-2 font-medium font-mono text-[11px] text-subtle uppercase leading-[14px] tracking-[0.04em] md:mt-9 md:mb-2.5 md:font-sans md:text-[13px] md:leading-4 md:tracking-[0.02em];
     }
 
-    p,
+    p {
+      @apply mb-5 md:mb-6;
+    }
     ul,
     ol {
-      @apply mb-6;
+      @apply mb-5 md:mb-9;
+    }
+    /* A lead-in line sits on its list, like a Paper section label. */
+    p:has(+ ul),
+    p:has(+ ol) {
+      @apply mb-2 md:mb-2.5;
     }
 
-    ul {
-      @apply list-disc space-y-1.5 pl-5;
-    }
-    ol {
-      @apply list-decimal space-y-1.5 pl-5;
-    }
+    /* Paper list items: 15/18 secondary text on phones, body text from md. */
     li {
-      @apply pl-1 marker:text-subtle;
+      @apply text-[15px] text-muted-foreground leading-[18px] md:text-[17px] md:text-inherit md:leading-7;
     }
+
+    /* Paper bullets: a subtle "•", 10px (12px from md) from the text. */
+    ul {
+      @apply list-none space-y-2 pl-0 md:space-y-2.5;
+    }
+    ul > li {
+      @apply relative pl-[15px] md:pl-[18px];
+    }
+    ul > li::before {
+      @apply absolute left-0 text-[14px] text-subtle content-['•'] md:text-[17px];
+    }
+
+    /* Paper steps: the number sits in a 24px ring, 14px from the text. */
+    ol {
+      @apply list-none space-y-3.5 pl-0 [counter-reset:bordful-step];
+    }
+    ol > li {
+      @apply relative min-h-6 pl-[38px] [counter-increment:bordful-step];
+    }
+    ol > li::before {
+      @apply absolute -top-[3px] left-0 flex size-6 items-center justify-center rounded-full font-medium text-[12px] text-muted-foreground leading-[14px] ring-1 ring-line-strong ring-inset content-[counter(bordful-step)] md:top-0.5;
+    }
+
     ul ul,
     ol ol,
     ul ol,
     ol ul {
-      @apply mt-1.5 mb-1.5;
+      @apply mt-2 mb-2 md:mt-2.5 md:mb-2.5;
     }
 
     a {

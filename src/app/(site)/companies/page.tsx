@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { BoardShell } from "@/components/board/board-shell";
 import { CompanyDirectory } from "@/components/board/company-directory";
-import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
+import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import { companiesFromPool } from "@/lib/board/companies";
 import { loadBoardPool } from "@/lib/board/pool";
 
@@ -15,8 +15,8 @@ export default async function CompaniesPage() {
   const rows = companiesFromPool(pool);
 
   return (
-    <BoardShell>
-      <div className="space-y-8">
+    <BoardShell fullBleed>
+      <PageFrame>
         <Crumbs
           items={[{ href: "/jobs", label: "Jobs" }, { label: "Companies" }]}
         />
@@ -30,7 +30,7 @@ export default async function CompaniesPage() {
         ) : (
           <p className="text-muted-foreground">No companies with open jobs.</p>
         )}
-      </div>
+      </PageFrame>
     </BoardShell>
   );
 }

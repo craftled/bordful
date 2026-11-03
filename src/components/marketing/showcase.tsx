@@ -27,26 +27,26 @@ function ShowcaseCard({
 
   return (
     <a
-      className="group bg-card ring-line-strong flex flex-col gap-4 rounded-[14px] p-4 ring-1 md:rounded-xl md:p-5"
+      className="group bg-card flex flex-col gap-2.5 rounded-[14px] p-4 ring-1 ring-(--shot-ring) ring-inset md:rounded-xl md:p-5"
       href={entry.url}
       rel="noopener noreferrer"
       target="_blank"
     >
       <MarketingImage
         alt=""
-        className="bg-surface-sub ring-line w-full rounded-lg ring-1"
+        className="bg-surface-sub ring-line h-[150px] w-full rounded-lg object-cover object-top ring-1"
         height={1692}
         src={entry.image}
         width={2880}
       />
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
-          <Heading className="text-foreground text-[15px] leading-5 font-medium">
+          <Heading className="text-foreground text-[15px] leading-[22px] font-medium">
             {entry.name}
           </Heading>
           <ChevronRight
             aria-hidden="true"
-            className="text-subtle group-hover:text-foreground size-4 shrink-0"
+            className="text-subtle group-hover:text-foreground size-3.5 shrink-0"
             strokeWidth={1.6}
           />
         </div>

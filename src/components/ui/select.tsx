@@ -34,7 +34,7 @@ function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "border-line-strong bg-card text-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-subtle dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='text-'])]:text-subtle flex w-fit items-center justify-between gap-2 rounded-lg border px-2.5 text-[13px] leading-4 whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-8 data-[size=sm]:h-7 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "border-line-strong bg-card text-foreground hover:border-subtle focus-visible:border-ring focus-visible:ring-tag aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-subtle dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='text-'])]:text-subtle flex w-fit items-center justify-between gap-2 rounded-lg border px-2.5 text-[13px] leading-[18px] whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60 data-[size=default]:h-8 data-[size=sm]:h-7 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       data-size={size}
@@ -43,7 +43,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        <ChevronDownIcon className="size-2.5 opacity-60" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );

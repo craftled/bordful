@@ -5,6 +5,7 @@ import { JobApplyLink, JobSaveButton } from "@/components/board/job-actions";
 // Mobile only. Sticky, not fixed, and rendered last in the job wrapper: it pins while the
 // job is read and sits in the flow above the footer at the end, so it never covers the footer.
 // On md+ the letter's own action bar stays in view, so this bar is hidden there.
+// The phone tab bar is hidden on job pages, so the bar pins to the bottom.
 export function StickyApply({
   companyName,
   href,
@@ -17,7 +18,7 @@ export function StickyApply({
   title: string;
 }) {
   return (
-    <div className="border-line bg-background sticky bottom-0 z-20 -mx-4 border-t px-4 pt-3 pb-[max(1.75rem,env(safe-area-inset-bottom))] md:hidden">
+    <div className="border-line bg-background sticky bottom-0 z-20 -mx-4 border-t px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:hidden">
       <div className="flex gap-2.5">
         <JobSaveButton
           className="h-11 w-[88px] shrink-0 text-[15px]"

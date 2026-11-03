@@ -58,6 +58,9 @@ interface Tab extends NavItem {
 
 // Fixed bar for phones. The spacer reserves its height so the footer and the
 // last content are never covered.
+const JOB_PAGE =
+  /^\/jobs\/(?!(?:search|locations|languages|levels|types)$)[^/]+$/u;
+
 export function TabBar({
   alertsEnabled,
   homeHref,
@@ -82,6 +85,11 @@ export function TabBar({
     tabs.push({ href: "/alerts", id: "alerts", label: "Alerts" });
   }
   tabs.push({ href: "/companies", id: "companies", label: "Companies" });
+
+  // Paper's job page has only the pinned Save/Apply bar, no tab bar.
+  if (JOB_PAGE.test(pathname)) {
+    return null;
+  }
 
   return (
     <div className="md:hidden" data-testid="tab-bar">

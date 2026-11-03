@@ -55,12 +55,17 @@ export function SectionHeader({
         id={id}
       >
         <span>{title}</span>
-        {titleMuted ? <span className="text-subtle"> {titleMuted}</span> : null}
+        {titleMuted ? (
+          <span className={page ? "text-subtle" : "text-(--text-faint)"}>
+            {" "}
+            {titleMuted}
+          </span>
+        ) : null}
       </Heading>
       {description ? (
         <p
           className={cn(
-            "text-muted-foreground max-w-[560px] text-balance",
+            "text-muted-foreground max-w-[560px]",
             page
               ? "text-[16px] leading-6 md:text-[16px] md:leading-[25px]"
               : "text-[14px] leading-[22px]"

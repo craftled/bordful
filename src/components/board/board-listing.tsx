@@ -10,8 +10,8 @@ import { BoardPagination } from "@/components/board/board-pagination";
 import { BoardRail } from "@/components/board/board-rail";
 import { BoardToolbar } from "@/components/board/board-toolbar";
 import { BoardWorkspace } from "@/components/board/board-workspace";
-import { HINT_CLASS } from "@/components/board/job-row-save";
 import { PostJobCard } from "@/components/board/post-job-card";
+import { HINT_CLASS } from "@/components/board/rail-styles";
 import { filterBoard, usdBounds } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
 import type { TaxonomyKind } from "@/lib/board/paths";
@@ -105,7 +105,7 @@ export function alertsHref(query: BoardQuery): string {
 
 const CARD = "bg-card ring-line rounded-[14px] shadow-xs ring-1";
 const PRIMARY_BUTTON =
-  "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 shrink-0 items-center rounded-[6px] px-2.5 text-[13px] font-medium";
+  "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 shrink-0 items-center rounded-[8px] px-2.5 text-[13px] font-medium";
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -354,12 +354,16 @@ export function BoardListing({
   const list = (
     <div className="min-w-0 p-2">
       {showHeading ? (
-        <BoardHero
-          heading={headingLevel}
-          intro={intro}
-          testId={headingTestId}
-          title={heading}
-        />
+        // The app board shows no list header in Paper; the heading stays
+        // for screen readers and search engines.
+        <div className={cn(app && "sr-only")}>
+          <BoardHero
+            heading={headingLevel}
+            intro={intro}
+            testId={headingTestId}
+            title={heading}
+          />
+        </div>
       ) : null}
       {view.docs.length > 0 ? (
         <BoardList
@@ -431,6 +435,7 @@ export function BoardListing({
         updated={updated}
       />
       <BoardWorkspace
+        alertsEnabled={alertsEnabled}
         aside={
           app ? (
             <OverviewPanel

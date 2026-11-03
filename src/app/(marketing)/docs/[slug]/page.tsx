@@ -1,4 +1,6 @@
+import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
@@ -63,13 +65,30 @@ export default async function DocPage({
       entries={entries}
       headings={extractHeadings(source)}
     >
-      <p className="text-[13px] leading-4">
-        <span className="text-subtle">Docs / </span>
-        <span className="text-foreground">{title}</span>
-      </p>
-      <h1 className="text-foreground mt-5 mb-6 text-[32px] leading-10 font-medium tracking-[-0.035em] md:text-[40px] md:leading-[48px]">
-        {title}
-      </h1>
+      <div className="flex flex-col gap-3">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-[13px] leading-[19px]"
+        >
+          <Link
+            className="text-muted-foreground hover:text-foreground"
+            href="/docs"
+          >
+            Docs
+          </Link>
+          <ChevronRight
+            aria-hidden="true"
+            className="text-subtle size-3"
+            strokeWidth={1.4}
+          />
+          <span aria-current="page" className="text-foreground font-medium">
+            {title}
+          </span>
+        </nav>
+        <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.03em] md:text-[34px] md:leading-10">
+          {title}
+        </h1>
+      </div>
       <DocsMarkdown repoBase={DOCS_REPO_BASE} skipTitle source={source} />
       <DocsPager
         next={
@@ -81,7 +100,7 @@ export default async function DocPage({
             : { href: "/docs", label: "Overview" }
         }
       />
-      <p className="text-muted-foreground mt-8 text-[13px] leading-5">
+      <p className="text-muted-foreground text-[13px] leading-5">
         <a
           className="text-foreground underline underline-offset-4"
           href={`${GITHUB_URL}/edit/main/docs/${slug}.md`}

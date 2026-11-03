@@ -10,7 +10,7 @@ import {
   RAIL_HEADING,
   railLinkClass,
 } from "@/components/board/rail-styles";
-import { buildBoardFacets } from "@/lib/board/filter";
+import { buildBoardFacets, filterBoard } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
 import { loadBoardPool } from "@/lib/board/pool";
 import {
@@ -131,7 +131,10 @@ export async function BoardRail({
         ) : null}
         <RailJobLists active={view} />
       </div>
-      <RailSavedSearches currentHref={view === null ? currentHref : ""} />
+      <RailSavedSearches
+        currentCount={view === null ? filterBoard(pool, query).length : null}
+        currentHref={view === null ? currentHref : ""}
+      />
       {categories.length > 0 ? (
         <section aria-labelledby="rail-categories" className="flex flex-col">
           <h2 className={RAIL_HEADING} id="rail-categories">

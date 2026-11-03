@@ -76,7 +76,7 @@ function ViewPills({ views }: { views: HeaderViews }) {
   return (
     <nav
       aria-label="Views"
-      className="bg-tag hidden shrink-0 items-center gap-0.5 rounded-[6px] p-0.5 xl:flex"
+      className="bg-tag hidden shrink-0 items-center gap-0.5 rounded-[8px] p-0.5 xl:flex"
     >
       {pills.map((pill) => {
         const on = active === pill.id;
@@ -84,7 +84,7 @@ function ViewPills({ views }: { views: HeaderViews }) {
           <Link
             aria-current={on ? "page" : undefined}
             className={cn(
-              "rounded-[4px] px-2.5 py-1 text-[13px] leading-[18px] whitespace-nowrap transition-colors",
+              "rounded-[6px] px-2.5 py-1 text-[13px] leading-[18px] whitespace-nowrap transition-colors",
               on
                 ? "bg-card text-foreground ring-line font-medium shadow-xs ring-1"
                 : "text-muted-foreground hover:text-foreground",
@@ -190,9 +190,14 @@ export function SiteHeader({
       )}
       data-testid="site-header"
     >
-      <div className="flex w-full flex-wrap items-center gap-x-4 px-4 lg:h-[52px] lg:flex-nowrap">
+      <div
+        className={cn(
+          "flex w-full flex-wrap items-center gap-x-4 gap-y-3 px-4 pt-1 lg:h-[51px] lg:flex-nowrap lg:pt-0",
+          !searchOnPhone && "pb-3 lg:pb-0"
+        )}
+      >
         <Link
-          className="flex h-[52px] min-w-0 items-center gap-2 text-[14px] font-medium tracking-[-0.01em] lg:h-auto lg:w-[200px] lg:shrink-0"
+          className="flex h-[30px] min-w-0 items-center gap-2 text-[14px] font-medium tracking-[-0.01em] lg:h-auto lg:w-[200px] lg:shrink-0"
           data-testid="site-name"
           href={homeHref}
         >
@@ -258,7 +263,7 @@ export function SiteHeader({
                       isActiveItem(pathname, alerts) ? "page" : undefined
                     }
                     className={cn(
-                      "bg-card text-foreground ring-line-strong hover:bg-surface-sub inline-flex h-7 items-center rounded-md px-2.5 text-[13px] font-medium ring-1 ring-inset",
+                      "bg-card text-foreground ring-line-strong hover:bg-surface-sub inline-flex h-7 items-center rounded-[8px] px-2.5 text-[13px] font-medium ring-1 ring-inset",
                       FOCUS
                     )}
                     href={alerts.href}
@@ -287,7 +292,7 @@ export function SiteHeader({
           {cta ? (
             <Link
               className={cn(
-                "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[30px] items-center rounded-full px-3 text-[14px] font-medium md:h-7 md:rounded-md md:px-2.5 md:text-[13px]",
+                "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[30px] items-center rounded-full px-3 text-[14px] font-medium md:h-7 md:rounded-[8px] md:px-2.5 md:text-[13px]",
                 FOCUS
               )}
               href={cta.href}

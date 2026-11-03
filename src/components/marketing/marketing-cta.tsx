@@ -38,7 +38,7 @@ export function MarketingCta({
             <span className="text-subtle"> {titleMuted}</span>
           ) : null}
         </Heading>
-        <p className="text-muted-foreground max-w-[520px] text-[15px] leading-[23px] text-balance">
+        <p className="text-muted-foreground max-w-[520px] text-[15px] leading-[23px]">
           {description}
         </p>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">

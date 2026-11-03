@@ -43,7 +43,7 @@ const STEPS: readonly Step[] = [
   },
   {
     description:
-      "Each job gets its own page with the key facts up top. On a phone, Apply stays pinned to the bottom.",
+      "Each job opens on its own page. On a phone, Apply stays pinned.",
     id: "read",
     label: "Read a role",
     shot: (
@@ -207,7 +207,7 @@ export function Walkthrough() {
                       "text-[14px] leading-5 font-medium",
                       selected
                         ? "text-foreground"
-                        : "text-subtle group-hover:text-muted-foreground"
+                        : "group-hover:text-muted-foreground text-(--text-faint)"
                     )}
                     id={`${tabId(step)}-label`}
                   >
@@ -235,7 +235,7 @@ export function Walkthrough() {
         {STEPS.map((step, index) => (
           <div
             aria-labelledby={tabId(step)}
-            className="border-line bg-secondary relative h-[320px] flex-1 overflow-hidden border-t sm:h-[400px] md:h-[460px] md:border-t-0 md:border-l"
+            className="border-line relative h-[320px] flex-1 overflow-hidden border-t bg-(--panel) sm:h-[400px] md:h-[460px] md:border-t-0 md:border-l"
             hidden={index !== active}
             id={panelId(step)}
             key={step.id}

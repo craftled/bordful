@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BoardList, jobCountLabel } from "@/components/board/board-list";
 import { BoardShell } from "@/components/board/board-shell";
-import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
+import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import { httpUrl } from "@/lib/board/apply";
 import { loadCompanyPage } from "@/lib/board/companies";
 import { editorState } from "@/lib/board/plaintext";
@@ -41,8 +41,8 @@ export default async function CompanyPage({
   const website = httpUrl(loaded.company.website?.trim() ?? "");
 
   return (
-    <BoardShell>
-      <div className="space-y-8">
+    <BoardShell fullBleed>
+      <PageFrame>
         <Crumbs
           items={[
             { href: "/jobs", label: "Jobs" },
@@ -59,7 +59,7 @@ export default async function CompanyPage({
           </PageTitle>
           {website ? (
             <a
-              className="text-subtle hover:text-foreground text-[14px] break-all transition-colors"
+              className="text-subtle hover:text-foreground text-[13px] leading-4 break-all transition-colors"
               href={website}
               rel="noopener noreferrer"
             >
@@ -73,7 +73,7 @@ export default async function CompanyPage({
           </div>
         ) : null}
         <BoardList jobs={loaded.jobs} now={now} />
-      </div>
+      </PageFrame>
     </BoardShell>
   );
 }

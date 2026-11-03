@@ -7,36 +7,15 @@ import { SectionHeader } from "./section-header";
 import { PhoneShot, Shot } from "./shots";
 
 // A trimmed JobPosting in the shape lib/seo/job-posting.ts emits for a remote
-// job with a salary. The values are an example listing.
-const JOB_POSTING = {
-  "@type": "JobPosting",
-  baseSalary: {
-    currency: "USD",
-    value: { maxValue: 190_000, minValue: 150_000, unitText: "YEAR" },
-  },
-  employmentType: "FULL_TIME",
-  hiringOrganization: { "@type": "Organization", name: "Example Co" },
-  jobLocationType: "TELECOMMUTE",
-  title: "Senior Product Designer",
-} as const;
-
-function inlineJson(value: unknown): string {
-  if (value !== null && typeof value === "object") {
-    const entries = Object.entries(value).map(
-      ([key, item]) => `${JSON.stringify(key)}: ${inlineJson(item)}`
-    );
-    return `{ ${entries.join(", ")} }`;
-  }
-
-  return JSON.stringify(value);
-}
-
-// One key per line, nested objects on the same line, as Paper shows it.
+// job with a salary, cut to the keys (and salary bounds) that fit the card. The values are an
+// example listing.
 const JOB_POSTING_CODE = [
   "{",
-  Object.entries(JOB_POSTING)
-    .map(([key, item]) => `  ${JSON.stringify(key)}: ${inlineJson(item)}`)
-    .join(",\n"),
+  '  "@type": "JobPosting",',
+  '  "title": "Senior Product Designer",',
+  '  "hiringOrganization": { "name": "Example Co" },',
+  '  "jobLocationType": "TELECOMMUTE",',
+  '  "baseSalary": { "minValue": 150000, "maxValue": 190000 }',
   "}",
 ].join("\n");
 
@@ -61,22 +40,13 @@ function Card({
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-1 overflow-hidden px-4 py-6 md:px-7",
-        inverse
-          ? "marketing-inverse bg-foreground text-background dark:bg-card dark:text-foreground"
-          : "bg-card dark:bg-background",
+        "text-foreground relative flex flex-col gap-1 overflow-hidden px-4 py-6 md:px-7",
+        inverse ? "marketing-dark bg-(--inverse-card)" : "bg-card",
         className
       )}
     >
       <h3 className="text-[16px] leading-[22px] font-medium">{title}</h3>
-      <p
-        className={cn(
-          "text-[13px] leading-[19px]",
-          inverse
-            ? "text-background/65 dark:text-muted-foreground"
-            : "text-muted-foreground"
-        )}
-      >
+      <p className="text-muted-foreground text-[13px] leading-[19px]">
         {description}
       </p>
       {children}
@@ -105,7 +75,7 @@ export function Bento() {
           description="Visitors sign up for a daily or weekly email of new jobs."
           title="Visitors come back on their own"
         >
-          <div className="absolute top-[100px] left-1/2 flex -translate-x-1/2 items-start gap-[30px]">
+          <div className="absolute top-[100px] left-1/2 flex -translate-x-1/2 items-start gap-[30px] md:left-[70px] md:translate-x-0">
             <PhoneShot
               alt="The board home on a phone"
               className="w-[160px] md:w-[190px]"
@@ -125,62 +95,62 @@ export function Bento() {
         >
           <Shot
             alt="The board in the light theme"
-            className="absolute top-[110px] left-4 w-[480px] rounded-lg md:left-7 md:w-[560px]"
+            className="absolute top-[110px] left-4 h-[273px] w-[480px] rounded-lg shadow-[0_0_0_1px_var(--line),0_16px_32px_-12px_rgb(0_0_0/20%)] md:left-7 md:h-[319px] md:w-[560px]"
             name="boardLight"
           />
           <Shot
             alt="The board with a dark theme"
-            className="absolute top-[200px] left-24 w-[480px] rounded-lg md:left-[140px] md:w-[560px]"
+            className="absolute top-[200px] left-24 h-[273px] w-[480px] rounded-lg shadow-[0_0_0_1px_rgb(255_255_255/6%),0_24px_48px_-12px_rgb(0_0_0/45%)] md:left-[140px] md:h-[319px] md:w-[560px]"
             name="boardDark"
           />
         </Card>
         <Card
-          className="md:min-h-[300px]"
+          className="min-h-[300px] md:h-[300px]"
           description="JobPosting data, sitemaps and a clean URL per job."
           title="Found on Google from day one"
         >
-          <pre className="bg-secondary ring-line text-muted-foreground mt-[35px] overflow-x-auto rounded-[10px] p-4 font-mono text-[12px] leading-[19px] whitespace-pre-wrap ring-1 ring-inset">
+          <pre className="ring-line text-muted-foreground mt-[31px] overflow-x-auto rounded-[10px] bg-(--panel) p-4 font-mono text-[12px] leading-[19px] whitespace-pre ring-1 ring-inset">
             <code>{JOB_POSTING_CODE}</code>
           </pre>
         </Card>
         <Card
-          className="md:min-h-[300px]"
+          className="min-h-[300px] md:h-[300px]"
           description="Your Stripe payment link. Listings expire on their own."
           inverse
           title="Employers pay to post"
         >
-          <div className="mt-[35px] flex flex-col">
+          <div className="mt-[31px] flex flex-col">
             <dl className="flex gap-2.5">
-              <div className="ring-background/10 dark:ring-line-strong flex flex-1 flex-col gap-1 rounded-[10px] p-3.5 ring-1 ring-inset">
-                <dt className="text-background/65 dark:text-muted-foreground text-[12px] leading-4">
+              <div className="flex flex-1 flex-col gap-1 rounded-[10px] p-3.5 ring-1 ring-(--kbd-on-outline) ring-inset">
+                <dt className="text-muted-foreground text-[12px] leading-4">
                   Price
                 </dt>
                 <dd className="text-[22px] leading-[26px] font-medium">
                   {EXAMPLE_PRICE_LABEL}
                 </dd>
-                <dd className="text-background/50 dark:text-subtle text-[11px] leading-[14px]">
+                <dd className="text-subtle text-[11px] leading-[14px]">
                   Paid through Stripe
                 </dd>
               </div>
-              <div className="bg-background text-foreground dark:bg-foreground dark:text-background flex flex-1 flex-col gap-1 rounded-[10px] p-3.5">
-                <dt className="text-muted-foreground dark:text-background/65 text-[12px] leading-4">
+              <div className="bg-primary text-primary-foreground flex flex-1 flex-col gap-1 rounded-[10px] p-3.5">
+                <dt className="text-primary-foreground/65 text-[12px] leading-4">
                   Listed for
                 </dt>
                 <dd className="text-[22px] leading-[26px] font-medium">
                   {DEFAULT_DURATION_DAYS} days
                 </dd>
-                <dd className="text-muted-foreground dark:text-background/65 text-[11px] leading-[14px]">
+                <dd className="text-primary-foreground/65 text-[11px] leading-[14px]">
                   Then it expires
                 </dd>
               </div>
             </dl>
             <p
               aria-hidden="true"
-              className="bg-background text-foreground dark:bg-foreground dark:text-background mt-[18px] flex h-9 items-center justify-center rounded-lg text-[13px] leading-4 font-medium"
+              className="bg-primary text-primary-foreground mt-[18px] flex h-9 items-center justify-center rounded-lg text-[13px] leading-4 font-medium"
             >
               Continue to Stripe &#8599;
             </p>
-            <p className="text-background/50 dark:text-subtle mt-3.5 font-mono text-[10px] leading-3">
+            <p className="text-subtle mt-3.5 font-mono text-[10px] leading-3">
               Example price. You set your own.
             </p>
           </div>

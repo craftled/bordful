@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Container } from "@/components/marketing/container";
 import {
@@ -20,10 +21,20 @@ export default function AboutPage() {
   return (
     <Container className="md:px-10">
       <div className="mx-auto flex w-full max-w-[1072px] flex-col gap-8 pt-7 pb-[72px]">
-        <p className="text-[13px] leading-4">
-          <span className="text-subtle">Bordful / </span>
-          <span className="text-foreground">About</span>
-        </p>
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-2 text-[13px] leading-4"
+        >
+          <Link className="text-subtle hover:text-foreground" href="/jobs">
+            Jobs
+          </Link>
+          <span aria-hidden="true" className="text-subtle">
+            /
+          </span>
+          <span aria-current="page" className="text-foreground">
+            About
+          </span>
+        </nav>
         <h1 className="flex flex-col text-[30px] leading-[40px] font-medium tracking-[-0.035em] sm:text-[40px] sm:leading-[48px]">
           <span className="text-foreground">About</span>
           <span className="text-subtle">

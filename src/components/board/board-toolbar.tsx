@@ -65,7 +65,7 @@ function LinkMenu({
     <details className={cn("group relative", className)} data-testid={testId}>
       <summary
         className={cn(
-          "text-muted-foreground hover:text-foreground flex h-7 cursor-pointer list-none items-center gap-1 rounded-[6px] px-1.5 text-[12px] font-medium whitespace-nowrap lg:text-[13px] [&::-webkit-details-marker]:hidden",
+          "text-muted-foreground hover:text-foreground -my-1.5 flex h-7 cursor-pointer list-none items-center gap-1 rounded-[6px] px-1.5 text-[12px] font-medium whitespace-nowrap lg:my-0 lg:text-[13px] [&::-webkit-details-marker]:hidden",
           FOCUS
         )}
       >
@@ -134,7 +134,7 @@ export function BoardToolbar({
   return (
     <div
       className={cn(
-        "border-line flex flex-wrap items-center gap-y-3 border-b px-4 lg:min-h-12 lg:gap-x-1.5 lg:gap-y-2 lg:py-2",
+        "border-line relative flex flex-wrap items-center gap-y-3 border-b px-4 lg:min-h-12 lg:gap-x-1.5 lg:gap-y-2 lg:py-2",
         !groups && "pt-3",
         className
       )}
@@ -142,7 +142,17 @@ export function BoardToolbar({
       <h2 className="sr-only">{title}</h2>
       {groups ? (
         <div className="-mx-4 flex min-w-0 basis-full [scrollbar-width:none] items-center gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:shrink-0 lg:basis-auto lg:overflow-visible lg:px-0">
-          <FilterChips groups={groups} />
+          <FilterChips
+            footer={{
+              currentHref: boardStateHref(
+                { ...query, page: 1 },
+                options,
+                marketing
+              ),
+              total,
+            }}
+            groups={groups}
+          />
           {boardQueryHasFilters(query) ? (
             <Link
               className={cn(
@@ -167,7 +177,7 @@ export function BoardToolbar({
           ) : null}
         </div>
       ) : null}
-      <div className="flex min-w-0 basis-full items-center justify-between gap-3 pb-2 lg:ml-auto lg:basis-auto lg:justify-end lg:pb-0">
+      <div className="flex min-w-0 basis-full items-center justify-between gap-3 pt-1 pb-2 lg:ml-auto lg:basis-auto lg:justify-end lg:gap-1.5 lg:pt-0 lg:pb-0">
         <p
           className="text-subtle flex min-w-0 items-center gap-1.5 text-[12px] leading-4"
           data-count={total}
@@ -180,7 +190,7 @@ export function BoardToolbar({
           <span className="truncate">{resultsLabel(total, updated)}</span>
         </p>
         {showControls ? (
-          <div className="flex shrink-0 items-center lg:pl-2">
+          <div className="flex shrink-0 items-center lg:pl-1.5">
             <LinkMenu
               className="hidden lg:block"
               label={`${query.perPage} per page`}

@@ -248,7 +248,11 @@ function Switch({ on, size }: { on: boolean; size: "lg" | "sm" }) {
       className={cn(
         "flex shrink-0 rounded-full transition-colors",
         size === "lg" ? "h-[26px] w-11 p-[3px]" : "h-3.5 w-6 p-0.5",
-        on ? "bg-primary" : "bg-tag ring-line-strong ring-1 ring-inset"
+        on && "bg-primary",
+        !on &&
+          (size === "lg"
+            ? "bg-line-strong"
+            : "bg-tag ring-line-strong ring-1 ring-inset")
       )}
     >
       <span
@@ -256,7 +260,11 @@ function Switch({ on, size }: { on: boolean; size: "lg" | "sm" }) {
           "rounded-full transition-transform",
           size === "lg" ? "size-5" : "size-2.5",
           on && (size === "lg" ? "translate-x-[18px]" : "translate-x-2.5"),
-          on ? "bg-primary-foreground" : "bg-subtle"
+          on && "bg-primary-foreground",
+          !on &&
+            (size === "lg"
+              ? "dark:bg-subtle bg-white shadow-[0_1px_2px_rgb(0_0_0/0.2)]"
+              : "bg-subtle")
         )}
       />
     </span>
@@ -379,7 +387,7 @@ export function BoardFilters({
   return (
     <aside
       aria-label="Filters"
-      className="bg-card text-foreground fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-2xl border-0 p-0 shadow-2xl backdrop:bg-black/40 lg:hidden"
+      className="bg-card text-foreground fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-2xl border-0 p-0 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_-16px_48px_rgb(0_0_0/0.16)] backdrop:bg-black/30 lg:hidden"
       id={FILTERS_SHEET_ID}
       popover="auto"
     >
@@ -422,7 +430,7 @@ export function BoardFilters({
         <div className="bg-card border-line sticky bottom-0 border-t px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             className={cn(
-              "bg-primary text-primary-foreground flex h-12 w-full items-center justify-center rounded-lg text-[16px] font-medium",
+              "bg-primary text-primary-foreground flex h-12 w-full items-center justify-center rounded-[12px] text-[16px] font-medium",
               ROW_FOCUS
             )}
             popoverTarget={FILTERS_SHEET_ID}
@@ -438,7 +446,7 @@ export function BoardFilters({
 }
 
 const CHIP =
-  "flex h-7 shrink-0 items-center gap-1.5 rounded-[6px] bg-card px-2 text-[13px] leading-[18px] ring-1 ring-line-strong ring-inset";
+  "flex h-7 shrink-0 items-center gap-1.5 rounded-[8px] bg-card px-2 text-[13px] leading-[18px] ring-1 ring-line-strong ring-inset";
 const PHONE_CHIP =
   "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[14px] leading-[18px] ring-1 ring-line-strong ring-inset";
 
@@ -450,18 +458,36 @@ function Caret() {
   );
 }
 
+// What the popover footer needs: the current list URL and its size.
+export interface ChipMenuFooter {
+  currentHref: string;
+  total: number;
+}
+
+function showLabel(total: number): string {
+  return total === 1 ? "Show 1 job" : `Show ${total} jobs`;
+}
+
 // Desktop: a chip that drops down the group's options. <details> keeps it
-// usable without JS; every option is a crawlable link.
-function ChipMenu({ group }: { group: FacetGroup }) {
+// usable without JS; every option is a crawlable link. The scrim sits inside
+// the summary, so a click on it closes the menu. The details stays static so
+// the scrim spans the toolbar (the positioned ancestor) and everything below.
+function ChipMenu({
+  footer,
+  group,
+}: {
+  footer?: ChipMenuFooter;
+  group: FacetGroup;
+}) {
   const visible = visibleOptions(group);
   const active = visible.filter((option) => option.active);
 
   return (
-    <details className="group relative hidden lg:block">
+    <details className="group hidden lg:block">
       <summary
         className={cn(
           CHIP,
-          "group-open:ring-foreground/30 cursor-pointer list-none [&::-webkit-details-marker]:hidden",
+          "group-open:ring-subtle cursor-pointer list-none [&::-webkit-details-marker]:hidden",
           ROW_FOCUS
         )}
         data-testid={`filter-chip-${group.id}`}
@@ -473,51 +499,86 @@ function ChipMenu({ group }: { group: FacetGroup }) {
           </span>
         ) : null}
         <Caret />
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-full z-20 hidden h-screen cursor-default bg-black/25 group-open:block dark:bg-black/55"
+        />
       </summary>
-      <ul className="bg-popover text-popover-foreground ring-line absolute top-full left-0 z-30 mt-1.5 min-w-52 rounded-xl p-1.5 shadow-lg ring-1">
-        {visible.map((option) => (
-          <li key={option.testId}>
-            <Link
-              aria-current={option.active ? "true" : undefined}
-              className={cn(
-                "flex h-8 items-center justify-between gap-4 rounded-[6px] px-2 text-[13px] whitespace-nowrap",
-                option.active
-                  ? "bg-selected text-foreground font-medium"
-                  : "text-muted-foreground hover:bg-selected hover:text-foreground",
-                ROW_FOCUS
-              )}
-              data-active={option.active ? "true" : undefined}
-              data-testid={option.testId}
-              href={option.href}
-            >
-              <span className="flex items-center gap-2">
-                <span
-                  aria-hidden="true"
+      <div className="relative h-0">
+        <div className="bg-popover text-popover-foreground ring-line absolute top-0 left-0 z-30 mt-4 flex w-[300px] flex-col gap-3 rounded-[12px] p-3.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.04),0_32px_64px_-16px_rgb(0_0_0/0.25)] ring-1 dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.04),0_32px_64px_-16px_rgb(0_0_0/0.75)]">
+          <p className="text-foreground text-[13px] leading-[18px] font-medium">
+            {group.title}
+          </p>
+          <ul className="border-line flex max-h-80 flex-col gap-0.5 overflow-y-auto border-t pt-2">
+            {visible.map((option) => (
+              <li key={option.testId}>
+                <Link
+                  aria-current={option.active ? "true" : undefined}
                   className={cn(
-                    "flex size-3.5 items-center justify-center rounded-[4px] text-[10px]",
-                    option.active
-                      ? "bg-primary text-primary-foreground"
-                      : "ring-line-strong ring-1 ring-inset"
+                    "text-foreground flex h-8 items-center gap-2.5 rounded-[6px] px-2 text-[13px] leading-[18px] whitespace-nowrap",
+                    option.active ? "bg-tag" : "hover:bg-tag",
+                    ROW_FOCUS
                   )}
+                  data-active={option.active ? "true" : undefined}
+                  data-testid={option.testId}
+                  href={option.href}
                 >
-                  {option.active ? "✓" : null}
-                </span>
-                {option.label}
-                {option.active ? (
-                  <span className="sr-only"> (selected)</span>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "flex size-4 shrink-0 items-center justify-center rounded-[5px] text-[10px] leading-[10px]",
+                      option.active
+                        ? "bg-foreground text-background"
+                        : "ring-line-strong ring-1 ring-inset"
+                    )}
+                  >
+                    {option.active ? "✓" : null}
+                  </span>
+                  <span className="min-w-0 grow truncate">
+                    {option.label}
+                    {option.active ? (
+                      <span className="sr-only"> (selected)</span>
+                    ) : null}
+                  </span>
+                  <span
+                    className="text-subtle shrink-0 text-[12px] leading-4 tabular-nums"
+                    data-count={option.count}
+                    data-testid="facet-count"
+                  >
+                    {option.count}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {footer ? (
+            <div className="flex items-center gap-1.5">
+              <div className="flex grow">
+                {active.length > 0 ? (
+                  <Link
+                    className={cn(
+                      "text-subtle hover:text-foreground rounded-sm py-[5px] text-[13px] leading-[18px]",
+                      ROW_FOCUS
+                    )}
+                    href={group.clearHref}
+                  >
+                    Reset
+                  </Link>
                 ) : null}
-              </span>
-              <span
-                className="text-subtle text-[12px] tabular-nums"
-                data-count={option.count}
-                data-testid="facet-count"
+              </div>
+              <Link
+                className={cn(
+                  "bg-primary text-primary-foreground hover:bg-primary/90 flex h-7 shrink-0 items-center rounded-[8px] px-2.5 text-[13px] leading-[18px] font-medium",
+                  ROW_FOCUS
+                )}
+                href={footer.currentHref}
               >
-                {option.count}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+                {showLabel(footer.total)}
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      </div>
     </details>
   );
 }
@@ -586,7 +647,13 @@ function PhoneChip({ group }: { group: FacetGroup }) {
 }
 
 // The chip row in the toolbar. Groups with nothing to pick are left out.
-export function FilterChips({ groups }: { groups: FacetGroup[] }) {
+export function FilterChips({
+  footer,
+  groups,
+}: {
+  footer?: ChipMenuFooter;
+  groups: FacetGroup[];
+}) {
   const shown = groups.filter((group) => visibleOptions(group).length > 0);
   const isActive = (group: FacetGroup) =>
     group.options.some((option) => option.active);
@@ -625,7 +692,7 @@ export function FilterChips({ groups }: { groups: FacetGroup[] }) {
         group.toggle ? (
           <ToggleChip group={group} key={group.id} />
         ) : (
-          <ChipMenu group={group} key={group.id} />
+          <ChipMenu footer={footer} group={group} key={group.id} />
         )
       )}
     </>

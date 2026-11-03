@@ -10,9 +10,7 @@ import {
 } from "lucide-react";
 
 import { Container } from "./container";
-import { FeatureCard } from "./feature-card";
 import { Section } from "./section";
-import { SectionHeader } from "./section-header";
 
 export const FEATURES_PAGE_ITEMS = [
   {
@@ -67,26 +65,40 @@ export const FEATURES_PAGE_ITEMS = [
 
 export function FeaturesPageGrid() {
   return (
-    <Section className="border-b-0" padding="flush">
-      <Container className="border-line border-t border-b pt-10 pb-8 md:pt-16 md:pb-10">
-        <SectionHeader
-          description="Every part of the template, as it works in the app today."
-          eyebrow="What is included"
-          title="Built for"
-          titleMuted="job boards."
-        />
+    <Section className="md:py-[72px]" padding="default">
+      <Container className="flex flex-col gap-5 md:items-center md:gap-8">
+        <div className="flex flex-col gap-5 md:items-center md:gap-2.5 md:text-center">
+          <h2 className="flex flex-col text-[26px] leading-8 font-medium tracking-[-0.03em] md:text-[28px] md:leading-[34px]">
+            <span className="text-foreground">Built for</span>
+            <span className="text-subtle">job boards.</span>
+          </h2>
+          <p className="text-muted-foreground max-w-[520px] text-[15px] leading-[18px] md:leading-[23px] md:text-balance">
+            Every part of the template, as it works in the app today.
+          </p>
+        </div>
+        <ul className="grid w-full gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          {FEATURES_PAGE_ITEMS.map((feature) => (
+            <li
+              className="bg-card ring-line-strong flex flex-col gap-1.5 rounded-[14px] p-[18px] ring-1 ring-inset sm:gap-2.5 sm:rounded-xl sm:p-5"
+              key={feature.title}
+            >
+              <span className="bg-tag text-muted-foreground hidden size-7 shrink-0 items-center justify-center rounded-lg sm:flex">
+                <feature.icon
+                  aria-hidden="true"
+                  className="size-3.5"
+                  strokeWidth={1.4}
+                />
+              </span>
+              <h3 className="text-foreground text-[15px] leading-[22px] font-medium">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground text-[13px] leading-[19px]">
+                {feature.description}
+              </p>
+            </li>
+          ))}
+        </ul>
       </Container>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4">
-        {FEATURES_PAGE_ITEMS.map((feature) => (
-          <FeatureCard
-            className="border-line border-b sm:border-r sm:nth-[2n]:border-r-0 lg:nth-[2n]:border-r lg:nth-[4n]:border-r-0"
-            description={feature.description}
-            icon={feature.icon}
-            key={feature.title}
-            title={feature.title}
-          />
-        ))}
-      </div>
     </Section>
   );
 }

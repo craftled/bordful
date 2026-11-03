@@ -12,19 +12,25 @@ function Separator() {
 }
 
 // In board mode the site root is the job list, so a separate Home crumb would link to the same page.
+// Paper ends the trail with "Title at Company" on desktop and just the company
+// on phones, where the title sits right below.
 export function JobBreadcrumb({
   actions,
+  companyName,
   marketing,
   title,
 }: {
   actions?: ReactNode;
+  companyName?: string;
   marketing: boolean;
   title: string;
 }) {
   const jobsHref = boardHomePath(marketing);
+  const company = companyName?.trim() ?? "";
+  const full = company ? `${title} at ${company}` : title;
 
   return (
-    <div className="flex items-center justify-between gap-4 text-[13px] leading-[18px]">
+    <div className="flex items-center justify-between gap-4 text-[13px] leading-4 sm:leading-[18px]">
       <nav
         aria-label="Breadcrumb"
         className="text-subtle sm:text-muted-foreground min-w-0"
@@ -48,13 +54,22 @@ export function JobBreadcrumb({
           <Separator />
           <li
             className="text-foreground min-w-0 truncate sm:font-medium"
-            title={title}
+            title={full}
           >
-            <span aria-current="page">{title}</span>
+            <span aria-current="page">
+              {company ? (
+                <>
+                  <span className="sm:hidden">{company}</span>
+                  <span className="hidden sm:inline">{full}</span>
+                </>
+              ) : (
+                title
+              )}
+            </span>
           </li>
         </ol>
       </nav>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="-my-2 flex shrink-0 items-center gap-1 sm:my-0">
         <Link
           className="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-md font-medium sm:inline sm:size-auto"
           href={jobsHref}

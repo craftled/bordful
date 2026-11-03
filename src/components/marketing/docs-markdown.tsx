@@ -5,6 +5,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { DocsCodeBlock } from "./docs-code-block";
+
 // A small markdown renderer for the repo's /docs files. It covers headings,
 // paragraphs, lists, fenced code, inline code, bold, links and tables. React
 // escapes every text node, and nothing here uses dangerouslySetInnerHTML.
@@ -213,10 +215,10 @@ function renderInline(text: string, repoBase: string): ReactNode[] {
 }
 
 const headingClass: Record<number, string> = {
-  1: "text-[30px] leading-9 tracking-[-0.03em] md:text-[36px] md:leading-[44px]",
-  2: "mt-10 text-[22px] leading-7 tracking-[-0.02em]",
-  3: "mt-8 text-[16px] leading-6",
-  4: "mt-6 text-[14px] leading-5",
+  1: "text-[30px] leading-9 tracking-[-0.03em] md:text-[34px] md:leading-10",
+  2: "mt-3 text-[22px] leading-7 tracking-[-0.02em]",
+  3: "mt-2 text-[16px] leading-6",
+  4: "mt-1 text-[14px] leading-5",
 };
 
 export function DocsMarkdown({
@@ -233,7 +235,7 @@ export function DocsMarkdown({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {blocks.map((block, index) => {
         const key = `${index}-${block.type}`;
         switch (block.type) {
@@ -257,23 +259,33 @@ export function DocsMarkdown({
           }
           case "code":
             return (
-              <pre
-                className="bg-card border-line text-foreground overflow-x-auto rounded-lg border p-4 font-mono text-[13px] leading-5"
-                key={key}
-              >
-                <code>{block.text}</code>
-              </pre>
+              <DocsCodeBlock code={block.text} key={key} lang={block.lang} />
             );
           case "list": {
             const List = block.ordered ? "ol" : "ul";
             return (
               <List
-                className={`text-muted-foreground flex flex-col gap-1.5 pl-5 text-[14px] leading-[22px] ${block.ordered ? "list-decimal" : "list-disc"}`}
+                className="text-muted-foreground flex flex-col gap-1.5 text-[14px] leading-[22px]"
                 key={key}
               >
                 {block.items.map((item, itemIndex) => (
-                  <li key={`${itemIndex}-${item}`}>
-                    {renderInline(item, repoBase)}
+                  <li className="flex gap-2.5" key={`${itemIndex}-${item}`}>
+                    {block.ordered ? (
+                      <span
+                        aria-hidden="true"
+                        className="bg-tag text-foreground mt-px flex size-[22px] shrink-0 items-center justify-center rounded-full text-[12px] leading-[17px] font-medium"
+                      >
+                        {itemIndex + 1}
+                      </span>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="bg-subtle mt-[9px] size-1 shrink-0 rounded-full"
+                      />
+                    )}
+                    <span className="min-w-0">
+                      {renderInline(item, repoBase)}
+                    </span>
                   </li>
                 ))}
               </List>

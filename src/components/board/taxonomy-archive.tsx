@@ -78,7 +78,7 @@ export async function TaxonomyArchive({
 
   return (
     <div>
-      <div className="max-w-board mx-auto w-full space-y-8 px-4 pt-8 pb-6">
+      <div className="mx-auto flex w-full max-w-[1104px] flex-col gap-5 px-4 pt-2 pb-6 md:gap-8 md:pt-7">
         <Crumbs
           items={[
             { href: "/jobs", label: "Jobs" },
@@ -93,11 +93,12 @@ export async function TaxonomyArchive({
           <PageTitle
             subtitle={`${roles} open ${roles === 1 ? "role" : "roles"}.`}
             testId="taxonomy-heading"
+            tight
           >
             {title}
           </PageTitle>
           {updated ? (
-            <p className="text-subtle flex items-center gap-[6px] text-[13px]">
+            <p className="text-subtle hidden items-center gap-[6px] text-[13px] md:flex">
               <span
                 aria-hidden="true"
                 className="bg-new size-[6px] rounded-full"

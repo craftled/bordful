@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function TypeIndexPage() {
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyIndex kind="type" />
     </BoardShell>
   );

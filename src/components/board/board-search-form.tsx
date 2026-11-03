@@ -54,13 +54,13 @@ export function BoardSearchForm({
   return (
     <form
       action={BOARD_SEARCH_PATH}
-      className="bg-card ring-line-strong focus-within:ring-ring/40 relative flex h-10 w-full items-center rounded-[10px] ring-1 ring-inset lg:h-8 lg:rounded-[6px]"
+      className="bg-card ring-line-strong focus-within:ring-ring/40 relative flex h-10 w-full items-center rounded-[10px] ring-1 ring-inset lg:h-8 lg:rounded-[8px]"
       data-testid="board-search"
       method="get"
     >
       <button
         aria-label="Search"
-        className="text-subtle hover:text-foreground flex h-full w-10 shrink-0 items-center justify-center rounded-l-[10px] lg:w-8 lg:rounded-l-[6px]"
+        className="text-subtle hover:text-foreground flex h-full w-10 shrink-0 items-center justify-center rounded-l-[10px] lg:w-8 lg:rounded-l-[8px]"
         data-testid="board-search-submit"
         type="submit"
       >

@@ -13,9 +13,9 @@ export interface MarketingLinkColumn {
 // Only targets that exist on bordful.com. nav-links.test.ts checks the
 // in-app ones against the route files.
 export const MARKETING_HEADER_LINKS: MarketingLink[] = [
-  { href: "/features", label: "Features" },
-  { href: "/pricing", label: "Pricing" },
+  { href: "/features", label: "Product" },
   { href: "/showcase", label: "Showcase" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/docs", label: "Docs" },
   { href: "/changelog", label: "Changelog" },
 ];
@@ -26,7 +26,6 @@ export const MARKETING_FOOTER_COLUMNS: MarketingLinkColumn[] = [
       { href: "/features", label: "Features" },
       { href: "/pricing", label: "Pricing" },
       { href: "/showcase", label: "Showcase" },
-      { href: "/faq", label: "FAQ" },
       { href: "/changelog", label: "Changelog" },
     ],
     title: "Product",
@@ -34,9 +33,9 @@ export const MARKETING_FOOTER_COLUMNS: MarketingLinkColumn[] = [
   {
     items: [
       { href: "/docs", label: "Docs" },
-      { href: GITHUB_URL, label: "GitHub" },
+      { href: "/faq", label: "FAQ" },
       { href: "/jobs", label: "Live demo" },
-      { href: "/feed.xml", label: "RSS" },
+      { href: GITHUB_URL, label: "GitHub" },
       { href: BORDFEED_ABOUT_URL, label: "Bordfeed" },
     ],
     title: "Resources",

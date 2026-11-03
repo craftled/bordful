@@ -50,7 +50,7 @@ export function Shot({
     <MarketingImage
       alt={alt}
       className={cn(
-        "bg-card ring-line-strong max-w-none rounded-xl object-cover object-top shadow-[0_30px_60px_-24px_rgb(0_0_0/35%)] ring-1",
+        "bg-card max-w-none rounded-xl object-cover object-top shadow-[0_0_0_1px_var(--shot-ring),0_30px_60px_-24px_var(--shot-shadow)]",
         className
       )}
       decoding="async"

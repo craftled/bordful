@@ -12,7 +12,7 @@ const FOOTER_LINK_CLASS =
   "text-muted-foreground hover:text-foreground transition-colors";
 const FOOTER_ICON_CLASS = "text-muted-foreground hover:text-foreground";
 const FOOTER_BUTTON_CLASS =
-  "bg-card text-foreground ring-line-strong hover:bg-selected inline-flex h-7 items-center rounded-md px-2.5 text-[13px] font-medium ring-1 ring-inset transition-colors";
+  "bg-card text-foreground ring-line-strong hover:bg-selected inline-flex h-7 items-center rounded-lg px-2.5 text-[13px] font-medium ring-1 ring-inset transition-colors";
 
 export interface FooterStats {
   companies: number;
@@ -43,7 +43,7 @@ export function FooterView({
 
   return (
     <footer
-      className="bg-muted text-foreground border-line border-t"
+      className="text-foreground border-line border-t bg-[color-mix(in_srgb,var(--background)_97.5%,black)] dark:bg-[color-mix(in_srgb,var(--background)_80%,black)]"
       data-testid="site-footer"
     >
       <div className="flex w-full flex-col gap-7 px-4 pt-10 pb-7">

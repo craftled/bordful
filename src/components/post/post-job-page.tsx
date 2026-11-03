@@ -26,7 +26,7 @@ export function PostJobPage({
   view: PostJobView;
 }) {
   return (
-    <article className="mx-auto flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:gap-8 md:pt-7 md:pb-[72px]">
+    <article className="mx-auto -mt-8 -mb-1 flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:-mt-1 md:mb-0 md:gap-8 md:pt-0 md:pb-10">
       <nav aria-label="Breadcrumb" className="text-[13px] leading-4">
         <ol className="flex items-center gap-2">
           <li>

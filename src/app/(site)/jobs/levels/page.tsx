@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LevelIndexPage() {
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyIndex kind="level" />
     </BoardShell>
   );

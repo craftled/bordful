@@ -113,7 +113,7 @@ export function JobFacts({
   return (
     <section
       aria-label="Job details"
-      className="bg-card ring-line sm:bg-surface-sub overflow-clip rounded-lg ring-1 sm:ring-inset"
+      className="bg-card ring-line sm:bg-surface-sub overflow-clip rounded-[12px] ring-1 sm:ring-inset sm:dark:bg-black/20"
       data-testid="job-facts"
     >
       <dl className="-mt-px -ml-px flex flex-wrap">

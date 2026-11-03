@@ -10,7 +10,7 @@ const stack = [
   { invert: false, name: "Postgres", src: "/marketing/logos/postgresql.svg" },
   { invert: true, name: "Vercel", src: "/marketing/logos/vercel.svg" },
   {
-    invert: false,
+    invert: true,
     name: "Tailwind CSS",
     src: "/marketing/logos/tailwindcss.svg",
   },
@@ -29,7 +29,7 @@ export function TechStack() {
         {stack.map((item) => (
           <li
             className={cn(
-              "border-line flex h-14 items-center justify-center gap-[9px] border-r border-b md:h-[72px]",
+              "border-line flex h-14 items-center justify-center gap-[9px] border-r border-b md:h-[73px]",
               "nth-[2n]:border-r-0 sm:nth-[2n]:border-r sm:nth-[4n]:border-r-0 lg:last:border-r-0 lg:nth-[4n]:border-r"
             )}
             key={item.name}

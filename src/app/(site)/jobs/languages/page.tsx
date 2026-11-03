@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LanguageIndexPage() {
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyIndex kind="language" />
     </BoardShell>
   );

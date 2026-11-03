@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Container } from "./container";
 import { KBD_ON_PRIMARY, Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
-import { MarketingImage } from "./marketing-image";
 import { Section } from "./section";
+import { PhoneShot, ThemedBoardShot } from "./shots";
 
 const STACK_TAGS = ["MIT", "Next.js", "Payload", "Postgres"] as const;
 
@@ -24,21 +24,23 @@ export function Hero() {
                 1.0
               </span>
               <span className="text-muted-foreground text-[12px] leading-4 font-medium">
-                Now on Payload and Postgres{" "}
-                <span aria-hidden="true">&rarr;</span>
+                Now on Payload and Postgres <span aria-hidden="true">→</span>
               </span>
             </Link>
-            <h1 className="flex flex-col text-[36px] leading-[42px] font-medium tracking-[-0.04em] text-balance md:text-[52px] md:leading-[56px]">
+            <h1 className="flex flex-col text-[32px] leading-10 font-medium tracking-[-0.035em] text-balance md:text-[52px] md:leading-[56px] md:tracking-[-0.04em]">
               <span className="text-foreground">The job board you own.</span>
-              <span className="text-subtle"> Live in two minutes.</span>
+              <span className="text-(--text-faint)"> Live in two minutes.</span>
             </h1>
-            <p className="text-muted-foreground max-w-[520px] text-[16px] leading-[25px]">
+            <p className="text-muted-foreground max-w-[520px] text-[16px] leading-6 md:leading-[25px]">
               An open-source template that deploys with real jobs already
               listed. Brand it, take paid posts and send alerts on your own
               domain.
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              <Button asChild className="gap-[7px] px-3.5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-1.5">
+              <Button
+                asChild
+                className="h-11 gap-[7px] px-3.5 text-[15px] sm:h-9 sm:text-[13px]"
+              >
                 <a
                   data-testid="marketing-deploy-button"
                   href={DEPLOY_URL}
@@ -49,9 +51,15 @@ export function Hero() {
                   <Kbd className={KBD_ON_PRIMARY}>D</Kbd>
                 </a>
               </Button>
-              <Button asChild className="px-3.5 shadow-xs" variant="outline">
+              <Button
+                asChild
+                className="h-11 px-3.5 text-[15px] shadow-xs sm:h-9 sm:text-[13px]"
+                variant="outline"
+              >
                 <a data-testid="marketing-demo-link" href="/jobs">
-                  Live demo <span aria-hidden="true">&#8599;</span>
+                  <span>
+                    Live demo <span aria-hidden="true">&#8599;</span>
+                  </span>
                 </a>
               </Button>
             </div>
@@ -63,13 +71,30 @@ export function Hero() {
           </ul>
         </Container>
       </Section>
-      <div className="marketing-shot border-line h-[240px] overflow-hidden border-b px-4 pt-6 sm:h-[400px] md:h-[560px] md:px-10 md:pt-10">
-        <MarketingImage
-          alt="Bordful demo board"
-          className="bg-card ring-line-strong w-full rounded-lg shadow-sm ring-1"
-          height={1692}
-          src="/marketing/bordful-demo.png"
-          width={2880}
+      <div className="marketing-shot border-line relative h-[240px] overflow-hidden border-b sm:h-[400px] md:h-[560px]">
+        <div className="absolute top-6 left-4 w-[1120px] max-w-none origin-top-left scale-[0.32] overflow-hidden rounded-xl bg-(--window) shadow-[0_0_0_1px_var(--shot-ring),0_30px_60px_-24px_var(--shot-shadow)] sm:scale-50 md:top-10 md:left-10 md:scale-100">
+          <div
+            aria-hidden="true"
+            className="relative flex h-[30px] items-center gap-1.5 px-3"
+          >
+            <span className="size-2 rounded-full bg-(--window-dot)" />
+            <span className="size-2 rounded-full bg-(--window-dot)" />
+            <span className="size-2 rounded-full bg-(--window-dot)" />
+            <span className="bg-card ring-line absolute top-1.5 left-[450px] flex h-[18px] w-[220px] items-center justify-center rounded-[5px] ring-1 ring-inset dark:bg-white/6">
+              <span className="text-subtle text-[10px] leading-3">
+                jobs.yourbrand.com
+              </span>
+            </span>
+          </div>
+          <ThemedBoardShot
+            alt="Bordful demo board"
+            className="h-[638px] w-[1120px] rounded-none shadow-none"
+          />
+        </div>
+        <PhoneShot
+          alt="A job page on a phone"
+          className="absolute top-[88px] left-[962px] hidden w-[220px] shadow-[0_30px_40px_rgb(0_0_0/28%)] lg:block dark:shadow-[0_30px_40px_rgb(0_0_0/50%)]"
+          name="mobileJob"
         />
       </div>
     </>

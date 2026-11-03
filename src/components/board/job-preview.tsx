@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 
 import { jobStatuses, StatusPill } from "@/components/board/job-row";
-import { HINT_CLASS } from "@/components/board/job-row-save";
+import { HINT_CLASS } from "@/components/board/rail-styles";
 import { useJobList } from "@/components/board/saved-jobs";
 import { offersVisa } from "@/lib/board/filter";
 import {
@@ -15,13 +15,17 @@ import {
   SENIORITY_LABELS,
 } from "@/lib/board/format";
 import { buildJobPath } from "@/lib/board/paths";
-import { JOB_EMPLOYMENT_LABELS } from "@/lib/domain/job-vocab";
+import {
+  JOB_EMPLOYMENT_LABELS,
+  JOB_WORKPLACE_LABELS,
+} from "@/lib/domain/job-vocab";
 import type { JobListItem } from "@/lib/read/types";
 import { cn } from "@/lib/utils";
 
 const FOCUS =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 const EXCERPT_CHARS = 480;
+const SIMILAR_LIMIT = 3;
 const SENTENCE_END = /[.!?]\s/gu;
 
 // The JSON Feed carries each live job's plain-text description. One fetch
@@ -135,6 +139,81 @@ export function previewFacts(job: JobListItem, now: number): PreviewFact[] {
   return facts;
 }
 
+// Other jobs on this page that share a category with the open one.
+export function similarJobs(
+  job: JobListItem,
+  jobs: readonly JobListItem[],
+  limit = SIMILAR_LIMIT
+): JobListItem[] {
+  const categories = new Set(job.categories);
+  if (categories.size === 0) {
+    return [];
+  }
+  return jobs
+    .filter(
+      (other) =>
+        other.slug !== job.slug &&
+        other.categories.some((category) => categories.has(category))
+    )
+    .slice(0, limit);
+}
+
+// The alert sign-up, prefilled with the open job's type, level and
+// workplace, plus a short summary of those filters.
+export function roleAlert(job: JobListItem): { href: string; summary: string } {
+  const params = new URLSearchParams();
+  const parts: string[] = [];
+  if (job.seniority) {
+    params.set("seniority", job.seniority);
+    parts.push(SENIORITY_LABELS[job.seniority]);
+  }
+  if (job.employmentType) {
+    params.set("types", job.employmentType);
+    parts.push(JOB_EMPLOYMENT_LABELS[job.employmentType]);
+  }
+  if (job.workplaceType === "remote") {
+    params.set("remote", "true");
+    parts.push(JOB_WORKPLACE_LABELS.remote);
+  }
+  const qs = params.toString();
+  return {
+    href: qs.length > 0 ? `/alerts?${qs}` : "/alerts",
+    summary: parts.join(", "),
+  };
+}
+
+function SimilarJob({
+  job,
+  onSelect,
+}: {
+  job: JobListItem;
+  onSelect: (job: JobListItem) => void;
+}) {
+  const onClick = useCallback(() => onSelect(job), [job, onSelect]);
+  const salary = formatSalary(job);
+  return (
+    <li className="border-line border-t">
+      <button
+        className={cn(
+          "group/similar flex h-[34px] w-full cursor-pointer items-center justify-between gap-3 rounded-sm text-left",
+          FOCUS
+        )}
+        onClick={onClick}
+        type="button"
+      >
+        <span className="text-foreground min-w-0 truncate text-[13px] leading-[18px] group-hover/similar:underline">
+          {job.title} · {job.companyName}
+        </span>
+        {salary ? (
+          <span className="text-subtle shrink-0 text-[12px] leading-4">
+            {salary}
+          </span>
+        ) : null}
+      </button>
+    </li>
+  );
+}
+
 function Logo({ job }: { job: JobListItem }) {
   const initial = job.companyName.trim().charAt(0).toUpperCase() || "?";
   return (
@@ -179,22 +258,75 @@ function KeyButton({
   );
 }
 
+function PreviewSide({
+  alert,
+  onSelect,
+  similar,
+}: {
+  alert: { href: string; summary: string } | null;
+  onSelect?: (job: JobListItem) => void;
+  similar: JobListItem[];
+}) {
+  return (
+    <div className="flex w-[250px] shrink-0 flex-col gap-4">
+      {alert ? (
+        <div className="bg-surface-sub ring-line flex flex-col gap-2.5 rounded-[10px] p-3.5 ring-1 ring-inset">
+          <h3 className="text-foreground text-[13px] leading-[18px] font-medium">
+            Get roles like this
+          </h3>
+          <p className="text-muted-foreground text-[12px] leading-[17px]">
+            {alert.summary ? `${alert.summary}. ` : ""}New matches by email.
+          </p>
+          <Link
+            className={cn(
+              "bg-card text-foreground ring-line-strong hover:bg-surface-sub flex h-7 shrink-0 items-center rounded-[8px] px-2.5 text-[13px] leading-[18px] font-medium ring-1 ring-inset",
+              FOCUS
+            )}
+            href={alert.href}
+          >
+            Save alert
+          </Link>
+        </div>
+      ) : null}
+      {similar.length > 0 && onSelect ? (
+        <section aria-label="Similar jobs" className="flex flex-col">
+          <h3 className="text-subtle pb-2 text-[12px] leading-4 font-medium">
+            Similar jobs
+          </h3>
+          <ul className="flex flex-col">
+            {similar.map((other) => (
+              <SimilarJob job={other} key={other.slug} onSelect={onSelect} />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
 // The right-hand panel for the selected row ("Job open" in the design).
 export function JobPreview({
+  alertsEnabled = false,
   index,
   job,
+  jobs = [],
   now,
   onClose,
   onNext,
   onPrev,
+  onSelect,
   total,
 }: {
+  alertsEnabled?: boolean;
   index: number;
   job: JobListItem;
+  // The jobs on this page, for "Similar jobs".
+  jobs?: readonly JobListItem[];
   now: number;
   onClose: () => void;
   onNext: (() => void) | null;
   onPrev: (() => void) | null;
+  onSelect?: (job: JobListItem) => void;
   total: number;
 }) {
   const titleId = useId();
@@ -218,6 +350,9 @@ export function JobPreview({
     posted ? `Posted ${posted}` : "",
   ].filter((part) => part.length > 0);
   const closes = job.validThrough ? formatShortDate(job.validThrough, now) : "";
+  const similar = onSelect ? similarJobs(job, jobs) : [];
+  const alert = alertsEnabled ? roleAlert(job) : null;
+  const hasSide = alert !== null || similar.length > 0;
 
   return (
     <section
@@ -298,37 +433,44 @@ export function JobPreview({
             ))}
           </dl>
         ) : null}
-        {description ? (
-          <div className="flex flex-col gap-1.5">
-            <h3 className="text-foreground text-[15px] leading-5 font-medium">
-              About the role
-            </h3>
-            <p className="text-muted-foreground text-[14px] leading-[22px]">
-              {description}
-            </p>
-            <Link
-              className={cn(
-                "text-foreground w-fit rounded-sm text-[13px] leading-[18px] underline underline-offset-4",
-                FOCUS
-              )}
-              href={href}
-            >
-              Read the full post
-            </Link>
+        <div className="flex gap-10">
+          <div className="flex min-w-0 grow basis-0 flex-col gap-[18px]">
+            {description ? (
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-foreground text-[15px] leading-5 font-medium">
+                  About the role
+                </h3>
+                <p className="text-muted-foreground text-[14px] leading-[22px]">
+                  {description}
+                </p>
+                <Link
+                  className={cn(
+                    "text-foreground w-fit rounded-sm text-[13px] leading-[18px] underline underline-offset-4",
+                    FOCUS
+                  )}
+                  href={href}
+                >
+                  Read the full post
+                </Link>
+              </div>
+            ) : null}
+            {job.categories.length > 0 ? (
+              <ul className="flex flex-wrap gap-1.5">
+                {job.categories.map((category) => (
+                  <li
+                    className="bg-tag text-muted-foreground rounded-[5px] px-1.5 py-0.5 text-[12px] leading-4 font-medium"
+                    key={category}
+                  >
+                    {category}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-        ) : null}
-        {job.categories.length > 0 ? (
-          <ul className="flex flex-wrap gap-1.5">
-            {job.categories.map((category) => (
-              <li
-                className="bg-tag text-muted-foreground rounded-[5px] px-1.5 py-0.5 text-[12px] leading-4 font-medium"
-                key={category}
-              >
-                {category}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+          {hasSide ? (
+            <PreviewSide alert={alert} onSelect={onSelect} similar={similar} />
+          ) : null}
+        </div>
       </div>
       <div className="bg-card border-line flex shrink-0 items-center justify-between gap-3 border-t py-3.5 pr-5 pl-9">
         <p className="text-muted-foreground flex min-w-0 items-center gap-2 text-[13px] leading-[18px]">
@@ -346,7 +488,7 @@ export function JobPreview({
           <button
             aria-pressed={isSaved}
             className={cn(
-              "bg-card text-foreground ring-line-strong hover:bg-surface-sub inline-flex h-[38px] items-center rounded-md px-4 text-[14px] leading-[18px] font-medium ring-1 ring-inset",
+              "bg-card text-foreground ring-line-strong hover:bg-surface-sub inline-flex h-[38px] items-center rounded-[8px] px-4 text-[14px] leading-[18px] font-medium ring-1 ring-inset",
               FOCUS
             )}
             data-testid="job-preview-save"
@@ -358,7 +500,7 @@ export function JobPreview({
           {job.applyHref ? (
             <a
               className={cn(
-                "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[38px] items-center rounded-md px-[18px] text-[14px] leading-[18px] font-medium",
+                "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[38px] items-center rounded-[8px] px-[18px] text-[14px] leading-[18px] font-medium",
                 FOCUS
               )}
               data-testid="job-preview-apply"
@@ -372,7 +514,7 @@ export function JobPreview({
           ) : (
             <Link
               className={cn(
-                "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[38px] items-center rounded-md px-[18px] text-[14px] leading-[18px] font-medium",
+                "bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[38px] items-center rounded-[8px] px-[18px] text-[14px] leading-[18px] font-medium",
                 FOCUS
               )}
               href={href}

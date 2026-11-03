@@ -49,3 +49,17 @@ test("renders trailing actions next to the back link", () => {
 
   expect(screen.getByRole("button", { name: "Save job" })).toBeTruthy();
 });
+
+test("names the company in the last crumb when it is known", () => {
+  render(
+    <JobBreadcrumb companyName="Acme" marketing title="Backend Engineer" />
+  );
+
+  expect(screen.getByText("Backend Engineer at Acme")).toBeTruthy();
+  expect(screen.getByText("Acme")).toBeTruthy();
+  expect(
+    screen
+      .getByText("Backend Engineer at Acme")
+      .parentElement?.parentElement?.getAttribute("title")
+  ).toBe("Backend Engineer at Acme");
+});

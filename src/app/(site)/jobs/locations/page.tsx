@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LocationIndexPage() {
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <TaxonomyIndex kind="location" />
     </BoardShell>
   );

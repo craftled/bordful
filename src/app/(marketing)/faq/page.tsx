@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { Faq } from "@/components/marketing/faq";
+import { FaqPageTabs } from "@/components/marketing/faq-page-tabs";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
@@ -18,8 +18,7 @@ export default function FaqPage() {
 
   return (
     <>
-      <h1 className="sr-only">Frequently asked questions</h1>
-      <Faq variant="page" />
+      <FaqPageTabs />
       <MarketingCta
         actions={[
           {

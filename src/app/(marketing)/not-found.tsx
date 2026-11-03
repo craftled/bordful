@@ -31,28 +31,34 @@ export function MarketingNotFound({ enabled }: { enabled: boolean }) {
 
   return (
     <div className="flex min-h-[640px] flex-col items-center justify-center gap-7 px-4 pt-16 pb-12 text-center md:min-h-[1000px]">
-      <div className="flex flex-col items-center gap-3 md:gap-2">
-        <p className="text-subtle font-mono text-[11px] font-medium tracking-[0.04em] uppercase">
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase">
           Error 404
         </p>
         <div className="flex flex-col items-center">
-          <h1 className="text-foreground text-[72px] leading-[88px] font-medium tracking-[-0.045em] md:text-[88px] md:leading-[92px]">
+          <h1 className="text-foreground text-[72px] leading-[80px] font-medium tracking-[-0.045em] md:text-[88px] md:leading-[92px]">
             404
           </h1>
-          <p className="text-subtle text-[24px] leading-[30px] font-medium tracking-[-0.03em] md:text-[32px] md:leading-[38px]">
+          <p className="text-subtle/80 text-[24px] leading-[30px] font-medium tracking-[-0.03em] md:text-[32px] md:leading-[38px]">
             Page not found.
           </p>
         </div>
       </div>
       <p className="text-muted-foreground max-w-[420px] text-[15px] leading-[23px]">
-        Sorry, we could not find that page.
+        Sorry, we couldn&apos;t find the page you&apos;re looking for.
       </p>
       <div className="flex gap-2">
         <Link
           className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center justify-center rounded-md px-4 text-[14px] leading-5 font-medium"
           href="/"
         >
-          Home
+          Go Home
+        </Link>
+        <Link
+          className="bg-card text-foreground ring-line-strong hover:bg-surface-sub inline-flex h-9 items-center justify-center rounded-md px-4 text-[14px] leading-5 font-medium ring-1 ring-inset"
+          href="/docs"
+        >
+          Read the docs
         </Link>
       </div>
     </div>

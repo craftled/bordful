@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Container } from "@/components/marketing/container";
+import { DocsSectionNav } from "@/components/marketing/docs-section-nav";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = {
@@ -24,6 +25,8 @@ function slugify(value: string): string {
   return value.toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-");
 }
 
+const NAV_ITEMS = SECTIONS.map((label) => ({ id: slugify(label), label }));
+
 function Block({
   children,
   index,
@@ -40,7 +43,7 @@ function Block({
       id={slugify(title)}
     >
       <h2
-        className="text-foreground text-xl font-medium tracking-[-0.02em]"
+        className="text-foreground text-xl leading-[26px] font-medium tracking-[-0.02em]"
         id={`${slugify(title)}-heading`}
       >
         {index}. {title}
@@ -67,25 +70,7 @@ export default function TermsPage() {
   return (
     <Container className="md:px-10">
       <div className="flex flex-col gap-12 pt-12 pb-[72px] lg:flex-row lg:gap-14">
-        <nav aria-label="On this page" className="w-full shrink-0 lg:w-[200px]">
-          <div className="lg:sticky lg:top-24">
-            <p className="text-subtle font-mono text-[11px] font-medium tracking-[0.04em] uppercase">
-              On this page
-            </p>
-            <ul className="mt-3 flex flex-col">
-              {SECTIONS.map((section) => (
-                <li key={section}>
-                  <a
-                    className="border-line text-subtle hover:text-foreground hover:border-line-strong block border-l-2 py-[5px] pl-3 text-[13px] leading-[19px]"
-                    href={`#${slugify(section)}`}
-                  >
-                    {section}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
+        <DocsSectionNav items={NAV_ITEMS} />
         <div className="flex w-full max-w-[680px] flex-col gap-8">
           <p className="text-foreground text-[13px] font-medium">Terms</p>
           <h1 className="text-foreground text-[30px] leading-[46px] font-medium tracking-[-0.03em] sm:text-[40px]">

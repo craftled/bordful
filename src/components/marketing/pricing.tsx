@@ -2,9 +2,22 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { Container } from "./container";
+import { KBD_ON_PRIMARY, Kbd } from "./kbd";
+import { DEPLOY_URL } from "./links";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
-import { BORDFEED_PRICING_URL, GITHUB_URL } from "./site";
+import { GITHUB_URL } from "./site";
+
+// The home section shows a shorter card: Paper's own lines, three features
+// and the deploy button on the free plan.
+interface HomePlan {
+  badge?: string;
+  cta: string;
+  description: string;
+  features: readonly string[];
+  href: string;
+  unit: string;
+}
 
 interface Plan {
   cta: string;
@@ -12,11 +25,13 @@ interface Plan {
   external: boolean;
   features: readonly string[];
   highlight?: boolean;
+  home: HomePlan;
   href: string;
   name: string;
   price: string;
-  unit?: string;
 }
+
+const SETUP_URL = "https://buy.stripe.com/bIY5mJdyAdYc1pKdRe";
 
 const plans: readonly Plan[] = [
   {
@@ -30,6 +45,15 @@ const plans: readonly Plan[] = [
       "MIT license",
       "Community support",
     ],
+    home: {
+      badge: "Start here",
+      cta: "Deploy to Vercel",
+      description:
+        "For developers and hobbyists. Self-host on your own accounts.",
+      features: ["Full job board features", "MIT license", "Community support"],
+      href: DEPLOY_URL,
+      unit: "forever",
+    },
     href: GITHUB_URL,
     name: "Open Source",
     price: "Free",
@@ -46,10 +70,21 @@ const plans: readonly Plan[] = [
       "Community support",
     ],
     highlight: true,
-    href: "https://buy.stripe.com/bIY5mJdyAdYc1pKdRe",
+    home: {
+      cta: "Order setup",
+      description:
+        "We install it, set your domain and walk you through it. Pay once.",
+      features: [
+        "Full installation",
+        "Custom domain setup",
+        "1-hour consultation",
+      ],
+      href: SETUP_URL,
+      unit: "once",
+    },
+    href: SETUP_URL,
     name: "Custom Setup",
     price: "$499",
-    unit: "once",
   },
 ];
 
@@ -82,11 +117,6 @@ function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
         <span className="text-foreground text-[40px] leading-[46px] font-medium tracking-[-0.03em]">
           {plan.price}
         </span>
-        {plan.unit ? (
-          <span className="text-subtle text-[13px] leading-[18px]">
-            {plan.unit}
-          </span>
-        ) : null}
       </p>
       <p className="text-muted-foreground text-[13px] leading-[19px]">
         {plan.description}
@@ -122,21 +152,59 @@ function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
   );
 }
 
-function PricingNote({ className }: { className?: string }) {
+function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
+  const { home } = plan;
+
   return (
-    <p className={cn("text-subtle text-[11px] leading-4", className)}>
-      Payments are processed and secured by Stripe. Price in USD. VAT may apply.
-      Bordfeed has its own plans.{" "}
-      <a
-        className="hover:text-foreground rounded-sm underline underline-offset-4"
-        href={BORDFEED_PRICING_URL}
-        rel="noopener noreferrer"
-        target="_blank"
+    <>
+      <div className="flex h-5 items-center justify-between">
+        <h3 className="text-foreground text-[15px] leading-5 font-medium">
+          {plan.name}
+        </h3>
+        {home.badge ? (
+          <span className="bg-primary text-primary-foreground flex h-5 items-center rounded-md px-[7px] text-[11px] leading-[14px] font-medium">
+            {home.badge}
+          </span>
+        ) : null}
+      </div>
+      <p className="flex items-baseline gap-1.5">
+        <span className="text-foreground text-[40px] leading-[44px] font-medium tracking-[-0.035em]">
+          {plan.price}
+        </span>
+        <span className="text-subtle text-[13px] leading-[18px]">
+          {home.unit}
+        </span>
+      </p>
+      <p className="text-muted-foreground text-[13px] leading-5">
+        {home.description}
+      </p>
+      <ul className="flex flex-col gap-0.5">
+        {home.features.map((feature) => (
+          <li
+            className="text-muted-foreground flex gap-2 text-[13px] leading-5"
+            key={feature}
+          >
+            <span aria-hidden="true" className="text-subtle">
+              ✓
+            </span>
+            {feature}
+          </li>
+        ))}
+      </ul>
+      <Button
+        asChild
+        className={cn(
+          "h-11 w-full gap-[7px] px-3.5 text-[15px] md:h-[34px] md:w-auto md:self-start md:text-[13px]",
+          !primary && "shadow-xs"
+        )}
+        variant={primary ? "default" : "outline"}
       >
-        See Bordfeed pricing
-      </a>
-      .
-    </p>
+        <a href={home.href} rel="noopener noreferrer" target="_blank">
+          {home.cta}
+          {primary ? <Kbd className={KBD_ON_PRIMARY}>D</Kbd> : null}
+        </a>
+      </Button>
+    </>
   );
 }
 
@@ -149,7 +217,9 @@ function PricingCards() {
           <div
             className={cn(
               "bg-card flex flex-col gap-3.5 rounded-[14px] p-[22px] md:gap-2.5 md:rounded-xl md:p-7",
-              plan.highlight ? "ring-foreground ring-1" : "ring-line ring-1"
+              plan.highlight
+                ? "ring-foreground ring-1"
+                : "ring-1 ring-(--shot-ring)"
             )}
             key={plan.name}
           >
@@ -157,7 +227,6 @@ function PricingCards() {
           </div>
         ))}
       </div>
-      <PricingNote className="text-center" />
     </div>
   );
 }
@@ -176,29 +245,31 @@ export function Pricing({
     <Section id="pricing" padding="flush">
       <Container className="border-line border-b pt-10 pb-8 md:pt-16 md:pb-10">
         <SectionHeader
-          description="Need help getting started? We offer custom setup services for a one-time fee."
           eyebrow="Pricing"
-          title="Simple pricing."
-          titleMuted="Free to use commercially."
+          title="Free to run."
+          titleMuted="Help if you want it."
         />
       </Container>
       <div className="grid md:grid-cols-2">
         {plans.map((plan, index) => (
           <div
             className={cn(
-              "border-line flex flex-col gap-3.5 px-4 py-8 md:gap-4 md:px-10 md:py-9",
+              "border-line flex flex-col gap-4 px-4 py-8 md:px-10 md:py-9",
               index === 0
                 ? "bg-card border-b md:border-r md:border-b-0"
                 : undefined
             )}
             key={plan.name}
           >
-            <PlanBody plan={plan} primary={index === 0} />
+            <HomePlanBody plan={plan} primary={index === 0} />
           </div>
         ))}
       </div>
       <Container className="border-line border-t py-3.5">
-        <PricingNote />
+        <p className="text-subtle text-[11px] leading-[14px]">
+          Payments by Stripe. Prices in USD, VAT may apply. Bordfeed has its own
+          plans.
+        </p>
       </Container>
     </Section>
   );

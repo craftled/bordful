@@ -20,7 +20,7 @@ export function CompanyCard({
     >
       <span
         aria-hidden="true"
-        className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] text-[14px] font-medium"
+        className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md text-[13px] leading-4 font-semibold"
       >
         {logoUrl ? (
           // biome-ignore lint/performance/noImgElement: a 40px company mark, served as-is
@@ -36,14 +36,14 @@ export function CompanyCard({
           name.trim().charAt(0).toUpperCase()
         )}
       </span>
-      <span className="flex min-w-0 grow flex-col gap-[2px]">
+      <span className="flex min-w-0 grow flex-col gap-px">
         <span
           className="text-foreground truncate text-[16px] leading-5 font-medium"
           data-testid="company-name"
         >
           {name}
         </span>
-        <span className="text-muted-foreground text-[13px]">
+        <span className="text-muted-foreground text-[13px] leading-4">
           {count === 1 ? "1 open role" : `${count} open roles`}
         </span>
       </span>

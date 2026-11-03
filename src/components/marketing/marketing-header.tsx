@@ -6,50 +6,24 @@ import { KBD_ON_OUTLINE, KBD_ON_PRIMARY, Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
 import { MarketingHotkeys } from "./marketing-hotkeys";
 import { MarketingImage } from "./marketing-image";
-import { MARKETING_HEADER_LINKS, type MarketingLink } from "./nav-links";
+import { MarketingNavLinks } from "./marketing-nav-links";
+import { MARKETING_HEADER_LINKS } from "./nav-links";
 import { GITHUB_URL } from "./site";
 
-function NavLinks({
-  items,
-  native = false,
-}: {
-  items: MarketingLink[];
-  native?: boolean;
-}) {
-  const className = native
-    ? "block py-2 text-[14px] leading-[18px] text-muted-foreground hover:text-foreground"
-    : "text-[13px] leading-[18px] font-medium text-muted-foreground hover:text-foreground";
-
+export function MarketingLogo() {
   return (
-    <ul className={native ? "flex flex-col" : "flex items-center gap-[22px]"}>
-      {items.map((item) => (
-        <li key={item.href}>
-          {native ? (
-            <a className={className} href={item.href}>
-              {item.label}
-            </a>
-          ) : (
-            <Link className={className} href={item.href}>
-              {item.label}
-            </Link>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Logo() {
-  return (
-    <Link className="flex items-center gap-2 rounded-sm" href="/">
+    <Link
+      className="flex h-5 w-20 items-center justify-center gap-1.5 rounded-sm"
+      href="/"
+    >
       <MarketingImage
         alt=""
-        className="marketing-mono size-5"
-        height={20}
+        className="marketing-mono size-[19px]"
+        height={19}
         src="/marketing/logos/bordful.svg"
-        width={20}
+        width={19}
       />
-      <span className="text-foreground text-[14px] leading-5 font-medium tracking-[-0.01em]">
+      <span className="text-foreground text-[12.5px] leading-5 font-medium tracking-[-0.01em]">
         Bordful
       </span>
     </Link>
@@ -78,9 +52,9 @@ export function MarketingHeader() {
       <MarketingHotkeys />
       <div className="border-line mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between px-4 min-[1200px]:border-x md:h-[52px] md:px-5">
         <div className="flex items-center gap-8">
-          <Logo />
+          <MarketingLogo />
           <nav aria-label="Primary" className="hidden lg:block">
-            <NavLinks items={MARKETING_HEADER_LINKS} />
+            <MarketingNavLinks items={MARKETING_HEADER_LINKS} />
           </nav>
         </div>
         <div className="flex items-center gap-2 lg:gap-1.5">
@@ -111,7 +85,7 @@ export function MarketingHeader() {
             <div className="bg-card ring-line-strong absolute right-0 mt-2 w-64 rounded-xl p-4 shadow-lg ring-1">
               <nav aria-label="Mobile">
                 {/* A full load closes this disclosure. Client navigation leaves it open. */}
-                <NavLinks items={MARKETING_HEADER_LINKS} native />
+                <MarketingNavLinks items={MARKETING_HEADER_LINKS} native />
               </nav>
               <div className="border-line mt-3 flex flex-col gap-2 border-t pt-4">
                 <Button asChild className="h-10 w-full" variant="outline">

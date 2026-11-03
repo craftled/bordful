@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
+import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import {
   TAXONOMY_INDEX_LABEL,
   TaxonomyTabs,
@@ -69,7 +69,7 @@ const ALERT_COPY: Record<TaxonomyKind, { body: string; title: string }> = {
 };
 
 const SECTION_LABEL =
-  "text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase md:text-[12px]";
+  "text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase";
 
 function subtitle(kind: TaxonomyKind, roles: number, groups: number): string {
   const [one, many] = NOUN[kind];
@@ -94,15 +94,20 @@ function PopularCard({
         <span className="text-foreground text-[16px] leading-5 font-medium md:text-[18px] md:leading-6">
           {facet.label}
         </span>
-        <span aria-hidden="true" className="text-subtle hidden md:block">
+        <span
+          aria-hidden="true"
+          className="text-subtle hidden text-[15px] leading-[22px] md:block"
+        >
           →
         </span>
       </span>
-      <span className="text-muted-foreground text-[13px] md:text-[14px]">
+      <span className="text-muted-foreground text-[13px] leading-4 md:text-[14px] md:leading-5">
         {facet.count} {facet.count === 1 ? "role" : "roles"}
       </span>
       {median ? (
-        <span className="text-subtle text-[12px] md:text-[13px]">{median}</span>
+        <span className="text-subtle text-[12px] leading-4 md:text-[13px] md:leading-[19px]">
+          {median}
+        </span>
       ) : null}
     </Link>
   );
@@ -124,15 +129,18 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
   const alert = ALERT_COPY[kind];
 
   return (
-    <div className="space-y-8 md:space-y-8" data-testid="taxonomy-hub">
+    <PageFrame testId="taxonomy-hub">
       <Crumbs
         items={[
           { href: "/jobs", label: "Jobs" },
           { label: TAXONOMY_INDEX_LABEL[kind] },
         ]}
       />
-      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-        <PageTitle subtitle={subtitle(kind, cards.length, facets.length)}>
+      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-4">
+        <PageTitle
+          subtitle={subtitle(kind, cards.length, facets.length)}
+          tight={kind === "location"}
+        >
           {HEADING[kind]}
         </PageTitle>
         <TaxonomyTabs active={kind} />
@@ -141,11 +149,17 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
         <p className="text-muted-foreground">No open roles to group yet.</p>
       ) : null}
       {popular.length > 0 ? (
-        <section aria-labelledby="taxonomy-popular" className="space-y-[14px]">
-          <h2 className={SECTION_LABEL} id="taxonomy-popular">
+        <section
+          aria-labelledby="taxonomy-popular"
+          className="flex flex-col gap-[14px]"
+        >
+          <h2
+            className={`${SECTION_LABEL} sr-only md:not-sr-only`}
+            id="taxonomy-popular"
+          >
             {POPULAR_LABEL[kind]}
           </h2>
-          <ul className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          <ul className="grid max-w-[1064px] grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             {popular.map((facet) => (
               <li key={facet.slug}>
                 <PopularCard
@@ -162,7 +176,10 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
         </section>
       ) : null}
       {rest.length > 0 ? (
-        <section aria-labelledby="taxonomy-rest" className="space-y-[6px]">
+        <section
+          aria-labelledby="taxonomy-rest"
+          className="flex flex-col gap-[2px] md:gap-[6px]"
+        >
           <h2 className={SECTION_LABEL} id="taxonomy-rest">
             {REST_LABEL[kind]}
           </h2>
@@ -170,7 +187,7 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
             {rest.map((facet) => (
               <li key={facet.slug}>
                 <Link
-                  className="border-line hover:bg-selected/50 flex items-center justify-between border-b py-3 text-[16px] md:py-[10px] md:text-[14px]"
+                  className="border-line hover:bg-selected/50 flex items-center justify-between border-b py-3 text-[15px] leading-[18px] md:py-[10px] md:text-[14px] md:leading-5"
                   data-testid="taxonomy-link"
                   href={facet.href}
                 >
@@ -183,14 +200,17 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
         </section>
       ) : null}
       {workplaces.length > 0 ? (
-        <section aria-labelledby="taxonomy-workplace" className="space-y-[6px]">
+        <section
+          aria-labelledby="taxonomy-workplace"
+          className="flex flex-col gap-[2px] md:gap-[6px]"
+        >
           <h2 className={SECTION_LABEL} id="taxonomy-workplace">
             By workplace
           </h2>
           <ul className="grid gap-x-8 md:grid-cols-3">
             {workplaces.map((row) => (
               <li
-                className="border-line flex items-center justify-between border-b py-3 text-[16px] md:py-[10px] md:text-[14px]"
+                className="border-line flex items-center justify-between border-b py-3 text-[15px] leading-[18px] md:py-[10px] md:text-[14px] md:leading-5"
                 key={row.type}
               >
                 {row.type === "remote" ? (
@@ -210,23 +230,23 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
         </section>
       ) : null}
       {settings.alerts.enabled ? (
-        <aside className="bg-card ring-line flex flex-col gap-4 rounded-[14px] p-5 ring-1 md:flex-row md:items-center md:justify-between md:p-6">
+        <aside className="bg-card ring-line flex flex-col gap-[10px] rounded-[14px] p-[18px] ring-1 md:flex-row md:items-center md:justify-between md:p-6">
           <div className="flex flex-col gap-[2px]">
-            <p className="text-foreground text-[15px] font-medium md:text-[16px]">
+            <p className="text-foreground text-[15px] leading-[18px] font-medium md:text-[16px] md:leading-[23px]">
               {alert.title}
             </p>
-            <p className="text-muted-foreground text-[13px] md:text-[14px]">
+            <p className="text-muted-foreground text-[13px] leading-4 md:text-[14px] md:leading-5">
               {alert.body}
             </p>
           </div>
           <Link
-            className="bg-primary text-primary-foreground inline-flex h-9 w-fit shrink-0 items-center justify-center rounded-md px-[14px] text-[14px] font-medium"
+            className="bg-primary text-primary-foreground inline-flex h-9 w-fit shrink-0 items-center justify-center self-start rounded-md px-[14px] text-[14px] font-medium md:self-auto"
             href="/alerts"
           >
             Create alert
           </Link>
         </aside>
       ) : null}
-    </div>
+    </PageFrame>
   );
 }

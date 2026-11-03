@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 export interface Crumb {
   href?: string;
   label: string;
@@ -10,7 +12,7 @@ export function Crumbs({ items }: { items: Crumb[] }) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="text-subtle flex flex-wrap items-center gap-2 text-[13px] md:text-[14px]"
+      className="text-subtle flex flex-wrap items-center gap-2 text-[13px] leading-4 md:leading-[19px]"
     >
       {items.map((item, index) => {
         const last = index === items.length - 1;
@@ -42,19 +44,44 @@ export function Crumbs({ items }: { items: Crumb[] }) {
 export function PageTitle({
   children,
   subtitle,
+  tight = false,
   testId,
 }: {
   children: ReactNode;
   subtitle?: ReactNode;
+  // Paper sets the location pages on a 44px line and the rest on 48px.
+  tight?: boolean;
   testId?: string;
 }) {
   return (
     <h1
-      className="text-foreground text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px] md:leading-[44px]"
+      className={cn(
+        "text-foreground text-[28px] leading-[34px] font-medium tracking-[-0.035em] md:text-[40px]",
+        tight ? "md:leading-[44px]" : "md:leading-[48px]"
+      )}
       data-testid={testId}
     >
       {children}
       {subtitle ? <span className="text-subtle block">{subtitle}</span> : null}
     </h1>
+  );
+}
+
+// The padded column every taxonomy and company page sits in: Paper's 1072px
+// content width, 28px above and 72px below on desktop.
+export function PageFrame({
+  children,
+  testId,
+}: {
+  children: ReactNode;
+  testId?: string;
+}) {
+  return (
+    <div
+      className="mx-auto flex w-full max-w-[1104px] flex-col gap-5 px-4 pt-2 pb-7 md:gap-8 md:pt-7 md:pb-[72px]"
+      data-testid={testId}
+    >
+      {children}
+    </div>
   );
 }
