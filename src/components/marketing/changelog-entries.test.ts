@@ -2,8 +2,8 @@ import { expect, test } from "vitest";
 
 import { changelogDateLabel, changelogEntries } from "./changelog-entries";
 
-test("changelog starts at 1.0.0-beta.1 and names Airtable only on the legacy title", () => {
-  expect(changelogEntries[0]?.version).toBe("1.0.0-beta.1");
+test("changelog starts at 1.0.0-beta.2 and names Airtable only on the legacy title", () => {
+  expect(changelogEntries[0]?.version).toBe("1.0.0-beta.2");
 
   for (const entry of changelogEntries) {
     const text = [

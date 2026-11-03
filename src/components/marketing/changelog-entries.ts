@@ -20,6 +20,12 @@ export function changelogDateLabel(entry: ChangelogEntry): string {
 
 export const changelogEntries: readonly ChangelogEntry[] = [
   {
+    bullets: ["Runs on Node.js 26 LTS."],
+    date: null,
+    title: "1.0.0-beta.2",
+    version: "1.0.0-beta.2",
+  },
+  {
     bullets: [
       "Payload 4 and Postgres.",
       "Sample jobs from Bordfeed on a fresh deploy, and Connect Bordfeed for your own feed.",
