@@ -223,3 +223,34 @@ test("keeps the All view selected on the board search", () => {
       .hasAttribute("aria-current")
   ).toBe(false);
 });
+
+test.each([
+  ["/jobs/staff-product-designer", "page"],
+  ["/jobs/levels", null],
+  ["/jobs/level/senior", null],
+])("All view on %s is %s", (path, current) => {
+  pathname = path;
+  render(
+    <SiteHeader
+      cta={CTA}
+      homeHref="/jobs"
+      logoUrl={null}
+      name="Bordful"
+      navItems={NAV}
+      social={SOCIAL}
+      views={{
+        allCount: 20,
+        allHref: "/jobs",
+        remoteCount: 5,
+        remoteHref: "/jobs/location/remote",
+      }}
+    />
+  );
+
+  const views = screen.getByRole("navigation", { hidden: true, name: "Views" });
+  expect(
+    within(views)
+      .getByRole("link", { hidden: true, name: "All 20" })
+      .getAttribute("aria-current")
+  ).toBe(current);
+});

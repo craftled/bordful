@@ -98,12 +98,12 @@ export function MobileNav({
   }, [open]);
 
   return (
-    <div className="md:hidden" ref={wrapperRef}>
+    <div className="flex md:hidden" ref={wrapperRef}>
       <button
         aria-controls={panelId}
         aria-expanded={open}
         aria-label="Menu"
-        className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex size-8 items-center justify-center rounded-md"
+        className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex size-[30px] items-center justify-center rounded-md"
         onClick={toggle}
         ref={buttonRef}
         type="button"
@@ -115,7 +115,7 @@ export function MobileNav({
         )}
       </button>
       <div
-        className="border-line bg-background absolute inset-x-0 top-[52px] z-30 border-b shadow-sm"
+        className="border-line bg-background absolute inset-x-0 top-[46px] z-30 border-b shadow-sm"
         hidden={!open}
         id={panelId}
         ref={panelRef}

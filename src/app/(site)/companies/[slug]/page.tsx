@@ -73,13 +73,16 @@ export default async function CompanyPage({
   return (
     <BoardShell fullBleed>
       <PageFrame>
-        <Crumbs
-          items={[
-            { href: "/jobs", label: "Jobs" },
-            { href: "/companies", label: "Companies" },
-            { label: company.name },
-          ]}
-        />
+        {/* Paper sets these crumbs on a 16px line; the shared Crumbs use 19px. */}
+        <div className="md:[&>nav]:leading-4">
+          <Crumbs
+            items={[
+              { href: "/jobs", label: "Jobs" },
+              { href: "/companies", label: "Companies" },
+              { label: company.name },
+            ]}
+          />
+        </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-3 md:gap-4">
             <CompanyLogoTile logoUrl={company.logoUrl} name={company.name} />
@@ -99,7 +102,7 @@ export default async function CompanyPage({
           </div>
           {website ? (
             <a
-              className="bg-card ring-line-strong text-foreground hover:bg-surface-sub flex h-11 shrink-0 items-center justify-center rounded-md px-3.5 text-[14px] leading-[18px] font-medium ring-1 transition-colors md:h-9"
+              className="bg-card ring-line-strong text-foreground hover:bg-surface-sub flex h-11 shrink-0 items-center justify-center rounded-lg px-3.5 text-[14px] leading-[18px] font-medium ring-1 transition-colors md:h-9"
               data-testid="company-website"
               href={website}
               rel="noopener noreferrer"

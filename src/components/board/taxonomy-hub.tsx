@@ -8,11 +8,22 @@ export interface Crumb {
   label: string;
 }
 
-export function Crumbs({ items }: { items: Crumb[] }) {
+export function Crumbs({
+  compact = false,
+  items,
+}: {
+  // Paper's type, level and language indexes set the trail on a 16px line;
+  // the locations index and the archives use 19px.
+  compact?: boolean;
+  items: Crumb[];
+}) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="text-subtle flex flex-wrap items-center gap-2 text-[13px] leading-4 md:leading-[19px]"
+      className={cn(
+        "text-subtle flex flex-wrap items-center gap-2 text-[13px] leading-4",
+        compact ? null : "md:leading-[19px]"
+      )}
     >
       {items.map((item, index) => {
         const last = index === items.length - 1;

@@ -208,7 +208,9 @@ export function DocsFrame({
         <DocsMobileNav active={active} entries={entries} headings={headings} />
         <DocsSidebar active={active} entries={entries} />
         <div className="min-w-0 flex-1 px-4 pt-6 pb-10 md:px-10 md:py-10">
-          <div className="flex max-w-[680px] flex-col gap-5">{children}</div>
+          <div className="flex max-w-[680px] flex-col gap-6 md:gap-5">
+            {children}
+          </div>
         </div>
         <DocsToc headings={headings} />
       </div>

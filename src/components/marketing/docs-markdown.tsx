@@ -236,17 +236,73 @@ const headingClass: Record<number, string> = {
   4: "mt-1 text-[14px] leading-5",
 };
 
+// The doc's own intro: the paragraph between the H1 and the first section,
+// shown as the lede under the page title. A lead-in that ends with a colon
+// introduces the list after it, so it stays in the body.
+function ledeIndex(blocks: Block[]): number {
+  const [title, first] = blocks;
+  if (
+    title?.type === "heading" &&
+    title.level === 1 &&
+    first?.type === "paragraph" &&
+    !first.text.trim().endsWith(":")
+  ) {
+    return 1;
+  }
+  return -1;
+}
+
+export function hasDocsLede(source: string): boolean {
+  return ledeIndex(parseMarkdown(source)) !== -1;
+}
+
+export function DocsLede({
+  className,
+  repoBase,
+  source,
+}: {
+  className?: string;
+  repoBase: string;
+  source: string;
+}) {
+  const blocks = parseMarkdown(source);
+  const block = blocks[ledeIndex(blocks)];
+  if (block?.type !== "paragraph") {
+    return null;
+  }
+
+  return (
+    <p
+      className={cn(
+        "text-muted-foreground text-[16px] leading-6 md:leading-[25px]",
+        className
+      )}
+    >
+      {renderInline(block.text, repoBase)}
+    </p>
+  );
+}
+
 export function DocsMarkdown({
   repoBase,
   source,
+  skipLede = false,
   skipTitle = false,
 }: {
   repoBase: string;
+  /** Drops the intro paragraph that DocsLede shows in the page header. */
+  skipLede?: boolean;
   skipTitle?: boolean;
   source: string;
 }) {
-  const blocks = parseMarkdown(source).filter(
-    (block, index) => !(skipTitle && index === 0 && block.type === "heading")
+  const parsed = parseMarkdown(source);
+  const lede = skipLede ? ledeIndex(parsed) : -1;
+  const blocks = parsed.filter(
+    (block, index) =>
+      !(
+        (skipTitle && index === 0 && block.type === "heading") ||
+        index === lede
+      )
   );
 
   return (

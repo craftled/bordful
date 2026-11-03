@@ -4,11 +4,13 @@ import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 
 import { AlertsForm } from "@/components/alerts/alerts-form";
+import { ExampleEmail } from "@/components/alerts/example-email";
 import { BoardShell } from "@/components/board/board-shell";
 import { isMarketingEnabled } from "@/config/flags";
 import { boardHomePath } from "@/config/nav";
 import { alertsReady } from "@/lib/alerts/config";
 import { parseAlertQueryFromSearchParams } from "@/lib/alerts/query";
+import { loadBoardPool } from "@/lib/board/pool";
 import { querySiteSettings } from "@/lib/read/queries";
 
 export const dynamic = "force-dynamic";
@@ -49,13 +51,16 @@ export default async function AlertsPage({
     notFound();
   }
 
-  const params = await searchParams;
+  const [params, pool] = await Promise.all([searchParams, loadBoardPool()]);
   const query = parseAlertQueryFromSearchParams(toSearchParams(params));
 
   return (
     <BoardShell>
       <AlertsForm
         defaultFrequency={settings.alerts.defaultFrequency}
+        example={
+          <ExampleEmail jobs={pool} now={Date.now()} siteName={settings.name} />
+        }
         jobsHref={boardHomePath(isMarketingEnabled())}
         query={query}
       />

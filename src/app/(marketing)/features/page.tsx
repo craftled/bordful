@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Container } from "@/components/marketing/container";
 import { FeaturesPageGrid } from "@/components/marketing/features-page-grid";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
+import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { Section } from "@/components/marketing/section";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ export default function FeaturesPage() {
           titleMuted="job board?"
         />
       </div>
+      <MarketingSlimFooter />
     </>
   );
 }

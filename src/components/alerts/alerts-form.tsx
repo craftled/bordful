@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import {
+  type ChangeEvent,
+  type ReactNode,
+  useActionState,
+  useCallback,
+  useState,
+} from "react";
 
 import { subscribeAction } from "@/app/(site)/alerts/actions";
 import { Button } from "@/components/ui/button";
@@ -49,17 +55,31 @@ const SENIORITY_LABELS: Record<(typeof SENIORITIES)[number], string> = {
   vp: "VP",
 };
 
+const CADENCE: Record<AlertFrequency, string> = {
+  daily: "One email a day.",
+  weekly: "One email a week.",
+};
+
 export function AlertsForm({
   defaultFrequency,
+  example,
   jobsHref,
   query,
 }: {
   defaultFrequency: AlertFrequency;
+  // The example digest card, rendered on the server from current jobs.
+  example?: ReactNode;
   jobsHref: string;
   query: JobAlertQuery;
 }) {
   const [state, formAction, pending] = useActionState(subscribeAction, null);
+  const [frequency, setFrequency] = useState(defaultFrequency);
   const failed = state !== null && !state.ok;
+  const onFrequencyChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) =>
+      setFrequency(event.target.value === "daily" ? "daily" : "weekly"),
+    []
+  );
 
   return (
     <div className="mx-auto -mt-8 -mb-1 flex w-full max-w-[1072px] flex-col gap-5 pt-2 pb-7 md:-mt-1 md:mb-0 md:gap-8 md:pt-0 md:pb-10">
@@ -96,7 +116,7 @@ export function AlertsForm({
           <div className="flex flex-col gap-[18px] md:flex-row md:gap-3">
             <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
               <Label className={fieldLabelClass} htmlFor="alerts-email">
-                Email *
+                Email
               </Label>
               <Input
                 aria-describedby={
@@ -109,7 +129,7 @@ export function AlertsForm({
                 id="alerts-email"
                 maxLength={254}
                 name="email"
-                placeholder="you@example.com"
+                placeholder="you@company.com"
                 required
                 type="email"
               />
@@ -122,12 +142,13 @@ export function AlertsForm({
               <select
                 className={selectClass}
                 data-testid="alerts-frequency"
-                defaultValue={defaultFrequency}
                 id="alerts-frequency"
                 name="frequency"
+                onChange={onFrequencyChange}
+                value={frequency}
               >
-                <option value="weekly">Weekly</option>
-                <option value="daily">Daily</option>
+                <option value="weekly">Weekly digest</option>
+                <option value="daily">Daily digest</option>
               </select>
             </div>
           </div>
@@ -180,7 +201,7 @@ export function AlertsForm({
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className={legendClass}>Seniority</legend>
+            <legend className={legendClass}>Level</legend>
             <div className="flex flex-wrap gap-2">
               {SENIORITIES.map((level) => (
                 <label className={chipClass} key={level}>
@@ -231,15 +252,18 @@ export function AlertsForm({
             alerts. Every email has a one-click unsubscribe link.
           </p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-[18px] md:flex-row md:items-center md:gap-3">
             <Button
               className="h-11 w-full text-[15px] leading-[18px] md:h-9 md:w-fit md:text-[14px] md:leading-4"
               data-testid="alerts-submit"
               disabled={pending}
               type="submit"
             >
-              Subscribe to job alerts
+              Create alert
             </Button>
+            <p className="text-subtle text-[12px] leading-4 md:text-[13px]">
+              {CADENCE[frequency]} Unsubscribe in one click.
+            </p>
           </div>
           {/* Both regions stay mounted so screen readers announce each change. */}
           <p
@@ -259,21 +283,25 @@ export function AlertsForm({
           </p>
         </form>
 
-        <aside className="bg-card border-line flex w-full flex-col gap-[10px] rounded-[14px] border p-5 md:w-[380px] md:shrink-0">
-          <h2 className="text-foreground text-[15px] leading-[18px] font-medium">
-            How it works
-          </h2>
-          <ol className="flex flex-col gap-[10px]">
-            {STEPS.map((step, index) => (
-              <li
-                className="text-muted-foreground flex gap-[10px] text-[13px] leading-4"
-                key={step}
-              >
-                <span className="text-subtle font-medium">{index + 1}</span>
-                {step}
-              </li>
-            ))}
-          </ol>
+        <aside className="flex w-full flex-col gap-4 md:w-[380px] md:shrink-0">
+          {example}
+          {/* Paper's phone layout ends at the example email. */}
+          <section className="bg-card border-line hidden flex-col gap-[10px] rounded-[14px] border p-5 md:flex">
+            <h2 className="text-foreground text-[15px] leading-[18px] font-medium">
+              How it works
+            </h2>
+            <ol className="flex flex-col gap-[10px]">
+              {STEPS.map((step, index) => (
+                <li
+                  className="text-muted-foreground flex gap-[10px] text-[13px] leading-4"
+                  key={step}
+                >
+                  <span className="text-subtle font-medium">{index + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </section>
         </aside>
       </div>
     </div>

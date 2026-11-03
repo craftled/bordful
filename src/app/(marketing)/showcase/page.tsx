@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/marketing/container";
+import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { Showcase } from "@/components/marketing/showcase";
@@ -29,6 +30,7 @@ export default function ShowcasePage() {
         </Container>
       </Section>
       <Showcase variant="page" />
+      <MarketingSlimFooter />
     </>
   );
 }

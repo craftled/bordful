@@ -28,7 +28,7 @@ export function StickyApply({
         />
         {href ? (
           <JobApplyLink
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 min-w-0 flex-1 items-center justify-center rounded-md px-3.5 text-[15px] leading-[18px] font-medium"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg px-3.5 text-[15px] leading-[18px] font-medium"
             href={href}
             slug={slug}
             testId="job-sticky-apply"

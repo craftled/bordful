@@ -101,3 +101,27 @@ export function MarketingFooter({ className }: { className?: string }) {
     </footer>
   );
 }
+
+// Paper's slim desktop footer for the inner marketing pages (features,
+// pricing, showcase, FAQ, terms, privacy): a 58px bar in place of the full
+// footer, which the shell hides at md+ once this is on the page. Phones keep
+// the full footer.
+export function MarketingSlimFooter() {
+  const year = new Date().getFullYear();
+
+  return (
+    <footer
+      className="border-line hidden items-center justify-between border-t px-6 py-5 text-[12px] leading-[17px] md:mt-auto md:flex"
+      data-slim-footer=""
+      data-testid="marketing-slim-footer"
+    >
+      <p className="text-subtle">&copy; {year} Craftled · MIT License</p>
+      <a
+        className="text-muted-foreground hover:text-foreground rounded-sm font-medium"
+        href="https://bordful.com"
+      >
+        bordful.com
+      </a>
+    </footer>
+  );
+}

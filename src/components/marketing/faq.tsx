@@ -111,8 +111,8 @@ function QuestionList({
         >
           <summary
             className={cn(
-              "text-foreground flex cursor-pointer items-center justify-between gap-4 rounded-sm text-[14px] leading-5 font-medium",
-              !compact && "md:text-[15px] md:leading-[22px]"
+              "text-foreground flex cursor-pointer items-center justify-between gap-4 rounded-sm text-[15px] leading-[18px] font-medium",
+              compact ? "md:text-[14px] md:leading-5" : "md:leading-[22px]"
             )}
           >
             {compact ? (item.short ?? item.question) : item.question}
@@ -120,10 +120,10 @@ function QuestionList({
           </summary>
           <p
             className={cn(
-              "text-muted-foreground text-[13px] leading-5",
+              "text-muted-foreground text-[14px] leading-[21px]",
               compact
-                ? "max-w-[560px] pt-2"
-                : "max-w-[600px] pt-2 md:text-[14px] md:leading-[22px]"
+                ? "max-w-[560px] pt-2 md:text-[13px] md:leading-5"
+                : "max-w-[600px] pt-2 md:leading-[22px]"
             )}
           >
             {item.answer}
@@ -142,7 +142,7 @@ export function Faq({ variant = "section" }: { variant?: "section" | "page" }) {
       <Section className="md:py-[72px]">
         <Container className="flex flex-col gap-6 md:items-center md:gap-8">
           <SectionHeader
-            className="gap-2.5 md:items-center md:text-center"
+            className="gap-2.5 md:items-center md:text-center md:[&>h2]:text-[28px] md:[&>h2]:leading-[34px] md:[&>h2]:tracking-[-0.03em] md:[&>p]:text-[15px] md:[&>p]:leading-[23px]"
             description="Everything you need to know before you start."
             title="Frequently asked"
             titleMuted="questions."

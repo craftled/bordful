@@ -1,5 +1,6 @@
 // biome-ignore-all lint/performance/useTopLevelRegex: small build-time parser
 // biome-ignore-all lint/style/useNamedCaptureGroup: positional groups are clearer here
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -63,4 +64,40 @@ export function listDocs(): DocsEntry[] {
     const source = readDoc(slug) ?? "";
     return { slug, summary: docSummary(source), title: docTitle(source, slug) };
   });
+}
+
+// The date of the last commit that touched a doc, read from git when the page
+// is built. A shallow clone (or no git at all) cannot tell when a file last
+// changed, so it returns null and the page shows no date rather than a wrong
+// one.
+export function docLastUpdated(slug: string): string | null {
+  if (!(SLUG.test(slug) && DOCS_SLUGS.includes(slug))) {
+    return null;
+  }
+  try {
+    const git = (args: string[]) =>
+      execFileSync("git", args, {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 5000,
+      }).trim();
+    if (git(["rev-parse", "--is-shallow-repository"]) !== "false") {
+      return null;
+    }
+    const date = git(["log", "-1", "--format=%cs", "--", `docs/${slug}.md`]);
+    return /^\d{4}-\d{2}-\d{2}$/u.test(date) ? date : null;
+  } catch {
+    return null;
+  }
+}
+
+// "2026-11-03" -> "Nov 3, 2026".
+export function formatDocDate(date: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(new Date(`${date}T00:00:00Z`));
 }

@@ -5,6 +5,7 @@ import {
   redirectTaxonomyAlias,
   TaxonomyArchive,
 } from "@/components/board/taxonomy-archive";
+import type { BoardSearchParams } from "@/lib/board/query";
 import { taxonomyArchiveMetadata } from "@/lib/board/taxonomy";
 
 export async function generateMetadata({
@@ -18,15 +19,22 @@ export async function generateMetadata({
 
 export default async function LevelArchivePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ value: string }>;
+  searchParams: Promise<BoardSearchParams>;
 }) {
   const { value } = await params;
   redirectTaxonomyAlias("level", value, 1);
 
   return (
     <BoardShell fullBleed>
-      <TaxonomyArchive kind="level" page={1} value={value} />
+      <TaxonomyArchive
+        kind="level"
+        page={1}
+        searchParams={await searchParams}
+        value={value}
+      />
     </BoardShell>
   );
 }

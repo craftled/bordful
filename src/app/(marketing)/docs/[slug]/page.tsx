@@ -6,13 +6,16 @@ import { notFound } from "next/navigation";
 import {
   DOCS_REPO_BASE,
   DOCS_SLUGS,
+  docLastUpdated,
   docSummary,
   docTitle,
+  formatDocDate,
   listDocs,
   readDoc,
 } from "@/components/marketing/docs-content";
 import { DocsFrame, DocsPager } from "@/components/marketing/docs-layout";
 import {
+  DocsLede,
   DocsMarkdown,
   extractHeadings,
 } from "@/components/marketing/docs-markdown";
@@ -58,6 +61,7 @@ export default async function DocPage({
   const title = docTitle(source, slug);
   const prev = index > 0 ? entries[index - 1] : undefined;
   const next = entries[index + 1];
+  const updated = docLastUpdated(slug);
 
   return (
     <DocsFrame
@@ -66,7 +70,7 @@ export default async function DocPage({
       entries={entries}
       headings={extractHeadings(source)}
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-6 md:gap-3">
         <nav
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-[13px] leading-[19px]"
@@ -89,8 +93,20 @@ export default async function DocPage({
         <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.03em] md:text-[34px] md:leading-10">
           {title}
         </h1>
+        <DocsLede repoBase={DOCS_REPO_BASE} source={source} />
+        {updated ? (
+          <p className="text-subtle text-[12px] leading-4 md:leading-[17px]">
+            Last updated{" "}
+            <time dateTime={updated}>{formatDocDate(updated)}</time>
+          </p>
+        ) : null}
       </div>
-      <DocsMarkdown repoBase={DOCS_REPO_BASE} skipTitle source={source} />
+      <DocsMarkdown
+        repoBase={DOCS_REPO_BASE}
+        skipLede
+        skipTitle
+        source={source}
+      />
       <DocsPager
         next={
           next ? { href: `/docs/${next.slug}`, label: next.title } : undefined

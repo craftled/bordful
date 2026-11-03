@@ -81,7 +81,7 @@ export function CompanyFilterTabs({
     return null;
   }
   return (
-    <fieldset className="bg-tag m-0 flex w-fit min-w-0 shrink-0 gap-0.5 rounded-md border-0 p-0.5">
+    <fieldset className="bg-tag m-0 flex w-fit min-w-0 shrink-0 gap-0.5 rounded-lg border-0 p-0.5">
       <legend className="sr-only">Filter companies</legend>
       {filters.map((value) => {
         const active = value === filter;
@@ -89,7 +89,7 @@ export function CompanyFilterTabs({
           <button
             aria-pressed={active}
             className={cn(
-              "h-6 rounded-sm px-3 text-[13px] leading-4 transition-colors",
+              "h-6 rounded-md px-3 text-[13px] leading-4 transition-colors",
               active
                 ? "bg-card text-foreground font-medium shadow-[0_0_0_1px_var(--line),0_1px_2px_rgb(0_0_0/0.05)]"
                 : "text-muted-foreground hover:text-foreground"
@@ -139,13 +139,11 @@ export function CompanyDirectory({
     <div className="contents">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <PageTitle subtitle={subtitle}>{title}</PageTitle>
-        <div className="md:pb-2">
-          <CompanyFilterTabs
-            filter={filter}
-            filters={filters}
-            onChange={setFilter}
-          />
-        </div>
+        <CompanyFilterTabs
+          filter={filter}
+          filters={filters}
+          onChange={setFilter}
+        />
       </div>
       <div>
         <label className="sr-only" htmlFor={inputId}>
@@ -153,7 +151,7 @@ export function CompanyDirectory({
         </label>
         <input
           autoComplete="off"
-          className="bg-card ring-line-strong text-foreground placeholder:text-subtle focus-visible:ring-foreground/40 h-10 w-full rounded-md px-3 text-[14px] leading-[18px] ring-1 outline-none md:max-w-[420px]"
+          className="bg-card ring-line-strong text-foreground placeholder:text-subtle focus-visible:ring-foreground/40 h-10 w-full rounded-lg px-3 text-[14px] leading-[18px] ring-1 outline-none md:max-w-[420px]"
           data-testid="company-search"
           id={inputId}
           onChange={onChange}

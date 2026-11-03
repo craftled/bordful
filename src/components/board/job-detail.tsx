@@ -6,7 +6,11 @@ import {
   JobSaveButton,
   JobShareCard,
 } from "@/components/board/job-actions";
-import { JobBreadcrumb } from "@/components/board/job-breadcrumb";
+import {
+  categoryCrumb,
+  JobBreadcrumb,
+  locationCrumb,
+} from "@/components/board/job-breadcrumb";
 import { dropBlankParagraphs } from "@/components/board/job-description";
 import { JobFacts } from "@/components/board/job-facts";
 import { PostJobCard } from "@/components/board/post-job-card";
@@ -290,7 +294,7 @@ function ActionBar({
         />
         {applyHref ? (
           <JobApplyLink
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 min-w-0 shrink-0 items-center justify-center rounded-md px-5 text-[14px] leading-[18px] font-medium"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 min-w-0 shrink-0 items-center justify-center rounded-lg px-5 text-[14px] leading-[18px] font-medium"
             href={applyHref}
             slug={job.slug}
             testId="job-apply"
@@ -404,7 +408,9 @@ export function JobPosting({
             variant="icon"
           />
         }
+        category={fields.includes("categories") ? categoryCrumb(job) : null}
         companyName={job.companyName}
+        location={fields.includes("location") ? locationCrumb(job) : null}
         marketing={marketing}
         title={job.title}
       />

@@ -17,7 +17,7 @@ export function Hero() {
         <Container className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="flex max-w-[720px] flex-col gap-5">
             <Link
-              className="bg-card ring-line-strong inline-flex h-6 items-center gap-2 self-start rounded-full pr-[9px] pl-[3px] ring-1 ring-inset"
+              className="bg-card ring-line-strong inline-flex h-[21px] items-center gap-2 self-start rounded-full pr-[9px] pl-[3px] ring-1 ring-inset md:h-6"
               href="/changelog"
             >
               <span className="bg-primary text-primary-foreground rounded-full px-[7px] py-px text-[10px] leading-[14px] font-medium">
@@ -107,7 +107,8 @@ export function Hero() {
         </div>
         <PhoneShot
           alt="A job page on a phone"
-          className="absolute top-[88px] left-[962px] hidden w-[220px] shadow-[0_30px_40px_rgb(0_0_0/28%)] lg:block dark:shadow-[0_30px_40px_rgb(0_0_0/50%)]"
+          className="absolute top-[88px] left-[962px] hidden h-[448px] w-[220px] shadow-[0_30px_40px_rgb(0_0_0/28%)] lg:block dark:shadow-[0_30px_40px_rgb(0_0_0/50%)]"
+          imageClassName="h-full object-cover object-top"
           name="mobileJob"
         />
       </div>

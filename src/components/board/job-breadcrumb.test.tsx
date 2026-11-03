@@ -3,18 +3,18 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
-import { JobBreadcrumb } from "./job-breadcrumb";
+import type { JobListItem } from "@/lib/read/types";
+
+import { categoryCrumb, JobBreadcrumb, locationCrumb } from "./job-breadcrumb";
 
 afterEach(() => {
   cleanup();
 });
 
-test("marketing mode links Home and Jobs to their own pages", () => {
+test("marketing mode starts the trail at Jobs, as Paper does", () => {
   render(<JobBreadcrumb marketing title="Backend Engineer" />);
 
-  expect(screen.getByRole("link", { name: "Home" }).getAttribute("href")).toBe(
-    "/"
-  );
+  expect(screen.queryByRole("link", { name: "Home" })).toBeNull();
   expect(screen.getByRole("link", { name: "Jobs" }).getAttribute("href")).toBe(
     "/jobs"
   );
@@ -62,4 +62,58 @@ test("names the company in the last crumb when it is known", () => {
       .getByText("Backend Engineer at Acme")
       .parentElement?.parentElement?.getAttribute("title")
   ).toBe("Backend Engineer at Acme");
+});
+
+test("links the category and location crumbs when given", () => {
+  render(
+    <JobBreadcrumb
+      category={{ href: "/jobs/search?categories=design", label: "Design" }}
+      companyName="Acme"
+      location={{ href: "/jobs/location/remote", label: "Remote" }}
+      marketing
+      title="Backend Engineer"
+    />
+  );
+
+  const links = screen
+    .getAllByRole("link")
+    .map((link) => [link.textContent, link.getAttribute("href")]);
+  expect(links.slice(0, 3)).toEqual([
+    ["Jobs", "/jobs"],
+    ["Design", "/jobs/search?categories=design"],
+    ["Remote", "/jobs/location/remote"],
+  ]);
+});
+
+const job = (overrides: Partial<JobListItem>): JobListItem =>
+  ({
+    careerLevel: [],
+    categories: [],
+    countryCode: null,
+    languages: [],
+    workplaceType: null,
+    ...overrides,
+  }) as JobListItem;
+
+test("categoryCrumb links the first category to the filtered board", () => {
+  expect(
+    categoryCrumb(job({ categories: [" Art, Fashion & Design "] }))
+  ).toEqual({
+    href: "/jobs/search?categories=art%2C+fashion+%26+design",
+    label: "Art, Fashion & Design",
+  });
+  expect(categoryCrumb(job({ categories: [] }))).toBeNull();
+  // A bare comma would split into two categories on the board.
+  expect(categoryCrumb(job({ categories: ["a,b"] }))).toBeNull();
+});
+
+test("locationCrumb prefers Remote, then the country archive", () => {
+  expect(
+    locationCrumb(job({ countryCode: "AR", workplaceType: "remote" }))
+  ).toEqual({ href: "/jobs/location/remote", label: "Remote" });
+  expect(locationCrumb(job({ countryCode: "de" }))).toEqual({
+    href: "/jobs/location/de",
+    label: "Germany",
+  });
+  expect(locationCrumb(job({}))).toBeNull();
 });

@@ -6,7 +6,7 @@ import { buildShareLinks } from "@/components/board/job-share";
 import { useJobList } from "@/components/board/saved-jobs";
 
 const OUTLINE_BUTTON =
-  "bg-card ring-line-strong hover:bg-selected inline-flex items-center justify-center rounded-md font-medium ring-1 ring-inset";
+  "bg-card ring-line-strong hover:bg-selected inline-flex items-center justify-center rounded-lg font-medium ring-1 ring-inset";
 
 export function JobSaveButton({
   className,
