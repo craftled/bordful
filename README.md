@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> This is the final release of the Airtable version of Bordful. If you run a fork, merge the `legacy-airtable` branch from upstream to receive the latest security fixes, and the `v0.1.61` tag once it is published. Do not merge upstream `main`, which is the Payload 1.0 rewrite. Bordful 1.0, built on Payload, is in development and will replace this version.
+> This is the final release of the Airtable version of Bordful. If you run a fork, merge the `airtable` branch from upstream to receive the latest security fixes. Do not merge upstream `main`, which is the Payload 1.0 rewrite. Bordful 1.0, built on Payload, is released on `main` and replaces this version.
 
 # Bordful: Open-Source Job Board Software
 
