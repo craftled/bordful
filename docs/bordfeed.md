@@ -77,28 +77,28 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 `/api/cron/bordfeed` runs at 06:00 UTC. "Sync now" in the admin and `bun run bordful sync` run the same sync. Only one sync runs at a time. A sync that starts while another is running fetches nothing and says so.
 
 - The first sync after you connect fetches one page of the newest jobs: `jobsPerSync` jobs, 50 by default. It does not page through the rest of the feed, and it does not unpublish jobs that are not in that page.
-- Every later sync asks Bordfeed only for what changed since the last sync, in two tracks:
-  - Removals: jobs Bordfeed closed (`status=closed`) and jobs that expired (`status=expired`) since then (`since_field=updated`). The board unpublishes the ones it has. Closed and expired jobs are unpublished, not deleted.
-  - Additions: jobs that first appeared in the feed since then (`since_field=first_visible`). The board adds them.
-- Removals get half of `jobsPerSync` and run first. Additions get the rest, at least half. So a run of closures can never stop new jobs from arriving, and new jobs can never stop closures from being read.
+- Every later sync does two things:
+  - **Checks the board's jobs.** It looks up the next 100 published Bordfeed jobs on the board by id (`GET /api/v1/jobs/{id}`) and unpublishes the ones Bordfeed no longer shows, whether they closed, expired, filled or were archived. Unpublished jobs are not deleted. The next sync goes on from where this one stopped and wraps to the start, so a board of up to 100 Bordfeed jobs is fully checked every sync, and a board of 300 every three syncs.
+  - **Adds new jobs.** It reads jobs that first appeared in the feed since the last sync (`since_field=first_visible`) and adds them, up to `jobsPerSync`.
 - A job already on the board is not fetched again when Bordfeed edits it. Bordfeed touches `updated_at` on routine scrapes, so asking for every updated job would refetch most of the feed each day.
-- Each track stops at its share of the budget. If more changed, the next sync continues that track from where it stopped. A track's `since` point moves forward only after it has read all its lists, so no closure, expiry or new job is skipped.
-- A job that closes and later reopens keeps its first-appeared time, so it does not come back through the additions track. It stays unpublished until you reconnect the feed.
+- If more new jobs appeared than `jobsPerSync`, the next sync continues from where this one stopped. The `since` point moves forward only after all of them are read, so no new job is skipped. A sync adds at most `jobsPerSync` jobs, so on a busy feed raise `jobsPerSync` or run the sync more often (the `/api/cron/bordfeed` schedule in `vercel.json`, which some Vercel plans limit to once a day).
+- A job that closes and later reopens keeps its first-appeared time, so it does not come back as a new job. It stays unpublished.
+- Checks run one request at a time, about two a second, to stay inside Bordfeed's rate limit. A sync with 100 checks takes about a minute.
 - Sample jobs are replaced when you connect, not unpublished one by one.
 
 ## Credits per sync
 
-Bordfeed charges one credit for each job your workspace receives for the first time. A job it sends again, even after it changed or closed, is free, and an empty page is free. This includes the removals track: a closed or expired job your board never received still costs one credit when a sync reads it. That is why removals get only half of each sync's budget. On pay as you go one credit is $0.01, and a new account starts with 2,000 credits ($20).
+Bordfeed charges one credit for each job your workspace receives for the first time. A job it sends again, even after it changed or closed, is free, and an empty page is free. Checks are free too: Bordfeed answers a lookup of a job that is no longer active with a 404 before it charges anything, and the board only checks jobs it already received. If a check is ever billed (a job fetched under a different workspace), the sync counts the credit against its caps and stops checking for that run. On pay as you go one credit is $0.01, and a new account starts with 2,000 credits ($20).
 
 Two caps bound what a sync can fetch, so a schedule can never drain the balance:
 
 | Setting | Default | Range | What it caps |
 | --- | --- | --- | --- |
-| `jobsPerSync` | 50 | 20 to 100 | Jobs one sync fetches, across both tracks: up to half for closed and expired jobs, the rest for new jobs. The first sync is one page of this size. |
+| `jobsPerSync` | 50 | 20 to 100 | Jobs one sync fetches. The first sync is one page of this size; later syncs fetch at most this many new jobs. |
 | `jobsPerDay` | 200 | 20 to 5000 | Jobs fetched per UTC day across every sync, cron and manual. At the cap a sync makes no request and the admin says so. |
 
 Set the defaults in `bordful.config.ts` under `bordfeed.sync`. Config values outside the range are clamped. Admins can set either one for this board in the Bordfeed Connection global, which rejects values outside the range. A value there wins. Leave it empty to use the config value.
 
-With the defaults, a sync uses at most 50 credits and a board uses at most 200 credits a day. The daily cron uses about one credit per new job plus one per closed or expired job the board never had, because jobs the board already has are not fetched again. The caps count jobs fetched, so the credits used are never more than the cap and often fewer.
+With the defaults, a sync uses at most 50 credits and a board uses at most 200 credits a day. The daily cron uses about one credit per new job, because jobs the board already has are not fetched again and closures are found by free checks. The caps count jobs fetched, so the credits used are never more than the cap and often fewer.
 
 If the balance cannot cover a page, Bordfeed answers 402 and the admin shows: "This Bordfeed workspace does not have enough credits for this sync." The board keeps its jobs. Top up in Bordfeed, then sync again.

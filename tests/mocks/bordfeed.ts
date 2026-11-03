@@ -43,6 +43,7 @@ const ISO2 = /^[A-Z]{2}$/;
 const DIGITS = /^\d+$/;
 const PREVIEW_PATH = /^\/api\/v1\/templates\/([^/]+)\/preview$/;
 const FEED_JOBS_PATH = /^\/api\/v1\/feeds\/[^/]+\/jobs$/;
+const JOB_PATH = /^\/api\/v1\/jobs\/([^/]+)$/;
 
 const WORKPLACES = new Set(["Remote", "Hybrid", "On-site"]);
 // Default page when no limit is sent. Live caps limit at 100.
@@ -77,6 +78,8 @@ export interface BordfeedMockState {
   // Like live: one credit per job the first time this workspace receives it.
   // A job sent again, even after it changed or closed, is free.
   billedJobs: number;
+  // Single-job lookups (GET /api/v1/jobs/{id}), any outcome.
+  checkedJobs: number;
   requests: BordfeedRequestLog[];
   // Every job a feed read returned, billed or not.
   servedJobs: number;
@@ -481,6 +484,7 @@ export function createBordfeedMock(
 ): BordfeedMock {
   const state: BordfeedMockState = {
     billedJobs: 0,
+    checkedJobs: 0,
     requests: [],
     servedJobs: 0,
   };
@@ -870,6 +874,60 @@ export function createBordfeedMock(
     });
   }
 
+  // Live (app/api/v1/jobs/[id]): 404 before any charge when the job is not
+  // active, otherwise one credit only if this workspace never received it.
+  function handleJob(request: Request, id: string): Response {
+    const denied = requireKey(request);
+    if (denied !== null) {
+      return denied;
+    }
+
+    state.checkedJobs += 1;
+    sequence += 1;
+    const index = feed.findIndex((item) => String(item.id) === id);
+    const job = feed[index];
+    if (job === undefined || feedMeta[index]?.status !== "active") {
+      return envelope(404, "not_found", "Job not found", sequence);
+    }
+
+    grantCredits();
+    const charge = delivered.has(id) ? 0 : 1;
+    if (charge > credits) {
+      return envelope(
+        402,
+        "insufficient_credits",
+        "Insufficient credits",
+        sequence,
+        {
+          balance_jobs: credits,
+          topup_url: TOPUP_URL,
+        }
+      );
+    }
+    delivered.add(id);
+    state.billedJobs += charge;
+    credits -= charge;
+    return Response.json({
+      data: job,
+      jobs_charged: charge,
+      request_id: requestId(sequence),
+    });
+  }
+
+  function handleRead(request: Request, url: URL): Response {
+    if (url.pathname === "/api/v1/billing/balance") {
+      return handleBalance(request);
+    }
+    if (FEED_JOBS_PATH.test(url.pathname)) {
+      return handleFeedJobs(request, url);
+    }
+    const jobMatch = JOB_PATH.exec(url.pathname);
+    if (jobMatch?.[1]) {
+      return handleJob(request, decodeURIComponent(jobMatch[1]));
+    }
+    return handleTemplates(url);
+  }
+
   function markFeedJobs(
     indexes: number[],
     change: { status?: FeedMeta["status"]; surfaced?: boolean }
@@ -904,13 +962,7 @@ export function createBordfeedMock(
       log(request, url, body);
 
       if (request.method === "GET" && url.pathname.startsWith("/api/v1/")) {
-        if (url.pathname === "/api/v1/billing/balance") {
-          return handleBalance(request);
-        }
-        if (FEED_JOBS_PATH.test(url.pathname)) {
-          return handleFeedJobs(request, url);
-        }
-        return handleTemplates(url);
+        return handleRead(request, url);
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/register") {
@@ -929,6 +981,7 @@ export function createBordfeedMock(
     },
     reset() {
       state.billedJobs = 0;
+      state.checkedJobs = 0;
       state.requests = [];
       state.servedJobs = 0;
       delivered.clear();

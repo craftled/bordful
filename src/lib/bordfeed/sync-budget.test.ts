@@ -1,15 +1,14 @@
 import { expect, test } from "vitest";
 
 import {
+  afterAdditions,
   afterFirst,
-  afterTrack,
-  nextPhase,
+  JOB_CHECKS_PER_SYNC,
   parseSyncState,
   planFetch,
   recordSpend,
   resolveLimits,
   type SyncState,
-  sinceFieldFor,
   WATERMARK_OVERLAP_MS,
 } from "./sync-budget";
 
@@ -48,7 +47,7 @@ test("a fresh feed plans one capped first page", () => {
   });
 });
 
-test("after the first page, both tracks read changes since it began", () => {
+test("after the first page, a sync checks board jobs and reads new ones", () => {
   const state = afterFirst(
     recordSpend(parseSyncState(null, FEED), 50, NOW),
     NOW
@@ -59,59 +58,45 @@ test("after the first page, both tracks read changes since it began", () => {
     later.getTime() - WATERMARK_OVERLAP_MS
   ).toISOString();
   expect(planFetch(state, resolveLimits({}), later)).toEqual({
-    additions: {
-      position: { cursor: null, offset: null, phase: "open" },
-      seriesStart,
-      since,
-    },
+    additions: { position: { cursor: null, offset: null }, seriesStart, since },
+    checkAfter: null,
+    checks: JOB_CHECKS_PER_SYNC,
     kind: "delta",
     limit: 50,
-    removals: {
-      position: { cursor: null, offset: null, phase: "closed" },
-      seriesStart,
-      since,
-    },
-    removalsLimit: 25,
   });
 });
 
-test("a track's since moves only after all its phases are read", () => {
-  expect(nextPhase("removals", "closed")).toBe("expired");
-  expect(nextPhase("removals", "expired")).toBeNull();
-  expect(nextPhase("additions", "open")).toBeNull();
-  expect(sinceFieldFor("closed")).toBe("updated");
-  expect(sinceFieldFor("open")).toBe("first_visible");
-
+test("since moves only after the additions series is read", () => {
   const started = afterFirst(parseSyncState(null, FEED), NOW);
   const plan1 = delta(
     planFetch(started, resolveLimits({}), new Date(NOW.getTime() + HOUR))
   );
   const mid: SyncState = {
     ...started,
-    removals: afterTrack(started.removals, plan1.removals, {
+    additions: afterAdditions(started.additions, plan1.additions, {
       cursor: "c50",
       offset: null,
-      phase: "expired",
     }),
+    checkAfter: "job-0042",
   };
-  expect(mid.removals.since).toBe(started.removals.since);
+  expect(mid.additions.since).toBe(started.additions.since);
 
-  // Stored and read back, the track resumes where it stopped.
+  // Stored and read back, the series and the checks resume where they stopped.
   const reread = parseSyncState(JSON.parse(JSON.stringify(mid)), FEED);
   const plan2 = delta(
     planFetch(reread, resolveLimits({}), new Date(NOW.getTime() + 2 * HOUR))
   );
-  expect(plan2.removals).toEqual({
-    position: { cursor: "c50", offset: null, phase: "expired" },
-    seriesStart: plan1.removals.seriesStart,
-    since: started.removals.since,
+  expect(plan2.additions).toEqual({
+    position: { cursor: "c50", offset: null },
+    seriesStart: plan1.additions.seriesStart,
+    since: started.additions.since,
   });
-  expect(plan2.additions.since).toBe(started.additions.since);
+  expect(plan2.checkAfter).toBe("job-0042");
 
-  expect(afterTrack(reread.removals, plan2.removals, null)).toEqual({
+  expect(afterAdditions(reread.additions, plan2.additions, null)).toEqual({
     position: null,
     seriesStart: null,
-    since: plan1.removals.seriesStart,
+    since: plan1.additions.seriesStart,
   });
 });
 
@@ -139,7 +124,7 @@ test("a new feed id starts over but keeps the day's usage", () => {
   const other = parseSyncState(state, "22222222-2222-4222-8222-222222222222");
   expect(other).toMatchObject({
     additions: { since: null },
+    checkAfter: null,
     jobsToday: 60,
-    removals: { since: null },
   });
 });

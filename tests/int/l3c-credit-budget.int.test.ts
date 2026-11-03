@@ -95,11 +95,9 @@ function database(): Executor {
   return (payload.db as unknown as { drizzle: Executor }).drizzle;
 }
 
-async function storedSince(
-  track: "additions" | "removals"
-): Promise<string | null> {
+async function storedSince(): Promise<string | null> {
   const result = await database().execute(
-    sql`select "state"->${track}->>'since' as "since" from "bordfeed_sync_state"`
+    sql`select "state"->'additions'->>'since' as "since" from "bordfeed_sync_state"`
   );
   const row = result.rows[0] as { since?: string | null } | undefined;
   return row?.since ?? null;
@@ -122,14 +120,10 @@ async function cron(): Promise<{ ok: boolean }> {
   return (await response.json()) as { ok: boolean };
 }
 
-// Cron runs must not overlap, so they run one after another.
-async function cronRuns(count: number): Promise<boolean[]> {
-  if (count === 0) {
-    return [];
-  }
+const FAST = { minIntervalMs: 0 };
 
-  const { ok } = await cron();
-  return [ok, ...(await cronRuns(count - 1))];
+function sync() {
+  return runBordfeedSync(payload, FAST);
 }
 
 // Syncs run one after another, like daily crons.
@@ -140,8 +134,12 @@ async function syncRuns(
     return [];
   }
 
-  const run = await runBordfeedSync(payload);
+  const run = await sync();
   return [run, ...(await syncRuns(count - 1))];
+}
+
+function range(from: number, to: number): number[] {
+  return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }
 
 describe("bordfeed credit budget", () => {
@@ -154,7 +152,7 @@ describe("bordfeed credit budget", () => {
     await connectFeed();
     expect(mock.balance()).toBe(2000);
 
-    const first = await runBordfeedSync(payload);
+    const first = await sync();
     expect(first).toMatchObject({
       created: 50,
       fetch: "first",
@@ -166,49 +164,46 @@ describe("bordfeed credit budget", () => {
     expect(mock.balance()).toBe(1950);
     expect((await boardJobs()).totalDocs).toBe(50);
 
-    const quiet = await runBordfeedSync(payload);
-    expect(quiet).toMatchObject({ created: 0, fetch: "delta", fetchedJobs: 0 });
+    const quiet = await sync();
+    expect(quiet).toMatchObject({
+      checkedJobs: 50,
+      created: 0,
+      fetch: "delta",
+      fetchedJobs: 0,
+    });
+    // Checking the 50 board jobs by id is free.
+    expect(mock.state.checkedJobs).toBe(50);
     expect(mock.state.billedJobs).toBe(50);
     const deltaQueries = mock.state.requests
       .filter((request) => request.path === FEED_PATH)
       .slice(1)
       .map((request) => request.query);
-    // Closed and expired jobs updated since the first sync, then new jobs.
-    expect(deltaQueries).toHaveLength(3);
-    // Removals get half the budget, additions the rest.
-    expect(deltaQueries.map((query) => query.limit)).toEqual([
-      "25",
-      "25",
-      "50",
-    ]);
-    for (const query of deltaQueries) {
-      expect(typeof query.since).toBe("string");
-    }
-    expect(
-      deltaQueries.map((query) => [query.status, query.since_field])
-    ).toEqual([
-      ["closed", "updated"],
-      ["expired", "updated"],
-      [undefined, "first_visible"],
-    ]);
+    // One feed read: open jobs first visible since the first sync.
+    expect(deltaQueries).toHaveLength(1);
+    expect(deltaQueries[0]).toMatchObject({
+      limit: "50",
+      since_field: "first_visible",
+    });
+    expect(deltaQueries[0]?.status).toBeUndefined();
+    expect(typeof deltaQueries[0]?.since).toBe("string");
 
     // Live bumps updated_at on routine scrapes. That alone fetches nothing.
-    mock.touchFeedJobs(Array.from({ length: 2000 }, (_, index) => index + 1));
-    const scraped = await runBordfeedSync(payload);
+    mock.touchFeedJobs(range(1, 2000));
+    const scraped = await sync();
     expect(scraped).toMatchObject({ fetch: "delta", fetchedJobs: 0 });
 
     mock.surfaceFeedJobs([1500]);
     mock.closeFeedJobs([7]);
     mock.expireFeedJobs([9]);
-    const delta = await runBordfeedSync(payload);
+    const delta = await sync();
     expect(delta).toMatchObject({
       created: 1,
       fetch: "delta",
-      fetchedJobs: 3,
+      fetchedJobs: 1,
       unpublished: 2,
     });
-    // Jobs 7 and 9 were already received, so only job 1500 is billed.
-    expect(mock.state.servedJobs).toBe(53);
+    // Only the new job 1500 is billed. Jobs 7 and 9 were found by free checks.
+    expect(mock.state.servedJobs).toBe(51);
     expect(mock.state.billedJobs).toBe(51);
     expect(mock.balance()).toBe(1949);
     expect(
@@ -218,25 +213,29 @@ describe("bordfeed credit budget", () => {
     expect(connection.state).toBe("connected");
   });
 
-  test("cron runs never spend past the daily cap", async () => {
+  test("syncs and the cron never spend past the daily cap", async () => {
     await setLimits({ jobsPerDay: 120, jobsPerSync: 50 });
     await connectFeed();
-    await runBordfeedSync(payload);
+    await sync();
     expect(mock.state.billedJobs).toBe(50);
 
     // A busy day: 900 jobs surface after the first sync.
-    mock.surfaceFeedJobs(Array.from({ length: 900 }, (_, index) => index + 1));
-    expect(await cronRuns(6)).toEqual([true, true, true, true, true, true]);
+    mock.surfaceFeedJobs(range(1, 900));
+    const runs = await syncRuns(2);
+    expect(runs.map((run) => run.fetchedJobs)).toEqual([50, 20]);
 
     // 50 + 50 + 20 jobs fetched. Jobs 1 to 50 came in the first page, so
     // the day billed 70 credits and fetched no more than the 120 job cap.
     expect(mock.state.servedJobs).toBe(120);
     expect(mock.state.billedJobs).toBe(70);
     expect(mock.balance()).toBe(1930);
-    const readsAtCap = feedReads();
-    const capped = await runBordfeedSync(payload);
+
+    // The real cron route at the cap makes no request at all.
+    const requestsAtCap = mock.state.requests.length;
+    expect(await cron()).toMatchObject({ ok: true });
+    const capped = await sync();
     expect(capped).toMatchObject({ fetch: "capped", fetchedJobs: 0 });
-    expect(feedReads()).toBe(readsAtCap);
+    expect(mock.state.requests.length).toBe(requestsAtCap);
 
     // A skipped sync leaves the last real sync on record.
     const connection = await readConnection(payload);
@@ -252,65 +251,71 @@ describe("bordfeed credit budget", () => {
   test("an admin jobs-per-sync setting sizes the first page", async () => {
     await setLimits({ jobsPerSync: 20 });
     await connectFeed();
-    const first = await runBordfeedSync(payload);
+    const first = await sync();
     expect(first).toMatchObject({ created: 20, fetchedJobs: 20, pages: 1 });
     expect(mock.balance()).toBe(1980);
   });
 
-  test("a long run of closures resumes across syncs before since moves", async () => {
-    await setLimits({ jobsPerSync: 20 });
+  test("closures elsewhere in the feed cost nothing and block nothing", async () => {
     await connectFeed();
-    await runBordfeedSync(payload);
-    const sinceAfterFirst = await storedSince("removals");
+    await sync();
+    const sinceAfterFirst = await storedSince();
 
-    // 30 jobs close: the 20 on the board and 10 it never fetched. Removals
-    // get 10 jobs per sync, so the closed list takes three syncs and the
-    // expired list a fourth.
-    mock.closeFeedJobs(Array.from({ length: 30 }, (_, index) => index + 1));
-    const runs = await syncRuns(4);
-    expect(runs.map((run) => run.fetchedJobs)).toEqual([10, 10, 10, 0]);
-    expect(runs.reduce((sum, run) => sum + run.unpublished, 0)).toBe(20);
-    expect(runs.every((run) => run.fetchedJobs <= 20)).toBe(true);
-    expect(await storedSince("removals")).not.toBe(sinceAfterFirst);
-    expect(
-      (await boardJobs({ _status: { equals: "published" } })).totalDocs
-    ).toBe(0);
-  });
-
-  test("closures of jobs the board never had cannot starve new jobs", async () => {
-    await connectFeed();
-    await runBordfeedSync(payload);
-
-    // Three days: 60 jobs the board never fetched close, 5 new jobs appear.
+    // Three busy days: 60 jobs the board never had close and 5 new jobs
+    // appear each day. On day 2 a board job closes too.
     const created: number[] = [];
     const billed: number[] = [];
     for (const day of [0, 1, 2]) {
-      const start = 100 + day * 60;
-      mock.closeFeedJobs(
-        Array.from({ length: 60 }, (_, index) => start + index)
-      );
-      mock.surfaceFeedJobs(
-        Array.from({ length: 5 }, (_, index) => 1900 + day * 5 + index)
-      );
+      mock.closeFeedJobs(range(100 + day * 60, 159 + day * 60));
+      mock.surfaceFeedJobs(range(1900 + day * 5, 1904 + day * 5));
+      if (day === 1) {
+        mock.closeFeedJobs([3]);
+      }
       const before = mock.state.billedJobs;
       // biome-ignore lint/performance/noAwaitInLoops: one sync per day, in order
-      const run = await runBordfeedSync(payload);
+      const run = await sync();
       created.push(run.created);
       billed.push(mock.state.billedJobs - before);
     }
 
+    // Each day bills exactly its 5 new jobs: closures are never fetched.
     expect(created).toEqual([5, 5, 5]);
-    expect(billed.every((value) => value <= 50)).toBe(true);
+    expect(billed).toEqual([5, 5, 5]);
+    expect(await storedSince()).not.toBe(sinceAfterFirst);
+    expect(
+      (await boardJobs({ _status: { equals: "published" } })).totalDocs
+    ).toBe(64);
+  });
+
+  test("checks walk the whole board across syncs, for free", async () => {
+    await setLimits({ jobsPerSync: 100 });
+    await connectFeed();
+    await sync();
+    mock.surfaceFeedJobs(range(101, 150));
+    const grow = await sync();
+    expect(grow).toMatchObject({ checkedJobs: 100, created: 50 });
+    expect(mock.state.billedJobs).toBe(150);
+
+    // 150 board jobs and 100 checks a sync: two syncs reach every job.
+    mock.closeFeedJobs([5, 120]);
+    mock.expireFeedJobs([77]);
+    const runs = await syncRuns(2);
+    expect(runs.every((run) => run.checkedJobs === 100)).toBe(true);
+    expect(runs.reduce((sum, run) => sum + run.unpublished, 0)).toBe(3);
+    expect(mock.state.billedJobs).toBe(150);
+    expect(
+      (await boardJobs({ _status: { equals: "published" } })).totalDocs
+    ).toBe(147);
   });
 
   test("the first sync after an upgrade keeps jobs it did not fetch", async () => {
     await connectFeed();
-    await runBordfeedSync(payload);
+    await sync();
     // A board from before this change has no sync state.
     await setLimits({ jobsPerSync: 20 });
     await database().execute(sql`delete from "bordfeed_sync_state"`);
 
-    const again = await runBordfeedSync(payload);
+    const again = await sync();
     expect(again).toMatchObject({ fetch: "first", fetchedJobs: 20 });
     expect(
       (await boardJobs({ _status: { equals: "published" } })).totalDocs
@@ -319,10 +324,7 @@ describe("bordfeed credit budget", () => {
 
   test("two syncs at once never both spend", async () => {
     await connectFeed();
-    const results = await Promise.all([
-      runBordfeedSync(payload),
-      runBordfeedSync(payload),
-    ]);
+    const results = await Promise.all([sync(), sync()]);
     expect(results.map((result) => result.fetch).sort()).toEqual([
       "busy",
       "first",

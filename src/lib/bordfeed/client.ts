@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 
 import { BordfeedApiError, safeMessage } from "./errors";
 import type { BordfeedJob } from "./job-schema";
@@ -29,6 +29,7 @@ const FEED_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface BordfeedClient {
+  checkJob: (jobId: string) => Promise<JobCheck>;
   createFeed: (body: CreateFeedRequest) => Promise<{ id: string }>;
   fetchFeedPage: (feedId: string, query: FeedPageQuery) => Promise<FeedPage>;
   listTemplates: () => Promise<TemplatesResponse>;
@@ -60,6 +61,17 @@ export interface FeedPage {
 }
 
 export const FEED_PAGE_MAX = 100;
+
+// GET /api/v1/jobs/{id}: 404 for a job that is no longer active, answered
+// before any charge. An active job the workspace already received is free;
+// `charged` is what Bordfeed billed for this lookup (null when not reported).
+export type JobCheck =
+  | { charged: number | null; status: "active" }
+  | { status: "gone" };
+
+const jobCheckSchema = z.object({
+  jobs_charged: z.number().int().min(0).nullable().optional(),
+});
 
 export interface BordfeedClientOptions {
   apiKey?: string;
@@ -302,7 +314,7 @@ export function createBordfeedClient(
 
   async function request(
     target: string,
-    init: { body?: string; method?: string },
+    init: { allowNotFound?: boolean; body?: string; method?: string },
     attempt = 1
   ): Promise<{ body: unknown; status: number }> {
     await pace();
@@ -312,7 +324,7 @@ export function createBordfeedClient(
     }
 
     const body = await readJson(response);
-    if (response.ok) {
+    if (response.ok || (init.allowNotFound && response.status === 404)) {
       return { body, status: response.status };
     }
 
@@ -361,6 +373,28 @@ export function createBordfeedClient(
   }
 
   return {
+    async checkJob(jobId) {
+      const response = await request(
+        endpoint(`/api/v1/jobs/${encodeURIComponent(jobId)}`),
+        { allowNotFound: true }
+      );
+      if (response.status === 404) {
+        // Only Bordfeed's own not_found means the job is gone. Any other 404,
+        // such as a wrong base URL, must never unpublish jobs.
+        if (readErrorBody(response.body).code === "not_found") {
+          return { status: "gone" };
+        }
+        throw invalidResponse(404);
+      }
+
+      const parsed = parseSchema(
+        jobCheckSchema,
+        response.body,
+        response.status
+      );
+      return { charged: parsed.jobs_charged ?? null, status: "active" };
+    },
+
     async createFeed(body) {
       const response = await request(endpoint("/api/v1/feeds"), {
         body: JSON.stringify(body),

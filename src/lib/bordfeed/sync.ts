@@ -6,7 +6,7 @@ type JobWrite = Omit<
   "collection" | "createdAt" | "deletedAt" | "id" | "updatedAt"
 >;
 
-import type { Payload } from "payload";
+import type { Payload, Where } from "payload";
 
 import { resolveBordfeedBaseUrl } from "./base-url";
 import { type BordfeedClient, createBordfeedClient } from "./client";
@@ -29,29 +29,31 @@ import {
 import { previewQuerySchema } from "./preview-query";
 import {
   acquireSyncLease,
+  afterAdditions,
   afterFirst,
-  afterTrack,
   type FetchPlan,
-  nextPhase,
   planFetch,
   readSyncBudget,
   recordSpend,
   releaseSyncLease,
-  type SeriesPhase,
   type SeriesPosition,
   type SyncState,
-  sinceFieldFor,
-  type Track,
   writeSyncState,
 } from "./sync-budget";
 
 export interface SyncDeps {
   client?: BordfeedClient;
+  // Gap between Bordfeed requests. Tests set 0; the default suits live
+  // rate limits.
+  minIntervalMs?: number;
   now?: () => Date;
   signal?: AbortSignal;
 }
 
 export interface SyncSummary {
+  // Board jobs this sync looked up by id to see whether they are still
+  // active. Free: the workspace already received them.
+  checkedJobs: number;
   created: number;
   deletedSamples: number;
   durationMs: number;
@@ -69,11 +71,12 @@ export interface SyncSummary {
 }
 
 interface SyncInput {
+  checkedJobs?: number;
   fetch: SyncSummary["fetch"];
   fetchedJobs: number;
   incoming: BordfeedJob[];
   pages: number;
-  // Bordfeed ids reported closed or expired, to unpublish.
+  // Bordfeed ids no longer active, to unpublish.
   removedIds?: ReadonlySet<string>;
 }
 
@@ -262,6 +265,7 @@ function clientFor(
     apiKey,
     baseUrl: resolveBordfeedBaseUrl(),
     clientHeaders: bordfeedClientHeaders(bordfulConfig),
+    minIntervalMs: deps?.minIntervalMs,
     signal: deps?.signal,
   });
 }
@@ -704,6 +708,7 @@ function idleSummary(
   deps: SyncDeps | undefined
 ): SyncSummary {
   return {
+    checkedJobs: input.checkedJobs ?? 0,
     created: 0,
     deletedSamples: 0,
     durationMs: clockOf(deps)().getTime() - started.getTime(),
@@ -821,6 +826,7 @@ async function runSync(
     existing.some((row) => row.id === id && row.origin === "bordfeed_sample")
   ).length;
   const summary: SyncSummary = {
+    checkedJobs: input.checkedJobs ?? 0,
     created: plan.create.length,
     deletedSamples,
     durationMs: clockOf(deps)().getTime() - started.getTime(),
@@ -922,7 +928,6 @@ interface SeriesRead {
   error?: unknown;
   pages: number;
   position: SeriesPosition | null;
-  removedIds: Set<string>;
   state: SyncState;
   updated: BordfeedJob[];
 }
@@ -941,40 +946,15 @@ function requestOffset(offset: number | null, budget: number): number | null {
   return Math.max(0, offset - OFFSET_OVERLAP);
 }
 
-function withPage(
-  read: SeriesRead,
-  phase: SeriesPhase,
-  page: { data: BordfeedJob[] },
-  state: SyncState
-): SeriesRead {
-  const next: SeriesRead = {
-    ...read,
-    budget: read.budget - page.data.length,
-    pages: read.pages + 1,
-    position: null,
-    state,
-  };
-  if (phase === "open") {
-    next.updated = [...read.updated, ...page.data];
-  } else {
-    next.removedIds = new Set([
-      ...read.removedIds,
-      ...page.data.map((job) => job.id),
-    ]);
-  }
-
-  return next;
-}
-
-// Reads one track from `position`. Each request asks for what is left of
-// the track's budget. It stops when the budget is spent or a phase has more
-// pages; the returned position is where the next sync resumes (null once
-// the track's phases are read). Usage is saved as soon as Bordfeed answers.
-// A failure after earlier pages keeps those pages and their position.
+// Reads new jobs from `position`. Each request asks for what is left of the
+// budget. It stops when the budget is spent; the returned position is where
+// the next sync resumes (null once the series is read). Usage is saved as
+// soon as Bordfeed answers. A failure after earlier pages keeps those pages
+// and their position.
 async function readSeries(
   client: BordfeedClient,
   feedId: string,
-  track: { name: Track; since: string },
+  since: string,
   position: SeriesPosition,
   read: SeriesRead,
   context: { save: SaveState; startedAt: Date }
@@ -989,9 +969,8 @@ async function readSeries(
       cursor: position.cursor,
       limit: read.budget,
       offset: requestOffset(position.offset, read.budget),
-      since: track.since,
-      sinceField: sinceFieldFor(position.phase),
-      status: position.phase === "open" ? undefined : position.phase,
+      since,
+      sinceField: "first_visible",
     });
   } catch (error) {
     if (read.pages === 0) {
@@ -1002,23 +981,147 @@ async function readSeries(
 
   const state = recordSpend(read.state, page.data.length, context.startedAt);
   await context.save(state);
-  const next = withPage(read, position.phase, page, state);
-  if (page.nextCursor || page.nextOffset) {
-    next.position = {
-      cursor: page.nextCursor,
-      offset: page.nextCursor ? null : page.nextOffset,
-      phase: position.phase,
-    };
+  const next: SeriesRead = {
+    ...read,
+    budget: read.budget - page.data.length,
+    pages: read.pages + 1,
+    position: null,
+    state,
+    updated: [...read.updated, ...page.data],
+  };
+  if (!(page.nextCursor || page.nextOffset)) {
     return next;
   }
 
-  const phase = nextPhase(track.name, position.phase);
-  if (!phase) {
-    return next;
+  next.position = {
+    cursor: page.nextCursor,
+    offset: page.nextCursor ? null : page.nextOffset,
+  };
+  return readSeries(client, feedId, since, next.position, next, context);
+}
+
+interface CheckRun {
+  // Credits Bordfeed billed for checks. Normally 0: see checkBoardJobs.
+  charged: number;
+  checkAfter: string | null;
+  checked: number;
+  error?: unknown;
+  removedIds: Set<string>;
+  state: SyncState;
+}
+
+// Published Bordfeed jobs on the board, by Bordfeed id, after `after`.
+async function boardJobIds(
+  payload: Payload,
+  after: string | null,
+  limit: number
+): Promise<string[]> {
+  if (limit <= 0) {
+    return [];
   }
 
-  next.position = { cursor: null, offset: null, phase };
-  return readSeries(client, feedId, track, next.position, next, context);
+  const where: Where[] = [
+    { origin: { equals: "bordfeed" } },
+    { _status: { equals: "published" } },
+    { bordfeedJobId: { exists: true } },
+  ];
+  if (after) {
+    where.push({ bordfeedJobId: { greater_than: after } });
+  }
+  const result = await payload.find({
+    collection: "jobs",
+    depth: 0,
+    limit,
+    overrideAccess: true,
+    pagination: false,
+    select: { bordfeedJobId: true },
+    sort: "bordfeedJobId",
+    where: { and: where },
+  });
+  return result.docs.flatMap((doc) =>
+    typeof doc.bordfeedJobId === "string" && doc.bordfeedJobId.length > 0
+      ? [doc.bordfeedJobId]
+      : []
+  );
+}
+
+// The next `count` board jobs after `after`, wrapping to the start once.
+async function nextBoardJobs(
+  payload: Payload,
+  after: string | null,
+  count: number
+): Promise<string[]> {
+  const tail = await boardJobIds(payload, after, count);
+  if (after === null || tail.length >= count) {
+    return tail;
+  }
+
+  const head = await boardJobIds(payload, null, count - tail.length);
+  return [...tail, ...head.filter((id) => id <= after)];
+}
+
+async function checkEach(
+  client: BordfeedClient,
+  ids: string[],
+  run: CheckRun,
+  context: { save: SaveState; startedAt: Date }
+): Promise<CheckRun> {
+  const [id, ...rest] = ids;
+  if (id === undefined) {
+    return run;
+  }
+
+  let result: Awaited<ReturnType<BordfeedClient["checkJob"]>>;
+  try {
+    result = await client.checkJob(id);
+  } catch (error) {
+    return { ...run, error };
+  }
+
+  const next: CheckRun = { ...run, checkAfter: id, checked: run.checked + 1 };
+  if (result.status === "gone") {
+    next.removedIds = new Set([...run.removedIds, id]);
+    return checkEach(client, rest, next, context);
+  }
+
+  const charged = result.charged ?? 0;
+  if (charged <= 0) {
+    return checkEach(client, rest, next, context);
+  }
+
+  // A board job this workspace was never billed for, such as one fetched
+  // under an earlier workspace. Count the credit and stop checking, so
+  // checks can never spend more than one credit per sync.
+  next.charged = run.charged + charged;
+  next.state = recordSpend(run.state, charged, context.startedAt);
+  await context.save(next.state);
+  return next;
+}
+
+// Looks up the next slice of the board's published Bordfeed jobs by id and
+// collects the ones Bordfeed no longer shows. Bordfeed answers 404 for a job
+// that is not active before any charge, and a job the workspace already
+// received is free, so a check costs nothing.
+async function checkBoardJobs(
+  payload: Payload,
+  client: BordfeedClient,
+  plan: Extract<FetchPlan, { kind: "delta" }>,
+  state: SyncState,
+  context: { save: SaveState; startedAt: Date }
+): Promise<CheckRun> {
+  const ids = await nextBoardJobs(payload, plan.checkAfter, plan.checks);
+  return checkEach(
+    client,
+    ids,
+    {
+      charged: 0,
+      checkAfter: plan.checkAfter,
+      checked: 0,
+      removedIds: new Set(),
+      state,
+    },
+    context
+  );
 }
 
 async function firstSync(
@@ -1055,7 +1158,8 @@ async function firstSync(
 
 // Every sync fetches at most `jobsPerSync` jobs and never more than is left
 // of `jobsPerDay`. The first sync reads one page of the newest jobs. Later
-// syncs read only removals and new jobs since the last finished series.
+// syncs check a slice of the board's jobs by id (free) and read only jobs
+// new to the feed since the last finished series.
 async function syncFeedWithBudget(
   payload: Payload,
   deps: SyncDeps | undefined,
@@ -1083,94 +1187,75 @@ async function syncFeedWithBudget(
   }
 
   const context = { save, startedAt };
-  const removals = await readSeries(
+  const checks = await checkBoardJobs(
+    payload,
     client,
-    feedId,
-    { name: "removals", since: plan.removals.since },
-    plan.removals.position,
-    {
-      budget: plan.removalsLimit,
-      pages: 0,
-      position: null,
-      removedIds: new Set(),
-      state: budget.state,
-      updated: [],
-    },
-    context
-  );
-  const additions = await readAdditions(
-    client,
-    feedId,
     plan,
-    removals,
+    budget.state,
     context
   );
-  const read = additions.read ?? removals;
+  const additions = await readAdditions(client, feedId, plan, checks, context);
+  const state = additions.read?.state ?? checks.state;
   const summary = await runSync(
     payload,
     deps,
     "feed",
     {
+      checkedJobs: checks.checked,
       fetch: "delta",
-      fetchedJobs: plan.limit - read.budget,
+      fetchedJobs: additions.read ? additions.read.updated.length : 0,
       incoming: additions.read?.updated ?? [],
-      pages: removals.pages + (additions.read?.pages ?? 0),
-      removedIds: removals.removedIds,
+      pages: additions.read?.pages ?? 0,
+      removedIds: checks.removedIds,
     },
     "bordfeed",
     stamp
   );
   if (await connectionStillMatches(payload, stamp)) {
     await save({
-      ...read.state,
+      ...state,
       additions: additions.read
-        ? afterTrack(
-            read.state.additions,
+        ? afterAdditions(
+            state.additions,
             plan.additions,
             additions.read.position
           )
-        : read.state.additions,
-      removals: afterTrack(
-        read.state.removals,
-        plan.removals,
-        removals.position
-      ),
+        : state.additions,
+      checkAfter: checks.checkAfter,
     });
   }
-  const failure = removals.error ?? additions.error;
+  const failure = checks.error ?? additions.error;
   if (failure !== undefined) {
     throw failure;
   }
   return summary;
 }
 
-// Additions get the rest of the sync's budget after removals, which is at
-// least half. They are skipped when removals failed. A failure here still
-// lets the removals already read be applied.
+// New jobs get the sync's budget, less any credit a check was billed. They
+// are skipped when a check failed. A failure here still lets the checks
+// already made be applied.
 async function readAdditions(
   client: BordfeedClient,
   feedId: string,
   plan: Extract<FetchPlan, { kind: "delta" }>,
-  removals: SeriesRead,
+  checks: CheckRun,
   context: { save: SaveState; startedAt: Date }
 ): Promise<{ error?: unknown; read: SeriesRead | null }> {
-  if (removals.error !== undefined) {
+  if (checks.error !== undefined) {
     return { read: null };
   }
 
-  const spent = plan.removalsLimit - removals.budget;
   try {
     const read = await readSeries(
       client,
       feedId,
-      { name: "additions", since: plan.additions.since },
+      plan.additions.since,
       plan.additions.position,
       {
-        budget: plan.limit - spent,
+        budget: plan.limit - checks.charged,
         pages: 0,
         position: null,
-        removedIds: new Set(),
-        state: removals.state,
+        state: checks.state,
         updated: [],
       },
       context

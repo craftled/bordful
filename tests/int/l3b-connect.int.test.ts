@@ -114,6 +114,7 @@ function rejectApi(error: BordfeedApiError): Promise<never> {
 
 function client(): BordfeedClient {
   return {
+    checkJob: () => Promise.resolve({ charged: 0, status: "active" }),
     createFeed(body) {
       calls.push({ body, type: "createFeed" });
       if (behavior.createFeedFailures > 0) {

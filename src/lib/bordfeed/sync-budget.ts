@@ -12,36 +12,18 @@ export interface SyncLimits {
   jobsPerSync: number;
 }
 
-// Later syncs run two tracks, each with its own watermark and resume point:
-// - removals: jobs closed, then expired, updated after its `since`;
-// - additions: open jobs that first became visible after its `since`.
-// Bordfeed bumps `updated_at` on routine scrape writes, so additions are
-// read by `first_visible`, not `updated`. Each track gets its own share of a
-// sync's budget, so removals can never starve new jobs or the other way.
-export type Track = "additions" | "removals";
-export type SeriesPhase = "closed" | "expired" | "open";
-
-const TRACK_PHASES: Record<Track, readonly SeriesPhase[]> = {
-  additions: ["open"],
-  removals: ["closed", "expired"],
-};
-
-export function sinceFieldFor(phase: SeriesPhase): "first_visible" | "updated" {
-  return phase === "open" ? "first_visible" : "updated";
-}
-
-export function nextPhase(
-  track: Track,
-  phase: SeriesPhase
-): SeriesPhase | null {
-  const phases = TRACK_PHASES[track];
-  return phases[phases.indexOf(phase) + 1] ?? null;
-}
-
+// Later syncs do two things:
+// - additions: read open jobs that first became visible after `since`, from
+//   the feed. Bordfeed bumps `updated_at` on routine scrape writes, so they
+//   are read by `first_visible`, not `updated`. This is the billed part.
+// - checks: look up a slice of the board's own published Bordfeed jobs by id
+//   and unpublish the ones Bordfeed no longer shows. Bordfeed answers 404
+//   before any charge for a job that is not active, and a job the workspace
+//   already received is free, so checks cost no credits. They also catch
+//   jobs that leave as filled or archived, which no feed status reports.
 export interface SeriesPosition {
   cursor: string | null;
   offset: number | null;
-  phase: SeriesPhase;
 }
 
 export interface TrackState {
@@ -54,10 +36,12 @@ export interface TrackState {
 
 export interface SyncState {
   additions: TrackState;
+  // Last board job checked, by Bordfeed id. The next sync goes on after it
+  // and wraps to the start, so every published job is checked in turn.
+  checkAfter: string | null;
   day: string | null;
   feedId: string | null;
   jobsToday: number;
-  removals: TrackState;
 }
 
 export interface TrackPlan {
@@ -66,16 +50,19 @@ export interface TrackPlan {
   since: string;
 }
 
+// Board jobs one sync looks up. Free, but each is one request, and the
+// client paces requests 500 ms apart, so 100 checks take about a minute.
+export const JOB_CHECKS_PER_SYNC = 100;
+
 export type FetchPlan =
   | { kind: "skip"; reason: "daily_cap" }
   | { kind: "first"; limit: number }
   | {
       additions: TrackPlan;
+      checkAfter: string | null;
+      checks: number;
       kind: "delta";
       limit: number;
-      removals: TrackPlan;
-      // Budget the removals track may use. Additions get the rest.
-      removalsLimit: number;
     };
 
 // Overlap between watermarks so clock skew never drops an update.
@@ -119,18 +106,14 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function positionOf(value: unknown, track: Track): SeriesPosition | null {
+function positionOf(value: unknown): SeriesPosition | null {
   const row = record(value);
-  const phase = TRACK_PHASES[track].find((item) => item === row.phase);
-  if (!phase) {
-    return null;
-  }
-
+  const cursor = text(row.cursor);
   const offset =
     typeof row.offset === "number" && row.offset > 0
       ? Math.floor(row.offset)
       : null;
-  return { cursor: text(row.cursor), offset, phase };
+  return cursor || offset ? { cursor, offset } : null;
 }
 
 const EMPTY_TRACK: TrackState = {
@@ -139,12 +122,12 @@ const EMPTY_TRACK: TrackState = {
   since: null,
 };
 
-function trackOf(value: unknown, track: Track): TrackState {
+function trackOf(value: unknown): TrackState {
   const row = record(value);
   const since = text(row.since);
   const seriesStart = since ? text(row.seriesStart) : null;
   return {
-    position: seriesStart ? positionOf(row.position, track) : null,
+    position: seriesStart ? positionOf(row.position) : null,
     seriesStart,
     since,
   };
@@ -161,19 +144,13 @@ export function parseSyncState(
     typeof row.jobsToday === "number" && row.jobsToday > 0
       ? Math.floor(row.jobsToday)
       : 0;
-  const usage = { day: text(row.day), jobsToday };
   const sameFeed = text(row.feedId) === feedId;
-  const additions = sameFeed
-    ? trackOf(row.additions, "additions")
-    : EMPTY_TRACK;
-  const removals = sameFeed ? trackOf(row.removals, "removals") : EMPTY_TRACK;
-  // Both tracks start together; a half-set state starts over.
-  const started = additions.since !== null && removals.since !== null;
   return {
-    ...usage,
-    additions: started ? additions : EMPTY_TRACK,
+    additions: sameFeed ? trackOf(row.additions) : EMPTY_TRACK,
+    checkAfter: sameFeed ? text(row.checkAfter) : null,
+    day: text(row.day),
     feedId,
-    removals: started ? removals : EMPTY_TRACK,
+    jobsToday,
   };
 }
 
@@ -197,15 +174,6 @@ export function watermark(startedAt: Date): string {
   return new Date(startedAt.getTime() - WATERMARK_OVERLAP_MS).toISOString();
 }
 
-function trackPlan(state: TrackState, track: Track, now: Date): TrackPlan {
-  const first = TRACK_PHASES[track][0] ?? "open";
-  return {
-    position: state.position ?? { cursor: null, offset: null, phase: first },
-    seriesStart: state.seriesStart ?? watermark(now),
-    since: state.since ?? watermark(now),
-  };
-}
-
 export function planFetch(
   state: SyncState,
   limits: SyncLimits,
@@ -219,16 +187,20 @@ export function planFetch(
     return { kind: "skip", reason: "daily_cap" };
   }
 
-  if (!(state.additions.since && state.removals.since)) {
+  if (!state.additions.since) {
     return { kind: "first", limit };
   }
 
   return {
-    additions: trackPlan(state.additions, "additions", now),
+    additions: {
+      position: state.additions.position ?? { cursor: null, offset: null },
+      seriesStart: state.additions.seriesStart ?? watermark(now),
+      since: state.additions.since,
+    },
+    checkAfter: state.checkAfter,
+    checks: JOB_CHECKS_PER_SYNC,
     kind: "delta",
     limit,
-    removals: trackPlan(state.removals, "removals", now),
-    removalsLimit: Math.floor(limit / 2),
   };
 }
 
@@ -244,19 +216,22 @@ export function recordSpend(
   };
 }
 
-// After a first sync both tracks ask only for changes since it began.
+// After a first sync, additions ask only for jobs new since it began.
 export function afterFirst(state: SyncState, startedAt: Date): SyncState {
-  const fresh: TrackState = {
-    position: null,
-    seriesStart: null,
-    since: watermark(startedAt),
+  return {
+    ...state,
+    additions: {
+      position: null,
+      seriesStart: null,
+      since: watermark(startedAt),
+    },
+    checkAfter: null,
   };
-  return { ...state, additions: fresh, removals: { ...fresh } };
 }
 
-// `next` is where the track resumes, or null once all its phases are read.
-// Only then does its `since` move, so nothing in between is skipped.
-export function afterTrack(
+// `next` is where additions resume, or null once the series is read. Only
+// then does `since` move, so no new job in between is skipped.
+export function afterAdditions(
   state: TrackState,
   plan: TrackPlan,
   next: SeriesPosition | null

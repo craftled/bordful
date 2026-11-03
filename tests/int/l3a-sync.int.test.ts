@@ -11,7 +11,7 @@ import {
   dispatchConnectionEvent,
   readConnection,
 } from "@/lib/bordfeed/connection-store";
-import { SyncGuardError } from "@/lib/bordfeed/errors";
+import { BordfeedApiError, SyncGuardError } from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
@@ -140,6 +140,7 @@ function emptyPage() {
 
 function sampleClient(jobs: BordfeedJob[] = sampleJobs()): BordfeedClient {
   return {
+    checkJob: unused,
     createFeed: () => Promise.resolve({ id: FEED_ID }),
     fetchFeedPage: emptyPage,
     listTemplates: unused,
@@ -150,18 +151,24 @@ function sampleClient(jobs: BordfeedJob[] = sampleJobs()): BordfeedClient {
 }
 
 // A feed whose jobs all changed just now: a delta sync sees every job, and
-// `closed` lists the ids Bordfeed reports closed.
+// `closed` lists the jobs Bordfeed no longer shows (404 on a check).
 function feedClient(
   jobs: BordfeedJob[],
   closed: BordfeedJob[] = []
 ): BordfeedClient & { queries: FeedPageQuery[] } {
   const queries: FeedPageQuery[] = [];
+  const gone = new Set(closed.map((job) => job.id));
   return {
+    checkJob: (jobId) =>
+      Promise.resolve(
+        gone.has(jobId)
+          ? { status: "gone" as const }
+          : { charged: 0, status: "active" as const }
+      ),
     createFeed: () => Promise.resolve({ id: FEED_ID }),
     fetchFeedPage(_feedId, query) {
       queries.push(query);
-      const sources = { closed, expired: [], open: jobs };
-      const source = sources[query.status ?? "open"];
+      const source = jobs;
       const start = query.cursor ? Number(query.cursor.slice(1)) : 0;
       const end = Math.min(start + query.limit, source.length);
       const more = end < source.length;
@@ -328,6 +335,49 @@ describe("bordfeed sync", () => {
     });
     expect(quiet).toMatchObject({ created: 0, unpublished: 0, updated: 0 });
     expect(stillPublished.totalDocs).toBe(23);
+  });
+
+  test("a billed check stops the checks and shrinks the feed read", async () => {
+    await connectFeed();
+    await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
+
+    // A board job this workspace was never billed for: the first check
+    // costs one credit, so no more checks run and the feed read asks for 49.
+    const base = feedClient(feedJobs(25));
+    let checks = 0;
+    const billed: BordfeedClient & { queries: FeedPageQuery[] } = {
+      ...base,
+      checkJob: () => {
+        checks += 1;
+        return Promise.resolve({ charged: 1, status: "active" as const });
+      },
+    };
+    const run = await runFeedSync(payload, { client: billed });
+    expect(checks).toBe(1);
+    expect(run.checkedJobs).toBe(1);
+    expect(base.queries.at(-1)?.limit).toBe(49);
+  });
+
+  test("a failed check keeps the jobs and skips the feed read", async () => {
+    await connectFeed();
+    await runFeedSync(payload, { client: feedClient(feedJobs(25)) });
+
+    const base = feedClient(feedJobs(30));
+    const failing: BordfeedClient & { queries: FeedPageQuery[] } = {
+      ...base,
+      checkJob: () =>
+        Promise.reject(
+          new BordfeedApiError({
+            code: "rate_limited",
+            message: "Bordfeed is rate limiting this workspace.",
+            status: 429,
+          })
+        ),
+    };
+    await expect(runFeedSync(payload, { client: failing })).rejects.toThrow();
+    expect(base.queries).toHaveLength(0);
+    const published = await queryPublishedJobs(payload, { limit: 50, page: 1 });
+    expect(published.totalDocs).toBe(25);
   });
 
   test("an empty first feed keeps the samples and records an error", async () => {

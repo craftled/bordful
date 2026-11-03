@@ -390,3 +390,54 @@ test("503 waits 1000ms and then accepts the retry", async () => {
   expect(fetches).toBe(2);
   expect(time.sleeps).toEqual([1000]);
 });
+
+test("checkJob reads a free lookup, a billed one and Bordfeed's not_found", async () => {
+  const time = clock();
+  const urls: string[] = [];
+  const answers = [
+    jsonResponse({ data: job("a"), jobs_charged: 0, request_id: "r1" }),
+    jsonResponse({ data: job("b"), jobs_charged: 1, request_id: "r2" }),
+    jsonResponse(
+      { error: { code: "not_found", message: "Job not found" } },
+      404
+    ),
+  ];
+  const fetchImpl: typeof fetch = (input) => {
+    urls.push(String(input));
+    const answer = answers.shift();
+    return answer
+      ? Promise.resolve(answer)
+      : Promise.reject(new Error("extra"));
+  };
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+  await expect(api.checkJob("a")).resolves.toEqual({
+    charged: 0,
+    status: "active",
+  });
+  await expect(api.checkJob("b")).resolves.toEqual({
+    charged: 1,
+    status: "active",
+  });
+  await expect(api.checkJob("c/d")).resolves.toEqual({ status: "gone" });
+  expect(urls).toEqual([
+    "http://bf.test/api/v1/jobs/a",
+    "http://bf.test/api/v1/jobs/b",
+    "http://bf.test/api/v1/jobs/c%2Fd",
+  ]);
+});
+
+test("checkJob never reads a 404 without Bordfeed's not_found as gone", async () => {
+  const time = clock();
+  const fetchImpl: typeof fetch = () =>
+    Promise.resolve(new Response("Not Found", { status: 404 }));
+  const error = await client({
+    fetch: fetchImpl,
+    now: time.now,
+    sleep: time.sleep,
+  })
+    .checkJob("a")
+    .catch((caught: unknown) => caught);
+  expect(error).toBeInstanceOf(BordfeedApiError);
+  expect(error).toMatchObject({ code: "invalid_response", status: 404 });
+});
