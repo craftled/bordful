@@ -78,7 +78,7 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 
 - The first sync after you connect fetches one page of the newest jobs: `jobsPerSync` jobs, 50 by default. It does not page through the rest of the feed, and it does not unpublish jobs that are not in that page.
 - Every later sync asks Bordfeed only for what changed since the last sync. It reads jobs Bordfeed closed (`status=closed`) and jobs that expired (`status=expired`) since then (`since_field=updated`) and unpublishes them. Then it reads jobs that first appeared in the feed since then (`since_field=first_visible`) and adds them. Closed and expired jobs are unpublished, not deleted.
-- A job already on the board is not fetched again when Bordfeed edits it. Bordfeed touches `updated_at` on routine scrapes, so asking for every updated job would refetch most of the feed each day. So later edits Bordfeed makes to a job already on the board are not picked up.
+- A job already on the board is not fetched again when Bordfeed edits it. Bordfeed touches `updated_at` on routine scrapes, so asking for every updated job would refetch most of the feed each day.
 - A sync stops once it has fetched `jobsPerSync` jobs. If more changed, the next sync continues from the cursor where this one stopped. The `since` point moves forward only after all three lists are read, so no closure, expiry or new job is skipped.
 - Sample jobs are replaced when you connect, not unpublished one by one.
 
