@@ -1,5 +1,39 @@
+import { execFileSync } from "node:child_process";
+import { readdirSync } from "node:fs";
+
 import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
+
+// Each doc's last commit date, read once at build time. Serverless functions
+// ship without .git, so the docs pages cannot ask git at request time.
+function docsUpdatedDates(): Record<string, string> {
+  const dates: Record<string, string> = {};
+  try {
+    const git = (args: string[]) =>
+      execFileSync("git", args, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 5000,
+      }).trim();
+    if (git(["rev-parse", "--is-shallow-repository"]) !== "false") {
+      return dates;
+    }
+    for (const file of readdirSync("docs")) {
+      if (!file.endsWith(".md")) {
+        continue;
+      }
+      const date = git(["log", "-1", "--format=%cs", "--", `docs/${file}`]);
+      if (ISO_DATE.test(date)) {
+        dates[file.slice(0, -3)] = date;
+      }
+    }
+  } catch {
+    // No git (or a shallow clone): the docs pages show no date.
+  }
+  return dates;
+}
 
 const securityHeaders = [
   {
@@ -25,6 +59,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    BORDFUL_DOCS_UPDATED: JSON.stringify(docsUpdatedDates()),
+  },
   experimental: {
     globalNotFound: true,
   },

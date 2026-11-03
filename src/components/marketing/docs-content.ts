@@ -70,9 +70,27 @@ export function listDocs(): DocsEntry[] {
 // is built. A shallow clone (or no git at all) cannot tell when a file last
 // changed, so it returns null and the page shows no date rather than a wrong
 // one.
+// Filled by next.config.ts at build time.
+function builtDocDates(): Record<string, string> {
+  try {
+    const parsed: unknown = JSON.parse(
+      process.env.BORDFUL_DOCS_UPDATED ?? "{}"
+    );
+    return parsed !== null && typeof parsed === "object"
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
 export function docLastUpdated(slug: string): string | null {
   if (!(SLUG.test(slug) && DOCS_SLUGS.includes(slug))) {
     return null;
+  }
+  const built = builtDocDates()[slug];
+  if (built) {
+    return built;
   }
   try {
     const git = (args: string[]) =>
