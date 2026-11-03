@@ -4,6 +4,8 @@ import { readdirSync } from "node:fs";
 import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
+
 // Each doc's last commit date, read once at build time. Serverless functions
 // ship without .git, so the docs pages cannot ask git at request time.
 function docsUpdatedDates(): Record<string, string> {
@@ -23,7 +25,7 @@ function docsUpdatedDates(): Record<string, string> {
         continue;
       }
       const date = git(["log", "-1", "--format=%cs", "--", `docs/${file}`]);
-      if (/^\d{4}-\d{2}-\d{2}$/u.test(date)) {
+      if (ISO_DATE.test(date)) {
         dates[file.slice(0, -3)] = date;
       }
     }
