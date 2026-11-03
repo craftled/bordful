@@ -86,6 +86,7 @@ async function loadFooterData() {
 }
 
 export async function SiteFooter({
+  bordfulMark = false,
   columns,
   logoUrl,
   name,
@@ -94,6 +95,7 @@ export async function SiteFooter({
   social,
   tagline,
 }: {
+  bordfulMark?: boolean;
   columns: FooterColumn[];
   // Accepted for compatibility with BoardShell. The Post a Job band is gone.
   durationDays?: number;
@@ -149,6 +151,7 @@ export async function SiteFooter({
   return (
     <>
       <FooterView
+        bordfulMark={bordfulMark}
         columns={footerColumns}
         logoUrl={logoUrl}
         name={name}

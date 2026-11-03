@@ -20,6 +20,7 @@ export interface FooterStats {
 }
 
 export function FooterView({
+  bordfulMark = false,
   columns,
   logoUrl,
   name,
@@ -29,6 +30,7 @@ export function FooterView({
   stats,
   tagline,
 }: {
+  bordfulMark?: boolean;
   columns: FooterColumn[];
   logoUrl: string | null;
   name: string;
@@ -60,7 +62,7 @@ export function FooterView({
                   width={20}
                 />
               ) : (
-                <BrandMark />
+                <BrandMark bordful={bordfulMark} />
               )}
               <span>{name}</span>
             </div>

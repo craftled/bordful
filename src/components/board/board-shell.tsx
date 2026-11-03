@@ -53,6 +53,7 @@ export async function BoardShell({
         <HeaderSlot />
       ) : (
         <SiteHeader
+          bordfulMark={marketing}
           cta={nav.cta}
           homeHref={boardHomePath(marketing)}
           logoUrl={settings.logoUrl}
@@ -88,6 +89,7 @@ export async function BoardShell({
         <FooterSlot />
       ) : (
         <SiteFooter
+          bordfulMark={marketing}
           columns={nav.footerColumns}
           durationDays={settings.postJob.durationDays}
           logoUrl={settings.logoUrl}
