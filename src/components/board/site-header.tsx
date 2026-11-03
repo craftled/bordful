@@ -167,6 +167,7 @@ function useSearchHotkey(enabled: boolean) {
 export function SiteHeader({
   cta,
   homeHref,
+  bordfulMark = false,
   logoUrl,
   name,
   navItems,
@@ -177,6 +178,8 @@ export function SiteHeader({
 }: {
   cta: NavItem | null;
   homeHref: string;
+  // bordful.com shows the Bordful mark when no logo is set.
+  bordfulMark?: boolean;
   logoUrl: string | null;
   name: string;
   navItems: NavItem[];
@@ -222,7 +225,7 @@ export function SiteHeader({
               width={20}
             />
           ) : (
-            <BrandMark />
+            <BrandMark bordful={bordfulMark} />
           )}
           <span className="truncate">{name}</span>
         </Link>
