@@ -1,0 +1,7 @@
+# Advisories reviewed for the final legacy release. Each entry expires so it
+# is re-evaluated by the CI scan.
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2027-04-30
+reason = "deepmerge 4.3.1 prototype poisoning has no fixed version. It is only reached through ultracite, a dev-only lint CLI, and is not in the runtime bundle; mergeObject is never called with untrusted input."

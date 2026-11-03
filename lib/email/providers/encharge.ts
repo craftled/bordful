@@ -1,4 +1,3 @@
-import axios from 'axios';
 import config from '@/config';
 import {
   type EmailProvider,
@@ -52,11 +51,23 @@ export class EnchargeProvider implements EmailProvider {
       };
 
       // Make the API call to Encharge
-      await axios.post(
+      const response = await fetch(
         `https://ingest.encharge.io/v1/${this.writeKey}`,
-        payload,
-        { headers: { 'Content-Type': 'application/json' } }
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
       );
+
+      await response.body?.cancel();
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status code ${response.status}`);
+      }
 
       return { success: true };
     } catch (error) {

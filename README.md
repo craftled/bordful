@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This is the final release of the Airtable version of Bordful. If you run a fork, merge the `legacy-airtable` branch from upstream to receive the latest security fixes, and the `v0.1.61` tag once it is published. Do not merge upstream `main`, which is the Payload 1.0 rewrite. Bordful 1.0, built on Payload, is in development and will replace this version.
+
 # Bordful: Open-Source Job Board Software
 
 Bordful is a modern, minimal job board software built with Next.js, Tailwind CSS, and 

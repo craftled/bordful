@@ -1,0 +1,27 @@
+# Reference only. Dependabot reads its config from the default branch, so this
+# file does not run on upstream legacy-airtable. It applies to forks whose
+# default branch is this line.
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
