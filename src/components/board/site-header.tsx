@@ -31,24 +31,24 @@ export function SiteHeader({
 
   return (
     <header
-      className="border-border bg-background relative z-30 border-b"
+      className="border-line bg-background relative z-30 border-b"
       data-testid="site-header"
     >
-      <div className="max-w-board mx-auto flex h-14 w-full items-center gap-3 px-4">
+      <div className="flex h-[52px] w-full items-center gap-4 px-4">
         <Link
-          className="flex min-w-0 items-center gap-2 text-base font-semibold"
+          className="flex min-w-0 items-center gap-2 text-[14px] font-medium tracking-[-0.01em]"
           data-testid="site-name"
           href={homeHref}
         >
           {logoUrl ? (
-            // biome-ignore lint/performance/noImgElement: site-logo is a native img at 28px
+            // biome-ignore lint/performance/noImgElement: site-logo is a native img at 20px
             <img
               alt=""
-              className="h-7 w-auto"
+              className="h-5 w-auto"
               data-testid="site-logo"
-              height={28}
+              height={20}
               src={logoUrl}
-              width={28}
+              width={20}
             />
           ) : (
             <BrandMark />
@@ -57,18 +57,18 @@ export function SiteHeader({
         </Link>
         <div className="ml-auto flex items-center gap-4" data-testid="site-nav">
           <nav aria-label="Primary">
-            <ul className="hidden items-center gap-4 text-sm md:flex">
+            <ul className="hidden items-center gap-1 text-[14px] font-medium md:flex">
               {navItems.map((item) => {
                 const active = isActiveItem(pathname, item);
                 return (
                   <li key={item.id}>
                     <Link
                       aria-current={active ? "page" : undefined}
-                      className={
+                      className={`rounded-md px-2 py-1 transition-colors ${
                         active
                           ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
-                      }
+                      }`}
                       href={item.href}
                     >
                       {item.label}
@@ -83,7 +83,7 @@ export function SiteHeader({
           </div>
           {cta ? (
             <Link
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-8 items-center rounded-md px-3 text-sm font-medium"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-[30px] items-center rounded-full px-3 text-[14px] font-medium md:h-7 md:rounded-md md:px-2.5 md:text-[13px]"
               href={cta.href}
             >
               {cta.label}

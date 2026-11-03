@@ -29,17 +29,21 @@ export function TokenActionForm({
 
   if (state?.ok) {
     return (
-      <p data-testid={doneTestId} role="status">
+      <p
+        className="text-foreground text-[15px] leading-[18px] font-medium"
+        data-testid={doneTestId}
+        role="status"
+      >
         {state.message}
       </p>
     );
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex flex-col items-center gap-3">
       <input name="token" type="hidden" value={token} />
       <Button
-        className="w-fit"
+        className="h-9 w-fit"
         data-testid={buttonTestId}
         disabled={pending}
         type="submit"
@@ -48,7 +52,7 @@ export function TokenActionForm({
       </Button>
       {state && !state.ok ? (
         <p
-          className="text-destructive text-sm"
+          className="text-destructive text-[13px]"
           data-testid="alerts-invalid-token"
           role="alert"
         >

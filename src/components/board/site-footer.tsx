@@ -16,9 +16,9 @@ const FEED_PILLS: Record<string, string> = {
   "feed-rss": "XML",
 };
 
-// Footer text stays opacity-free so it keeps the contrast the theme tests.
-const FOOTER_LINK_CLASS = "text-background hover:underline underline-offset-4";
-const FOOTER_ICON_CLASS = "text-background hover:opacity-80";
+const FOOTER_LINK_CLASS =
+  "text-muted-foreground hover:text-foreground transition-colors";
+const FOOTER_ICON_CLASS = "text-muted-foreground hover:text-foreground";
 
 export function SiteFooter({
   columns,
@@ -44,22 +44,25 @@ export function SiteFooter({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-foreground text-background" data-testid="site-footer">
+    <footer
+      className="bg-muted text-foreground border-line border-t"
+      data-testid="site-footer"
+    >
       {showCta ? (
-        <div className="bordful-inverse border-background/20 border-b">
-          <div className="max-w-board mx-auto flex w-full flex-wrap items-center justify-between gap-6 px-4 py-10">
+        <div className="border-line border-b">
+          <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-6">
             <div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-[16px] font-medium">
                 Post a Job for {durationDays} Days
               </h2>
-              <p className="text-background mt-1 text-sm">
+              <p className="text-muted-foreground mt-1 text-[13px]">
                 {priceLabel
                   ? `${priceLabel} per listing. Reach candidates browsing this board.`
                   : "Reach candidates browsing this board."}
               </p>
             </div>
             <Link
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center rounded-md px-4 text-sm font-medium"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 items-center rounded-md px-2.5 text-[13px] font-medium"
               href="/post"
             >
               Post a Job
@@ -67,18 +70,18 @@ export function SiteFooter({
           </div>
         </div>
       ) : null}
-      <div className="bordful-inverse max-w-board mx-auto w-full px-4 py-10">
-        <div className="flex flex-wrap gap-x-16 gap-y-10">
-          <div className="max-w-xs space-y-4">
-            <div className="flex items-center gap-2 text-base font-semibold">
+      <div className="flex w-full flex-col gap-7 px-4 pt-10 pb-7">
+        <div className="flex flex-wrap justify-between gap-x-12 gap-y-10">
+          <div className="flex w-full max-w-[300px] flex-col gap-2.5">
+            <div className="flex items-center gap-2 text-[14px] font-medium tracking-[-0.01em]">
               {logoUrl ? (
-                // biome-ignore lint/performance/noImgElement: footer logo is a native img at 28px
+                // biome-ignore lint/performance/noImgElement: footer logo is a native img at 20px
                 <img
                   alt=""
-                  className="h-7 w-auto"
-                  height={28}
+                  className="h-5 w-auto"
+                  height={20}
                   src={logoUrl}
-                  width={28}
+                  width={20}
                 />
               ) : (
                 <BrandMark />
@@ -86,38 +89,50 @@ export function SiteFooter({
               <span>{name}</span>
             </div>
             {tagline ? (
-              <p className="text-background text-sm">{tagline}</p>
+              <p className="text-subtle text-[13px] leading-5">{tagline}</p>
             ) : null}
-            <SocialLinks linkClassName={FOOTER_ICON_CLASS} links={social} />
+            <SocialLinks
+              className="pt-1"
+              linkClassName={FOOTER_ICON_CLASS}
+              links={social}
+            />
           </div>
-          {columns.map((column) => (
-            <nav aria-label={column.title} key={column.id}>
-              <h2 className="text-sm font-semibold">{column.title}</h2>
-              <ul className="text-background mt-3 space-y-2 text-sm">
-                {column.items.map((item) => (
-                  <li className="flex items-center gap-2" key={item.id}>
-                    {FEED_IDS.has(item.id) ? (
-                      // Feeds are route handlers, not pages. next/link would prefetch them with ?_rsc, which never settles.
-                      <a className={FOOTER_LINK_CLASS} href={item.href}>
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link className={FOOTER_LINK_CLASS} href={item.href}>
-                        {item.label}
-                      </Link>
-                    )}
-                    {FEED_PILLS[item.id] ? (
-                      <span className="border-background/30 rounded border px-1.5 text-[10px] leading-4 uppercase">
-                        {FEED_PILLS[item.id]}
-                      </span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          <div className="flex flex-wrap gap-x-10 gap-y-8">
+            {columns.map((column) => (
+              <nav
+                aria-label={column.title}
+                className="w-[140px]"
+                key={column.id}
+              >
+                <h2 className="text-subtle text-[12px] font-medium">
+                  {column.title}
+                </h2>
+                <ul className="mt-[9px] space-y-[9px] text-[13px]">
+                  {column.items.map((item) => (
+                    <li className="flex items-center gap-2" key={item.id}>
+                      {FEED_IDS.has(item.id) ? (
+                        // Feeds are route handlers, not pages. next/link would prefetch them with ?_rsc, which never settles.
+                        <a className={FOOTER_LINK_CLASS} href={item.href}>
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link className={FOOTER_LINK_CLASS} href={item.href}>
+                          {item.label}
+                        </Link>
+                      )}
+                      {FEED_PILLS[item.id] ? (
+                        <span className="border-line-strong text-subtle rounded-xs border px-1.5 text-[10px] leading-4 uppercase">
+                          {FEED_PILLS[item.id]}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
-        <div className="border-background/20 text-background mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6 text-sm">
+        <div className="border-line text-subtle flex flex-wrap items-center justify-between gap-4 border-t pt-[18px] text-[12px]">
           <p>
             © {year} {name}
           </p>

@@ -3,7 +3,12 @@ const CREDIT_HREF =
 
 export function BordfeedCredit() {
   return (
-    <a data-testid="bordfeed-credit" href={CREDIT_HREF} rel="noopener">
+    <a
+      className="hover:text-foreground transition-colors"
+      data-testid="bordfeed-credit"
+      href={CREDIT_HREF}
+      rel="noopener"
+    >
       Jobs by Bordfeed
     </a>
   );

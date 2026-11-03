@@ -87,11 +87,13 @@ export default async function JobPage({
   return (
     <BoardShell>
       <JobPosting
+        alertsEnabled={settings.alerts.enabled}
         fields={settings.board.publicDetailFields}
         job={job}
         jsonLd={jsonLd}
         marketing={isMarketingEnabled()}
         nonce={nonce}
+        now={Date.now()}
         postJob={settings.postJob}
         similarJobs={similarJobs}
       />

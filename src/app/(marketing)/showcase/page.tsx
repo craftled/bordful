@@ -16,17 +16,19 @@ export default function ShowcasePage() {
   assertMarketingEnabled();
 
   return (
-    <Section className="pt-24 md:pt-32">
-      <Container>
-        <SectionHeader
-          description="The live Bordful demo. Community boards show up here after they opt in."
-          headingLevel="h1"
-          title="Showcase"
-        />
-        <div className="mx-auto mt-16 max-w-[800px]">
-          <Showcase variant="page" />
-        </div>
-      </Container>
-    </Section>
+    <>
+      <Section className="md:py-14">
+        <Container>
+          <SectionHeader
+            description="The live Bordful demo. Community boards show up here after they opt in."
+            eyebrow="Showcase"
+            headingLevel="h1"
+            title="Job boards"
+            titleMuted="built with Bordful."
+          />
+        </Container>
+      </Section>
+      <Showcase variant="page" />
+    </>
   );
 }

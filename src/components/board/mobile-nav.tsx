@@ -103,24 +103,24 @@ export function MobileNav({
         aria-controls={panelId}
         aria-expanded={open}
         aria-label="Menu"
-        className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-9 items-center justify-center rounded-md"
+        className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex size-8 items-center justify-center rounded-md"
         onClick={toggle}
         ref={buttonRef}
         type="button"
       >
         {open ? (
-          <X aria-hidden="true" className="size-5" />
+          <X aria-hidden="true" className="size-[18px]" />
         ) : (
-          <Menu aria-hidden="true" className="size-5" />
+          <Menu aria-hidden="true" className="size-[18px]" />
         )}
       </button>
       <div
-        className="border-border bg-background absolute inset-x-0 top-14 z-30 border-b shadow-sm"
+        className="border-line bg-background absolute inset-x-0 top-[52px] z-30 border-b shadow-sm"
         hidden={!open}
         id={panelId}
         ref={panelRef}
       >
-        <nav aria-label="Mobile" className="max-w-board mx-auto px-4 py-3">
+        <nav aria-label="Mobile" className="px-4 py-3">
           <ul className="flex flex-col">
             {items.map((item) => {
               const active = isActiveItem(pathname, item);
@@ -128,10 +128,10 @@ export function MobileNav({
                 <li key={item.id}>
                   <Link
                     aria-current={active ? "page" : undefined}
-                    className={`block rounded-md px-2 py-2 text-sm ${
+                    className={`block rounded-md px-2 py-2 text-[14px] ${
                       active
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        ? "bg-selected text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                     href={item.href}
                     onClick={close}

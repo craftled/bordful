@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Container } from "@/components/marketing/container";
-import { Section } from "@/components/marketing/section";
-import { SectionHeader } from "@/components/marketing/section-header";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = {
@@ -11,21 +9,53 @@ export const metadata: Metadata = {
   title: "Terms of Service",
 };
 
-function Block({ children, title }: { children: ReactNode; title: string }) {
+const SECTIONS = [
+  "Acceptance of Terms",
+  "Use License",
+  "Your Responsibilities",
+  "Disclaimer",
+  "Limitations",
+  "Third-Party Services",
+  "Revisions",
+  "Contact",
+] as const;
+
+function slugify(value: string): string {
+  return value.toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-");
+}
+
+function Block({
+  children,
+  index,
+  title,
+}: {
+  children: ReactNode;
+  index: number;
+  title: string;
+}) {
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-medium">{title}</h2>
-      <div className="text-muted-foreground space-y-3 text-sm leading-relaxed">
+    <section
+      aria-labelledby={`${slugify(title)}-heading`}
+      className="scroll-mt-24 space-y-3"
+      id={slugify(title)}
+    >
+      <h2
+        className="text-foreground text-xl font-medium tracking-[-0.02em]"
+        id={`${slugify(title)}-heading`}
+      >
+        {index}. {title}
+      </h2>
+      <div className="text-muted-foreground space-y-3 text-[14px] leading-[22px]">
         {children}
       </div>
-    </div>
+    </section>
   );
 }
 
 function Item({ children }: { children: ReactNode }) {
   return (
-    <li className="flex items-center gap-2">
-      <span className="text-primary">•</span>
+    <li className="flex gap-2.5">
+      <span className="text-subtle">•</span>
       <span>{children}</span>
     </li>
   );
@@ -35,28 +65,49 @@ export default function TermsPage() {
   assertMarketingEnabled();
 
   return (
-    <Section className="pt-24 md:pt-32">
-      <Container>
-        <div className="mx-auto max-w-2xl">
-          <div className="text-center">
-            <SectionHeader
-              description="Please read these terms carefully before using Bordful."
-              headingLevel="h1"
-              title="Terms of Service"
-            />
-            <p className="text-muted-foreground mt-2 text-sm">
+    <Container className="md:px-10">
+      <div className="flex flex-col gap-12 pt-12 pb-[72px] lg:flex-row lg:gap-14">
+        <nav aria-label="On this page" className="w-full shrink-0 lg:w-[200px]">
+          <div className="lg:sticky lg:top-24">
+            <p className="text-subtle font-mono text-[11px] font-medium tracking-[0.04em] uppercase">
+              On this page
+            </p>
+            <ul className="mt-3 flex flex-col">
+              {SECTIONS.map((section) => (
+                <li key={section}>
+                  <a
+                    className="border-line text-subtle hover:text-foreground hover:border-line-strong block border-l-2 py-[5px] pl-3 text-[13px] leading-[19px]"
+                    href={`#${slugify(section)}`}
+                  >
+                    {section}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+        <div className="flex w-full max-w-[680px] flex-col gap-8">
+          <p className="text-foreground text-[13px] font-medium">Terms</p>
+          <h1 className="text-foreground text-[30px] leading-[46px] font-medium tracking-[-0.03em] sm:text-[40px]">
+            Terms of Service
+          </h1>
+          <div className="space-y-1">
+            <p className="text-muted-foreground text-[14px] leading-5">
+              Please read these terms carefully before using Bordful.
+            </p>
+            <p className="text-subtle text-[14px] leading-5">
               Last updated: October 23, 2026
             </p>
           </div>
-          <div className="mt-16 space-y-10">
-            <Block title="1. Acceptance of Terms">
+          <div className="flex flex-col gap-8">
+            <Block index={1} title="Acceptance of Terms">
               <p>
                 By accessing and using Bordful, you agree to be bound by these
                 terms of service. If you disagree with any part of these terms,
                 you may not use our software.
               </p>
             </Block>
-            <Block title="2. Use License">
+            <Block index={2} title="Use License">
               <p>
                 Bordful is open source software released under the MIT License.
                 You are free to:
@@ -73,7 +124,7 @@ export default function TermsPage() {
                 the software.
               </p>
             </Block>
-            <Block title="3. Your Responsibilities">
+            <Block index={3} title="Your Responsibilities">
               <p>When using Bordful, you are responsible for:</p>
               <ul className="ml-4 space-y-2">
                 <Item>Maintaining the security of your deployment</Item>
@@ -87,7 +138,7 @@ export default function TermsPage() {
                 </Item>
               </ul>
             </Block>
-            <Block title="4. Disclaimer">
+            <Block index={4} title="Disclaimer">
               <p>
                 Bordful is provided &quot;as is&quot;, without warranty of any
                 kind, express or implied. We do not warrant that the software
@@ -97,7 +148,7 @@ export default function TermsPage() {
                 software.
               </p>
             </Block>
-            <Block title="5. Limitations">
+            <Block index={5} title="Limitations">
               <p>You may not use Bordful:</p>
               <ul className="ml-4 space-y-2">
                 <Item>For any illegal purposes</Item>
@@ -106,7 +157,7 @@ export default function TermsPage() {
                 <Item>To transmit harmful code or malware</Item>
               </ul>
             </Block>
-            <Block title="6. Third-Party Services">
+            <Block index={6} title="Third-Party Services">
               <p>
                 Bordful can connect to third-party services such as your host,
                 Bordfeed (jobs feed and Connect Bordfeed, if connected), Resend
@@ -117,7 +168,7 @@ export default function TermsPage() {
                 services.
               </p>
             </Block>
-            <Block title="7. Revisions">
+            <Block index={7} title="Revisions">
               <p>
                 We may revise these terms of service at any time without notice.
                 By using Bordful you agree to be bound by the current version of
@@ -125,12 +176,12 @@ export default function TermsPage() {
                 periodically for changes.
               </p>
             </Block>
-            <Block title="8. Contact">
+            <Block index={8} title="Contact">
               <p>
                 If you have any questions about these terms, please contact us
                 at{" "}
                 <a
-                  className="text-primary hover:underline"
+                  className="text-foreground underline-offset-4 hover:underline"
                   href="mailto:support@bordful.com"
                 >
                   support@bordful.com
@@ -140,7 +191,7 @@ export default function TermsPage() {
             </Block>
           </div>
         </div>
-      </Container>
-    </Section>
+      </div>
+    </Container>
   );
 }

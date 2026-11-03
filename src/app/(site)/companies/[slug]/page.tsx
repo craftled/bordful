@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BoardList, jobCountLabel } from "@/components/board/board-list";
 import { BoardShell } from "@/components/board/board-shell";
+import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
 import { httpUrl } from "@/lib/board/apply";
 import { loadCompanyPage } from "@/lib/board/companies";
 import { editorState } from "@/lib/board/plaintext";
@@ -41,24 +42,36 @@ export default async function CompanyPage({
 
   return (
     <BoardShell>
-      <div className="space-y-6">
-        <header className="space-y-2">
-          <h1
-            className="font-[var(--font-heading)] text-3xl font-semibold"
-            data-testid="company-name"
+      <div className="space-y-8">
+        <Crumbs
+          items={[
+            { href: "/jobs", label: "Jobs" },
+            { href: "/companies", label: "Companies" },
+            { label: loaded.company.name },
+          ]}
+        />
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <PageTitle
+            subtitle={`${jobCountLabel(loaded.jobs.length).replace("job", "open role")}.`}
+            testId="company-name"
           >
             {loaded.company.name}
-          </h1>
-          <p className="text-muted-foreground">
-            {jobCountLabel(loaded.jobs.length)}
-          </p>
+          </PageTitle>
           {website ? (
-            <a href={website} rel="noopener noreferrer">
+            <a
+              className="text-subtle hover:text-foreground text-[14px] break-all transition-colors"
+              href={website}
+              rel="noopener noreferrer"
+            >
               {website}
             </a>
           ) : null}
-        </header>
-        {description ? <RichText data={description} /> : null}
+        </div>
+        {description ? (
+          <div className="bg-card ring-line text-muted-foreground rounded-[14px] p-5 text-[14px] leading-6 ring-1 md:p-6">
+            <RichText data={description} />
+          </div>
+        ) : null}
         <BoardList jobs={loaded.jobs} now={now} />
       </div>
     </BoardShell>

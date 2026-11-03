@@ -1,4 +1,4 @@
-import { DOCS_URL, GITHUB_URL } from "./site";
+import { BORDFEED_ABOUT_URL, DOCS_URL, GITHUB_URL } from "./site";
 
 export interface MarketingLink {
   href: string;
@@ -36,14 +36,16 @@ export const MARKETING_FOOTER_COLUMNS: MarketingLinkColumn[] = [
       { href: GITHUB_URL, label: "GitHub" },
       { href: "/jobs", label: "Live demo" },
       { href: "/feed.xml", label: "RSS" },
+      { href: BORDFEED_ABOUT_URL, label: "Bordfeed" },
     ],
     title: "Resources",
   },
   {
     items: [
+      { href: "/about", label: "About" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
     ],
-    title: "Legal",
+    title: "Company",
   },
 ];

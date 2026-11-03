@@ -1,4 +1,5 @@
 import { Container } from "./container";
+import { Section } from "./section";
 
 // Same team, same products as the strip on bordful.com. Plain wordmarks because
 // their logo files are not in this repo.
@@ -12,24 +13,21 @@ const PRODUCTS = [
 
 export function ProductStrip() {
   return (
-    <section
-      className="border-border border-y py-12"
-      data-testid="marketing-product-strip"
-    >
-      <Container className="flex flex-col items-center gap-8">
-        <div className="space-y-1 text-center">
-          <h2 className="text-lg font-semibold tracking-tight">
+    <Section className="py-8 md:py-10" testId="marketing-product-strip">
+      <Container className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-10">
+        <div className="flex flex-col gap-1 md:w-[280px] md:shrink-0">
+          <h2 className="text-foreground text-[15px] leading-5 font-medium">
             Built for makers and founders
           </h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-[13px] leading-[19px]">
             From the team behind these indie products
           </p>
         </div>
-        <ul className="grid w-full grid-cols-2 items-center gap-x-8 gap-y-6 text-center sm:grid-cols-3 md:grid-cols-5">
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8">
           {PRODUCTS.map((product) => (
             <li key={product.href}>
               <a
-                className="text-muted-foreground hover:text-foreground focus-visible:text-foreground focus-visible:outline-ring text-lg font-semibold tracking-tight focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+                className="text-muted-foreground hover:text-foreground rounded-sm text-[16px] leading-6 font-medium tracking-[-0.015em]"
                 href={product.href}
                 rel="noopener noreferrer"
                 target="_blank"
@@ -40,6 +38,6 @@ export function ProductStrip() {
           ))}
         </ul>
       </Container>
-    </section>
+    </Section>
   );
 }

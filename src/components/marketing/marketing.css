@@ -1,57 +1,49 @@
-/* Brand HSL triplets from the marketing source, wrapped in hsl() because this app maps var(--token) straight through as a color. */
+/* Colors come from the shared Paper tokens in globals.css. The marketing site
+   is Bordful's own brand, so it pins the ten keys Site settings can override
+   (light here, dark below) and ignores a board's custom theme. */
 .bordful-marketing {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 0%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(0 0% 0%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 0%);
-  --primary: hsl(0 0% 0%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(0 0% 96%);
-  --secondary-foreground: hsl(0 0% 0%);
-  --muted: hsl(0 0% 96%);
-  --muted-foreground: hsl(0 0% 45%);
-  --accent: hsl(0 0% 96%);
-  --accent-foreground: hsl(0 0% 0%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --border: hsl(0 0% 90%);
-  --input: hsl(0 0% 90%);
-  --ring: hsl(0 0% 0%);
+  --background: #f5f5f4;
+  --foreground: #161616;
+  --primary: #161616;
+  --primary-foreground: #ffffff;
+  --muted: #f7f7f6;
+  --muted-foreground: #5c5c5c;
+  --accent: #f0f0ef;
+  --accent-foreground: #161616;
+  --border: #e4e4e3;
+  --ring: #161616;
   --radius: 0.5rem;
-  /* biome-ignore lint/suspicious/useBaseline: ui-sans-serif is a progressive fallback ahead of system-ui; browsers without it skip to the next family */
-  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  color: var(--foreground);
-  color-scheme: light;
-  background: var(--background);
+  /* Site settings may pick a different board font; marketing stays on Geist. */
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
-  .bordful-marketing {
-    --background: hsl(0 0% 0%);
-    --foreground: hsl(0 0% 100%);
-    --card: hsl(0 0% 0%);
-    --card-foreground: hsl(0 0% 100%);
-    --popover: hsl(0 0% 0%);
-    --popover-foreground: hsl(0 0% 100%);
-    --primary: hsl(0 0% 100%);
-    --primary-foreground: hsl(0 0% 0%);
-    --secondary: hsl(0 0% 10%);
-    --secondary-foreground: hsl(0 0% 100%);
-    --muted: hsl(0 0% 10%);
-    --muted-foreground: hsl(0 0% 60%);
-    --accent: hsl(0 0% 10%);
-    --accent-foreground: hsl(0 0% 100%);
-    --destructive: hsl(0 84.2% 60.2%);
-    --border: hsl(0 0% 10%);
-    --input: hsl(0 0% 10%);
-    --ring: hsl(0 0% 30%);
-    color-scheme: dark;
+  :root:not([data-theme="light"]) .bordful-marketing {
+    --background: #0e0e0e;
+    --foreground: #ededed;
+    --primary: #ededed;
+    --primary-foreground: #121212;
+    --muted: #1f1f1f;
+    --muted-foreground: #a0a0a0;
+    --accent: rgb(255 255 255 / 5%);
+    --accent-foreground: #ededed;
+    --border: rgb(255 255 255 / 8%);
+    --ring: #ededed;
   }
+}
 
-  .bordful-marketing .marketing-mono {
-    filter: invert(1);
-  }
+:root[data-theme="dark"] .bordful-marketing {
+  --background: #0e0e0e;
+  --foreground: #ededed;
+  --primary: #ededed;
+  --primary-foreground: #121212;
+  --muted: #1f1f1f;
+  --muted-foreground: #a0a0a0;
+  --accent: rgb(255 255 255 / 5%);
+  --accent-foreground: #ededed;
+  --border: rgb(255 255 255 / 8%);
+  --ring: #ededed;
 }
 
 .bordful-marketing summary {
@@ -60,4 +52,49 @@
 
 .bordful-marketing summary::-webkit-details-marker {
   display: none;
+}
+
+/* Black single-color logos flip with the theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .marketing-mono {
+    filter: invert(1);
+  }
+}
+
+:root[data-theme="dark"] .marketing-mono {
+  filter: invert(1);
+}
+
+/* The home CTA band is inverted in the light theme, so its focus ring is too. */
+.marketing-inverse :focus-visible {
+  outline-color: var(--background);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .marketing-inverse :focus-visible {
+    outline-color: var(--ring);
+  }
+}
+
+:root[data-theme="dark"] .marketing-inverse :focus-visible {
+  outline-color: var(--ring);
+}
+
+/* Product shot backdrop: Paper's top-lit radial wash, built from tokens. */
+.marketing-shot {
+  background-image: radial-gradient(
+    ellipse 120% 90% at 50% 0%,
+    var(--card) 0%,
+    var(--secondary) 50%,
+    var(--border) 100%
+  );
+}
+
+/* Final CTA backdrop: a soft glow in the lower right of the dark band. */
+.marketing-cta-glow {
+  background-image: radial-gradient(
+    ellipse 80% 120% at 85% 100%,
+    rgb(255 255 255 / 10%) 0%,
+    transparent 60%
+  );
 }

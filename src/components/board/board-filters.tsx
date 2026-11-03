@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from "lucide-react";
+import { ListFilter, X } from "lucide-react";
 import Link from "next/link";
 import type { BoardFacets } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
@@ -32,13 +32,17 @@ const SENIORITY_LABELS: Record<JobSeniority, string> = {
   vp: "VP",
 };
 
+// The rail doubles as the phone filter sheet. The toolbar's filter buttons
+// open it with the native popover API, so it needs no client JS.
+export const FILTERS_SHEET_ID = "board-filters";
+
 // Longer groups show this many options, the rest sit behind "Show more".
 const GROUP_PREVIEW = 5;
 
 const ROW_FOCUS =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
-interface FacetOption {
+export interface FacetOption {
   active: boolean;
   count: number;
   href: string;
@@ -46,88 +50,16 @@ interface FacetOption {
   testId: string;
 }
 
-interface FacetGroup {
+export interface FacetGroup {
+  // Short name for the toolbar chip ("Type", "Level").
+  chip: string;
+  // Drops every value of this group, keeping the rest of the query.
+  clearHref: string;
+  id: string;
   options: FacetOption[];
   title: string;
-}
-
-function FilterLink({ active, count, href, label, testId }: FacetOption) {
-  return (
-    <Link
-      aria-current={active ? "true" : undefined}
-      className={cn(
-        "flex items-center gap-2 rounded-[var(--radius)] px-2 py-1 text-sm hover:underline",
-        ROW_FOCUS
-      )}
-      data-active={active ? "true" : undefined}
-      data-testid={testId}
-      href={href}
-    >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex size-4 shrink-0 items-center justify-center rounded-sm border",
-          active
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-input bg-background"
-        )}
-      >
-        {active ? <Check className="size-3" /> : null}
-      </span>
-      <span className="min-w-0 flex-1">
-        {label}
-        {active ? <span className="sr-only"> (selected)</span> : null}
-      </span>
-      <span
-        className="bg-background text-muted-foreground rounded-full px-2 text-xs tabular-nums"
-        data-count={count}
-        data-testid="facet-count"
-      >
-        {count}
-      </span>
-    </Link>
-  );
-}
-
-// Options with no results are dropped, but an active one stays so the user
-// can always clear it.
-function FilterGroupView({ group }: { group: FacetGroup }) {
-  const visible = group.options.filter(
-    (option) => option.active || option.count > 0
-  );
-  if (visible.length === 0) {
-    return null;
-  }
-
-  const shown = visible.slice(0, GROUP_PREVIEW);
-  const more = visible.slice(GROUP_PREVIEW);
-
-  return (
-    <fieldset className="space-y-1">
-      <legend className="mb-2 text-sm font-semibold">{group.title}</legend>
-      {shown.map((option) => (
-        <FilterLink {...option} key={option.testId} />
-      ))}
-      {more.length > 0 ? (
-        <details className="group" open={more.some((option) => option.active)}>
-          <summary
-            className={cn(
-              "w-fit cursor-pointer list-none rounded-[var(--radius)] px-2 py-1 text-sm underline underline-offset-4 [&::-webkit-details-marker]:hidden",
-              ROW_FOCUS
-            )}
-          >
-            <span className="group-open:hidden">Show more</span>
-            <span className="hidden group-open:inline">Show less</span>
-          </summary>
-          <div className="space-y-1">
-            {more.map((option) => (
-              <FilterLink {...option} key={option.testId} />
-            ))}
-          </div>
-        </details>
-      ) : null}
-    </fieldset>
-  );
+  // A single on/off option (remote, visa) renders as a switch.
+  toggle: boolean;
 }
 
 function toggleValue<T extends string>(
@@ -142,7 +74,13 @@ function toggleValue<T extends string>(
   return [...values, value];
 }
 
-export function BoardFilters({
+// Options with no results are dropped, but an active one stays so the user
+// can always clear it.
+export function visibleOptions(group: FacetGroup): FacetOption[] {
+  return group.options.filter((option) => option.active || option.count > 0);
+}
+
+export function buildFilterGroups({
   facets,
   marketing,
   options,
@@ -152,7 +90,7 @@ export function BoardFilters({
   marketing: boolean;
   options: BoardQueryOptions;
   query: BoardQuery;
-}) {
+}): FacetGroup[] {
   const hrefFor = (next: BoardQuery) =>
     boardStateHref({ ...next, page: 1 }, options, marketing);
   const typeCounts = new Map(
@@ -165,16 +103,11 @@ export function BoardFilters({
     facets.salary.map((facet) => [facet.value, facet.count])
   );
 
-  const activeCount =
-    query.types.length +
-    query.seniority.length +
-    query.salary.length +
-    query.languages.length +
-    (query.remote ? 1 : 0) +
-    (query.visa ? 1 : 0);
-
-  const groups: FacetGroup[] = [
+  return [
     {
+      chip: "Type",
+      clearHref: hrefFor({ ...query, types: [] }),
+      id: "type",
       options: facets.types.map((facet) => {
         const value = facet.value as JobEmploymentType;
         const active = query.types.includes(value);
@@ -190,20 +123,12 @@ export function BoardFilters({
         };
       }),
       title: "Job type",
+      toggle: false,
     },
     {
-      options: [
-        {
-          active: query.remote,
-          count: facets.remote,
-          href: hrefFor({ ...query, remote: !query.remote }),
-          label: "Remote only",
-          testId: "filter-remote",
-        },
-      ],
-      title: "Workplace",
-    },
-    {
+      chip: "Level",
+      clearHref: hrefFor({ ...query, seniority: [] }),
+      id: "level",
       options: SENIORITIES.map((level) => {
         const active = query.seniority.includes(level);
         return {
@@ -218,8 +143,12 @@ export function BoardFilters({
         };
       }),
       title: "Level",
+      toggle: false,
     },
     {
+      chip: "Salary",
+      clearHref: hrefFor({ ...query, salary: [] }),
+      id: "salary",
       options: SALARY_BAND_IDS.map((band, index) => {
         const active = query.salary.includes(band);
         return {
@@ -234,20 +163,12 @@ export function BoardFilters({
         };
       }),
       title: "Salary range",
+      toggle: false,
     },
     {
-      options: [
-        {
-          active: query.visa,
-          count: facets.visa,
-          href: hrefFor({ ...query, visa: !query.visa }),
-          label: "Visa sponsorship",
-          testId: "filter-visa",
-        },
-      ],
-      title: "Visa sponsorship",
-    },
-    {
+      chip: "Language",
+      clearHref: hrefFor({ ...query, languages: [] }),
+      id: "language",
       options: facets.languages.map((facet) => {
         const active = query.languages.includes(facet.value);
         return {
@@ -262,57 +183,440 @@ export function BoardFilters({
         };
       }),
       title: "Language",
+      toggle: false,
+    },
+    {
+      chip: "Remote",
+      clearHref: hrefFor({ ...query, remote: false }),
+      id: "remote",
+      options: [
+        {
+          active: query.remote,
+          count: facets.remote,
+          href: hrefFor({ ...query, remote: !query.remote }),
+          label: "Remote only",
+          testId: "filter-remote",
+        },
+      ],
+      title: "Workplace",
+      toggle: true,
+    },
+    {
+      chip: "Visa sponsorship",
+      clearHref: hrefFor({ ...query, visa: false }),
+      id: "visa",
+      options: [
+        {
+          active: query.visa,
+          count: facets.visa,
+          href: hrefFor({ ...query, visa: !query.visa }),
+          label: "Visa sponsorship",
+          testId: "filter-visa",
+        },
+      ],
+      title: "Visa sponsorship",
+      toggle: true,
     },
   ];
+}
 
-  // One DOM tree for both breakpoints. Below md the header row and the
-  // disclosure form one bar: the disclosure sits first and takes the free
-  // width, Clear all stays on its right. Above md the header comes first and
-  // the disclosure wraps onto its own line, forced open by the details class.
-  // Browsers without ::details-content keep the summary on md+ so the groups
-  // stay reachable behind it.
+function Switch({ on, size }: { on: boolean; size: "lg" | "sm" }) {
   return (
-    <aside
-      aria-label="Filters"
-      className="bg-muted self-start rounded-lg border p-5"
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex shrink-0 rounded-full transition-colors",
+        size === "lg" ? "h-[26px] w-11 p-[3px]" : "h-3.5 w-6 p-0.5",
+        on ? "bg-primary" : "bg-tag ring-line-strong ring-1 ring-inset"
+      )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="hidden text-sm font-semibold md:block">Filters</h2>
-        {boardQueryHasFilters(query) ? (
-          <Link
-            className={cn(
-              "shrink-0 py-2 text-sm underline underline-offset-4 md:py-0",
-              ROW_FOCUS
-            )}
-            data-testid="filter-clear"
-            href={boardStateHref(clearBoardFilters(query), options, marketing)}
-          >
-            Clear all
-          </Link>
-        ) : null}
-        <details className="group order-first min-w-0 flex-1 md:order-none md:basis-full md:[&::details-content]:[content-visibility:visible]">
+      <span
+        className={cn(
+          "rounded-full transition-transform",
+          size === "lg" ? "size-5" : "size-2.5",
+          on && (size === "lg" ? "translate-x-[18px]" : "translate-x-2.5"),
+          on ? "bg-primary-foreground" : "bg-subtle"
+        )}
+      />
+    </span>
+  );
+}
+
+// Phone: a pill in the sheet. Desktop: a rail row with its count.
+function FilterLink({
+  active,
+  count,
+  href,
+  label,
+  testId,
+  toggle,
+}: FacetOption & { toggle: boolean }) {
+  return (
+    <Link
+      aria-current={active ? "true" : undefined}
+      className={cn(
+        ROW_FOCUS,
+        "items-center gap-2 transition-colors",
+        toggle
+          ? "flex w-full justify-between text-[15px] font-medium"
+          : "inline-flex h-9 rounded-full px-3.5 text-[14px] font-medium ring-1 ring-inset",
+        !toggle &&
+          (active
+            ? "bg-primary text-primary-foreground ring-primary"
+            : "text-foreground ring-line-strong"),
+        "lg:flex lg:h-[30px] lg:w-full lg:justify-between lg:rounded-[6px] lg:px-2 lg:text-[13px] lg:ring-0",
+        active
+          ? "lg:bg-card lg:text-foreground lg:ring-line lg:shadow-xs lg:ring-1"
+          : "lg:text-muted-foreground lg:hover:bg-card/60 lg:hover:text-foreground lg:font-normal"
+      )}
+      data-active={active ? "true" : undefined}
+      data-testid={testId}
+      href={href}
+    >
+      <span className="min-w-0 truncate">
+        {label}
+        {active ? <span className="sr-only"> (selected)</span> : null}
+      </span>
+      <span
+        className="text-subtle hidden text-[12px] font-normal tabular-nums lg:inline"
+        data-count={count}
+        data-testid="facet-count"
+      >
+        {count}
+      </span>
+      {toggle ? (
+        <span className="lg:hidden">
+          <Switch on={active} size="lg" />
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
+function FilterGroupView({ group }: { group: FacetGroup }) {
+  const visible = visibleOptions(group);
+  if (visible.length === 0) {
+    return null;
+  }
+
+  const shown = visible.slice(0, GROUP_PREVIEW);
+  const more = visible.slice(GROUP_PREVIEW);
+  const list = "flex flex-wrap gap-2 lg:flex-col lg:flex-nowrap lg:gap-0.5";
+
+  return (
+    <fieldset className="border-line min-w-0 border-t px-5 py-4 lg:border-0 lg:p-0">
+      <legend
+        className={cn(
+          "float-left mb-2.5 w-full text-[15px] font-medium",
+          "lg:text-subtle lg:mb-0 lg:px-2 lg:pb-1 lg:text-[11px] lg:leading-[14px]",
+          group.toggle && "max-lg:sr-only"
+        )}
+      >
+        {group.title}
+      </legend>
+      <div className={cn("clear-left", list)}>
+        {shown.map((option) => (
+          <FilterLink {...option} key={option.testId} toggle={group.toggle} />
+        ))}
+      </div>
+      {more.length > 0 ? (
+        <details
+          className="group mt-2 lg:mt-0.5"
+          open={more.some((option) => option.active)}
+        >
           <summary
             className={cn(
-              "border-input bg-background flex cursor-pointer list-none items-center justify-between gap-2 rounded-[var(--radius)] border px-3 py-2 text-sm supports-[selector(::details-content)]:md:hidden [&::-webkit-details-marker]:hidden",
+              "text-muted-foreground hover:text-foreground w-fit cursor-pointer list-none rounded-[6px] text-[13px] lg:px-2 lg:py-1.5 [&::-webkit-details-marker]:hidden",
               ROW_FOCUS
             )}
           >
-            <span className="font-semibold">
-              Filters{activeCount > 0 ? ` (${activeCount})` : ""}
-            </span>
-            <ChevronDown
-              aria-hidden="true"
-              className="size-4 transition-transform group-open:rotate-180"
-            />
+            <span className="group-open:hidden">Show more</span>
+            <span className="hidden group-open:inline">Show less</span>
           </summary>
-          <div className="mt-4 space-y-6 md:mt-0">
-            {groups.map((group) => (
-              <FilterGroupView group={group} key={group.title} />
+          <div className={cn("mt-2 lg:mt-0", list)}>
+            {more.map((option) => (
+              <FilterLink
+                {...option}
+                key={option.testId}
+                toggle={group.toggle}
+              />
             ))}
           </div>
         </details>
+      ) : null}
+    </fieldset>
+  );
+}
+
+function resultsLabel(total: number): string {
+  return total === 1 ? "Show 1 job" : `Show ${total} jobs`;
+}
+
+// One DOM tree for both breakpoints. From lg up it is the left rail, always
+// visible. Below lg it is a native popover styled as a bottom sheet, opened
+// by the toolbar's filter chips; links keep it open across navigations.
+export function BoardFilters({
+  facets,
+  marketing,
+  options,
+  query,
+  total,
+}: {
+  facets: BoardFacets;
+  marketing: boolean;
+  options: BoardQueryOptions;
+  query: BoardQuery;
+  total?: number;
+}) {
+  const groups = buildFilterGroups({ facets, marketing, options, query });
+  const hasFilters = boardQueryHasFilters(query);
+
+  return (
+    <aside
+      aria-label="Filters"
+      className={cn(
+        // Phone: bottom sheet.
+        "bg-card text-foreground fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-2xl border-0 p-0 shadow-2xl backdrop:bg-black/40",
+        // Desktop: static rail column.
+        "lg:static lg:inset-auto lg:block lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:shadow-none"
+      )}
+      id={FILTERS_SHEET_ID}
+      popover="auto"
+    >
+      <div className="bg-card sticky top-0 z-10 lg:hidden">
+        <div className="flex justify-center pt-2">
+          <span className="bg-line-strong h-[5px] w-9 rounded-full" />
+        </div>
+        <div className="flex items-center justify-between px-5 pt-2.5 pb-3.5">
+          {hasFilters ? (
+            <Link
+              className={cn("text-muted-foreground text-[15px]", ROW_FOCUS)}
+              href={boardStateHref(
+                clearBoardFilters(query),
+                options,
+                marketing
+              )}
+            >
+              Reset
+            </Link>
+          ) : (
+            <span className="text-subtle text-[15px]">Reset</span>
+          )}
+          <h2 className="text-[17px] leading-[22px] font-medium">Filters</h2>
+          <button
+            className={cn("text-[15px] font-medium", ROW_FOCUS)}
+            popoverTarget={FILTERS_SHEET_ID}
+            popoverTargetAction="hide"
+            type="button"
+          >
+            Done
+          </button>
+        </div>
       </div>
+      <div className="lg:flex lg:flex-col lg:gap-5">
+        {groups.map((group) => (
+          <FilterGroupView group={group} key={group.id} />
+        ))}
+      </div>
+      {total === undefined ? null : (
+        <div className="bg-card border-line sticky bottom-0 border-t px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] lg:hidden">
+          <button
+            className={cn(
+              "bg-primary text-primary-foreground flex h-12 w-full items-center justify-center rounded-lg text-[16px] font-medium",
+              ROW_FOCUS
+            )}
+            popoverTarget={FILTERS_SHEET_ID}
+            popoverTargetAction="hide"
+            type="button"
+          >
+            {resultsLabel(total)}
+          </button>
+        </div>
+      )}
     </aside>
+  );
+}
+
+const CHIP =
+  "flex h-7 shrink-0 items-center gap-1.5 rounded-[6px] bg-card px-2 text-[13px] leading-[18px] ring-1 ring-line-strong ring-inset";
+const PHONE_CHIP =
+  "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[14px] leading-[18px] ring-1 ring-line-strong ring-inset";
+
+function Caret() {
+  return (
+    <span aria-hidden="true" className="text-subtle text-[10px] leading-3">
+      ▾
+    </span>
+  );
+}
+
+// Desktop: a chip that drops down the group's options. <details> keeps it
+// usable without JS; every option is a crawlable link.
+function ChipMenu({ group }: { group: FacetGroup }) {
+  const visible = visibleOptions(group);
+  const active = visible.filter((option) => option.active);
+
+  return (
+    <details className="group relative hidden lg:block">
+      <summary
+        className={cn(
+          CHIP,
+          "group-open:ring-foreground/30 cursor-pointer list-none [&::-webkit-details-marker]:hidden",
+          ROW_FOCUS
+        )}
+      >
+        <span className="text-muted-foreground">{group.chip}</span>
+        {active.length > 0 ? (
+          <span className="text-foreground max-w-40 truncate font-medium">
+            {active.map((option) => option.label).join(", ")}
+          </span>
+        ) : null}
+        <Caret />
+      </summary>
+      <ul className="bg-popover text-popover-foreground ring-line absolute top-full left-0 z-30 mt-1.5 min-w-52 rounded-xl p-1.5 shadow-lg ring-1">
+        {visible.map((option) => (
+          <li key={option.testId}>
+            <Link
+              aria-current={option.active ? "true" : undefined}
+              className={cn(
+                "flex h-8 items-center justify-between gap-4 rounded-[6px] px-2 text-[13px] whitespace-nowrap",
+                option.active
+                  ? "bg-selected text-foreground font-medium"
+                  : "text-muted-foreground hover:bg-selected hover:text-foreground",
+                ROW_FOCUS
+              )}
+              href={option.href}
+            >
+              <span className="flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "flex size-3.5 items-center justify-center rounded-[4px] text-[10px]",
+                    option.active
+                      ? "bg-primary text-primary-foreground"
+                      : "ring-line-strong ring-1 ring-inset"
+                  )}
+                >
+                  {option.active ? "✓" : null}
+                </span>
+                {option.label}
+              </span>
+              <span className="text-subtle text-[12px] tabular-nums">
+                {option.count}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function ToggleChip({ group }: { group: FacetGroup }) {
+  const [option] = group.options;
+  if (option === undefined) {
+    return null;
+  }
+
+  return (
+    <Link
+      aria-current={option.active ? "true" : undefined}
+      className={cn(CHIP, "hidden gap-2 lg:flex", ROW_FOCUS)}
+      href={option.href}
+    >
+      <span
+        className={
+          option.active
+            ? "text-foreground font-medium"
+            : "text-muted-foreground"
+        }
+      >
+        {group.chip}
+      </span>
+      <Switch on={option.active} size="sm" />
+    </Link>
+  );
+}
+
+// Phone: an active group is a removable chip; an inactive one opens the sheet.
+function PhoneChip({ group }: { group: FacetGroup }) {
+  const active = visibleOptions(group).filter((option) => option.active);
+  if (active.length > 0) {
+    const value = group.toggle
+      ? group.chip
+      : active.map((option) => option.label).join(", ");
+    return (
+      <Link
+        aria-label={`Remove ${group.chip} filter: ${value}`}
+        className={cn(
+          PHONE_CHIP,
+          "bg-card text-foreground pr-2.5 font-medium lg:hidden",
+          ROW_FOCUS
+        )}
+        href={group.clearHref}
+      >
+        <span className="max-w-40 truncate">{value}</span>
+        <X aria-hidden="true" className="text-subtle size-3" />
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      className={cn(PHONE_CHIP, "text-muted-foreground lg:hidden", ROW_FOCUS)}
+      popoverTarget={FILTERS_SHEET_ID}
+      popoverTargetAction="show"
+      type="button"
+    >
+      {group.chip}
+    </button>
+  );
+}
+
+// The chip row in the toolbar. Groups with nothing to pick are left out.
+export function FilterChips({ groups }: { groups: FacetGroup[] }) {
+  const shown = groups.filter((group) => visibleOptions(group).length > 0);
+  const isActive = (group: FacetGroup) =>
+    group.options.some((option) => option.active);
+  // Phone chips lead with what is already applied.
+  const phoneOrder = [
+    ...shown.filter(isActive),
+    ...shown.filter((group) => !isActive(group)),
+  ];
+  const activeCount = groups.reduce(
+    (sum, group) =>
+      sum + group.options.filter((option) => option.active).length,
+    0
+  );
+
+  return (
+    <>
+      <button
+        aria-label={
+          activeCount > 0 ? `Filters (${activeCount} active)` : "Filters"
+        }
+        className={cn(
+          PHONE_CHIP,
+          "bg-card text-foreground w-[34px] justify-center px-0 lg:hidden",
+          ROW_FOCUS
+        )}
+        popoverTarget={FILTERS_SHEET_ID}
+        popoverTargetAction="show"
+        type="button"
+      >
+        <ListFilter aria-hidden="true" className="size-4" />
+      </button>
+      {phoneOrder.map((group) => (
+        <PhoneChip group={group} key={`phone-${group.id}`} />
+      ))}
+      {shown.map((group) =>
+        group.toggle ? (
+          <ToggleChip group={group} key={group.id} />
+        ) : (
+          <ChipMenu group={group} key={group.id} />
+        )
+      )}
+    </>
   );
 }
 

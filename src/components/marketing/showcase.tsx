@@ -1,8 +1,10 @@
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
 import { Container } from "./container";
+import { MarketingCta } from "./marketing-cta";
 import { MarketingImage } from "./marketing-image";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
@@ -25,21 +27,32 @@ function ShowcaseCard({
 
   return (
     <a
-      className="bg-background/50 block overflow-hidden rounded-lg border"
+      className="group bg-card ring-line-strong flex flex-col gap-4 rounded-[14px] p-4 ring-1 md:rounded-xl md:p-5"
       href={entry.url}
       rel="noopener noreferrer"
       target="_blank"
     >
       <MarketingImage
         alt=""
-        className="w-full"
+        className="bg-surface-sub ring-line w-full rounded-lg ring-1"
         height={1692}
         src={entry.image}
         width={2880}
       />
-      <div className="space-y-2 p-5">
-        <Heading className="text-sm font-medium">{entry.name}</Heading>
-        <p className="text-muted-foreground text-sm">{entry.description}</p>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <Heading className="text-foreground text-[15px] leading-5 font-medium">
+            {entry.name}
+          </Heading>
+          <ChevronRight
+            aria-hidden="true"
+            className="text-subtle group-hover:text-foreground size-4 shrink-0"
+            strokeWidth={1.6}
+          />
+        </div>
+        <p className="text-muted-foreground text-[13px] leading-[19px]">
+          {entry.description}
+        </p>
       </div>
     </a>
   );
@@ -53,7 +66,7 @@ function EntryGrid({
   headingLevel: "h2" | "h3";
 }) {
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
       {entries.map((entry) => (
         <ShowcaseCard
           entry={entry}
@@ -65,6 +78,14 @@ function EntryGrid({
   );
 }
 
+function GroupHeading({ children }: { children: string }) {
+  return (
+    <h2 className="text-foreground text-[18px] leading-6 font-medium tracking-[-0.015em]">
+      {children}
+    </h2>
+  );
+}
+
 export function Showcase({
   variant = "section",
 }: {
@@ -72,19 +93,21 @@ export function Showcase({
 }) {
   if (variant === "section") {
     return (
-      <Section id="showcase" variant="secondary">
-        <Container>
-          <SectionHeader
-            description="The live demo board. Community installs that opt in will join this list."
-            title="Built with Bordful"
-          />
-          <div className="mx-auto mt-12 max-w-xl">
-            <ShowcaseCard entry={SHOWCASE_DEMO} headingLevel="h3" />
-          </div>
-          <div className="mt-8 flex justify-center">
-            <Button asChild className="rounded-full" variant="outline">
+      <Section id="showcase">
+        <Container className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-12">
+          <div className="flex flex-col gap-6">
+            <SectionHeader
+              description="Community installs that opt in will join this list."
+              eyebrow="Showcase"
+              title="Built with Bordful."
+              titleMuted="The live demo board."
+            />
+            <Button asChild className="self-start shadow-xs" variant="outline">
               <Link href="/showcase">View the showcase</Link>
             </Button>
+          </div>
+          <div className="w-full md:max-w-[520px]">
+            <ShowcaseCard entry={SHOWCASE_DEMO} headingLevel="h3" />
           </div>
         </Container>
       </Section>
@@ -92,42 +115,44 @@ export function Showcase({
   }
 
   return (
-    <div className="space-y-16">
-      <ShowcaseCard entry={SHOWCASE_DEMO} headingLevel="h2" />
-      <div className="space-y-6">
-        <h2 className="text-xl font-medium">Community boards</h2>
-        {SHOWCASE_COMMUNITY.length > 0 ? (
-          <EntryGrid entries={SHOWCASE_COMMUNITY} headingLevel="h3" />
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            No community boards are listed yet.
-          </p>
-        )}
-      </div>
-      {SHOWCASE_TEAM.length > 0 ? (
-        <div className="space-y-6">
-          <h2 className="text-xl font-medium">
-            Built by the team behind Bordful
-          </h2>
-          <EntryGrid entries={SHOWCASE_TEAM} headingLevel="h3" />
-        </div>
-      ) : null}
-      <div className="space-y-3">
-        <h2 className="text-xl font-medium">List your board</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          Turn on &quot;List my board&quot; in Site settings, Showcase, and open
-          an issue at{" "}
-          <a
-            className="text-primary underline-offset-4 hover:underline"
-            href={SHOWCASE_ISSUE_URL}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            GitHub
-          </a>
-          .
-        </p>
-      </div>
-    </div>
+    <>
+      <Section>
+        <Container className="flex flex-col gap-10 md:gap-12">
+          <div className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+            <ShowcaseCard entry={SHOWCASE_DEMO} headingLevel="h2" />
+          </div>
+          <div className="flex flex-col gap-4">
+            <GroupHeading>Community boards</GroupHeading>
+            {SHOWCASE_COMMUNITY.length > 0 ? (
+              <EntryGrid entries={SHOWCASE_COMMUNITY} headingLevel="h3" />
+            ) : (
+              <p className="text-muted-foreground bg-surface-sub ring-line rounded-xl px-5 py-8 text-center text-[13px] leading-[19px] ring-1">
+                No community boards are listed yet.
+              </p>
+            )}
+          </div>
+          {SHOWCASE_TEAM.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              <GroupHeading>Built by the team behind Bordful</GroupHeading>
+              <EntryGrid entries={SHOWCASE_TEAM} headingLevel="h3" />
+            </div>
+          ) : null}
+        </Container>
+      </Section>
+      <MarketingCta
+        actions={[
+          { external: true, href: SHOWCASE_ISSUE_URL, label: "Open an issue" },
+        ]}
+        description={
+          <>
+            Turn on &quot;List my board&quot; in Site settings, Showcase, and
+            open an issue at GitHub.
+          </>
+        }
+        headingLevel="h2"
+        title="Built a board"
+        titleMuted="with Bordful?"
+      />
+    </>
   );
 }

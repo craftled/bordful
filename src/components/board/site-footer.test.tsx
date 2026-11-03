@@ -68,14 +68,11 @@ test("footer text uses opacity-free colors and social links match the footer", (
     social: { github: "https://github.com/craftled/bordful" },
   });
 
-  expect(
-    container.querySelectorAll('[class*="text-background/"]')
-  ).toHaveLength(0);
+  expect(container.querySelectorAll('[class*="text-subtle/"]')).toHaveLength(0);
   const github = screen.getByRole("link", {
     name: "GitHub (opens in new tab)",
   });
-  expect(github.className).toContain("text-background");
-  expect(github.className).not.toContain("text-muted-foreground");
+  expect(github.className).toContain("text-muted-foreground");
 });
 
 test("shows the Bordfeed credit only when attribution is on", () => {

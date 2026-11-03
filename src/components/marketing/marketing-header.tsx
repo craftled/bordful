@@ -2,12 +2,10 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-import { Container } from "./container";
 import { DEPLOY_URL } from "./links";
 import { MarketingImage } from "./marketing-image";
 import { MARKETING_HEADER_LINKS, type MarketingLink } from "./nav-links";
 import { GITHUB_URL } from "./site";
-import { SocialIconLinks } from "./social-icon-links";
 
 function NavLinks({
   items,
@@ -16,11 +14,12 @@ function NavLinks({
   items: MarketingLink[];
   native?: boolean;
 }) {
-  const className =
-    "text-[13px] text-muted-foreground hover:text-foreground focus-visible:rounded-sm focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4";
+  const className = native
+    ? "block py-2 text-[14px] leading-[18px] text-muted-foreground hover:text-foreground"
+    : "text-[13px] leading-[18px] font-medium text-muted-foreground hover:text-foreground";
 
   return (
-    <ul className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-6">
+    <ul className={native ? "flex flex-col" : "flex items-center gap-[22px]"}>
       {items.map((item) => (
         <li key={item.href}>
           {native ? (
@@ -38,89 +37,95 @@ function NavLinks({
   );
 }
 
-function HeaderActions({ stacked = false }: { stacked?: boolean }) {
-  // The mobile panel is too narrow for the icons and buttons in one row.
-  const buttonClass = stacked ? "rounded-full w-full" : "rounded-full";
-
+function Logo() {
   return (
-    <div
-      className={stacked ? "flex flex-col gap-3" : "flex items-center gap-2"}
-    >
-      <SocialIconLinks
-        className={
-          stacked ? "flex items-center gap-3" : "mr-2 flex items-center gap-3"
-        }
-        exclude={[GITHUB_URL]}
+    <Link className="flex items-center gap-2 rounded-sm" href="/">
+      <MarketingImage
+        alt=""
+        className="marketing-mono size-5"
+        height={20}
+        src="/marketing/logos/bordful.svg"
+        width={20}
       />
-      <Button asChild className={buttonClass} size="sm" variant="outline">
-        <Link href="/jobs">Live demo</Link>
-      </Button>
-      <Button asChild className={buttonClass} size="sm" variant="outline">
-        <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
-          <MarketingImage
-            alt=""
-            className="marketing-mono h-4 w-4"
-            height={16}
-            src="/marketing/logos/github.svg"
-            width={16}
-          />
-          GitHub
-        </a>
-      </Button>
-      <Button asChild className={buttonClass} size="sm">
-        <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
-          Deploy
-        </a>
-      </Button>
-    </div>
+      <span className="text-foreground text-[14px] leading-5 font-medium tracking-[-0.01em]">
+        Bordful
+      </span>
+    </Link>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg aria-hidden="true" className="size-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth={1.8}
+      />
+    </svg>
   );
 }
 
 export function MarketingHeader() {
   return (
     <header
-      className="fixed top-4 right-0 left-0 z-50"
+      className="bg-background border-line sticky top-0 z-50 border-b"
       data-testid="marketing-header"
     >
-      <Container>
-        <div className="border-border bg-background/60 flex h-14 items-center justify-between rounded-full border px-4 backdrop-blur-md sm:px-6">
-          <div className="flex items-center gap-4 sm:gap-6">
-            <Link
-              className="focus-visible:outline-ring flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
-              href="/"
-            >
-              <MarketingImage
-                alt=""
-                className="marketing-mono h-5 w-5"
-                height={20}
-                src="/marketing/logos/bordful.svg"
-                width={20}
-              />
-              <span className="text-sm font-medium">Bordful</span>
-            </Link>
-            <nav aria-label="Primary" className="hidden lg:block">
-              <NavLinks items={MARKETING_HEADER_LINKS} />
-            </nav>
-          </div>
-          <div className="hidden lg:flex">
-            <HeaderActions />
-          </div>
+      <div className="border-line mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between px-4 min-[1200px]:border-x md:h-[52px] md:px-5">
+        <div className="flex items-center gap-8">
+          <Logo />
+          <nav aria-label="Primary" className="hidden lg:block">
+            <NavLinks items={MARKETING_HEADER_LINKS} />
+          </nav>
+        </div>
+        <div className="flex items-center gap-2 lg:gap-1.5">
+          <Button
+            asChild
+            className="hidden h-[30px] rounded-lg px-2.5 shadow-xs lg:inline-flex"
+            variant="outline"
+          >
+            <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
+              GitHub
+            </a>
+          </Button>
+          <Button
+            asChild
+            className="h-9 rounded-lg px-3.5 text-[14px] lg:h-[30px] lg:px-2.5 lg:text-[13px]"
+          >
+            <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
+              Deploy
+            </a>
+          </Button>
           <details className="relative lg:hidden">
-            <summary className="border-border focus-visible:outline-ring cursor-pointer rounded-full border px-3 py-1 text-[13px] focus-visible:outline-2 focus-visible:outline-offset-2">
-              Menu
+            <summary className="bg-card ring-line-strong text-foreground flex size-9 cursor-pointer items-center justify-center rounded-lg ring-1">
+              <MenuIcon />
+              <span className="sr-only">Menu</span>
             </summary>
-            <div className="border-border bg-background absolute right-0 mt-3 w-64 rounded-lg border p-4">
+            <div className="bg-card ring-line-strong absolute right-0 mt-2 w-64 rounded-xl p-4 shadow-lg ring-1">
               <nav aria-label="Mobile">
                 {/* A full load closes this disclosure. Client navigation leaves it open. */}
                 <NavLinks items={MARKETING_HEADER_LINKS} native />
               </nav>
-              <div className="mt-4">
-                <HeaderActions stacked />
+              <div className="border-line mt-3 flex flex-col gap-2 border-t pt-4">
+                <Button asChild className="h-10 w-full" variant="outline">
+                  <Link href="/jobs">Live demo</Link>
+                </Button>
+                <Button asChild className="h-10 w-full" variant="outline">
+                  <a
+                    href={GITHUB_URL}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    GitHub
+                  </a>
+                </Button>
               </div>
             </div>
           </details>
         </div>
-      </Container>
+      </div>
     </header>
   );
 }

@@ -44,6 +44,8 @@ function renderFilters(query: BoardQuery, facets: BoardFacets = FACETS) {
   );
 }
 
+// Below lg the rail is a native popover, so jsdom reports it as hidden;
+// role queries opt in with hidden: true.
 test("hides zero-count options", () => {
   renderFilters(queryWith({}));
 
@@ -53,7 +55,9 @@ test("hides zero-count options", () => {
   expect(screen.queryByTestId("filter-level-intern")).toBeNull();
   expect(screen.queryByTestId("filter-remote")).toBeNull();
   expect(screen.queryByTestId("filter-visa")).toBeNull();
-  expect(screen.getByRole("group", { name: "Level" })).toBeTruthy();
+  expect(
+    screen.getByRole("group", { hidden: true, name: "Level" })
+  ).toBeTruthy();
 });
 
 test("keeps an active zero-count option so it can be cleared", () => {
@@ -64,23 +68,35 @@ test("keeps an active zero-count option so it can be cleared", () => {
   expect(screen.getByTestId("filter-type-full-time")).toBeTruthy();
 });
 
-test("clear-all href keeps sort and page size but drops every filter", () => {
-  renderFilters(
-    queryWith({ perPage: 20, sort: "oldest", types: ["full-time"] })
-  );
+test("the phone sheet has a reset link only when filters are active", () => {
+  renderFilters(queryWith({}));
+  expect(
+    screen.queryByRole("link", { hidden: true, name: "Reset" })
+  ).toBeNull();
+  cleanup();
 
-  const clear = screen.getByTestId("filter-clear");
-  expect(clear.textContent).toBe("Clear all");
-  const href = clear.getAttribute("href") ?? "";
-  expect(href).not.toContain("types=");
-  expect(href).toContain("per_page=20");
-  expect(href).toContain("sort=oldest");
+  renderFilters(queryWith({ types: ["full-time"] }), FACETS);
+  expect(
+    screen
+      .getByRole("link", { hidden: true, name: "Reset" })
+      .getAttribute("href")
+  ).toBe("/");
 });
 
-test("no clear-all link when nothing is active", () => {
-  renderFilters(queryWith({}));
+test("the sheet's show button counts the matching jobs", () => {
+  render(
+    <BoardFilters
+      facets={FACETS}
+      marketing={false}
+      options={OPTIONS}
+      query={queryWith({})}
+      total={18}
+    />
+  );
 
-  expect(screen.queryByTestId("filter-clear")).toBeNull();
+  expect(
+    screen.getByRole("button", { hidden: true, name: "Show 18 jobs" })
+  ).toBeTruthy();
 });
 
 test("active options are marked with aria-current and a selected label", () => {
@@ -97,7 +113,9 @@ test("hides a group with no visible options", () => {
     seniority: [{ count: 0, value: "intern" }],
   });
 
-  expect(screen.queryByRole("group", { name: "Level" })).toBeNull();
+  expect(
+    screen.queryByRole("group", { hidden: true, name: "Level" })
+  ).toBeNull();
 });
 
 test("folds options past the first five behind show more", () => {

@@ -1,32 +1,43 @@
-import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 
 import { Container } from "./container";
 import { DEPLOY_URL } from "./links";
 import { MarketingImage } from "./marketing-image";
 import { Section } from "./section";
-import { GITHUB_URL } from "./site";
+
+const STACK_TAGS = ["MIT", "Next.js", "Payload", "Postgres"] as const;
 
 export function Hero() {
   return (
-    <Section className="overflow-hidden" padding="hero">
-      <Container>
-        <div className="mx-auto max-w-[980px] pb-12">
-          <div className="flex flex-col items-start gap-6">
-            <Badge variant="outline">Open-source job board template</Badge>
-            <h1 className="text-3xl font-medium tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-              Live in two minutes{" "}
-              <span className="text-muted-foreground">
-                with real jobs from Bordfeed
+    <>
+      <Section padding="hero">
+        <Container className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="flex max-w-[720px] flex-col gap-5">
+            <Link
+              className="bg-card ring-line-strong inline-flex h-6 items-center gap-2 self-start rounded-full pr-[9px] pl-[3px] ring-1 ring-inset"
+              href="/changelog"
+            >
+              <span className="bg-primary text-primary-foreground rounded-full px-[7px] py-px text-[10px] leading-[14px] font-medium">
+                1.0
               </span>
+              <span className="text-muted-foreground text-[12px] leading-4 font-medium">
+                Now on Payload and Postgres{" "}
+                <span aria-hidden="true">&rarr;</span>
+              </span>
+            </Link>
+            <h1 className="flex flex-col text-[36px] leading-[42px] font-medium tracking-[-0.04em] text-balance md:text-[52px] md:leading-[56px]">
+              <span className="text-foreground">Live in two minutes</span>
+              <span className="text-subtle"> with real jobs from Bordfeed</span>
             </h1>
-            <p className="text-muted-foreground max-w-[600px] text-base">
+            <p className="text-muted-foreground max-w-[560px] text-[16px] leading-[25px]">
               Deploy the template and the board is already filled with sample
               jobs. Connect Bordfeed for your own feed, post jobs through a
               Stripe payment link, and send email alerts with Resend.
             </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button asChild className="h-10 rounded-full px-6">
+            <div className="flex flex-wrap gap-1.5">
+              <Button asChild className="px-3.5">
                 <a
                   data-testid="marketing-deploy-button"
                   href={DEPLOY_URL}
@@ -36,37 +47,29 @@ export function Hero() {
                   Deploy to Vercel
                 </a>
               </Button>
-              <Button
-                asChild
-                className="h-10 rounded-full px-6"
-                variant="outline"
-              >
+              <Button asChild className="px-3.5 shadow-xs" variant="outline">
                 <a data-testid="marketing-demo-link" href="/jobs">
-                  Live demo
-                </a>
-              </Button>
-              <Button
-                asChild
-                className="h-10 rounded-full px-6"
-                variant="outline"
-              >
-                <a href={GITHUB_URL} rel="noopener noreferrer" target="_blank">
-                  GitHub
+                  Live demo <span aria-hidden="true">&#8599;</span>
                 </a>
               </Button>
             </div>
           </div>
-        </div>
-        <div className="bg-background relative mx-auto w-full max-w-[1080px] overflow-hidden rounded-lg border">
-          <MarketingImage
-            alt="Bordful demo board"
-            className="w-full"
-            height={1692}
-            src="/marketing/bordful-demo.png"
-            width={2880}
-          />
-        </div>
-      </Container>
-    </Section>
+          <ul className="text-subtle flex gap-3 font-mono text-[11px] leading-[14px]">
+            {STACK_TAGS.map((tag) => (
+              <li key={tag}>{tag}</li>
+            ))}
+          </ul>
+        </Container>
+      </Section>
+      <div className="marketing-shot border-line h-[240px] overflow-hidden border-b px-4 pt-6 sm:h-[400px] md:h-[560px] md:px-10 md:pt-10">
+        <MarketingImage
+          alt="Bordful demo board"
+          className="bg-card ring-line-strong w-full rounded-lg shadow-sm ring-1"
+          height={1692}
+          src="/marketing/bordful-demo.png"
+          width={2880}
+        />
+      </div>
+    </>
   );
 }

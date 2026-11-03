@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { jobCountLabel } from "@/components/board/board-list";
 import { buildCompanyPath } from "@/lib/board/paths";
 
 export function CompanyCard({
@@ -14,14 +13,25 @@ export function CompanyCard({
 }) {
   return (
     <Link
-      className="bg-card focus-visible:ring-ring block rounded-lg border p-4 transition-colors outline-none hover:border-zinc-300 focus-visible:ring-2"
+      className="bg-card ring-line hover:ring-line-strong flex h-full items-center gap-3 rounded-[14px] p-[18px] ring-1 transition-shadow"
       href={buildCompanyPath(slug)}
     >
-      <span className="block text-base font-medium" data-testid="company-name">
-        {name}
+      <span
+        aria-hidden="true"
+        className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md text-[14px] font-medium"
+      >
+        {name.trim().charAt(0).toUpperCase()}
       </span>
-      <span className="text-muted-foreground block text-sm">
-        {jobCountLabel(count)}
+      <span className="flex min-w-0 grow flex-col gap-[2px]">
+        <span
+          className="text-foreground truncate text-[16px] leading-5 font-medium"
+          data-testid="company-name"
+        >
+          {name}
+        </span>
+        <span className="text-muted-foreground text-[13px]">
+          {count === 1 ? "1 open role" : `${count} open roles`}
+        </span>
       </span>
     </Link>
   );

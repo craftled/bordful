@@ -189,77 +189,81 @@ textarea:focus-visible {
   outline-color: var(--background);
 }
 
-/* Hand-written port of the old Bordful .markdown-content rules. */
-.bordful-prose {
-  @apply max-w-none text-foreground text-sm leading-relaxed;
+/* Job description type from the Paper job page: 15/24 body (17/28 from md),
+   small uppercase section labels. Layered so utilities can still override. */
+@layer components {
+  .bordful-prose {
+    @apply max-w-none text-[15px] text-foreground/85 leading-6 md:text-[17px] md:leading-7;
 
-  h1 {
-    @apply mb-2 font-semibold text-2xl;
-  }
-  h2 {
-    @apply mb-2 font-semibold text-xl;
-  }
-  h3 {
-    @apply mb-2 font-semibold text-lg;
-  }
-  h4 {
-    @apply mb-2 font-semibold text-base;
-  }
+    > :first-child {
+      @apply mt-0;
+    }
 
-  p,
-  ul,
-  ol {
-    @apply mb-4 text-sm leading-relaxed;
-  }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      @apply mt-8 mb-2.5 font-medium font-mono text-[11px] text-subtle uppercase leading-[14px] tracking-[0.04em] md:font-sans md:text-[13px] md:leading-4 md:tracking-[0.02em];
+    }
 
-  ul {
-    @apply list-disc space-y-1 pl-4;
-  }
-  ol {
-    @apply list-decimal space-y-1 pl-4;
-  }
-  ul ul,
-  ol ol,
-  ul ol,
-  ol ul {
-    @apply mt-1 mb-1;
-  }
+    p,
+    ul,
+    ol {
+      @apply mb-6;
+    }
 
-  a {
-    @apply text-primary no-underline underline-offset-2;
-  }
-  a:hover {
-    @apply underline;
-  }
+    ul {
+      @apply list-disc space-y-1.5 pl-5;
+    }
+    ol {
+      @apply list-decimal space-y-1.5 pl-5;
+    }
+    li {
+      @apply pl-1 marker:text-subtle;
+    }
+    ul ul,
+    ol ol,
+    ul ol,
+    ol ul {
+      @apply mt-1.5 mb-1.5;
+    }
 
-  pre {
-    @apply mb-4 overflow-x-auto rounded-lg bg-muted p-4 text-sm;
-  }
-  code {
-    @apply rounded bg-muted px-1.5 py-0.5 font-normal text-foreground text-sm;
-  }
-  pre code {
-    @apply bg-transparent p-0;
-  }
+    a {
+      @apply text-foreground underline decoration-line-strong underline-offset-2;
+    }
+    a:hover {
+      @apply decoration-current;
+    }
 
-  blockquote {
-    @apply my-4 border-border border-l-4 pl-4 text-muted-foreground italic;
-  }
+    strong {
+      @apply font-medium text-foreground;
+    }
 
-  table {
-    @apply mb-4 w-full border-collapse text-sm;
-  }
-  thead {
-    @apply bg-muted;
-  }
-  th,
-  td {
-    @apply border border-border px-3 py-2 text-left;
-  }
-  th {
-    @apply font-medium text-foreground;
-  }
-  tr:nth-child(even) {
-    @apply bg-muted;
+    pre {
+      @apply mb-6 overflow-x-auto rounded-lg bg-surface-sub p-4 text-[13px];
+    }
+    code {
+      @apply rounded bg-tag px-1.5 py-0.5 font-mono text-[0.875em] text-foreground;
+    }
+    pre code {
+      @apply bg-transparent p-0;
+    }
+
+    blockquote {
+      @apply my-6 border-line-strong border-l-2 pl-4 text-muted-foreground;
+    }
+
+    table {
+      @apply mb-6 w-full border-collapse text-[14px];
+    }
+    th,
+    td {
+      @apply border border-line px-3 py-2 text-left;
+    }
+    th {
+      @apply bg-surface-sub font-medium text-foreground;
+    }
   }
 }

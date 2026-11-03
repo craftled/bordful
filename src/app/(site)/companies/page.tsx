@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { BoardShell } from "@/components/board/board-shell";
 import { CompanyCard } from "@/components/board/company-card";
+import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
 import { companiesFromPool } from "@/lib/board/companies";
 import { loadBoardPool } from "@/lib/board/pool";
 
@@ -14,19 +15,24 @@ export default async function CompaniesPage() {
 
   return (
     <BoardShell>
-      <div className="space-y-6">
-        <header className="space-y-2">
-          <h1 className="font-[var(--font-heading)] text-3xl font-semibold">
-            Companies
-          </h1>
-          <p className="text-muted-foreground">
-            {rows.length === 1
-              ? "1 company with open jobs"
-              : `${rows.length} companies with open jobs`}
-          </p>
-        </header>
+      <div className="space-y-8">
+        <Crumbs
+          items={[{ href: "/jobs", label: "Jobs" }, { label: "Companies" }]}
+        />
+        <PageTitle
+          subtitle={
+            rows.length === 1
+              ? "1 company with open jobs."
+              : `${rows.length} companies with open jobs.`
+          }
+        >
+          Companies hiring
+        </PageTitle>
         {rows.length > 0 ? (
-          <ul className="space-y-3" data-testid="company-list">
+          <ul
+            className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3"
+            data-testid="company-list"
+          >
             {rows.map((row) => (
               <li
                 data-company-slug={row.slug}
@@ -42,7 +48,7 @@ export default async function CompaniesPage() {
             ))}
           </ul>
         ) : (
-          <p>No companies with open jobs.</p>
+          <p className="text-muted-foreground">No companies with open jobs.</p>
         )}
       </div>
     </BoardShell>

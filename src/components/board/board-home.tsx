@@ -1,4 +1,3 @@
-import { BoardHero } from "@/components/board/board-hero";
 import { BoardListing } from "@/components/board/board-listing";
 import { isMarketingEnabled } from "@/config/flags";
 import { loadBoardPool } from "@/lib/board/pool";
@@ -14,26 +13,17 @@ export async function BoardHome() {
   const query = parseBoardQuery(new URLSearchParams(""), options);
 
   return (
-    <>
-      <BoardHero
-        badge={settings.name}
-        cards={cards}
-        intro={settings.board.description}
-        options={options}
-        query={query}
-        title={settings.board.title}
-      />
-      <div className="max-w-board mx-auto w-full px-4 py-8">
-        <BoardListing
-          cards={cards}
-          marketing={isMarketingEnabled()}
-          options={options}
-          postJob={settings.postJob.enabled ? settings.postJob : null}
-          query={query}
-          showHeading={false}
-          showSearch={false}
-        />
-      </div>
-    </>
+    <BoardListing
+      alertsEnabled={settings.alerts.enabled}
+      cards={cards}
+      heading={settings.board.title}
+      headingTestId="board-hero"
+      intro={settings.board.description}
+      layout="app"
+      marketing={isMarketingEnabled()}
+      options={options}
+      postJob={settings.postJob.enabled ? settings.postJob : null}
+      query={query}
+    />
   );
 }

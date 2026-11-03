@@ -49,11 +49,13 @@ export default async function BoardPageNumber({
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <BoardListing
+        alertsEnabled={settings.alerts.enabled}
         cards={cards}
         heading={settings.board.title || "Latest jobs"}
         intro={settings.board.description}
+        layout="app"
         marketing={marketing}
         options={options}
         postJob={settings.postJob.enabled ? settings.postJob : null}

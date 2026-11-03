@@ -13,6 +13,7 @@ const ROOT = process.cwd();
 
 // Route files for every in-app target. A link to a page that is not here 404s.
 const ROUTE_FILES: Record<string, string> = {
+  "/about": "src/app/(marketing)/about/page.tsx",
   "/changelog": "src/app/(marketing)/changelog/page.tsx",
   "/feed.xml": "src/app/feed.xml/route.ts",
   "/jobs": "src/app/(site)/jobs/page.tsx",
