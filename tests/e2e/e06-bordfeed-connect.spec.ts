@@ -119,7 +119,7 @@ test.describe("E6 bordfeed-connect", { tag: ["@E6"] }, () => {
       expect(body.install_id).toMatch(INSTALL_ID);
     }
     for (const entry of recorded) {
-      expect(entry["x-bordfeed-client"]).toBe("bordful/1.0.0-beta.2");
+      expect(entry["x-bordfeed-client"]).toBe("bordful/1.0.0");
     }
     const feedJobs = recorded.filter((entry) =>
       FEED_JOBS_PATH.test(entry.path)
