@@ -32,9 +32,12 @@ export default async function CompaniesPage() {
   return (
     <BoardShell fullBleed>
       <PageFrame>
-        <Crumbs
-          items={[{ href: "/jobs", label: "Jobs" }, { label: "Companies" }]}
-        />
+        {/* Paper sets these crumbs on a 16px line; the shared Crumbs use 19px. */}
+        <div className="md:[&>nav]:leading-4">
+          <Crumbs
+            items={[{ href: "/jobs", label: "Jobs" }, { label: "Companies" }]}
+          />
+        </div>
         {rows.length > 0 ? (
           <CompanyDirectory rows={rows} subtitle={subtitle} title={title} />
         ) : (

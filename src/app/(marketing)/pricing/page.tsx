@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/marketing/container";
 import { Faq } from "@/components/marketing/faq";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
+import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { Pricing } from "@/components/marketing/pricing";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
@@ -23,6 +24,7 @@ export default function PricingPage() {
       <Section className="md:py-14">
         <Container>
           <SectionHeader
+            className="md:gap-[18px]"
             description="Self-host for free, or let us set everything up for you."
             eyebrow="Pricing"
             headingLevel="h1"
@@ -46,6 +48,7 @@ export default function PricingPage() {
         title="Ready to launch your"
         titleMuted="job board?"
       />
+      <MarketingSlimFooter />
     </>
   );
 }

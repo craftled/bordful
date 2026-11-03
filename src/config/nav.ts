@@ -17,6 +17,8 @@ export function boardHomePath(marketing: boolean): string {
 
 const POST_JOB: NavItem = { href: "/post", id: "post", label: "Post a job" };
 
+const ALERTS: NavItem = { href: "/alerts", id: "alerts", label: "Job alerts" };
+
 const FEED_LINKS: NavItem[] = [
   { href: "/feed.xml", id: "feed-rss", label: "RSS" },
   { href: "/atom.xml", id: "feed-atom", label: "Atom" },
@@ -40,6 +42,19 @@ export function getNav({
   const cta = postJobEnabled ? POST_JOB : null;
 
   if (marketing) {
+    const header: NavItem[] = [
+      { href: "/jobs", id: "jobs", label: "Jobs" },
+      { href: "/companies", id: "companies", label: "Companies" },
+      { href: "/pricing", id: "pricing", label: "Pricing" },
+      { href: "/showcase", id: "showcase", label: "Showcase" },
+      { href: "/changelog", id: "changelog", label: "Changelog" },
+    ];
+
+    // The header renders this as the "Create alert" button (bell on phones).
+    if (alertsEnabled) {
+      header.push(ALERTS);
+    }
+
     return {
       cta,
       footer: [
@@ -80,13 +95,7 @@ export function getNav({
           title: "Legal",
         },
       ],
-      header: [
-        { href: "/jobs", id: "jobs", label: "Jobs" },
-        { href: "/companies", id: "companies", label: "Companies" },
-        { href: "/pricing", id: "pricing", label: "Pricing" },
-        { href: "/showcase", id: "showcase", label: "Showcase" },
-        { href: "/changelog", id: "changelog", label: "Changelog" },
-      ],
+      header,
     };
   }
 
@@ -96,7 +105,7 @@ export function getNav({
   ];
 
   if (alertsEnabled) {
-    header.push({ href: "/alerts", id: "alerts", label: "Job alerts" });
+    header.push(ALERTS);
   }
 
   // Taxonomy browsing lives on the /jobs hub in board-only mode.

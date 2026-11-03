@@ -13,8 +13,8 @@ import {
   TAXONOMY_INDEX_PATH,
 } from "@/components/board/taxonomy-tabs";
 import { isMarketingEnabled } from "@/config/flags";
-import { formatRelativePosted } from "@/lib/board/format";
-import { boardStateHref } from "@/lib/board/links";
+import { buildBoardFacets, filterBoard } from "@/lib/board/filter";
+import { formatRelativePosted, SENIORITY_LABELS } from "@/lib/board/format";
 import {
   buildTaxonomyArchivePath,
   slugifyTaxonomyValue,
@@ -23,7 +23,10 @@ import { loadBoardPool } from "@/lib/board/pool";
 import {
   type BoardQuery,
   type BoardQueryOptions,
+  type BoardSearchParams,
   parseBoardQuery,
+  serializeBoardQuery,
+  urlSearchParamsFromRecord,
 } from "@/lib/board/query";
 import {
   filterByTaxonomy,
@@ -34,7 +37,13 @@ import {
   taxonomyTitle,
 } from "@/lib/board/taxonomy";
 import { buildBoardView } from "@/lib/board/view";
-import type { AlertFrequency, JobSeniority } from "@/lib/domain/job-vocab";
+import {
+  type AlertFrequency,
+  JOB_EMPLOYMENT_LABELS,
+  type JobEmploymentType,
+  type JobSeniority,
+  type SalaryBandId,
+} from "@/lib/domain/job-vocab";
 import { getSiteSettings } from "@/lib/read";
 import { type RelatedValue, relatedTaxonomy } from "@/lib/read/taxonomy-stats";
 import { cn } from "@/lib/utils";
@@ -67,15 +76,13 @@ const CARD_LABEL = "text-subtle text-[13px] leading-[19px]";
 const PILL =
   "inline-flex h-[30px] shrink-0 items-center rounded-full px-3 text-[13px] leading-[19px] font-medium transition-colors";
 
-// The job rows sit inside one bordered card with hairline dividers, so the
-// board row's own rounded hover box is flattened to a full-width band.
+// The job rows (JobRow's archive variant) sit inside one bordered card with
+// hairline dividers.
 const LIST_CARD = cn(
   CARD,
   "overflow-clip",
   "[&_[data-testid=job-list]]:gap-0",
-  "[&_[data-testid=job-row]:not(:last-child)]:border-line [&_[data-testid=job-row]:not(:last-child)]:border-b",
-  "[&_article]:hover:bg-surface-sub [&_article]:rounded-none [&_article]:px-4 [&_article]:py-3.5 [&_article]:hover:ring-0",
-  "lg:[&_article]:h-[72px] lg:[&_article]:rounded-none lg:[&_article]:px-4 lg:[&_article]:py-0 lg:[&_h3]:text-[15px]"
+  "[&_[data-testid=job-row]:not(:last-child)]:border-line [&_[data-testid=job-row]:not(:last-child)]:border-b"
 );
 
 // Levels and seniorities share names, so a level archive can prefill the
@@ -99,59 +106,250 @@ function alertQuery(
   return seniority ? { ...base, seniority: [seniority] } : base;
 }
 
-// Quick toggles from Paper. They open the board search with this archive's
-// filter plus the toggle, so only archives the search can express get them.
-function FilterPills({
-  marketing,
+// The board search filters an archive can narrow by in place. The archive
+// itself stays fixed; these ride along as the board's own search params
+// (types, roles, remote, salary, visa) on the archive URL.
+export interface ArchiveRefine {
+  remote: boolean;
+  salary: SalaryBandId[];
+  seniority: JobSeniority[];
+  types: JobEmploymentType[];
+  visa: boolean;
+}
+
+const NO_REFINE: ArchiveRefine = {
+  remote: false,
+  salary: [],
+  seniority: [],
+  types: [],
+  visa: false,
+};
+
+// Which picker an archive offers: a type archive narrows by level, a level
+// or place archive by type (Paper's "Level: Any" / "Type: Any").
+function pickerFor(kind: TaxonomyKind): "level" | "type" {
+  return kind === "type" || kind === "language" ? "level" : "type";
+}
+
+export function parseArchiveRefine(
+  kind: TaxonomyKind,
+  slug: string,
+  params: URLSearchParams,
+  options: BoardQueryOptions
+): ArchiveRefine {
+  const query = parseBoardQuery(params, options);
+  const picker = pickerFor(kind);
+  return {
+    remote: kind === "location" && slug === "remote" ? false : query.remote,
+    salary: query.salary.slice(0, 1),
+    seniority: picker === "level" ? query.seniority.slice(0, 1) : [],
+    types: picker === "type" ? query.types.slice(0, 1) : [],
+    visa: query.visa,
+  };
+}
+
+function refineHref(
+  path: string,
+  refine: ArchiveRefine,
+  options: BoardQueryOptions
+): string {
+  const search = archiveRefineSearch(refine, options);
+  return search ? `${path}?${search}` : path;
+}
+
+export function archiveRefineSearch(
+  refine: ArchiveRefine,
+  options: BoardQueryOptions
+): string {
+  const base = parseBoardQuery(new URLSearchParams(""), options);
+  return serializeBoardQuery(
+    { ...base, ...refine, page: 1 },
+    options
+  ).toString();
+}
+
+const PILL_OFF =
+  "bg-card text-foreground ring-line-strong hover:bg-surface-sub ring-1";
+const PILL_ON = "bg-primary text-primary-foreground ring-primary ring-1";
+
+interface PickerOption {
+  count: number;
+  href: string;
+  label: string;
+  selected: boolean;
+}
+
+// Paper's "Type: Any" chip. <details> keeps it working without JS; each
+// option is a link to the archive with that one value.
+function PickerPill({
+  label,
   options,
-  query,
+  showAny = false,
+  testId,
+  value,
 }: {
-  marketing: boolean;
-  options: BoardQueryOptions;
-  query: BoardQuery;
+  label: string;
+  options: PickerOption[];
+  // Paper spells out "Type: Any" on desktop; the salary chip stays "Salary".
+  showAny?: boolean;
+  testId: string;
+  value: string | null;
 }) {
-  const pills: { href: string; label: string; testId: string }[] = [];
-  if (!query.remote) {
-    pills.push({
-      href: boardStateHref(
-        { ...query, page: 1, remote: true },
-        options,
-        marketing
-      ),
-      label: "Remote",
-      testId: "archive-pill-remote",
+  return (
+    <details className="group relative">
+      <summary
+        className={cn(
+          PILL,
+          "cursor-pointer list-none [&::-webkit-details-marker]:hidden",
+          value ? PILL_ON : PILL_OFF
+        )}
+        data-testid={testId}
+      >
+        {label}
+        {value ? `: ${value}` : null}
+        {!value && showAny ? (
+          <span className="max-md:hidden">: Any</span>
+        ) : null}
+      </summary>
+      <ul className="bg-popover text-popover-foreground ring-line absolute top-full left-0 z-30 mt-1.5 flex min-w-44 flex-col gap-0.5 rounded-[12px] p-1.5 shadow-lg ring-1">
+        {options.map((option) => (
+          <li key={option.label}>
+            <Link
+              aria-current={option.selected ? "true" : undefined}
+              className={cn(
+                "text-foreground flex h-8 items-center justify-between gap-3 rounded-[6px] px-2 text-[13px] leading-[18px] whitespace-nowrap",
+                option.selected ? "bg-tag" : "hover:bg-tag"
+              )}
+              href={option.href}
+            >
+              {option.label}
+              <span className="text-subtle text-[12px] leading-4 tabular-nums">
+                {option.count}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function FilterPills({
+  cards,
+  kind,
+  options,
+  path,
+  refine,
+  slug,
+}: {
+  cards: Parameters<typeof buildBoardFacets>[0];
+  kind: TaxonomyKind;
+  options: BoardQueryOptions;
+  path: string;
+  refine: ArchiveRefine;
+  slug: string;
+}) {
+  const hrefFor = (next: ArchiveRefine) => refineHref(path, next, options);
+  const facets = buildBoardFacets(cards);
+  const picker = pickerFor(kind);
+
+  const pickerOptions: PickerOption[] =
+    picker === "type"
+      ? facets.types.map((facet) => {
+          const type = facet.value as JobEmploymentType;
+          const selected = refine.types.includes(type);
+          return {
+            count: facet.count,
+            href: hrefFor({ ...refine, types: selected ? [] : [type] }),
+            label: JOB_EMPLOYMENT_LABELS[type] ?? facet.value,
+            selected,
+          };
+        })
+      : facets.seniority.map((facet) => {
+          const level = facet.value as JobSeniority;
+          const selected = refine.seniority.includes(level);
+          return {
+            count: facet.count,
+            href: hrefFor({ ...refine, seniority: selected ? [] : [level] }),
+            label: SENIORITY_LABELS[level] ?? facet.value,
+            selected,
+          };
+        });
+  const pickerValue =
+    picker === "type"
+      ? (refine.types.map((type) => JOB_EMPLOYMENT_LABELS[type])[0] ?? null)
+      : (refine.seniority.map((level) => SENIORITY_LABELS[level])[0] ?? null);
+  const pickerAny = {
+    count: cards.length,
+    href: hrefFor({ ...refine, seniority: [], types: [] }),
+    label: "Any",
+    selected: pickerValue === null,
+  };
+
+  const salaryOptions: PickerOption[] = facets.salary
+    .filter((facet) => facet.count > 0)
+    .map((facet) => {
+      const band = facet.value as SalaryBandId;
+      const selected = refine.salary.includes(band);
+      return {
+        count: facet.count,
+        href: hrefFor({ ...refine, salary: selected ? [] : [band] }),
+        label: band,
+        selected,
+      };
     });
-  }
-  if (!query.visa) {
-    pills.push({
-      href: boardStateHref(
-        { ...query, page: 1, visa: true },
-        options,
-        marketing
-      ),
-      label: "Visa sponsorship",
-      testId: "archive-pill-visa",
-    });
-  }
-  if (pills.length === 0) {
-    return null;
-  }
+
+  const showRemote = !(kind === "location" && slug === "remote");
 
   return (
-    <nav aria-label="Narrow these jobs" className="flex gap-2 overflow-x-auto">
-      {pills.map((pill) => (
+    <nav aria-label="Narrow these jobs" className="flex flex-wrap gap-2">
+      {pickerOptions.length > 0 || pickerValue ? (
+        <PickerPill
+          label={picker === "type" ? "Type" : "Level"}
+          options={[pickerAny, ...pickerOptions]}
+          showAny
+          testId={`archive-pill-${picker}`}
+          value={pickerValue}
+        />
+      ) : null}
+      {showRemote ? (
         <Link
-          className={cn(
-            PILL,
-            "bg-card text-foreground ring-line-strong hover:bg-surface-sub ring-1"
-          )}
-          data-testid={pill.testId}
-          href={pill.href}
-          key={pill.testId}
+          aria-current={refine.remote ? "true" : undefined}
+          className={cn(PILL, refine.remote ? PILL_ON : PILL_OFF)}
+          data-testid="archive-pill-remote"
+          href={hrefFor({ ...refine, remote: !refine.remote })}
         >
-          {pill.label}
+          Remote
         </Link>
-      ))}
+      ) : null}
+      {salaryOptions.length > 0 || refine.salary.length > 0 ? (
+        <PickerPill
+          label="Salary"
+          options={[
+            {
+              count: cards.length,
+              href: hrefFor({ ...refine, salary: [] }),
+              label: "Any",
+              selected: refine.salary.length === 0,
+            },
+            ...salaryOptions,
+          ]}
+          testId="archive-pill-salary"
+          value={refine.salary[0] ?? null}
+        />
+      ) : null}
+      {/* Paper's phone row stops at three chips. */}
+      <Link
+        aria-current={refine.visa ? "true" : undefined}
+        className={cn(
+          PILL,
+          refine.visa ? PILL_ON : cn(PILL_OFF, "max-md:hidden")
+        )}
+        data-testid="archive-pill-visa"
+        href={hrefFor({ ...refine, visa: !refine.visa })}
+      >
+        Visa sponsorship
+      </Link>
     </nav>
   );
 }
@@ -281,10 +479,12 @@ function RelatedCard({
 export async function TaxonomyArchive({
   kind,
   page,
+  searchParams = {},
   value,
 }: {
   kind: TaxonomyKind;
   page: number;
+  searchParams?: BoardSearchParams;
   value: string;
 }) {
   redirectTaxonomyAlias(kind, value, page);
@@ -301,16 +501,25 @@ export async function TaxonomyArchive({
   const marketing = isMarketingEnabled();
   const options = { defaultPerPage: settings.board.jobsPerPage };
   const base = parseBoardQuery(new URLSearchParams(""), options);
+  const slug = slugifyTaxonomyValue(value);
+  const refine = parseArchiveRefine(
+    kind,
+    slug,
+    urlSearchParamsFromRecord(searchParams),
+    options
+  );
+  const refineSearch = archiveRefineSearch(refine, options);
   const searchQuery = taxonomySearchQuery(kind, value, page, options);
-  const query = searchQuery ?? { ...base, page };
-  const listingCards = searchQuery ? cards : filtered;
+  // Archives the board search can express list what that search lists.
+  const archiveCards = searchQuery ? filterBoard(cards, searchQuery) : filtered;
+  const query = { ...(searchQuery ?? base), ...refine, page };
   const now = Date.now();
-  const view = buildBoardView(listingCards, query, now);
+  const view = buildBoardView(archiveCards, query, now);
   if (view.outOfRange) {
     notFound();
   }
+  const archivePath = buildTaxonomyArchivePath(kind, slug, 1);
 
-  const slug = slugifyTaxonomyValue(value);
   const label = taxonomyLabel(kind, slug);
   const title = taxonomyTitle(kind, value);
   const roles = view.matchCount;
@@ -367,18 +576,43 @@ export async function TaxonomyArchive({
       </div>
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_324px] lg:gap-8">
         <div className="flex min-w-0 flex-col gap-4">
-          {searchQuery ? (
-            <FilterPills
-              marketing={marketing}
-              options={options}
-              query={searchQuery}
-            />
-          ) : null}
-          <div className={LIST_CARD} data-count={roles} data-testid="job-count">
-            <BoardList jobs={view.docs} now={now} />
-          </div>
+          <FilterPills
+            cards={archiveCards}
+            kind={kind}
+            options={options}
+            path={archivePath}
+            refine={refine}
+            slug={slug}
+          />
+          {view.docs.length > 0 ? (
+            <div
+              className={LIST_CARD}
+              data-count={roles}
+              data-testid="job-count"
+            >
+              <BoardList jobs={view.docs} now={now} variant="archive" />
+            </div>
+          ) : (
+            <div
+              className={cn(
+                CARD,
+                "text-muted-foreground px-4 py-10 text-center text-[13px] leading-[19px]"
+              )}
+              data-count={0}
+              data-testid="job-count"
+            >
+              No {rolesLabel} roles match these filters.{" "}
+              <Link
+                className="text-foreground underline underline-offset-4"
+                href={refineHref(archivePath, NO_REFINE, options)}
+              >
+                Show all
+              </Link>
+            </div>
+          )}
           <BoardPagination
             archiveKind={kind}
+            archiveSearch={refineSearch}
             archiveValue={value}
             marketing={marketing}
             options={options}

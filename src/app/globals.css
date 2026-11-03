@@ -38,6 +38,7 @@
   --surface-sub: #f7f7f6;
   --selected: #f7f7f6;
   --tag: #f0f0ef;
+  --logo-tile: #eaeae8;
   --line: rgb(0 0 0 / 7%);
   --line-strong: rgb(0 0 0 / 10%);
   --text-subtle: #8e8e8e;
@@ -74,6 +75,7 @@
     --surface-sub: #1f1f1f;
     --selected: #1c1c1c;
     --tag: rgb(255 255 255 / 5%);
+    --logo-tile: rgb(255 255 255 / 5%);
     --line: rgb(255 255 255 / 6%);
     --line-strong: rgb(255 255 255 / 8%);
     --text-subtle: #757575;
@@ -107,6 +109,7 @@
   --surface-sub: #1f1f1f;
   --selected: #1c1c1c;
   --tag: rgb(255 255 255 / 5%);
+  --logo-tile: rgb(255 255 255 / 5%);
   --line: rgb(255 255 255 / 6%);
   --line-strong: rgb(255 255 255 / 8%);
   --text-subtle: #757575;
@@ -142,6 +145,7 @@
   --color-surface-sub: var(--surface-sub);
   --color-selected: var(--selected);
   --color-tag: var(--tag);
+  --color-logo-tile: var(--logo-tile);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-subtle: var(--text-subtle);

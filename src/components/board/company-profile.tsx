@@ -97,7 +97,7 @@ export function CompanyLogoTile({
   return (
     <span
       aria-hidden="true"
-      className="bg-tag text-muted-foreground flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-[26px] leading-8 font-semibold"
+      className="bg-logo-tile text-muted-foreground flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-[11px] text-[21px] leading-[26px] font-semibold md:size-16 md:rounded-[14px] md:text-[26px] md:leading-8"
     >
       {logoUrl ? (
         // biome-ignore lint/performance/noImgElement: a 64px company mark, served as-is
@@ -117,7 +117,7 @@ export function CompanyLogoTile({
 
 export function CompanyFactsStrip({ facts }: { facts: CompanyFact[] }) {
   return (
-    <dl className="bg-card ring-line grid grid-cols-2 overflow-clip rounded-[14px] ring-1 md:flex md:flex-wrap md:rounded-[12px]">
+    <dl className="bg-card ring-line grid grid-cols-2 overflow-clip rounded-[12px] ring-1 md:flex md:flex-wrap">
       {facts.map((fact) => (
         <div
           className="flex flex-col gap-0.5 px-4 py-3 md:w-[268px]"

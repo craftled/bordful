@@ -31,6 +31,31 @@ export interface HeaderViews {
 
 type ViewId = "all" | "remote" | "saved";
 
+// Segments under /jobs that are archives, not job slugs.
+const JOBS_SECTIONS = new Set([
+  "language",
+  "languages",
+  "level",
+  "levels",
+  "location",
+  "locations",
+  "page",
+  "search",
+  "type",
+  "types",
+]);
+
+function isJobPage(pathname: string): boolean {
+  const [, root, slug, ...rest] = pathname.split("/");
+  return (
+    root === "jobs" &&
+    slug !== undefined &&
+    slug !== "" &&
+    rest.length === 0 &&
+    !JOBS_SECTIONS.has(slug)
+  );
+}
+
 const FOCUS =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -45,11 +70,12 @@ function activeView(pathname: string, views: HeaderViews): ViewId | null {
     return "remote";
   }
   // A search or filtered list still runs over every job, so Paper's saved
-  // search keeps "All" selected.
+  // search keeps "All" selected. Paper's job pages keep it selected too.
   if (
     pathname === views.allHref ||
     pathname === SEARCH_PATH ||
-    pathname.startsWith("/jobs/page/")
+    pathname.startsWith("/jobs/page/") ||
+    isJobPage(pathname)
   ) {
     return "all";
   }
@@ -194,10 +220,8 @@ export function SiteHeader({
 
   return (
     <header
-      className={cn(
-        "bg-background relative z-30",
-        searchOnPhone ? "lg:border-line lg:border-b" : "border-line border-b"
-      )}
+      // Paper's phone header has no bottom rule; it starts at lg.
+      className="bg-background lg:border-line relative z-30 lg:border-b"
       data-testid="site-header"
     >
       <div

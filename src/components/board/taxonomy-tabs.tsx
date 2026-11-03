@@ -25,11 +25,19 @@ const TABS: { kind: TaxonomyKind; label: string }[] = [
 
 // Real links between the four index pages: pills on a phone, a segmented
 // control from md up.
-export function TaxonomyTabs({ active }: { active: TaxonomyKind }) {
+export function TaxonomyTabs({
+  active,
+  compact = false,
+}: {
+  active: TaxonomyKind;
+  // Paper's type, level and language indexes use a 16px label line (24px
+  // tabs); the locations index uses 19px (27px tabs).
+  compact?: boolean;
+}) {
   return (
     <nav
       aria-label="Browse jobs by"
-      className="md:bg-tag flex gap-[6px] overflow-x-auto md:gap-[2px] md:rounded-md md:p-[2px]"
+      className="md:bg-tag flex gap-[6px] overflow-x-auto md:gap-[2px] md:rounded-[8px] md:p-[2px]"
     >
       {TABS.map((tab) => {
         const current = tab.kind === active;
@@ -37,7 +45,8 @@ export function TaxonomyTabs({ active }: { active: TaxonomyKind }) {
           <Link
             aria-current={current ? "page" : undefined}
             className={cn(
-              "shrink-0 rounded-full px-3 py-[6px] text-[13px] font-medium ring-1 md:rounded-sm md:px-3 md:py-1 md:text-[13px] md:ring-0",
+              "shrink-0 rounded-full px-3 py-[7px] text-[13px] leading-4 font-medium ring-1 md:rounded-[6px] md:px-3 md:py-1 md:text-[13px] md:ring-0",
+              compact ? null : "md:leading-[19px]",
               current
                 ? "bg-primary text-primary-foreground ring-primary md:bg-card md:text-foreground md:shadow-[0_0_0_1px_var(--line),0_1px_2px_rgb(0_0_0/0.05)]"
                 : "bg-card text-foreground ring-line-strong md:text-muted-foreground md:hover:text-foreground md:bg-transparent md:font-normal"

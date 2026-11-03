@@ -123,6 +123,28 @@ test("marketing nav points at the marketing routes", () => {
   });
 });
 
+test("marketing header ends with job alerts when alerts are enabled", () => {
+  const { header } = getNav({
+    alertsEnabled: true,
+    marketing: true,
+    postJobEnabled: true,
+  });
+
+  expect(header.map((item) => item.id)).toEqual([
+    "jobs",
+    "companies",
+    "pricing",
+    "showcase",
+    "changelog",
+    "alerts",
+  ]);
+  expect(header.at(-1)).toEqual({
+    href: "/alerts",
+    id: "alerts",
+    label: "Job alerts",
+  });
+});
+
 test("board home path follows the mode", () => {
   expect(boardHomePath(false)).toBe("/");
   expect(boardHomePath(true)).toBe("/jobs");

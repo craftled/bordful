@@ -110,21 +110,21 @@ function CheckIcon() {
 function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
   return (
     <>
-      <h3 className="text-foreground text-[15px] leading-[22px] font-medium">
+      <h3 className="text-foreground text-[15px] leading-[18px] font-medium md:leading-[22px]">
         {plan.name}
       </h3>
       <p className="flex items-baseline gap-1.5">
-        <span className="text-foreground text-[40px] leading-[46px] font-medium tracking-[-0.03em]">
+        <span className="text-foreground text-[40px] leading-[48px] font-medium tracking-[-0.03em] md:leading-[46px]">
           {plan.price}
         </span>
       </p>
-      <p className="text-muted-foreground text-[13px] leading-[19px]">
+      <p className="text-muted-foreground text-[13px] leading-4 md:leading-[19px]">
         {plan.description}
       </p>
-      <ul className="flex flex-col gap-2 py-1 md:py-3">
+      <ul className="flex flex-col gap-2 md:py-3">
         {plan.features.map((feature) => (
           <li
-            className="text-muted-foreground flex items-center gap-2 text-[13px] leading-[19px]"
+            className="text-muted-foreground flex items-center gap-2 text-[14px] leading-[18px] md:text-[13px] md:leading-[19px]"
             key={feature}
           >
             <CheckIcon />
@@ -135,7 +135,7 @@ function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
       <Button
         asChild
         className={cn(
-          "h-11 w-full px-4 text-[14px] md:h-9 md:w-auto md:self-start md:text-[13px]",
+          "h-11 w-full px-4 text-[15px] leading-[18px] md:h-9 md:w-auto md:self-start md:text-[13px] md:leading-[1.5]",
           !primary && "shadow-xs"
         )}
         variant={primary ? "default" : "outline"}
@@ -155,36 +155,41 @@ function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
 function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
   const { home } = plan;
 
+  // Paper's phone card drops the badge and draws the check icons; from md
+  // up it is the flush cell with the badge and plain check marks.
   return (
     <>
-      <div className="flex h-5 items-center justify-between">
-        <h3 className="text-foreground text-[15px] leading-5 font-medium">
+      <div className="flex items-center justify-between md:h-5">
+        <h3 className="text-foreground text-[15px] leading-[18px] font-medium md:leading-5">
           {plan.name}
         </h3>
         {home.badge ? (
-          <span className="bg-primary text-primary-foreground flex h-5 items-center rounded-md px-[7px] text-[11px] leading-[14px] font-medium">
+          <span className="bg-primary text-primary-foreground hidden h-5 items-center rounded-md px-[7px] text-[11px] leading-[14px] font-medium md:flex">
             {home.badge}
           </span>
         ) : null}
       </div>
       <p className="flex items-baseline gap-1.5">
-        <span className="text-foreground text-[40px] leading-[44px] font-medium tracking-[-0.035em]">
+        <span className="text-foreground text-[40px] leading-[48px] font-medium tracking-[-0.03em] md:leading-[44px] md:tracking-[-0.035em]">
           {plan.price}
         </span>
         <span className="text-subtle text-[13px] leading-[18px]">
           {home.unit}
         </span>
       </p>
-      <p className="text-muted-foreground text-[13px] leading-5">
+      <p className="text-muted-foreground text-[13px] leading-4 md:leading-5">
         {home.description}
       </p>
-      <ul className="flex flex-col gap-0.5">
+      <ul className="flex flex-col gap-2 md:gap-0.5">
         {home.features.map((feature) => (
           <li
-            className="text-muted-foreground flex gap-2 text-[13px] leading-5"
+            className="text-muted-foreground flex items-center gap-2 text-[14px] leading-[18px] md:items-start md:text-[13px] md:leading-5"
             key={feature}
           >
-            <span aria-hidden="true" className="text-subtle">
+            <span className="md:hidden">
+              <CheckIcon />
+            </span>
+            <span aria-hidden="true" className="text-subtle hidden md:inline">
               ✓
             </span>
             {feature}
@@ -194,7 +199,7 @@ function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
       <Button
         asChild
         className={cn(
-          "h-11 w-full gap-[7px] px-3.5 text-[15px] md:h-[34px] md:w-auto md:self-start md:text-[13px]",
+          "h-11 w-full gap-[7px] px-3.5 text-[15px] leading-[18px] md:h-[34px] md:w-auto md:self-start md:text-[13px] md:leading-[1.5]",
           !primary && "shadow-xs"
         )}
         variant={primary ? "default" : "outline"}
@@ -240,10 +245,11 @@ export function Pricing({
     return <PricingCards />;
   }
 
-  // Home section: two flush cells, the free plan on the raised surface.
+  // Home section: two flush cells, the free plan on the raised surface. On
+  // a phone Paper stacks them as rounded cards, the free plan outlined.
   return (
     <Section id="pricing" padding="flush">
-      <Container className="border-line border-b pt-10 pb-8 md:pt-16 md:pb-10">
+      <Container className="border-line pt-10 pb-5 md:border-b md:pt-16 md:pb-10">
         <SectionHeader
           eyebrow="Pricing"
           phone="mono"
@@ -251,14 +257,14 @@ export function Pricing({
           titleMuted="Help if you want it."
         />
       </Container>
-      <div className="grid md:grid-cols-2">
+      <div className="grid gap-5 px-4 md:grid-cols-2 md:gap-0 md:px-0">
         {plans.map((plan, index) => (
           <div
             className={cn(
-              "border-line flex flex-col gap-4 px-4 py-8 md:px-10 md:py-9",
+              "border-line bg-card flex flex-col gap-3.5 rounded-[14px] p-[22px] ring-1 md:gap-4 md:rounded-none md:px-10 md:py-9 md:ring-0",
               index === 0
-                ? "bg-card border-b md:border-r md:border-b-0"
-                : undefined
+                ? "ring-foreground md:border-r"
+                : "ring-line md:bg-transparent"
             )}
             key={plan.name}
           >
@@ -266,7 +272,7 @@ export function Pricing({
           </div>
         ))}
       </div>
-      <Container className="border-line border-t py-3.5">
+      <Container className="border-line pt-5 pb-10 md:border-t md:py-3.5">
         <p className="text-subtle text-[11px] leading-[14px]">
           Payments by Stripe. Prices in USD, VAT may apply. Bordfeed has its own
           plans.

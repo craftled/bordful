@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Container } from "@/components/marketing/container";
 import { DocsSectionNav } from "@/components/marketing/docs-section-nav";
+import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 import {
@@ -47,7 +48,7 @@ function Block({
       id={slugify(title)}
     >
       <h2
-        className="text-foreground text-xl leading-[26px] font-medium tracking-[-0.02em]"
+        className="text-foreground text-[17px] leading-[22px] font-medium md:text-xl md:leading-[26px] md:tracking-[-0.02em]"
         id={`${slugify(title)}-heading`}
       >
         {index}. {title}
@@ -181,6 +182,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </Container>
+      <MarketingSlimFooter />
     </>
   );
 }

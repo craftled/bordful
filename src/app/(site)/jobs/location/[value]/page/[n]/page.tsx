@@ -7,6 +7,7 @@ import {
   TaxonomyArchive,
 } from "@/components/board/taxonomy-archive";
 import { buildTaxonomyArchivePath, parsePathPage } from "@/lib/board/paths";
+import type { BoardSearchParams } from "@/lib/board/query";
 import { taxonomyArchiveMetadata } from "@/lib/board/taxonomy";
 
 export async function generateMetadata({
@@ -20,8 +21,10 @@ export async function generateMetadata({
 
 export default async function LocationArchivePagedPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ n: string; value: string }>;
+  searchParams: Promise<BoardSearchParams>;
 }) {
   const { n, value } = await params;
   const page = parsePathPage(n);
@@ -35,7 +38,12 @@ export default async function LocationArchivePagedPage({
 
   return (
     <BoardShell fullBleed>
-      <TaxonomyArchive kind="location" page={page} value={value} />
+      <TaxonomyArchive
+        kind="location"
+        page={page}
+        searchParams={await searchParams}
+        value={value}
+      />
     </BoardShell>
   );
 }

@@ -29,6 +29,8 @@ export function searchHiddenFields(
   return fields;
 }
 
+// Search matches titles and company names, so the long form says exactly
+// that (Paper's "or skill" would promise a match the board does not make).
 export function searchPlaceholder(count?: number, long = false): string {
   const suffix = long ? " by role or company" : "";
   if (count === undefined || count <= 0) {
@@ -70,14 +72,23 @@ export function BoardSearchForm({
         Search jobs by title or company
       </label>
       <input
-        className="text-foreground placeholder:text-subtle peer h-full min-w-0 flex-1 bg-transparent pr-3 text-[15px] outline-none lg:pr-2 lg:text-[14px] [&::-webkit-search-cancel-button]:hidden"
+        className="text-foreground placeholder:text-subtle peer h-full min-w-0 flex-1 bg-transparent pr-3 text-[15px] outline-none lg:pr-2 lg:text-[14px] lg:placeholder:text-transparent [&::-webkit-search-cancel-button]:hidden"
         data-testid="board-search-input"
         defaultValue={q}
         id={BOARD_SEARCH_INPUT_ID}
         name="q"
-        placeholder={searchPlaceholder(count, true)}
+        placeholder={searchPlaceholder(count)}
         type="search"
       />
+      {/* Paper: the short count on phones, the long hint in the desktop bar.
+          A placeholder can't change per breakpoint, so from lg up the native
+          one goes transparent and this copy shows while the field is empty. */}
+      <span
+        aria-hidden="true"
+        className="text-subtle pointer-events-none absolute inset-y-0 right-12 left-8 hidden items-center truncate text-[14px] leading-5 lg:peer-placeholder-shown:flex"
+      >
+        {searchPlaceholder(count, true)}
+      </span>
       <span
         aria-hidden="true"
         className="bg-tag text-subtle mr-2.5 hidden shrink-0 rounded-[4px] px-[5px] font-sans text-[10px] leading-4 peer-focus:invisible lg:inline-block"

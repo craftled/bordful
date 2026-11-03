@@ -35,7 +35,7 @@ export default async function Page() {
   }
 
   return (
-    <BoardShell>
+    <BoardShell fullBleed>
       <PostJobPage jobsHref={boardHomePath(isMarketingEnabled())} view={view} />
     </BoardShell>
   );

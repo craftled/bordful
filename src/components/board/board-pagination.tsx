@@ -16,10 +16,12 @@ function pageHref(
   options: BoardQueryOptions,
   marketing: boolean,
   archiveKind: TaxonomyKind | undefined,
-  archiveValue: string | undefined
+  archiveValue: string | undefined,
+  archiveSearch: string
 ): string {
   if (archiveKind !== undefined && archiveValue !== undefined) {
-    return buildTaxonomyArchivePath(archiveKind, archiveValue, nextPage);
+    const path = buildTaxonomyArchivePath(archiveKind, archiveValue, nextPage);
+    return archiveSearch ? `${path}?${archiveSearch}` : path;
   }
 
   return boardStateHref({ ...query, page: nextPage }, options, marketing);
@@ -27,6 +29,7 @@ function pageHref(
 
 export function BoardPagination({
   archiveKind,
+  archiveSearch = "",
   archiveValue,
   marketing,
   options,
@@ -35,6 +38,8 @@ export function BoardPagination({
   totalPages,
 }: {
   archiveKind?: TaxonomyKind;
+  // An archive's refining filters (its chips), kept across its pages.
+  archiveSearch?: string;
   archiveValue?: string;
   marketing: boolean;
   options: BoardQueryOptions;
@@ -47,7 +52,15 @@ export function BoardPagination({
   }
 
   const hrefOf = (target: number) =>
-    pageHref(target, query, options, marketing, archiveKind, archiveValue);
+    pageHref(
+      target,
+      query,
+      options,
+      marketing,
+      archiveKind,
+      archiveValue,
+      archiveSearch
+    );
 
   return (
     <nav

@@ -138,11 +138,11 @@ export function FaqPageTabs() {
                 key={item.question}
                 open={index === 0}
               >
-                <summary className="text-foreground flex cursor-pointer items-center justify-between gap-4 rounded-sm text-[14px] leading-5 font-medium md:text-[15px] md:leading-[22px]">
+                <summary className="text-foreground flex cursor-pointer items-center justify-between gap-4 rounded-sm text-[15px] leading-[18px] font-medium md:leading-[22px]">
                   {item.question}
                   <Chevron />
                 </summary>
-                <p className="text-muted-foreground max-w-[600px] pt-2 text-[13px] leading-5 md:text-[14px] md:leading-[22px]">
+                <p className="text-muted-foreground max-w-[600px] pt-2 text-[14px] leading-[21px] md:leading-[22px]">
                   {item.answer}
                 </p>
               </details>

@@ -25,7 +25,7 @@ export function CompanyCard({
       <span className="flex min-w-0 items-center gap-3">
         <span
           aria-hidden="true"
-          className="bg-tag text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md text-[13px] leading-4 font-semibold"
+          className="bg-logo-tile text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md text-[13px] leading-4 font-semibold"
         >
           {logoUrl ? (
             // biome-ignore lint/performance/noImgElement: a 40px company mark, served as-is

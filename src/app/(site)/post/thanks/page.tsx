@@ -27,7 +27,7 @@ export default async function PostJobThanksPage() {
 
   return (
     <BoardShell>
-      <article className="mx-auto -mt-8 flex w-full max-w-[520px] flex-col items-center gap-5 px-4 pt-11 pb-7 text-center md:mt-0 md:pt-10 md:pb-10">
+      <article className="mx-auto -mt-8 flex w-full max-w-[520px] flex-col items-center gap-3.5 px-4 pt-8 pb-7 text-center md:mt-0 md:gap-5 md:pt-10 md:pb-10">
         <div
           aria-hidden="true"
           className="bg-new/10 text-new flex size-12 items-center justify-center rounded-full"

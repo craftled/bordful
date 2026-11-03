@@ -45,15 +45,16 @@ export const SHOTS = {
     src: "/marketing/shots/mobile-job-dark.png",
     width: 780,
   },
-  // The board's phone list cropped to the search bar and the first three jobs.
+  // The board's phone list cut to the search bar and the first three jobs
+  // (the filter chips and result count taken out), Paper's 358x296 card.
   mobileListDark: {
-    height: 800,
-    src: "/marketing/shots/mobile-list-dark.png",
+    height: 645,
+    src: "/marketing/shots/mobile-rows-dark.png",
     width: 780,
   },
   mobileListLight: {
-    height: 800,
-    src: "/marketing/shots/mobile-list-light.png",
+    height: 645,
+    src: "/marketing/shots/mobile-rows-light.png",
     width: 780,
   },
 } as const;
@@ -177,10 +178,13 @@ export function ThemedImage({
 export function PhoneShot({
   alt,
   className,
+  imageClassName,
   name,
 }: {
   alt: string;
   className?: string;
+  /** Overrides the screenshot's sizing, e.g. to crop it to a fixed frame. */
+  imageClassName?: string;
   name: "mobileHome" | "mobileJob";
 }) {
   return (
@@ -192,7 +196,10 @@ export function PhoneShot({
     >
       <ThemedImage
         alt={alt}
-        className="bg-surface-sub block h-auto w-full rounded-[25px]"
+        className={cn(
+          "bg-surface-sub block h-auto w-full rounded-[25px]",
+          imageClassName
+        )}
         name={name}
       />
     </div>

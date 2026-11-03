@@ -32,12 +32,15 @@ export default async function SavedPage({
   return (
     <BoardShell fullBleed>
       <PageFrame>
-        <Crumbs
-          items={[
-            { href: boardHref, label: "Jobs" },
-            { label: kind === "applied" ? "Applied" : "Saved" },
-          ]}
-        />
+        {/* Paper sets these crumbs on a 16px line; the shared Crumbs use 19px. */}
+        <div className="md:[&>nav]:leading-4">
+          <Crumbs
+            items={[
+              { href: boardHref, label: "Jobs" },
+              { label: kind === "applied" ? "Applied" : "Saved" },
+            ]}
+          />
+        </div>
         <SavedJobsView
           alertsEnabled={settings.alerts.enabled}
           boardHref={boardHref}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { FaqPageTabs } from "@/components/marketing/faq-page-tabs";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
+import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
@@ -32,6 +33,7 @@ export default function FaqPage() {
         title="Still have"
         titleMuted="a question?"
       />
+      <MarketingSlimFooter />
     </>
   );
 }
