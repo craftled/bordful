@@ -18,9 +18,6 @@ import type { NavItem } from "@/config/nav";
 import { cn } from "@/lib/utils";
 
 export const SAVED_PATH = "/saved";
-// The board search (lib/board/paths BOARD_SEARCH_PATH). Kept literal so this
-// client module does not pull in the server-side nav config.
-const SEARCH_PATH = "/jobs/search";
 
 export interface HeaderViews {
   allCount: number;
@@ -31,29 +28,8 @@ export interface HeaderViews {
 
 type ViewId = "all" | "remote" | "saved";
 
-// Segments under /jobs that are archives, not job slugs.
-const JOBS_SECTIONS = new Set([
-  "language",
-  "languages",
-  "level",
-  "levels",
-  "location",
-  "locations",
-  "page",
-  "search",
-  "type",
-  "types",
-]);
-
-function isJobPage(pathname: string): boolean {
-  const [, root, slug, ...rest] = pathname.split("/");
-  return (
-    root === "jobs" &&
-    slug !== undefined &&
-    slug !== "" &&
-    rest.length === 0 &&
-    !JOBS_SECTIONS.has(slug)
-  );
+function isUnder(pathname: string, root: string): boolean {
+  return pathname === root || pathname.startsWith(`${root}/`);
 }
 
 const FOCUS =
@@ -69,13 +45,13 @@ function activeView(pathname: string, views: HeaderViews): ViewId | null {
   ) {
     return "remote";
   }
-  // A search or filtered list still runs over every job, so Paper's saved
-  // search keeps "All" selected. Paper's job pages keep it selected too.
+  // Every board list (search, pages, taxonomy indexes and archives), job
+  // pages, alerts and the post flow keep "All" selected, as Paper does.
   if (
     pathname === views.allHref ||
-    pathname === SEARCH_PATH ||
-    pathname.startsWith("/jobs/page/") ||
-    isJobPage(pathname)
+    isUnder(pathname, "/jobs") ||
+    isUnder(pathname, "/alerts") ||
+    isUnder(pathname, "/post")
   ) {
     return "all";
   }

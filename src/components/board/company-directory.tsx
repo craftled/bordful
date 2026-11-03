@@ -161,7 +161,7 @@ export function CompanyDirectory({
         />
       </div>
       {shown.length > 0 ? (
-        <div className="flex flex-col gap-3 md:gap-5">
+        <div className="flex flex-col gap-3 md:gap-8">
           <ul
             className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3"
             data-testid="company-list"

@@ -17,13 +17,17 @@ export function Hero() {
         <Container className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="flex max-w-[720px] flex-col gap-5">
             <Link
-              className="bg-card ring-line-strong inline-flex h-[21px] items-center gap-2 self-start rounded-full pr-[9px] pl-[3px] ring-1 ring-inset md:h-6"
+              className="bg-card ring-line-strong inline-flex h-[21px] items-center gap-2 self-start rounded-full px-2.5 ring-1 ring-inset md:h-6 md:pr-[9px] md:pl-[3px]"
               href="/changelog"
             >
-              <span className="bg-primary text-primary-foreground rounded-full px-[7px] py-px text-[10px] leading-[14px] font-medium">
+              <span className="bg-primary text-primary-foreground hidden rounded-full px-[7px] py-px text-[10px] leading-[14px] font-medium md:inline">
                 1.0
               </span>
-              <span className="text-muted-foreground text-[12px] leading-4 font-medium">
+              {/* Paper's phone hero is a plain pill, without the chip or arrow. */}
+              <span className="text-muted-foreground text-[12px] leading-4 font-medium md:hidden">
+                New · Payload and Postgres
+              </span>
+              <span className="text-muted-foreground hidden text-[12px] leading-4 font-medium md:inline">
                 Now on Payload and Postgres <span aria-hidden="true">→</span>
               </span>
             </Link>

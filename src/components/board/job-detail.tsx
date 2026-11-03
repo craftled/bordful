@@ -76,8 +76,8 @@ function Monogram({ name, size }: { name: string; size: "lg" | "md" }) {
       aria-hidden="true"
       className={
         size === "lg"
-          ? "bg-tag text-muted-foreground md:bg-primary md:text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-md text-[13px] font-medium md:size-10 md:rounded-[10px] md:text-[17px]"
-          : "bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md text-[14px] font-medium"
+          ? "bg-logo-tile text-muted-foreground md:bg-primary md:text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-lg text-[13px] leading-4 font-semibold md:size-10 md:rounded-[10px] md:text-[17px] md:leading-5"
+          : "bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg text-[14px] leading-4 font-semibold"
       }
     >
       {initial(name)}
@@ -88,7 +88,7 @@ function Monogram({ name, size }: { name: string; size: "lg" | "md" }) {
 const RAIL_CARD =
   "bg-card ring-line flex flex-col gap-3 rounded-[14px] p-[18px] ring-1 ring-inset";
 const RAIL_BUTTON =
-  "bg-card ring-line-strong hover:bg-selected inline-flex h-7 shrink-0 items-center rounded-md px-2.5 text-[13px] leading-[18px] font-medium ring-1 ring-inset";
+  "bg-card ring-line-strong hover:bg-selected inline-flex h-7 shrink-0 items-center rounded-lg px-2.5 text-[13px] leading-[18px] font-medium ring-1 ring-inset";
 
 function AboutCompany({
   companyHref,
@@ -171,7 +171,7 @@ function AlertCard() {
         New jobs from this board, sent to you by email.
       </p>
       <Link
-        className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 w-fit items-center rounded-md px-2.5 text-[13px] leading-[18px] font-medium"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-7 w-fit items-center rounded-lg px-2.5 text-[13px] leading-[18px] font-medium"
         href="/alerts"
       >
         Create alert

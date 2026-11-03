@@ -45,7 +45,7 @@ export function MarketingCta({
           {actions.map((action, index) => (
             <Button
               asChild
-              className="h-11 px-4 text-[14px] sm:h-9 sm:text-[13px]"
+              className="h-11 px-4 text-[15px] leading-[18px] sm:h-9 sm:text-[13px] sm:leading-[1.5]"
               key={action.href}
               variant={index === 0 ? "default" : "outline"}
             >

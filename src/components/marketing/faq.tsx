@@ -82,9 +82,32 @@ function Chevron() {
   );
 }
 
+// Paper's phone home uses a 16px chevron. The +/− marker is desktop only.
+function PhoneChevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="text-subtle size-4 shrink-0 transition-transform group-open:rotate-180 md:hidden"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.8}
+      />
+    </svg>
+  );
+}
+
 function PlusMinus() {
   return (
-    <span aria-hidden="true" className="text-subtle text-[15px] leading-[18px]">
+    <span
+      aria-hidden="true"
+      className="text-subtle hidden text-[15px] leading-[18px] md:inline"
+    >
       <span className="group-open:hidden">+</span>
       <span className="hidden group-open:inline">−</span>
     </span>
@@ -116,7 +139,14 @@ function QuestionList({
             )}
           >
             {compact ? (item.short ?? item.question) : item.question}
-            {compact ? <PlusMinus /> : <Chevron />}
+            {compact ? (
+              <>
+                <PhoneChevron />
+                <PlusMinus />
+              </>
+            ) : (
+              <Chevron />
+            )}
           </summary>
           <p
             className={cn(
@@ -142,7 +172,7 @@ export function Faq({ variant = "section" }: { variant?: "section" | "page" }) {
       <Section className="md:py-[72px]">
         <Container className="flex flex-col gap-6 md:items-center md:gap-8">
           <SectionHeader
-            className="gap-2.5 md:items-center md:text-center md:[&>h2]:text-[28px] md:[&>h2]:leading-[34px] md:[&>h2]:tracking-[-0.03em] md:[&>p]:text-[15px] md:[&>p]:leading-[23px]"
+            className="gap-2.5 md:items-center md:text-center md:[&>h2]:text-[28px] md:[&>h2]:leading-[34px] md:[&>h2]:tracking-[-0.03em] [&>p]:hidden md:[&>p]:block md:[&>p]:text-[15px] md:[&>p]:leading-[23px]"
             description="Everything you need to know before you start."
             title="Frequently asked"
             titleMuted="questions."

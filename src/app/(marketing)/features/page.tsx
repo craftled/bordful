@@ -35,10 +35,10 @@ function FeaturesStats() {
       <dl className="flex flex-col md:flex-row">
         {STATS.map((stat) => (
           <div
-            className="border-line flex flex-col gap-1.5 border-b py-4 last:border-b-0 md:flex-1 md:border-b-0 md:border-l md:px-8 md:py-9 md:first:border-l-0"
+            className="border-line flex flex-col gap-0.5 border-b py-4 last:border-b-0 md:flex-1 md:gap-1.5 md:border-b-0 md:border-l md:px-8 md:py-9 md:first:border-l-0"
             key={stat.value}
           >
-            <dt className="text-muted-foreground order-2 text-[13px] leading-[18px] md:text-[14px] md:leading-[21px]">
+            <dt className="text-muted-foreground order-2 text-[14px] leading-[18px] md:leading-[21px]">
               {stat.label}
             </dt>
             <dd className="text-foreground order-1 text-[30px] leading-9 font-medium tracking-[-0.03em] md:text-[40px] md:leading-[44px]">

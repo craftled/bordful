@@ -226,8 +226,16 @@ test("keeps the All view selected on the board search", () => {
 
 test.each([
   ["/jobs/staff-product-designer", "page"],
-  ["/jobs/levels", null],
-  ["/jobs/level/senior", null],
+  ["/jobs/levels", "page"],
+  ["/jobs/level/senior", "page"],
+  ["/jobs/locations", "page"],
+  ["/jobs/language/english/page/2", "page"],
+  ["/alerts", "page"],
+  ["/post", "page"],
+  ["/post/thanks", "page"],
+  ["/jobs/location/remote", null],
+  ["/saved", null],
+  ["/companies", null],
 ])("All view on %s is %s", (path, current) => {
   pathname = path;
   render(

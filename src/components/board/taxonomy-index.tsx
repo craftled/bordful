@@ -281,7 +281,7 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
       ) : null}
       {settings.alerts.enabled ? (
         <aside className="bg-card ring-line flex flex-col gap-[10px] rounded-[14px] p-[18px] ring-1 md:flex-row md:items-center md:justify-between md:p-6">
-          <div className="flex flex-col gap-[2px]">
+          <div className="flex flex-col gap-[10px] md:gap-[2px]">
             <p
               className={cn(
                 "text-foreground text-[15px] leading-[18px] font-medium md:text-[16px]",

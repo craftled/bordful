@@ -30,7 +30,7 @@ export default async function NotFound() {
   return (
     <BoardShell fullBleed>
       <div
-        className="mx-auto flex w-full max-w-[1072px] flex-col items-center gap-4 px-4 pt-12 pb-16 text-center min-[1104px]:px-0 md:pt-16 md:pb-[72px]"
+        className="mx-auto flex w-full max-w-[1072px] flex-col items-center gap-3 px-4 pt-11 pb-16 text-center min-[1104px]:px-0 md:gap-4 md:pt-16 md:pb-[72px]"
         data-page="not-found"
       >
         <p className="text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase">
@@ -39,15 +39,15 @@ export default async function NotFound() {
         <div className="flex flex-col items-center">
           <p
             aria-hidden="true"
-            className="text-foreground text-[64px] leading-[76px] font-medium tracking-[-0.045em] md:text-[88px] md:leading-[106px]"
+            className="text-foreground text-[64px] leading-[78px] font-medium tracking-[-0.045em] md:text-[88px] md:leading-[106px]"
           >
             404
           </p>
-          <h1 className="text-subtle text-[24px] leading-8 font-medium tracking-[-0.03em] md:text-[32px] md:leading-10">
+          <h1 className="text-subtle text-[24px] leading-[30px] font-medium tracking-[-0.03em] md:text-[32px] md:leading-10">
             Page not found.
           </h1>
         </div>
-        <p className="text-muted-foreground text-[15px] leading-[18px]">
+        <p className="text-muted-foreground text-[14px] leading-[18px] md:text-[15px]">
           <span className="md:hidden">The page moved or never existed.</span>
           <span className="hidden md:inline">
             The page moved or never existed. Try a search, or start from the
@@ -58,7 +58,7 @@ export default async function NotFound() {
           <form action={BOARD_SEARCH_PATH}>
             <input
               aria-label="Search jobs"
-              className="bg-card border-line placeholder:text-subtle text-foreground h-11 w-full rounded-[10px] border px-3.5 text-[14px] shadow-xs"
+              className="bg-card border-line-strong placeholder:text-subtle text-foreground h-11 w-full rounded-[10px] border px-3.5 text-[14px] shadow-xs dark:border-white/12"
               name="q"
               placeholder="Search jobs by role or company"
               type="search"
@@ -76,7 +76,7 @@ export default async function NotFound() {
         {latest.length > 0 ? (
           <section
             aria-labelledby="latest-roles-title"
-            className="mt-1 flex w-full flex-col gap-3.5 text-left md:mt-10"
+            className="mt-2 flex w-full flex-col gap-2.5 text-left md:mt-10 md:gap-3.5"
             data-testid="not-found-latest"
           >
             <h2
@@ -92,8 +92,8 @@ export default async function NotFound() {
                 const posted = job.publishedAt
                   ? formatRelativePosted(job.publishedAt, now)
                   : "";
-                // Phones get the list's short age ("2h") so it never runs
-                // into the title.
+                // Paper shows the list's short age ("2h") on every width;
+                // the full phrase stays in the tooltip.
                 const age = job.publishedAt
                   ? compactRelative(job.publishedAt, now)
                   : "";
@@ -121,8 +121,7 @@ export default async function NotFound() {
                           className="text-subtle text-[12px] leading-4 max-md:col-start-2 max-md:row-start-1 max-md:justify-self-end max-md:leading-[18px]"
                           title={posted}
                         >
-                          <span className="md:hidden">{age || posted}</span>
-                          <span className="max-md:hidden">{posted}</span>
+                          {age || posted}
                         </span>
                       ) : null}
                     </div>

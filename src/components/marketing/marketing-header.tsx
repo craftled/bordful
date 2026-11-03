@@ -51,7 +51,7 @@ export function MarketingHeader() {
       data-testid="marketing-header"
     >
       <MarketingHotkeys />
-      <div className="border-line mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between px-4 min-[1200px]:border-x md:h-[52px] md:px-5">
+      <div className="border-line mx-auto flex h-[55px] w-full max-w-[1200px] items-center justify-between px-4 min-[1200px]:border-x md:h-[52px] md:px-5">
         <div className="flex items-center gap-8">
           <MarketingLogo />
           <nav aria-label="Primary" className="hidden lg:block">

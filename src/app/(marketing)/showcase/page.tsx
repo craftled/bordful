@@ -21,6 +21,7 @@ export default function ShowcasePage() {
       <Section className="md:py-14">
         <Container>
           <SectionHeader
+            className="md:gap-[18px]"
             description="The live Bordful demo. Community boards show up here after they opt in."
             eyebrow="Showcase"
             headingLevel="h1"

@@ -23,7 +23,7 @@ import {
 } from "@/lib/domain/job-vocab";
 
 const selectClass =
-  "h-10 w-full rounded-lg border border-line-strong bg-card px-3 text-[14px] leading-[18px] text-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
+  "h-10 w-full appearance-none rounded-lg bg-card px-3 text-[14px] leading-[18px] text-foreground shadow-[inset_0_0_0_1px_var(--line-strong)] outline-none focus-visible:shadow-[inset_0_0_0_1px_var(--ring)] focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 // Paper chip: the native checkbox stays in the DOM, transparent over the
 // whole chip, so names, values, clicks and keyboard behaviour are unchanged.
@@ -110,7 +110,7 @@ export function AlertsForm({
       <div className="flex flex-col items-start gap-5 md:flex-row md:gap-8">
         <form
           action={formAction}
-          className="bg-card border-line flex w-full flex-col gap-[18px] rounded-[14px] border p-5 md:w-[660px] md:shrink-0 md:gap-[22px] md:p-7"
+          className="bg-card ring-line flex w-full flex-col gap-[18px] rounded-[14px] p-5 ring-1 md:w-[660px] md:shrink-0 md:gap-[22px] md:p-7"
           data-testid="alerts-form"
         >
           <div className="flex flex-col gap-[18px] md:flex-row md:gap-3">
@@ -286,7 +286,7 @@ export function AlertsForm({
         <aside className="flex w-full flex-col gap-4 md:w-[380px] md:shrink-0">
           {example}
           {/* Paper's phone layout ends at the example email. */}
-          <section className="bg-card border-line hidden flex-col gap-[10px] rounded-[14px] border p-5 md:flex">
+          <section className="bg-card ring-line hidden flex-col gap-[10px] rounded-[14px] p-5 ring-1 md:flex">
             <h2 className="text-foreground text-[15px] leading-[18px] font-medium">
               How it works
             </h2>
