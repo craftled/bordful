@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
+import { ThemeScript } from "@/components/theme/theme-script";
 import { getSiteSettings } from "@/lib/read";
 import { FONT_VARIABLE_CLASSES } from "@/theme/fonts";
 import { resolveThemeTokens, tokensToCssVariables } from "@/theme/tokens";
@@ -30,8 +31,9 @@ export default async function SiteLayout({
   const css = tokensToCssVariables(resolveThemeTokens(settings.theme));
 
   return (
-    <html className={FONT_VARIABLE_CLASSES} lang="en">
+    <html className={FONT_VARIABLE_CLASSES} lang="en" suppressHydrationWarning>
       <head>
+        <ThemeScript nonce={nonce} />
         <style nonce={nonce}>{`:root{${css}}`}</style>
       </head>
       <body>{children}</body>

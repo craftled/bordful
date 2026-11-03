@@ -13,6 +13,7 @@ import {
   SocialLinks,
   type SocialProfiles,
 } from "@/components/board/social-links";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { NavItem } from "@/config/nav";
 import { cn } from "@/lib/utils";
 
@@ -277,6 +278,7 @@ export function SiteHeader({
           <div className="hidden 2xl:block">
             <SocialLinks links={social} />
           </div>
+          <ThemeToggle />
           {alerts ? (
             <Link
               aria-label="Job alerts"
