@@ -27,8 +27,8 @@ const { default: config } = await import("@payload-config");
 
 const payload = await getPayload({ config });
 
-const NEWER = [{ draft: false, prerelease: true, tag_name: "v1.0.0-beta.3" }];
-const SAME = [{ draft: false, tag_name: "v1.0.0-beta.2" }];
+const NEWER = [{ draft: false, prerelease: false, tag_name: "v1.0.1" }];
+const SAME = [{ draft: false, tag_name: "v1.0.0" }];
 const RELEASES_URL =
   "https://example.com/repos/craftled/bordful/releases?per_page=20";
 
@@ -62,9 +62,9 @@ test("checkForUpdate caches a newer release and survives a later outage", async 
   });
 
   expect(first).toEqual({
-    current: "1.0.0-beta.2",
+    current: "1.0.0",
     isNewer: true,
-    latest: "1.0.0-beta.3",
+    latest: "1.0.1",
   });
   expect(calls.count).toBe(1);
 
@@ -73,7 +73,7 @@ test("checkForUpdate caches a newer release and survives a later outage", async 
     overrideAccess: true,
     slug: "install-state",
   });
-  expect(stored.latestVersion).toBe("1.0.0-beta.3");
+  expect(stored.latestVersion).toBe("1.0.1");
   expect(stored.latestCheckedAt).toBe("2026-10-23T09:00:00.000Z");
 
   const second = await checkForUpdate(payload, {
@@ -101,7 +101,7 @@ test("checkForUpdate caches a newer release and survives a later outage", async 
     overrideAccess: true,
     slug: "install-state",
   });
-  expect(afterFailure.latestVersion).toBe("1.0.0-beta.3");
+  expect(afterFailure.latestVersion).toBe("1.0.1");
   expect(afterFailure.latestCheckedAt).toBe("2026-10-24T09:00:01.000Z");
 
   await payload.db.migrateFresh({ forceAcceptWarning: true });
@@ -112,9 +112,9 @@ test("checkForUpdate caches a newer release and survives a later outage", async 
     url: RELEASES_URL,
   });
   expect(same).toEqual({
-    current: "1.0.0-beta.2",
+    current: "1.0.0",
     isNewer: false,
-    latest: "1.0.0-beta.2",
+    latest: "1.0.0",
   });
   expect(sameCalls.count).toBe(1);
 });

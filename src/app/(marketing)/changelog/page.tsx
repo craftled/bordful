@@ -22,7 +22,7 @@ export default function ChangelogPage() {
       <Container>
         <div className="mx-auto max-w-2xl">
           <SectionHeader
-            description="Releases of the open-source template. The current beta stays marked Beta until launch day."
+            description="Releases of the open-source template."
             headingLevel="h1"
             title="Changelog"
           />

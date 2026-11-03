@@ -2,7 +2,7 @@
 
 Open-source job board template on Next.js and Payload, live in two minutes with sample jobs from Bordfeed.
 
-Bordful 1.0 is a rebuild on Payload 4. The Airtable edition (0.1.x) lives on the [legacy-airtable branch](https://github.com/craftled/bordful/tree/legacy-airtable).
+Bordful 1.0 is a rebuild on Payload 4. The Airtable edition (0.1.x) lives on the [airtable branch](https://github.com/craftled/bordful/tree/airtable).
 
 [![Deploy with Vercel](https://vercel.com/button)](<https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcraftled%2Fbordful%2Ftree%2Fmain&project-name=bordful&repository-name=bordful&env=PAYLOAD_SECRET%2CCRON_SECRET&envDescription=PAYLOAD_SECRET%20signs%20admin%20sessions%20(32%2B%20random%20characters).%20CRON_SECRET%20guards%20the%20cron%20routes.&envLink=https%3A%2F%2Fgithub.com%2Fcraftled%2Fbordful%2Fblob%2Fmain%2Fdocs%2Fdeploy.md&stores=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22integrationSlug%22%3A%22neon%22%2C%22productSlug%22%3A%22neon%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D>)
 
@@ -15,7 +15,7 @@ Details are in [Deploy](docs/deploy.md).
 
 ## Features
 
-Bordful 1.0 beta includes:
+Bordful 1.0 includes:
 
 - A board with search, filters, and taxonomy archives
 - Job and company pages with JobPosting JSON-LD

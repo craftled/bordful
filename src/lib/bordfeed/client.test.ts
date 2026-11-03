@@ -76,7 +76,7 @@ function client(options: {
   return createBordfeedClient({
     apiKey: KEY,
     baseUrl: "http://bf.test",
-    clientHeaders: { "X-Bordfeed-Client": "bordful/1.0.0-beta.2" },
+    clientHeaders: { "X-Bordfeed-Client": "bordful/1.0.0" },
     fetch: options.fetch,
     now: options.now,
     sleep: options.sleep,
@@ -108,7 +108,7 @@ test("fetchFeedPage makes one request with the pinned query order", async () => 
     nextOffset: null,
   });
   expect(calls[0]?.headers.authorization).toBe(`Bearer ${KEY}`);
-  expect(calls[0]?.headers["x-bordfeed-client"]).toBe("bordful/1.0.0-beta.2");
+  expect(calls[0]?.headers["x-bordfeed-client"]).toBe("bordful/1.0.0");
 });
 
 test("fetchFeedPage sends delta params and clamps the limit to 100", async () => {

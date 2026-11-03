@@ -8,21 +8,15 @@ export interface GithubRelease {
 export const DEFAULT_RELEASES: GithubRelease[] = [
   {
     draft: false,
-    html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.0-beta.3",
-    prerelease: true,
-    tag_name: "v1.0.0-beta.3",
+    html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.1",
+    prerelease: false,
+    tag_name: "v1.0.1",
   },
   {
     draft: false,
-    html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.0-beta.2",
-    prerelease: true,
-    tag_name: "v1.0.0-beta.2",
-  },
-  {
-    draft: false,
-    html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.0-beta.1",
-    prerelease: true,
-    tag_name: "v1.0.0-beta.1",
+    html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.0",
+    prerelease: false,
+    tag_name: "v1.0.0",
   },
 ];
 

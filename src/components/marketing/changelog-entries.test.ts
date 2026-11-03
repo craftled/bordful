@@ -2,8 +2,8 @@ import { expect, test } from "vitest";
 
 import { changelogDateLabel, changelogEntries } from "./changelog-entries";
 
-test("changelog starts at 1.0.0-beta.2 and names Airtable only on the legacy title", () => {
-  expect(changelogEntries[0]?.version).toBe("1.0.0-beta.2");
+test("changelog starts at 1.0.0 and names Airtable only on the legacy title", () => {
+  expect(changelogEntries[0]?.version).toBe("1.0.0");
 
   for (const entry of changelogEntries) {
     const text = [
@@ -29,16 +29,9 @@ test("changelog starts at 1.0.0-beta.2 and names Airtable only on the legacy tit
   const legacy = changelogEntries.find((entry) => entry.version === "0.1.x");
 
   if (!(current && legacy)) {
-    throw new Error("changelog is missing the beta or legacy entry");
+    throw new Error("changelog is missing the current or legacy entry");
   }
 
-  expect(changelogDateLabel(current)).toBe("Beta");
+  expect(changelogDateLabel(current)).toBe("2026-11-03");
   expect(changelogDateLabel(legacy)).toBe("Legacy");
-  expect(changelogDateLabel(legacy)).not.toBe("Beta");
-  expect(
-    changelogDateLabel({
-      ...current,
-      date: "2026-11-01",
-    })
-  ).toBe("2026-11-01");
 });

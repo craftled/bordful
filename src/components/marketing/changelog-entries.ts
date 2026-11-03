@@ -11,20 +11,10 @@ export function changelogDateLabel(entry: ChangelogEntry): string {
     return entry.date;
   }
 
-  if (entry.version.includes("beta")) {
-    return "Beta";
-  }
-
   return "Legacy";
 }
 
 export const changelogEntries: readonly ChangelogEntry[] = [
-  {
-    bullets: ["Runs on Node.js 26 LTS."],
-    date: null,
-    title: "1.0.0-beta.2",
-    version: "1.0.0-beta.2",
-  },
   {
     bullets: [
       "Payload 4 and Postgres.",
@@ -33,15 +23,16 @@ export const changelogEntries: readonly ChangelogEntry[] = [
       "Email job alerts through Resend, weekly or daily.",
       "RSS and JSON feeds, and JobPosting JSON-LD.",
       "Deploy to Vercel.",
+      "Runs on Node.js 26 LTS.",
     ],
-    date: null,
-    title: "1.0.0-beta.1",
-    version: "1.0.0-beta.1",
+    date: "2026-11-03",
+    title: "1.0.0",
+    version: "1.0.0",
   },
   {
-    bullets: ["The previous edition stays on the legacy branch."],
+    bullets: ["The previous edition stays on the airtable branch."],
     date: null,
-    href: "https://github.com/craftled/bordful/tree/legacy-airtable",
+    href: "https://github.com/craftled/bordful/tree/airtable",
     title: "0.1.x (Airtable edition)",
     version: "0.1.x",
   },
