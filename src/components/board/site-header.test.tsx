@@ -191,3 +191,35 @@ test("view pills show the board counts and ⌘K focuses the search", () => {
   fireEvent.keyDown(document, { key: "k", metaKey: true });
   expect(document.activeElement).toBe(screen.getByTestId("board-search-input"));
 });
+
+test("keeps the All view selected on the board search", () => {
+  pathname = "/jobs/search";
+  render(
+    <SiteHeader
+      cta={CTA}
+      homeHref="/"
+      logoUrl={null}
+      name="Bordful"
+      navItems={NAV}
+      social={SOCIAL}
+      views={{
+        allCount: 20,
+        allHref: "/",
+        remoteCount: 5,
+        remoteHref: "/jobs/location/remote",
+      }}
+    />
+  );
+
+  const views = screen.getByRole("navigation", { hidden: true, name: "Views" });
+  expect(
+    within(views)
+      .getByRole("link", { hidden: true, name: "All 20" })
+      .getAttribute("aria-current")
+  ).toBe("page");
+  expect(
+    within(views)
+      .getByRole("link", { hidden: true, name: "Remote 5" })
+      .hasAttribute("aria-current")
+  ).toBe(false);
+});

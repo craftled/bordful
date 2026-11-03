@@ -68,9 +68,9 @@ export function DocsSidebar({
 }
 
 const mobileSummary =
-  "bg-card ring-line-strong text-foreground flex h-10 cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 text-[13px] leading-[18px] ring-1 ring-inset [&::-webkit-details-marker]:hidden";
+  "bg-card ring-line-strong text-foreground flex h-9 cursor-pointer list-none items-center justify-between gap-2 rounded-md px-3 text-[13px] leading-[18px] ring-1 ring-inset [&::-webkit-details-marker]:hidden";
 const mobilePanel =
-  "bg-card ring-line-strong absolute top-11 z-20 flex max-h-[60vh] min-w-full flex-col gap-0.5 overflow-y-auto rounded-lg p-1.5 shadow-lg ring-1";
+  "bg-card ring-line-strong absolute top-10 z-20 flex max-h-[60vh] min-w-full flex-col gap-0.5 overflow-y-auto rounded-lg p-1.5 shadow-lg ring-1";
 
 function MobileChevron() {
   return (
@@ -108,7 +108,7 @@ export function DocsMobileNav({
   const toc = headings.filter((heading) => heading.level === 2);
 
   return (
-    <div className="border-line flex gap-2 border-b px-4 py-3 md:hidden">
+    <div className="border-line flex gap-2 border-b px-4 py-2.5 md:hidden">
       <details className="relative min-w-0 flex-1">
         <summary className={mobileSummary}>
           <span className="truncate">
@@ -133,7 +133,9 @@ export function DocsMobileNav({
       </details>
       {toc.length > 0 ? (
         <details className="relative">
-          <summary className={mobileSummary}>On this page</summary>
+          <summary className={cn(mobileSummary, "text-muted-foreground")}>
+            On this page
+          </summary>
           <div className={cn(mobilePanel, "right-0 w-64")}>
             {toc.map((heading) => (
               <a
@@ -162,25 +164,55 @@ export function DocsToc({ headings }: { headings: DocsHeading[] }) {
   return <DocsSectionNav items={items} variant="docs" />;
 }
 
+// Paper's docs footer on desktop: a slim bar under the sidebar and content,
+// in place of the full marketing footer (the shell hides that one at md+).
+// Phones keep the full marketing footer.
+export function DocsFooter({ editHref }: { editHref: string }) {
+  const year = new Date().getFullYear();
+
+  return (
+    <footer
+      className="border-line hidden items-center justify-between border-t px-6 py-5 text-[12px] leading-[17px] md:flex"
+      data-slim-footer=""
+      data-testid="docs-footer"
+    >
+      <p className="text-subtle">&copy; {year} Craftled · MIT License</p>
+      <a
+        className="text-muted-foreground hover:text-foreground rounded-sm font-medium"
+        href={editHref}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Edit this page on GitHub <span aria-hidden="true">↗</span>
+      </a>
+    </footer>
+  );
+}
+
 export function DocsFrame({
   active,
   children,
+  editHref,
   entries,
   headings = [],
 }: {
   active: string;
   children: ReactNode;
+  editHref: string;
   entries: DocsEntry[];
   headings?: DocsHeading[];
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-[1200px] flex-col md:min-h-[640px] md:flex-row">
-      <DocsMobileNav active={active} entries={entries} headings={headings} />
-      <DocsSidebar active={active} entries={entries} />
-      <div className="min-w-0 flex-1 px-4 py-8 md:px-10 md:py-10">
-        <div className="flex max-w-[680px] flex-col gap-5">{children}</div>
+    <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col">
+      <div className="flex flex-1 flex-col md:min-h-[640px] md:flex-row">
+        <DocsMobileNav active={active} entries={entries} headings={headings} />
+        <DocsSidebar active={active} entries={entries} />
+        <div className="min-w-0 flex-1 px-4 pt-6 pb-10 md:px-10 md:py-10">
+          <div className="flex max-w-[680px] flex-col gap-5">{children}</div>
+        </div>
+        <DocsToc headings={headings} />
       </div>
-      <DocsToc headings={headings} />
+      <DocsFooter editHref={editHref} />
     </div>
   );
 }

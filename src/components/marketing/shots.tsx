@@ -15,6 +15,11 @@ export const SHOTS = {
     src: "/marketing/shots/board-light.png",
     width: 2880,
   },
+  jobDark: {
+    height: 1800,
+    src: "/marketing/shots/job-dark.png",
+    width: 2880,
+  },
   jobLight: {
     height: 1800,
     src: "/marketing/shots/job-light.png",
@@ -25,14 +30,46 @@ export const SHOTS = {
     src: "/marketing/shots/mobile-home.png",
     width: 780,
   },
+  mobileHomeDark: {
+    height: 1688,
+    src: "/marketing/shots/mobile-home-dark.png",
+    width: 780,
+  },
   mobileJob: {
     height: 1688,
     src: "/marketing/shots/mobile-job.png",
     width: 780,
   },
+  mobileJobDark: {
+    height: 1688,
+    src: "/marketing/shots/mobile-job-dark.png",
+    width: 780,
+  },
+  // The board's phone list cropped to the search bar and the first three jobs.
+  mobileListDark: {
+    height: 800,
+    src: "/marketing/shots/mobile-list-dark.png",
+    width: 780,
+  },
+  mobileListLight: {
+    height: 800,
+    src: "/marketing/shots/mobile-list-light.png",
+    width: 780,
+  },
 } as const;
 
 export type ShotName = keyof typeof SHOTS;
+
+// Each light shot and the dark capture of the same screen.
+const DARK_OF = {
+  boardLight: "boardDark",
+  jobLight: "jobDark",
+  mobileHome: "mobileHomeDark",
+  mobileJob: "mobileJobDark",
+  mobileListLight: "mobileListDark",
+} as const satisfies Partial<Record<ShotName, ShotName>>;
+
+export type ThemedShotName = keyof typeof DARK_OF;
 
 // A desktop screenshot with Paper's hairline and soft drop shadow.
 export function Shot({
@@ -62,8 +99,30 @@ export function Shot({
   );
 }
 
-// The board home in the viewer's own theme: light by default, dark when the
-// page is dark.
+// A desktop screenshot in the viewer's own theme: light by default, dark when
+// the page is dark.
+export function ThemedShot({
+  alt,
+  className,
+  name,
+}: {
+  alt: string;
+  className?: string;
+  name: ThemedShotName;
+}) {
+  return (
+    <>
+      <Shot alt={alt} className={cn(className, "dark:hidden")} name={name} />
+      <Shot
+        alt={alt}
+        className={cn(className, "hidden dark:block")}
+        name={DARK_OF[name]}
+      />
+    </>
+  );
+}
+
+// The board home in the viewer's own theme.
 export function ThemedBoardShot({
   alt,
   className,
@@ -71,23 +130,50 @@ export function ThemedBoardShot({
   alt: string;
   className?: string;
 }) {
+  return <ThemedShot alt={alt} className={className} name="boardLight" />;
+}
+
+// A plain image in the viewer's theme, for crops that carry their own frame.
+export function ThemedImage({
+  alt,
+  className,
+  loading = "lazy",
+  name,
+}: {
+  alt: string;
+  className?: string;
+  loading?: "eager" | "lazy";
+  name: ThemedShotName;
+}) {
+  const light = SHOTS[name];
+  const dark = SHOTS[DARK_OF[name]];
+
   return (
     <>
-      <Shot
+      <MarketingImage
         alt={alt}
         className={cn(className, "dark:hidden")}
-        name="boardLight"
+        decoding="async"
+        height={light.height}
+        loading={loading}
+        src={light.src}
+        width={light.width}
       />
-      <Shot
+      <MarketingImage
         alt={alt}
         className={cn(className, "hidden dark:block")}
-        name="boardDark"
+        decoding="async"
+        height={dark.height}
+        loading={loading}
+        src={dark.src}
+        width={dark.width}
       />
     </>
   );
 }
 
-// A phone screenshot inside a plain device frame drawn in CSS.
+// A phone screenshot inside a plain device frame drawn in CSS, in the viewer's
+// theme.
 export function PhoneShot({
   alt,
   className,
@@ -97,8 +183,6 @@ export function PhoneShot({
   className?: string;
   name: "mobileHome" | "mobileJob";
 }) {
-  const shot = SHOTS[name];
-
   return (
     <div
       className={cn(
@@ -106,14 +190,10 @@ export function PhoneShot({
         className
       )}
     >
-      <MarketingImage
+      <ThemedImage
         alt={alt}
         className="bg-surface-sub block h-auto w-full rounded-[25px]"
-        decoding="async"
-        height={shot.height}
-        loading="lazy"
-        src={shot.src}
-        width={shot.width}
+        name={name}
       />
     </div>
   );

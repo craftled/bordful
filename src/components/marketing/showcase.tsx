@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-
+import { cn } from "@/lib/utils";
 import { Container } from "./container";
 import { MarketingCta } from "./marketing-cta";
 import { MarketingImage } from "./marketing-image";
@@ -16,6 +16,15 @@ import {
 } from "./showcase-entries";
 import { SHOWCASE_ISSUE_URL } from "./site";
 
+// Dark-theme captures for entries we have one for. The demo's thumbnail is
+// the board, so dark pages show the dark board shot.
+const DARK_IMAGES: Record<string, string> = {
+  [SHOWCASE_DEMO.image]: "/marketing/shots/board-dark.png",
+};
+
+const thumbClass =
+  "bg-surface-sub ring-line h-[150px] w-full rounded-lg object-cover object-top ring-1";
+
 function ShowcaseCard({
   entry,
   headingLevel,
@@ -24,6 +33,7 @@ function ShowcaseCard({
   headingLevel: "h2" | "h3";
 }) {
   const Heading = headingLevel;
+  const dark = DARK_IMAGES[entry.image];
 
   return (
     <a
@@ -34,11 +44,21 @@ function ShowcaseCard({
     >
       <MarketingImage
         alt=""
-        className="bg-surface-sub ring-line h-[150px] w-full rounded-lg object-cover object-top ring-1"
+        className={cn(thumbClass, dark && "dark:hidden")}
         height={1692}
         src={entry.image}
         width={2880}
       />
+      {dark ? (
+        <MarketingImage
+          alt=""
+          className={cn(thumbClass, "hidden dark:block")}
+          height={1800}
+          loading="lazy"
+          src={dark}
+          width={2880}
+        />
+      ) : null}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
           <Heading className="text-foreground text-[15px] leading-[22px] font-medium">

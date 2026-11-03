@@ -11,7 +11,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
-import { PhoneShot, Shot, ThemedBoardShot } from "./shots";
+import { PhoneShot, Shot, ThemedBoardShot, ThemedShot } from "./shots";
 
 interface Step {
   description: string;
@@ -47,7 +47,7 @@ const STEPS: readonly Step[] = [
     id: "read",
     label: "Read a role",
     shot: (
-      <Shot
+      <ThemedShot
         alt="A job page with salary, type, level and location above the description"
         className={PANEL_SHOT}
         name="jobLight"
@@ -158,7 +158,7 @@ export function Walkthrough() {
   return (
     <section
       aria-labelledby={`${baseId}-heading`}
-      className="border-line scroll-mt-14 border-b"
+      className="border-line hidden scroll-mt-14 border-b md:block"
       id="product"
     >
       <div className="flex flex-col md:flex-row">

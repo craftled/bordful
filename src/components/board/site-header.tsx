@@ -18,6 +18,9 @@ import type { NavItem } from "@/config/nav";
 import { cn } from "@/lib/utils";
 
 export const SAVED_PATH = "/saved";
+// The board search (lib/board/paths BOARD_SEARCH_PATH). Kept literal so this
+// client module does not pull in the server-side nav config.
+const SEARCH_PATH = "/jobs/search";
 
 export interface HeaderViews {
   allCount: number;
@@ -41,7 +44,13 @@ function activeView(pathname: string, views: HeaderViews): ViewId | null {
   ) {
     return "remote";
   }
-  if (pathname === views.allHref || pathname.startsWith("/jobs/page/")) {
+  // A search or filtered list still runs over every job, so Paper's saved
+  // search keeps "All" selected.
+  if (
+    pathname === views.allHref ||
+    pathname === SEARCH_PATH ||
+    pathname.startsWith("/jobs/page/")
+  ) {
     return "all";
   }
   return null;

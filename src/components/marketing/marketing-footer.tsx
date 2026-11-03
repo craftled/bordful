@@ -33,11 +33,11 @@ function FooterLink({ item }: { item: MarketingLink }) {
   );
 }
 
-export function MarketingFooter() {
+export function MarketingFooter({ className }: { className?: string }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer data-testid="marketing-footer">
+    <footer className={className} data-testid="marketing-footer">
       <Container className="flex flex-col gap-6 pt-8 pb-10 md:gap-8 md:pt-11 md:pb-8">
         <div className="flex flex-col gap-6 md:flex-row md:justify-between">
           <div className="flex flex-col gap-2.5 md:w-[280px] md:shrink-0">

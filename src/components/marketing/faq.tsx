@@ -159,6 +159,7 @@ export function Faq({ variant = "section" }: { variant?: "section" | "page" }) {
         <SectionHeader
           className="md:w-[320px]"
           eyebrow="FAQ"
+          phone="mono"
           title="Questions."
           titleMuted="Short answers."
         />

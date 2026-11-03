@@ -115,6 +115,7 @@ test("marketing nav points at the marketing routes", () => {
     ],
     header: [
       { href: "/jobs", id: "jobs", label: "Jobs" },
+      { href: "/companies", id: "companies", label: "Companies" },
       { href: "/pricing", id: "pricing", label: "Pricing" },
       { href: "/showcase", id: "showcase", label: "Showcase" },
       { href: "/changelog", id: "changelog", label: "Changelog" },

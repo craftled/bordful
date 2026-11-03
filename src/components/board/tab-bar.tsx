@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { JSX } from "react";
+import { type JSX, useEffect, useState } from "react";
 
 import { isActiveItem } from "@/components/board/nav-active";
 import { useJobList } from "@/components/board/saved-jobs";
@@ -61,6 +61,21 @@ interface Tab extends NavItem {
 const JOB_PAGE =
   /^\/jobs\/(?!(?:search|locations|languages|levels|types)$)[^/]+$/u;
 
+// A 404 under /jobs/ looks like a job URL, but it is a board page, so the
+// tab bar stays. The not-found page marks itself with data-page.
+const NOT_FOUND_SELECTOR = '[data-page="not-found"]';
+
+function useIsNotFound(pathname: string): boolean {
+  const [notFound, setNotFound] = useState(false);
+  useEffect(() => {
+    // Re-check on every navigation; the marker comes and goes with the page.
+    setNotFound(
+      pathname.length > 0 && document.querySelector(NOT_FOUND_SELECTOR) !== null
+    );
+  }, [pathname]);
+  return notFound;
+}
+
 export function TabBar({
   alertsEnabled,
   homeHref,
@@ -71,6 +86,7 @@ export function TabBar({
   const pathname = usePathname();
   const saved = useJobList("saved");
   const savedCount = saved.slugs.length;
+  const notFound = useIsNotFound(pathname);
 
   const tabs: Tab[] = [
     {
@@ -87,7 +103,7 @@ export function TabBar({
   tabs.push({ href: "/companies", id: "companies", label: "Companies" });
 
   // Paper's job page has only the pinned Save/Apply bar, no tab bar.
-  if (JOB_PAGE.test(pathname)) {
+  if (JOB_PAGE.test(pathname) && !notFound) {
     return null;
   }
 

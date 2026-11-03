@@ -8,14 +8,14 @@ import {
 } from "@/components/board/job-actions";
 import { JobBreadcrumb } from "@/components/board/job-breadcrumb";
 import { dropBlankParagraphs } from "@/components/board/job-description";
-import { formatClosingDate, JobFacts } from "@/components/board/job-facts";
+import { JobFacts } from "@/components/board/job-facts";
 import { PostJobCard } from "@/components/board/post-job-card";
 import { RelativeTime } from "@/components/board/relative-time";
 import { SimilarJobs } from "@/components/board/similar-jobs";
 import { StickyApply } from "@/components/board/sticky-apply";
 import { httpUrl, jobApplyHref } from "@/lib/board/apply";
 import { bulletLinesToLists } from "@/lib/board/bullet-lists";
-import { formatRelativePosted } from "@/lib/board/format";
+import { formatRelativePosted, formatShortDate } from "@/lib/board/format";
 import { buildCompanyPath } from "@/lib/board/paths";
 import { editorState } from "@/lib/board/plaintext";
 import type {
@@ -383,9 +383,15 @@ export function JobPosting({
   const companyHref = job.companySlug
     ? buildCompanyPath(job.companySlug)
     : null;
-  const closes = fields.includes("validThrough")
-    ? formatClosingDate(job.validThrough)
-    : "";
+  // Paper's apply bar reads "Closes Nov 22": only for a future closing date.
+  const closesAt = job.validThrough ? Date.parse(job.validThrough) : Number.NaN;
+  const closes =
+    fields.includes("validThrough") &&
+    job.validThrough &&
+    !Number.isNaN(closesAt) &&
+    closesAt > now
+      ? formatShortDate(job.validThrough, now)
+      : "";
 
   return (
     <div className="-mt-6 flex flex-col gap-5 md:-mt-1 lg:-mx-0.5">

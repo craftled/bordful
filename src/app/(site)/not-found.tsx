@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { BoardShell } from "@/components/board/board-shell";
+import { compactRelative } from "@/components/board/job-row";
 import {
   formatLocation,
   formatRelativePosted,
@@ -28,7 +29,10 @@ export default async function NotFound() {
 
   return (
     <BoardShell fullBleed>
-      <div className="mx-auto flex w-full max-w-[1072px] flex-col items-center gap-4 px-4 pt-12 pb-16 text-center min-[1104px]:px-0 md:pt-16 md:pb-[72px]">
+      <div
+        className="mx-auto flex w-full max-w-[1072px] flex-col items-center gap-4 px-4 pt-12 pb-16 text-center min-[1104px]:px-0 md:pt-16 md:pb-[72px]"
+        data-page="not-found"
+      >
         <p className="text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase">
           Error 404
         </p>
@@ -88,6 +92,11 @@ export default async function NotFound() {
                 const posted = job.publishedAt
                   ? formatRelativePosted(job.publishedAt, now)
                   : "";
+                // Phones get the list's short age ("2h") so it never runs
+                // into the title.
+                const age = job.publishedAt
+                  ? compactRelative(job.publishedAt, now)
+                  : "";
                 const subtitle = [
                   job.companyName,
                   location === LOCATION_FALLBACK ? "" : location,
@@ -108,13 +117,17 @@ export default async function NotFound() {
                         {job.companyName.trim().charAt(0).toUpperCase()}
                       </span>
                       {posted ? (
-                        <span className="text-subtle text-[12px] leading-4 max-md:col-start-2 max-md:row-start-1 max-md:justify-self-end">
-                          {posted}
+                        <span
+                          className="text-subtle text-[12px] leading-4 max-md:col-start-2 max-md:row-start-1 max-md:justify-self-end max-md:leading-[18px]"
+                          title={posted}
+                        >
+                          <span className="md:hidden">{age || posted}</span>
+                          <span className="max-md:hidden">{posted}</span>
                         </span>
                       ) : null}
                     </div>
                     <div className="flex min-w-0 flex-col gap-0.5 max-md:contents">
-                      <h3 className="text-foreground text-[15px] leading-[18px] font-medium max-md:col-start-2 max-md:row-start-1 max-md:pr-14">
+                      <h3 className="text-foreground text-[15px] leading-[18px] font-medium max-md:col-start-2 max-md:row-start-1 max-md:pr-10">
                         <Link
                           className="rounded-sm outline-none after:absolute after:inset-0"
                           href={buildJobPath(job.slug)}
