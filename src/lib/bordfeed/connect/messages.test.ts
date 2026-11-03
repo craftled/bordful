@@ -7,10 +7,13 @@ import {
   ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   connectedMessage,
   connectedSyncFailedMessage,
+  DAILY_CAP_MESSAGE,
   REGISTER_RATE_LIMIT_MESSAGE,
   REGISTRATION_EXPIRED_MESSAGE,
   RESET_MESSAGE,
   registeredMessage,
+  SYNC_BUSY_MESSAGE,
+  skippedSyncMessage,
   WORKSPACE_REQUIRED_MESSAGE,
   WRONG_CODE_MESSAGE,
 } from "./messages";
@@ -72,4 +75,10 @@ describe("connect messages", () => {
       "The Jobs by Bordfeed credit can be hidden only while Bordfeed is connected."
     );
   });
+});
+
+test("a skipped sync explains why nothing was fetched", () => {
+  expect(skippedSyncMessage("capped")).toBe(DAILY_CAP_MESSAGE);
+  expect(skippedSyncMessage("busy")).toBe(SYNC_BUSY_MESSAGE);
+  expect(skippedSyncMessage("delta")).toBeNull();
 });

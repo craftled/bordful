@@ -58,3 +58,17 @@ export function syncedMessage(count: number): string {
 
 export const DAILY_CAP_MESSAGE =
   "Today's Bordfeed job limit is used up, so nothing was fetched. Syncs resume after midnight UTC. Change the limit in the Bordfeed Connection settings.";
+
+export const SYNC_BUSY_MESSAGE =
+  "Another Bordfeed sync is running, so nothing was fetched. Try again in a few minutes.";
+
+// Sync now and connect report a skipped sync instead of "Synced 0 jobs".
+export function skippedSyncMessage(fetch: string): string | null {
+  if (fetch === "capped") {
+    return DAILY_CAP_MESSAGE;
+  }
+  if (fetch === "busy") {
+    return SYNC_BUSY_MESSAGE;
+  }
+  return null;
+}

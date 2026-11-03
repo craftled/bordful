@@ -160,7 +160,8 @@ function feedClient(
     createFeed: () => Promise.resolve({ id: FEED_ID }),
     fetchFeedPage(_feedId, query) {
       queries.push(query);
-      const source = query.status === "closed" ? closed : jobs;
+      const sources = { closed, expired: [], open: jobs };
+      const source = sources[query.status ?? "open"];
       const start = query.cursor ? Number(query.cursor.slice(1)) : 0;
       const end = Math.min(start + query.limit, source.length);
       const more = end < source.length;

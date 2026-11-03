@@ -37,7 +37,6 @@ import {
   CREDIT_SHOWN_MESSAGE,
   connectedMessage,
   connectedSyncFailedMessage,
-  DAILY_CAP_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
   NEED_CODE_MESSAGE,
@@ -45,6 +44,7 @@ import {
   REGISTRATION_EXPIRED_MESSAGE,
   RESET_MESSAGE,
   registeredMessage,
+  skippedSyncMessage,
   syncedMessage,
   WORKSPACE_REQUIRED_MESSAGE,
   WRONG_CODE_MESSAGE,
@@ -303,7 +303,11 @@ async function syncFeed(
       now,
     });
     const record = await readConnection(payload);
-    return step(record, connectedMessage(syncedCount(summary)), { summary });
+    const skipped = skippedSyncMessage(summary.fetch);
+    const message = skipped
+      ? `Connected. ${skipped}`
+      : connectedMessage(syncedCount(summary));
+    return step(record, message, { summary });
   } catch (error) {
     const record = await readConnection(payload);
     const safe = toSafeError(error, now());
@@ -670,9 +674,7 @@ export async function syncNow(
     });
     const record = await readConnection(payload);
     const message =
-      summary.fetch === "capped"
-        ? DAILY_CAP_MESSAGE
-        : syncedMessage(syncedCount(summary));
+      skippedSyncMessage(summary.fetch) ?? syncedMessage(syncedCount(summary));
     return step(record, message, { summary });
   } catch (error) {
     const record = await readConnection(payload);

@@ -85,6 +85,15 @@ async function setLimits(limits: {
   });
 }
 
+async function storedSince(): Promise<string | null> {
+  const doc = (await payload.findGlobal({
+    depth: 0,
+    overrideAccess: true,
+    slug: "bordfeed-connection",
+  })) as { syncState?: { since?: string } | null };
+  return doc.syncState?.since ?? null;
+}
+
 function boardJobs(where: Record<string, unknown> = {}) {
   return payload.count({
     collection: "jobs",
@@ -141,29 +150,35 @@ describe("bordfeed credit budget", () => {
       .filter((request) => request.path === FEED_PATH)
       .slice(1)
       .map((request) => request.query);
-    expect(deltaQueries).toHaveLength(2);
+    // Open, then closed, then expired jobs updated since the first sync.
+    expect(deltaQueries).toHaveLength(3);
     for (const query of deltaQueries) {
       expect(query).toMatchObject({ limit: "50", since_field: "updated" });
       expect(typeof query.since).toBe("string");
     }
-    expect(deltaQueries[1]).toMatchObject({ status: "closed" });
+    expect(deltaQueries.map((query) => query.status)).toEqual([
+      undefined,
+      "closed",
+      "expired",
+    ]);
 
     mock.touchFeedJobs([3, 4, 1500]);
     mock.closeFeedJobs([7]);
+    mock.expireFeedJobs([9]);
     const delta = await runBordfeedSync(payload);
     expect(delta).toMatchObject({
       created: 1,
       fetch: "delta",
-      fetchedJobs: 4,
-      unpublished: 1,
+      fetchedJobs: 5,
+      unpublished: 2,
     });
-    // Jobs 3, 4 and 7 were already received, so only job 1500 is billed.
-    expect(mock.state.servedJobs).toBe(54);
+    // Jobs 3, 4, 7 and 9 were already received, so only job 1500 is billed.
+    expect(mock.state.servedJobs).toBe(55);
     expect(mock.state.billedJobs).toBe(51);
     expect(mock.balance()).toBe(1949);
     expect(
       (await boardJobs({ _status: { equals: "published" } })).totalDocs
-    ).toBe(50);
+    ).toBe(49);
     const connection = await readConnection(payload);
     expect(connection.state).toBe("connected");
   });
@@ -188,8 +203,9 @@ describe("bordfeed credit budget", () => {
     expect(capped).toMatchObject({ fetch: "capped", fetchedJobs: 0 });
     expect(feedReads()).toBe(readsAtCap);
 
+    // A skipped sync leaves the last real sync on record.
     const connection = await readConnection(payload);
-    expect(connection.lastSyncSummary).toMatchObject({ fetch: "capped" });
+    expect(connection.lastSyncSummary).toMatchObject({ fetch: "delta" });
     const settings = (await payload.findGlobal({
       depth: 0,
       overrideAccess: true,
@@ -204,5 +220,57 @@ describe("bordfeed credit budget", () => {
     const first = await runBordfeedSync(payload);
     expect(first).toMatchObject({ created: 20, fetchedJobs: 20, pages: 1 });
     expect(mock.balance()).toBe(1980);
+  });
+
+  test("a long run of closures resumes across syncs before since moves", async () => {
+    await setLimits({ jobsPerSync: 20 });
+    await connectFeed();
+    await runBordfeedSync(payload);
+    const sinceAfterFirst = await storedSince();
+
+    // 30 jobs close: the 20 on the board and 10 it never fetched.
+    mock.closeFeedJobs(Array.from({ length: 30 }, (_, index) => index + 1));
+    const first = await runBordfeedSync(payload);
+    expect(first).toMatchObject({ fetchedJobs: 20, unpublished: 20 });
+    expect(await storedSince()).toBe(sinceAfterFirst);
+
+    const second = await runBordfeedSync(payload);
+    expect(second).toMatchObject({ fetchedJobs: 10, unpublished: 0 });
+    expect(await storedSince()).not.toBe(sinceAfterFirst);
+    expect(
+      (await boardJobs({ _status: { equals: "published" } })).totalDocs
+    ).toBe(0);
+  });
+
+  test("the first sync after an upgrade keeps jobs it did not fetch", async () => {
+    await connectFeed();
+    await runBordfeedSync(payload);
+    // A board from before this change has no sync state.
+    await payload.updateGlobal({
+      data: { jobsPerSync: 20, syncState: null },
+      depth: 0,
+      overrideAccess: true,
+      slug: "bordfeed-connection",
+    });
+
+    const again = await runBordfeedSync(payload);
+    expect(again).toMatchObject({ fetch: "first", fetchedJobs: 20 });
+    expect(
+      (await boardJobs({ _status: { equals: "published" } })).totalDocs
+    ).toBe(50);
+  });
+
+  test("two syncs at once never both spend", async () => {
+    await connectFeed();
+    const results = await Promise.all([
+      runBordfeedSync(payload),
+      runBordfeedSync(payload),
+    ]);
+    expect(results.map((result) => result.fetch).sort()).toEqual([
+      "busy",
+      "first",
+    ]);
+    expect(mock.state.servedJobs).toBe(50);
+    expect(feedReads()).toBe(1);
   });
 });

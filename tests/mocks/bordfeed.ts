@@ -91,6 +91,8 @@ export interface BordfeedMock {
   balance: () => number;
   // Marks feed jobs (1-based) closed and updated now.
   closeFeedJobs: (indexes: number[]) => void;
+  // Marks feed jobs (1-based) expired and updated now.
+  expireFeedJobs: (indexes: number[]) => void;
   handle: (request: Request) => Promise<Response>;
   reset: () => void;
   state: BordfeedMockState;
@@ -99,7 +101,7 @@ export interface BordfeedMock {
 }
 
 interface FeedMeta {
-  status: "active" | "closed";
+  status: "active" | "closed" | "expired";
   updatedAt: number;
 }
 
@@ -376,7 +378,7 @@ function feedLimit(url: URL): number | null {
 // keeps jobs whose since_field timestamp is after it.
 function feedFilter(url: URL): ((meta: FeedMeta) => boolean) | string {
   const status = url.searchParams.get("status");
-  if (status !== null && status !== "closed") {
+  if (status !== null && status !== "closed" && status !== "expired") {
     return "status must be closed or expired";
   }
 
@@ -391,7 +393,7 @@ function feedFilter(url: URL): ((meta: FeedMeta) => boolean) | string {
     return "since_field must be first_visible, updated or created";
   }
 
-  const wanted = status === "closed" ? "closed" : "active";
+  const wanted = status ?? "active";
   return (meta) => {
     if (meta.status !== wanted) {
       return false;
@@ -879,6 +881,9 @@ export function createBordfeedMock(
     },
     closeFeedJobs(indexes) {
       markFeedJobs(indexes, "closed");
+    },
+    expireFeedJobs(indexes) {
+      markFeedJobs(indexes, "expired");
     },
     async handle(request) {
       const url = new URL(request.url);

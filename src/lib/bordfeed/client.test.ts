@@ -142,6 +142,21 @@ test("fetchFeedPage sends delta params and clamps the limit to 100", async () =>
   expect(result).toMatchObject({ nextCursor: null, nextOffset: 40 });
 });
 
+test("fetchFeedPage rejects has_more without a cursor or offset", async () => {
+  const time = clock();
+  const fetchImpl: typeof fetch = () =>
+    Promise.resolve(
+      jsonResponse(page(["a"], { has_more: true, next_cursor: null }))
+    );
+  await expect(
+    client({
+      fetch: fetchImpl,
+      now: time.now,
+      sleep: time.sleep,
+    }).fetchFeedPage(FEED, { limit: 50 })
+  ).rejects.toMatchObject({ code: "invalid_response" });
+});
+
 test("fetchFeedPage rejects a non-uuid feed id before any fetch", async () => {
   let fetched = 0;
   const time = clock();

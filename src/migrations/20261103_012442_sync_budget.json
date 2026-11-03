@@ -5642,15 +5642,13 @@
           "name": "jobs_per_sync",
           "type": "numeric",
           "primaryKey": false,
-          "notNull": false,
-          "default": 50
+          "notNull": false
         },
         "jobs_per_day": {
           "name": "jobs_per_day",
           "type": "numeric",
           "primaryKey": false,
-          "notNull": false,
-          "default": 200
+          "notNull": false
         },
         "sync_state": {
           "name": "sync_state",
@@ -6115,6 +6113,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "7349df78-6eb6-4d75-b1c2-2d8010997c96",
+  "id": "72aded4b-f4fd-4a19-93ba-7f05e043ab9d",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

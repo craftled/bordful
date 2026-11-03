@@ -135,10 +135,8 @@ export const BordfeedConnection: GlobalConfig = {
     {
       access: { read: isAdminField },
       admin: {
-        description:
-          "Jobs fetched per sync (20 to 100). The first sync fetches one page of this size. Bordfeed bills one credit per job.",
+        description: `Most jobs one sync fetches (20 to 100), including the first sync. Bordfeed bills one credit per job the workspace has not received before. Leave empty to use bordful.config.ts (${bordfulConfig.bordfeed.sync.jobsPerSync}).`,
       },
-      defaultValue: bordfulConfig.bordfeed.sync.jobsPerSync,
       max: JOBS_PER_SYNC.max,
       min: JOBS_PER_SYNC.min,
       name: "jobsPerSync",
@@ -147,10 +145,8 @@ export const BordfeedConnection: GlobalConfig = {
     {
       access: { read: isAdminField },
       admin: {
-        description:
-          "Most jobs fetched per UTC day, across every sync. Syncs stop once it is reached.",
+        description: `Most jobs fetched per UTC day across every sync (20 to 5000). Syncs fetch nothing once it is reached. Leave empty to use bordful.config.ts (${bordfulConfig.bordfeed.sync.jobsPerDay}).`,
       },
-      defaultValue: bordfulConfig.bordfeed.sync.jobsPerDay,
       max: JOBS_PER_DAY.max,
       min: JOBS_PER_DAY.min,
       name: "jobsPerDay",

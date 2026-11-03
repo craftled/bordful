@@ -48,7 +48,7 @@ export interface FeedPageQuery {
   offset?: number | null;
   since?: string | null;
   sinceField?: "updated";
-  status?: "closed";
+  status?: "closed" | "expired";
 }
 
 export interface FeedPage {
@@ -389,12 +389,14 @@ export function createBordfeedClient(
         response.status
       );
       const more = parsed.pagination.has_more;
-      return {
-        data: parsed.data,
-        hasMore: more,
-        nextCursor: more ? parsed.pagination.next_cursor : null,
-        nextOffset: more ? (parsed.pagination.next_offset ?? null) : null,
-      };
+      const nextCursor = more ? parsed.pagination.next_cursor : null;
+      const nextOffset = more ? (parsed.pagination.next_offset ?? null) : null;
+      // has_more without a way to continue would end a delta series early.
+      if (more && !(nextCursor || nextOffset)) {
+        throw invalidResponse(response.status);
+      }
+
+      return { data: parsed.data, hasMore: more, nextCursor, nextOffset };
     },
 
     async listTemplates() {

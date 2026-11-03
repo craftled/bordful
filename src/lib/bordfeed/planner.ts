@@ -288,13 +288,13 @@ function placeIncoming(
   return { create, seen, skipped, update };
 }
 
-// A full feed unpublishes every published row it no longer lists. A delta
-// sync only sees changed jobs, so it unpublishes the ids Bordfeed reports
-// as closed and keeps everything else.
-function missingPublishedFeed(
+// Feed syncs fetch one capped page or only changed jobs, so a job missing
+// from the response says nothing. Only ids Bordfeed reports closed or
+// expired are unpublished.
+function removedPublishedFeed(
   row: ExistingRow,
   seen: Set<string>,
-  closedIds: ReadonlySet<string> | undefined
+  removedIds: ReadonlySet<string>
 ): boolean {
   const id = row.bordfeedJobId ?? "";
   return (
@@ -302,7 +302,7 @@ function missingPublishedFeed(
     row.status === "published" &&
     id.length > 0 &&
     !seen.has(id) &&
-    (closedIds === undefined || closedIds.has(id))
+    removedIds.has(id)
   );
 }
 
@@ -310,7 +310,7 @@ function removalFor(
   row: ExistingRow,
   mode: "feed" | "sample",
   seen: Set<string>,
-  closedIds: ReadonlySet<string> | undefined
+  removedIds: ReadonlySet<string>
 ): "delete" | "keep" | "unpublish" {
   if (mode === "feed" && row.origin === "bordfeed_sample") {
     return "delete";
@@ -320,7 +320,7 @@ function removalFor(
     return row.bordfeedJobId && seen.has(row.bordfeedJobId) ? "keep" : "delete";
   }
 
-  return mode === "feed" && missingPublishedFeed(row, seen, closedIds)
+  return mode === "feed" && removedPublishedFeed(row, seen, removedIds)
     ? "unpublish"
     : "keep";
 }
@@ -329,13 +329,13 @@ function removals(
   existing: ExistingRow[],
   mode: "feed" | "sample",
   seen: Set<string>,
-  closedIds: ReadonlySet<string> | undefined
+  removedIds: ReadonlySet<string>
 ) {
   const deleteIds: string[] = [];
   const unpublish: string[] = [];
 
   for (const row of existing) {
-    const action = removalFor(row, mode, seen, closedIds);
+    const action = removalFor(row, mode, seen, removedIds);
     if (action === "delete") {
       deleteIds.push(row.id);
     }
@@ -349,12 +349,12 @@ function removals(
 }
 
 export function planSync(input: {
-  // Set for a delta feed sync: only these Bordfeed ids may be unpublished.
-  closedIds?: ReadonlySet<string>;
   companyIds?: ReadonlyMap<string, number>;
   existing: ExistingRow[];
   incoming: MappedJob[];
   mode: "feed" | "sample";
+  // Bordfeed ids reported closed or expired. Feed mode unpublishes these.
+  removedIds?: ReadonlySet<string>;
   takenSlugs: Set<string>;
 }): SyncPlan {
   const taken = new Set(input.takenSlugs);
@@ -370,7 +370,7 @@ export function planSync(input: {
     input.existing,
     input.mode,
     placed.seen,
-    input.closedIds
+    input.removedIds ?? new Set()
   );
   return {
     create: placed.create,

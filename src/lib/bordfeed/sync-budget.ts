@@ -1,27 +1,38 @@
+import { sql } from "@payloadcms/db-postgres";
 import type { Payload } from "payload";
 
 import { bordfulConfig, JOBS_PER_DAY, JOBS_PER_SYNC } from "@/config";
 
-// Bordfeed bills one credit per job a feed request returns. Every feed sync
-// makes at most one open-jobs request and one closed-jobs request, sized from
-// what is left of the per-sync and per-day caps, so no schedule can drain a
-// workspace.
+// Bordfeed bills one credit for each job a workspace receives for the first
+// time. Every feed sync fetches at most jobsPerSync jobs, never more than is
+// left of jobsPerDay, so no schedule can drain a workspace.
 
 export interface SyncLimits {
   jobsPerDay: number;
   jobsPerSync: number;
 }
 
-export interface SyncState {
-  // Next page of an unfinished delta series (cursor or offset feeds).
+// A delta series reads open jobs, then closed, then expired, all updated
+// after `since`. It can span several syncs.
+export type SeriesPhase = "closed" | "expired" | "open";
+
+const PHASES: readonly SeriesPhase[] = ["open", "closed", "expired"];
+
+export interface SeriesPosition {
   cursor: string | null;
+  offset: number | null;
+  phase: SeriesPhase;
+}
+
+export interface SyncState {
   day: string | null;
   feedId: string | null;
   jobsToday: number;
-  offset: number | null;
-  // Watermark the series in progress moves `since` to once it finishes.
-  pendingSince: string | null;
-  // Jobs updated after this instant are fetched by the next delta sync.
+  // Set while a series is unfinished: where the next sync resumes.
+  position: SeriesPosition | null;
+  // Start of the unfinished series. `since` moves here once it ends.
+  seriesStart: string | null;
+  // Jobs updated after this instant are fetched by delta syncs.
   since: string | null;
 }
 
@@ -29,10 +40,9 @@ export type FetchPlan =
   | { kind: "skip"; reason: "daily_cap" }
   | { kind: "first"; limit: number }
   | {
-      cursor: string | null;
       kind: "delta";
       limit: number;
-      offset: number | null;
+      position: SeriesPosition;
       seriesStart: string;
       since: string;
     };
@@ -52,6 +62,7 @@ function clampInt(
   return Math.min(bounds.max, Math.max(bounds.min, Math.floor(value)));
 }
 
+// Empty admin fields fall back to bordful.config.ts.
 export function resolveLimits(stored: {
   jobsPerDay?: unknown;
   jobsPerSync?: unknown;
@@ -71,20 +82,26 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function freshState(feedId: string | null): SyncState {
-  return {
-    cursor: null,
-    day: null,
-    feedId,
-    jobsToday: 0,
-    offset: null,
-    pendingSince: null,
-    since: null,
-  };
+function positionOf(value: unknown): SeriesPosition | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const row = value as Record<string, unknown>;
+  const phase = PHASES.find((item) => item === row.phase);
+  if (!phase) {
+    return null;
+  }
+
+  const offset =
+    typeof row.offset === "number" && row.offset > 0
+      ? Math.floor(row.offset)
+      : null;
+  return { cursor: text(row.cursor), offset, phase };
 }
 
 // A different feed starts over with a capped first sync. Usage for the day
-// carries across feeds, since it is the same Bordfeed workspace paying.
+// carries across feeds, since the same Bordfeed workspace pays.
 export function parseSyncState(
   value: unknown,
   feedId: string | null
@@ -99,20 +116,23 @@ export function parseSyncState(
       : 0;
   const usage = { day: text(row.day), jobsToday };
   if (text(row.feedId) !== feedId) {
-    return { ...freshState(feedId), ...usage };
+    return {
+      ...usage,
+      feedId,
+      position: null,
+      seriesStart: null,
+      since: null,
+    };
   }
 
-  const offset =
-    typeof row.offset === "number" && row.offset > 0
-      ? Math.floor(row.offset)
-      : null;
+  const since = text(row.since);
+  const seriesStart = since ? text(row.seriesStart) : null;
   return {
-    cursor: text(row.cursor),
-    feedId,
-    offset,
-    pendingSince: text(row.pendingSince),
-    since: text(row.since),
     ...usage,
+    feedId,
+    position: seriesStart ? positionOf(row.position) : null,
+    seriesStart,
+    since,
   };
 }
 
@@ -132,6 +152,10 @@ export function remainingToday(
   return Math.max(0, limits.jobsPerDay - usedToday(state, now));
 }
 
+export function watermark(startedAt: Date): string {
+  return new Date(startedAt.getTime() - WATERMARK_OVERLAP_MS).toISOString();
+}
+
 export function planFetch(
   state: SyncState,
   limits: SyncLimits,
@@ -149,22 +173,17 @@ export function planFetch(
     return { kind: "first", limit };
   }
 
-  const resuming =
-    state.pendingSince !== null &&
-    (state.cursor !== null || state.offset !== null);
   return {
-    cursor: resuming ? state.cursor : null,
     kind: "delta",
     limit,
-    offset: resuming ? state.offset : null,
-    seriesStart:
-      resuming && state.pendingSince ? state.pendingSince : watermark(now),
+    position: state.position ?? { cursor: null, offset: null, phase: "open" },
+    seriesStart: state.seriesStart ?? watermark(now),
     since: state.since,
   };
 }
 
-export function watermark(startedAt: Date): string {
-  return new Date(startedAt.getTime() - WATERMARK_OVERLAP_MS).toISOString();
+export function nextPhase(phase: SeriesPhase): SeriesPhase | null {
+  return PHASES[PHASES.indexOf(phase) + 1] ?? null;
 }
 
 export function recordSpend(
@@ -183,34 +202,27 @@ export function recordSpend(
 export function afterFirst(state: SyncState, startedAt: Date): SyncState {
   return {
     ...state,
-    cursor: null,
-    offset: null,
-    pendingSince: null,
+    position: null,
+    seriesStart: null,
     since: watermark(startedAt),
   };
 }
 
-// A delta series with more pages keeps its `since` and resumes from the
-// cursor next run. Once the last page lands, `since` moves to when it began.
+// `next` is where the series resumes, or null once every phase is read. Only
+// then does `since` move, so no update, closure or expiry is skipped.
 export function afterDelta(
   state: SyncState,
   plan: Extract<FetchPlan, { kind: "delta" }>,
-  next: { nextCursor: string | null; nextOffset: number | null }
+  next: SeriesPosition | null
 ): SyncState {
-  if (next.nextCursor || next.nextOffset) {
-    return {
-      ...state,
-      cursor: next.nextCursor,
-      offset: next.nextCursor ? null : next.nextOffset,
-      pendingSince: plan.seriesStart,
-    };
+  if (next) {
+    return { ...state, position: next, seriesStart: plan.seriesStart };
   }
 
   return {
     ...state,
-    cursor: null,
-    offset: null,
-    pendingSince: null,
+    position: null,
+    seriesStart: null,
     since: plan.seriesStart,
   };
 }
@@ -235,14 +247,51 @@ export async function readSyncBudget(
   };
 }
 
+interface DrizzleExecutor {
+  execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;
+}
+
+function database(payload: Payload): DrizzleExecutor {
+  return (payload.db as unknown as { drizzle: DrizzleExecutor }).drizzle;
+}
+
+// Writes the state but keeps the lease the running sync holds.
 export async function writeSyncState(
   payload: Payload,
   state: SyncState
 ): Promise<void> {
-  await payload.updateGlobal({
-    data: { syncState: { ...state } },
-    depth: 0,
-    overrideAccess: true,
-    slug: SLUG,
-  });
+  const value = JSON.stringify(state);
+  await database(payload).execute(sql`
+    update "bordfeed_connection"
+    set "sync_state" = ${value}::jsonb
+      || jsonb_build_object('leaseUntil', "sync_state"->'leaseUntil')
+  `);
+}
+
+// Max sync time (route maxDuration is 300 s) plus a margin.
+export const SYNC_LEASE_MS = 6 * 60 * 1000;
+
+// One feed sync at a time, so two runs never spend the same budget. The
+// update is atomic: only one caller sees an expired lease and takes it.
+export async function acquireSyncLease(
+  payload: Payload,
+  now: Date
+): Promise<boolean> {
+  const until = new Date(now.getTime() + SYNC_LEASE_MS).toISOString();
+  const result = await database(payload).execute(sql`
+    update "bordfeed_connection"
+    set "sync_state" = coalesce("sync_state", '{}'::jsonb)
+      || jsonb_build_object('leaseUntil', ${until}::text)
+    where coalesce("sync_state"->>'leaseUntil', '') < ${now.toISOString()}
+    returning "id"
+  `);
+  return result.rows.length > 0;
+}
+
+export async function releaseSyncLease(payload: Payload): Promise<void> {
+  await database(payload).execute(sql`
+    update "bordfeed_connection"
+    set "sync_state" = "sync_state" - 'leaseUntil'
+    where "sync_state" is not null
+  `);
 }

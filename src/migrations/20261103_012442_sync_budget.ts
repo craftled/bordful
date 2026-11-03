@@ -4,8 +4,8 @@ import type { MigrateDownArgs, MigrateUpArgs } from '@payloadcms/db-postgres'
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "bordfeed_connection" ALTER COLUMN "template_id" SET DEFAULT 'fully-remote';
-  ALTER TABLE "bordfeed_connection" ADD COLUMN "jobs_per_sync" numeric DEFAULT 50;
-  ALTER TABLE "bordfeed_connection" ADD COLUMN "jobs_per_day" numeric DEFAULT 200;
+  ALTER TABLE "bordfeed_connection" ADD COLUMN "jobs_per_sync" numeric;
+  ALTER TABLE "bordfeed_connection" ADD COLUMN "jobs_per_day" numeric;
   ALTER TABLE "bordfeed_connection" ADD COLUMN "sync_state" jsonb;`)
 }
 
