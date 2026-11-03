@@ -42,6 +42,6 @@ test.describe("E1 fresh-deploy-sample", { tag: ["@E1"] }, () => {
     const preview = recorded.find(
       (entry) => entry.path === "/api/v1/templates/fully-remote/preview"
     );
-    expect(preview?.["x-bordfeed-client"]).toBe("bordful/1.0.0-beta.1");
+    expect(preview?.["x-bordfeed-client"]).toBe("bordful/1.0.0-beta.2");
   });
 });
