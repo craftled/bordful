@@ -28,7 +28,7 @@ The API key is stored encrypted with `PAYLOAD_SECRET`. It is hidden from every A
 
 The feed Bordful creates uses your site name from Site settings. If the site still has the default name "Job Board", the feed takes the template name, for example "Fully Remote". It keeps the template filters.
 
-A new Bordfeed account shows 0 credits until its first feed read, which adds the free starting credit. If Bordfeed answers with a credits or payment error, the admin card says so, and the sample jobs stay on the board until a sync succeeds.
+A new Bordfeed account shows 0 credits until its first feed read, which adds the free starting credit (2,000 jobs on pay as you go). If Bordfeed answers with a credits or payment error, the admin card says so, and the sample jobs stay on the board until a sync succeeds.
 
 The first successful sync removes the sample jobs. If the feed comes back empty, the samples stay, so the board is never blank. Later syncs are described below.
 
@@ -74,4 +74,26 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 
 ## Daily sync
 
-`/api/cron/bordfeed` runs at 06:00 UTC. Jobs that disappeared from the feed are unpublished, not deleted. A later sync can publish them again if Bordfeed still lists them. Sample jobs are replaced when you connect, not unpublished one by one.
+`/api/cron/bordfeed` runs at 06:00 UTC. "Sync now" in the admin and `bun run bordful sync` run the same sync.
+
+- The first sync after you connect fetches one page of the newest jobs: `jobsPerSync` jobs, 50 by default. It does not page through the rest of the feed.
+- Every later sync asks Bordfeed only for jobs added or updated since the last sync (`since` with `since_field=updated`), up to `jobsPerSync` jobs. If more changed, the next sync continues from the cursor where this one stopped.
+- When a sync has caught up, it also asks for jobs Bordfeed closed since the last sync and unpublishes them. Jobs are unpublished, not deleted. A later sync publishes a job again if Bordfeed sends it as open.
+- Sample jobs are replaced when you connect, not unpublished one by one.
+
+## Credits per sync
+
+Bordfeed charges one credit for each job your workspace receives for the first time. A job it sends again, even after it changed or closed, is free, and an empty page is free. On pay as you go one credit is $0.01, and a new account starts with 2,000 credits ($20).
+
+Two caps bound what a sync can fetch, so a schedule can never drain the balance:
+
+| Setting | Default | Range | What it caps |
+| --- | --- | --- | --- |
+| `jobsPerSync` | 50 | 20 to 100 | Jobs one sync fetches, including the first sync. One request for open jobs, plus one for closed jobs once caught up. |
+| `jobsPerDay` | 200 | 20 to 5000 | Jobs fetched per UTC day across every sync, cron and manual. At the cap a sync makes no request and the admin says so. |
+
+Set the defaults in `bordful.config.ts` under `bordfeed.sync`. Admins can change both for one board in the admin, in the Bordfeed Connection global. The admin values win. Values outside the range are clamped.
+
+With the defaults, the first sync uses at most 50 credits, and a board uses at most 200 credits a day. The daily cron on a quiet feed uses close to none, because unchanged jobs are not fetched. The caps count jobs fetched, so the credits a sync uses are never more than the cap and often fewer.
+
+If credits run out, Bordfeed answers 402 and the admin shows: "This Bordfeed workspace is out of credits." The board keeps its jobs. Top up in Bordfeed, then sync again.

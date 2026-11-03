@@ -55,3 +55,6 @@ export const ATTRIBUTION_CONNECTED_ONLY_MESSAGE =
 export function syncedMessage(count: number): string {
   return `Synced ${count} jobs from Bordfeed.`;
 }
+
+export const DAILY_CAP_MESSAGE =
+  "Today's Bordfeed job limit is used up, so nothing was fetched. Syncs resume after midnight UTC. Change the limit in the Bordfeed Connection settings.";

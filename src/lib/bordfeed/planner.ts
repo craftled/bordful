@@ -288,19 +288,29 @@ function placeIncoming(
   return { create, seen, skipped, update };
 }
 
-function missingPublishedFeed(row: ExistingRow, seen: Set<string>): boolean {
+// A full feed unpublishes every published row it no longer lists. A delta
+// sync only sees changed jobs, so it unpublishes the ids Bordfeed reports
+// as closed and keeps everything else.
+function missingPublishedFeed(
+  row: ExistingRow,
+  seen: Set<string>,
+  closedIds: ReadonlySet<string> | undefined
+): boolean {
+  const id = row.bordfeedJobId ?? "";
   return (
     row.origin === "bordfeed" &&
     row.status === "published" &&
-    Boolean(row.bordfeedJobId) &&
-    !seen.has(row.bordfeedJobId ?? "")
+    id.length > 0 &&
+    !seen.has(id) &&
+    (closedIds === undefined || closedIds.has(id))
   );
 }
 
 function removalFor(
   row: ExistingRow,
   mode: "feed" | "sample",
-  seen: Set<string>
+  seen: Set<string>,
+  closedIds: ReadonlySet<string> | undefined
 ): "delete" | "keep" | "unpublish" {
   if (mode === "feed" && row.origin === "bordfeed_sample") {
     return "delete";
@@ -310,7 +320,7 @@ function removalFor(
     return row.bordfeedJobId && seen.has(row.bordfeedJobId) ? "keep" : "delete";
   }
 
-  return mode === "feed" && missingPublishedFeed(row, seen)
+  return mode === "feed" && missingPublishedFeed(row, seen, closedIds)
     ? "unpublish"
     : "keep";
 }
@@ -318,13 +328,14 @@ function removalFor(
 function removals(
   existing: ExistingRow[],
   mode: "feed" | "sample",
-  seen: Set<string>
+  seen: Set<string>,
+  closedIds: ReadonlySet<string> | undefined
 ) {
   const deleteIds: string[] = [];
   const unpublish: string[] = [];
 
   for (const row of existing) {
-    const action = removalFor(row, mode, seen);
+    const action = removalFor(row, mode, seen, closedIds);
     if (action === "delete") {
       deleteIds.push(row.id);
     }
@@ -338,6 +349,8 @@ function removals(
 }
 
 export function planSync(input: {
+  // Set for a delta feed sync: only these Bordfeed ids may be unpublished.
+  closedIds?: ReadonlySet<string>;
   companyIds?: ReadonlyMap<string, number>;
   existing: ExistingRow[];
   incoming: MappedJob[];
@@ -353,7 +366,12 @@ export function planSync(input: {
     taken,
     input.companyIds
   );
-  const removed = removals(input.existing, input.mode, placed.seen);
+  const removed = removals(
+    input.existing,
+    input.mode,
+    placed.seen,
+    input.closedIds
+  );
   return {
     create: placed.create,
     deleteIds: removed.deleteIds,

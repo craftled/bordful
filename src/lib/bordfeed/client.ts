@@ -22,7 +22,6 @@ import type {
   VerifyResponse,
 } from "./types";
 
-const PAGE_CAP = 200;
 const DEFAULT_MIN_INTERVAL_MS = 500;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const MAX_WAIT_SECONDS = 10;
@@ -31,7 +30,7 @@ const FEED_ID =
 
 export interface BordfeedClient {
   createFeed: (body: CreateFeedRequest) => Promise<{ id: string }>;
-  listFeedJobs: (feedId: string) => AsyncGenerator<BordfeedJob[]>;
+  fetchFeedPage: (feedId: string, query: FeedPageQuery) => Promise<FeedPage>;
   listTemplates: () => Promise<TemplatesResponse>;
   previewTemplate: (
     templateId: string,
@@ -40,6 +39,27 @@ export interface BordfeedClient {
   register: (body: RegisterRequest) => Promise<RegisterResponse>;
   verify: (body: VerifyRequest) => Promise<VerifyResponse>;
 }
+
+// One billed request: Bordfeed charges one credit per job returned, so the
+// caller sets `limit` from its sync budget and never pages on its own.
+export interface FeedPageQuery {
+  cursor?: string | null;
+  limit: number;
+  offset?: number | null;
+  since?: string | null;
+  sinceField?: "updated";
+  status?: "closed";
+}
+
+export interface FeedPage {
+  data: BordfeedJob[];
+  hasMore: boolean;
+  // Date-sorted feeds page by cursor, search feeds by offset.
+  nextCursor: string | null;
+  nextOffset: number | null;
+}
+
+export const FEED_PAGE_MAX = 100;
 
 export interface BordfeedClientOptions {
   apiKey?: string;
@@ -319,47 +339,25 @@ export function createBordfeedClient(
     return parsed.toString();
   }
 
-  async function* feedPages(
-    feedId: string,
-    cursor: string | null,
-    offset: number | null,
-    page: number
-  ): AsyncGenerator<BordfeedJob[]> {
-    if (page >= PAGE_CAP) {
-      throw invalidResponse();
-    }
-
+  function feedPageSearch(query: FeedPageQuery): string {
     const params = new URLSearchParams();
-    params.set("limit", "100");
+    const limit = Math.min(FEED_PAGE_MAX, Math.max(1, Math.floor(query.limit)));
+    params.set("limit", String(limit));
     params.set("include", "description_html");
-    if (cursor) {
-      params.set("cursor", cursor);
-    } else if (typeof offset === "number") {
-      params.set("offset", String(offset));
+    if (query.since) {
+      params.set("since", query.since);
+      params.set("since_field", query.sinceField ?? "updated");
+    }
+    if (query.status) {
+      params.set("status", query.status);
+    }
+    if (query.cursor) {
+      params.set("cursor", query.cursor);
+    } else if (typeof query.offset === "number" && query.offset > 0) {
+      params.set("offset", String(query.offset));
     }
 
-    const response = await request(
-      endpoint(`/api/v1/feeds/${feedId}/jobs`, params.toString()),
-      {}
-    );
-    const parsed = parseSchema(jobsPageSchema, response.body, response.status);
-    yield parsed.data;
-    if (!parsed.pagination.has_more) {
-      return;
-    }
-
-    const nextCursor = parsed.pagination.next_cursor;
-    if (nextCursor) {
-      yield* feedPages(feedId, nextCursor, null, page + 1);
-      return;
-    }
-
-    const nextOffset = parsed.pagination.next_offset;
-    if (typeof nextOffset !== "number") {
-      throw invalidResponse(response.status);
-    }
-
-    yield* feedPages(feedId, null, nextOffset, page + 1);
+    return params.toString();
   }
 
   return {
@@ -376,12 +374,27 @@ export function createBordfeedClient(
       return { id: parsed.data.id };
     },
 
-    async *listFeedJobs(feedId) {
+    async fetchFeedPage(feedId, query) {
       if (!FEED_ID.test(feedId)) {
         throw invalidResponse(400);
       }
 
-      yield* feedPages(feedId, null, null, 0);
+      const response = await request(
+        endpoint(`/api/v1/feeds/${feedId}/jobs`, feedPageSearch(query)),
+        {}
+      );
+      const parsed = parseSchema(
+        jobsPageSchema,
+        response.body,
+        response.status
+      );
+      const more = parsed.pagination.has_more;
+      return {
+        data: parsed.data,
+        hasMore: more,
+        nextCursor: more ? parsed.pagination.next_cursor : null,
+        nextOffset: more ? (parsed.pagination.next_offset ?? null) : null,
+      };
     },
 
     async listTemplates() {

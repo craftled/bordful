@@ -1058,6 +1058,23 @@ export interface BordfeedConnection {
     | number
     | boolean
     | null;
+  /**
+   * Jobs fetched per sync (20 to 100). The first sync fetches one page of this size. Bordfeed bills one credit per job.
+   */
+  jobsPerSync?: number | null;
+  /**
+   * Most jobs fetched per UTC day, across every sync. Syncs stop once it is reached.
+   */
+  jobsPerDay?: number | null;
+  syncState?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   showAttribution?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1173,6 +1190,9 @@ export interface BordfeedConnectionSelect<T extends boolean = true> {
   lastSyncAt?: T;
   lastSyncSummary?: T;
   lastError?: T;
+  jobsPerSync?: T;
+  jobsPerDay?: T;
+  syncState?: T;
   showAttribution?: T;
   updatedAt?: T;
   createdAt?: T;

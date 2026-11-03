@@ -49,7 +49,7 @@ const MESSAGES = {
   network: "Could not reach Bordfeed.",
   not_found: "Bordfeed could not find this template or feed.",
   payment_required:
-    "Bordfeed needs more credits for this workspace. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
+    "This Bordfeed workspace is out of credits. Each job a sync fetches for the first time uses one credit. Top up in Bordfeed, then sync again. The board keeps its current jobs until then.",
   rate_limited: "Bordfeed is rate limiting this board. Try again later.",
   unknown: "The Bordfeed request failed.",
   workspace_required: "Choose which Bordfeed workspace to connect.",

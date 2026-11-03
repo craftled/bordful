@@ -9,7 +9,11 @@ import { bordfulConfig } from "./index";
 const defaults = {
   alerts: { provider: "resend" },
   board: { defaultTemplateId: "fully-remote" },
-  bordfeed: { baseUrl: "https://bordfeed.com", syncCron: "0 6 * * *" },
+  bordfeed: {
+    baseUrl: "https://bordfeed.com",
+    sync: { jobsPerDay: 200, jobsPerSync: 50 },
+    syncCron: "0 6 * * *",
+  },
   csp: { extraConnectOrigins: [], extraScriptOrigins: [] },
   social: {},
   telemetry: { clientHeader: true },
@@ -24,6 +28,19 @@ test("a partial override keeps the other defaults", () => {
     ...defaults,
     telemetry: { clientHeader: false },
   });
+});
+
+test("sync caps clamp to 20 to 100 per sync and 20 to 5000 per day", () => {
+  expect(
+    defineBordfulConfig({
+      bordfeed: { sync: { jobsPerDay: 1, jobsPerSync: 1000 } },
+    }).bordfeed.sync
+  ).toEqual({ jobsPerDay: 20, jobsPerSync: 100 });
+  expect(
+    defineBordfulConfig({
+      bordfeed: { sync: { jobsPerDay: 99_999, jobsPerSync: 3 } },
+    }).bordfeed.sync
+  ).toEqual({ jobsPerDay: 5000, jobsPerSync: 20 });
 });
 
 test("the committed config matches the defaults", () => {

@@ -17,6 +17,14 @@ function isFiveFieldCron(value: string): boolean {
   );
 }
 
+function clamp(min: number, max: number) {
+  return (value: number) => Math.min(max, Math.max(min, value));
+}
+
+// Bordfeed bills up to one credit per job fetched. These caps bound every sync.
+export const JOBS_PER_SYNC = { default: 50, max: 100, min: 20 } as const;
+export const JOBS_PER_DAY = { default: 200, max: 5000, min: 20 } as const;
+
 const cronSchema = z.string().refine(isFiveFieldCron, {
   message:
     "Enter a 5-field cron expression. Step values must use */N or a-b/N.",
@@ -36,6 +44,20 @@ export const bordfulConfigSchema = z.strictObject({
   bordfeed: z
     .strictObject({
       baseUrl: httpsUrl.prefault("https://bordfeed.com"),
+      sync: z
+        .strictObject({
+          jobsPerDay: z
+            .number()
+            .int()
+            .transform(clamp(JOBS_PER_DAY.min, JOBS_PER_DAY.max))
+            .prefault(JOBS_PER_DAY.default),
+          jobsPerSync: z
+            .number()
+            .int()
+            .transform(clamp(JOBS_PER_SYNC.min, JOBS_PER_SYNC.max))
+            .prefault(JOBS_PER_SYNC.default),
+        })
+        .prefault({}),
       syncCron: cronSchema.prefault("0 6 * * *"),
     })
     .prefault({}),

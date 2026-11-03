@@ -8,7 +8,11 @@ Two places hold board setup: `bordful.config.ts` in the repo, and Site settings 
 
 ```ts
 export default defineBordfulConfig({
-  bordfeed: { baseUrl: "https://bordfeed.com", syncCron: "0 6 * * *" },
+  bordfeed: {
+    baseUrl: "https://bordfeed.com",
+    syncCron: "0 6 * * *",
+    sync: { jobsPerSync: 50, jobsPerDay: 200 },
+  },
   telemetry: { clientHeader: true },
   board: { defaultTemplateId: "fully-remote" },
   alerts: { provider: "resend" },
@@ -20,6 +24,8 @@ export default defineBordfulConfig({
 | --- | --- | --- |
 | `bordfeed.baseUrl` | `https://bordfeed.com` | `https` only. Use the origin only, for example `https://bordfeed.com`. The schema does not reject a trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock. |
 | `bordfeed.syncCron` | `0 6 * * *` | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Editing it does not change `vercel.json`. |
+| `bordfeed.sync.jobsPerSync` | `50` | Jobs one sync fetches, including the first sync. Clamped to 20 to 100. Admins can override it in the Bordfeed Connection global. See [Credits per sync](bordfeed.md#credits-per-sync). |
+| `bordfeed.sync.jobsPerDay` | `200` | Jobs fetched per UTC day across every sync. Clamped to 20 to 5000. Admins can override it in the Bordfeed Connection global. |
 | `telemetry.clientHeader` | `true` | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md). |
 | `board.defaultTemplateId` | `fully-remote` | Template used for sample jobs and for the feed created at connect. Read once, on first boot. An existing board keeps the template stored in its Bordfeed connection, so changing this value later does not move it. |
 | `alerts.provider` | `resend` | Only `resend`. |

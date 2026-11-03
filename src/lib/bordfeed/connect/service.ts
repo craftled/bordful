@@ -37,6 +37,7 @@ import {
   CREDIT_SHOWN_MESSAGE,
   connectedMessage,
   connectedSyncFailedMessage,
+  DAILY_CAP_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
   NEED_CODE_MESSAGE,
@@ -668,7 +669,11 @@ export async function syncNow(
       now,
     });
     const record = await readConnection(payload);
-    return step(record, syncedMessage(syncedCount(summary)), { summary });
+    const message =
+      summary.fetch === "capped"
+        ? DAILY_CAP_MESSAGE
+        : syncedMessage(syncedCount(summary));
+    return step(record, message, { summary });
   } catch (error) {
     const record = await readConnection(payload);
     return step(record, toSafeError(error, now()).message);
