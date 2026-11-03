@@ -44,7 +44,7 @@ export default async function GlobalNotFound() {
         <ThemeScript nonce={nonce} />
         <style nonce={nonce}>{`:root{${css}}`}</style>
       </head>
-      <body>
+      <body className="antialiased">
         <BoardNotFound />
       </body>
     </html>
