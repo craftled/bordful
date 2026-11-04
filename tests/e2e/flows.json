@@ -89,6 +89,12 @@
       "file": "e13-cli-connect.spec.ts",
       "requires": ["L3a", "L3b"],
       "enabled": true
+    },
+    {
+      "id": "E14",
+      "file": "e14-import-blocklist.spec.ts",
+      "requires": ["L3a"],
+      "enabled": true
     }
   ]
 }
