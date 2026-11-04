@@ -273,3 +273,25 @@ test("reused company rows compare by relation id", () => {
   expect(plan.update).toEqual([]);
   expect(plan.create).toEqual([]);
 });
+
+test("blocked ids unpublish published copies and count as skipped", () => {
+  const kept = job("j1", "h1");
+  const blockedLive = job("j2", "h2");
+  const blockedDraft = job("j3", "h3");
+  const plan = planSync({
+    blockedIds: new Set(["j2", "j3"]),
+    existing: [
+      row("1", "j1", "bordfeed", "published", "h1", kept),
+      row("2", "j2", "bordfeed", "published", "h2", blockedLive),
+      row("3", "j3", "bordfeed", "draft", "h3", blockedDraft),
+    ],
+    incoming: [kept],
+    mode: "feed",
+    takenSlugs: new Set(["j1", "j2", "j3"]),
+  });
+
+  expect(plan.unpublish).toEqual(["2"]);
+  expect(plan.update).toEqual([]);
+  expect(plan.create).toEqual([]);
+  expect(plan.skipped).toBe(2);
+});
