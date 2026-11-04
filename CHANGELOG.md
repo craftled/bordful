@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rebuilt on Payload 4 (4.0.0-beta.6, with Lexical 0.53) and Postgres.
 - Requires Node.js 26 LTS. `engines.node` is `26.x`, which overrides the Vercel project Node.js setting. Built-in fetch on Vercel uses HTTP/2 on Node 26. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
+### Fixed
+
+- The Deploy to Vercel button asks for a public Blob store. Vercel's new default is a private store, which sets no `BLOB_READ_WRITE_TOKEN`, so logo and media uploads failed on every new board.
+- A fresh deploy could show an empty board. Vercel's first requests each booted the app and seeded the sample jobs at the same time, and the board cached the empty page. One boot now takes the sync lease and seeds, the others skip, and an empty first page is read again before it is served.
+
 ### Removed
 
 - Airtable.

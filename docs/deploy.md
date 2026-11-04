@@ -7,7 +7,7 @@ The button in the [README](../README.md) opens the Vercel project flow and clone
 It provisions:
 
 - Neon Postgres, which sets `DATABASE_URL`. Preview deployments get their own Neon branch.
-- Vercel Blob, which sets `BLOB_READ_WRITE_TOKEN`.
+- Vercel Blob, which sets `BLOB_READ_WRITE_TOKEN`. The button asks for a public store. A private store, which is what Vercel offers first when you add Blob by hand, sets `BLOB_STORE_ID` instead of a token, so the storage adapter stays off and uploads fail. If a board ends up with a private store, create a public one and connect it to the project.
 
 It then asks you to enter:
 
