@@ -28,13 +28,13 @@ export default async function SearchPage({
   const settings = await getSiteSettings();
   const options = { defaultPerPage: settings.board.jobsPerPage };
   const params = urlSearchParamsFromRecord(await searchParams);
-  const target = canonicalSearchRedirect(params, options);
+  const cards = await loadBoardPool();
+  const target = canonicalSearchRedirect(params, options, cards);
   if (target) {
     redirect(target);
   }
 
   const query = await withTextMatches(parseBoardQuery(params, options));
-  const cards = await loadBoardPool();
   if (buildBoardView(cards, query).outOfRange) {
     notFound();
   }

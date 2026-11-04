@@ -1,5 +1,6 @@
 import { ListFilter, X } from "lucide-react";
 import Link from "next/link";
+import { MenuDetails } from "@/components/board/menu-details";
 import type { BoardFacets } from "@/lib/board/filter";
 import { SENIORITY_LABELS } from "@/lib/board/format";
 import { boardStateHref } from "@/lib/board/links";
@@ -483,7 +484,7 @@ function ChipMenu({
   const active = visible.filter((option) => option.active);
 
   return (
-    <details className="group hidden lg:block">
+    <MenuDetails className="group hidden lg:block">
       <summary
         className={cn(
           CHIP,
@@ -579,7 +580,7 @@ function ChipMenu({
           ) : null}
         </div>
       </div>
-    </details>
+    </MenuDetails>
   );
 }
 

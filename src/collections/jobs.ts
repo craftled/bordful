@@ -58,10 +58,38 @@ const denormalizeCompany: CollectionBeforeChangeHook = async ({
   originalDoc,
   req,
 }) => {
-  const companyId = relationId(data.company);
-  if (companyId === null) {
+  // data holds only the submitted fields. No company key: nothing to derive.
+  if (!("company" in data)) {
     return data;
   }
+
+  const companyId = relationId(data.company);
+  const company =
+    companyId === null
+      ? null
+      : await req.payload.findByID({
+          collection: "companies",
+          depth: 0,
+          disableErrors: true,
+          id: companyId,
+          overrideAccess: true,
+          req,
+        });
+
+  // A cleared or deleted company must not leave a link to /companies/<slug>.
+  if (!company) {
+    if (operation === "update") {
+      data.companySlug = null;
+      data.companyDomain = null;
+    }
+
+    return data;
+  }
+
+  // Slug and domain are derived, so every save re-reads them. A draft saved
+  // before a company slug change would otherwise publish the old link.
+  data.companySlug = company.slug;
+  data.companyDomain = company.domain;
 
   const previousId = relationId(originalDoc?.company);
   const changed =
@@ -72,20 +100,10 @@ const denormalizeCompany: CollectionBeforeChangeHook = async ({
     return data;
   }
 
-  const company = await req.payload.findByID({
-    collection: "companies",
-    depth: 0,
-    id: companyId,
-    overrideAccess: true,
-    req,
-  });
-
   if (!data.companyName && typeof company.name === "string") {
     data.companyName = company.name;
   }
 
-  data.companySlug = company.slug;
-  data.companyDomain = company.domain;
   data.companyLogo = company.logo;
   return data;
 };

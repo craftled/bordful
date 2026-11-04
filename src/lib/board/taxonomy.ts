@@ -86,6 +86,18 @@ export function languageLabel(code: string): string {
   }
 }
 
+// The career levels plus the level the seniority maps to, so hub counts use
+// the same matching as the level archive (cardMatchesLevel).
+function cardLevels(card: JobListItem): string[] {
+  const levels = card.careerLevel.filter((level) => level.length > 0);
+  const mapped = card.seniority ? SENIORITY_LEVEL[card.seniority] : undefined;
+  if (mapped && !levels.includes(mapped)) {
+    levels.push(mapped);
+  }
+
+  return levels;
+}
+
 export function taxonomyValuesFor(card: JobListItem): TaxonomyValues {
   const locations: string[] = [];
   if (card.workplaceType === "remote") {
@@ -100,7 +112,7 @@ export function taxonomyValuesFor(card: JobListItem): TaxonomyValues {
     languages: card.languages
       .map((language) => slugifyTaxonomyValue(language))
       .filter((language) => language.length > 0),
-    levels: card.careerLevel.filter((level) => level.length > 0),
+    levels: cardLevels(card),
     locations,
     type: card.employmentType,
   };

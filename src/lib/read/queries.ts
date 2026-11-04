@@ -53,6 +53,13 @@ export async function queryPublishedJobs(
   return paginate(input.page, result, toJobListItem);
 }
 
+// Payload turns `contains` into ILIKE '%q%' without escaping, and Postgres
+// reads `%`, `_` and its default escape `\` as pattern syntax. Escaping them
+// keeps q a literal substring, as in the board's card match.
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/gu, (char) => `\\${char}`);
+}
+
 // Ids of published jobs whose summary or skills contain the text. Board cards
 // leave both out (the saved page ships every card to the browser), so search
 // asks Postgres for these matches and merges them with the card match.
@@ -60,6 +67,7 @@ export async function queryJobIdsMatchingText(
   payload: Payload,
   input: { limit: number; q: string }
 ): Promise<string[]> {
+  const pattern = escapeLikePattern(input.q);
   const result = await payload.find({
     collection: "jobs",
     depth: 0,
@@ -70,8 +78,8 @@ export async function queryJobIdsMatchingText(
     select: {},
     where: {
       or: [
-        { summary: { contains: input.q } },
-        { "skills.value": { contains: input.q } },
+        { summary: { contains: pattern } },
+        { "skills.value": { contains: pattern } },
       ],
     },
   });

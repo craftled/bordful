@@ -256,8 +256,10 @@ function compareOldest(
   return delta === 0 ? compareSlug(left, right) : delta;
 }
 
+// The top of the same USD range the salary filter uses, so a salary listed
+// only in another currency sorts by its converted value.
 function salarySortKey(card: JobListItem): number | null {
-  return card.salaryMaxUsd ?? card.salaryMinUsd;
+  return usdBounds(card)?.[1] ?? null;
 }
 
 function compareSalary(

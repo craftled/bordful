@@ -1,13 +1,24 @@
-import { BOARD_SEARCH_PATH, buildTaxonomyArchivePath } from "./paths";
+import type { JobListItem } from "@/lib/read/types";
+
+import {
+  BOARD_SEARCH_PATH,
+  buildTaxonomyArchivePath,
+  type TaxonomyKind,
+} from "./paths";
 import {
   type BoardQuery,
   type BoardQueryOptions,
   parseBoardQuery,
   serializeBoardQuery,
 } from "./query";
-import { SENIORITY_LEVEL } from "./taxonomy";
+import { filterByTaxonomy, SENIORITY_LEVEL } from "./taxonomy";
 
-function facetTarget(query: BoardQuery): string | null {
+interface FacetTarget {
+  kind: TaxonomyKind;
+  value: string;
+}
+
+function facetTarget(query: BoardQuery): FacetTarget | null {
   const count =
     query.types.length +
     query.seniority.length +
@@ -19,7 +30,7 @@ function facetTarget(query: BoardQuery): string | null {
 
   const [type] = query.types;
   if (query.types.length === 1 && type) {
-    return buildTaxonomyArchivePath("type", type, query.page);
+    return { kind: "type", value: type };
   }
 
   const [seniority] = query.seniority;
@@ -28,11 +39,11 @@ function facetTarget(query: BoardQuery): string | null {
     if (!label) {
       return null;
     }
-    return buildTaxonomyArchivePath("level", label, query.page);
+    return { kind: "level", value: label };
   }
 
   if (query.remote) {
-    return buildTaxonomyArchivePath("location", "remote", query.page);
+    return { kind: "location", value: "remote" };
   }
 
   const [language] = query.languages;
@@ -40,7 +51,7 @@ function facetTarget(query: BoardQuery): string | null {
     return null;
   }
 
-  return buildTaxonomyArchivePath("language", language, query.page);
+  return { kind: "language", value: language };
 }
 
 function isArchiveCandidate(
@@ -58,13 +69,33 @@ function isArchiveCandidate(
   );
 }
 
+// An archive with no jobs is a 404, so a search for a value no job carries
+// stays on the search page and shows its empty result instead.
+function archivePath(
+  query: BoardQuery,
+  cards: readonly JobListItem[]
+): string | null {
+  const target = facetTarget(query);
+  if (!target) {
+    return null;
+  }
+
+  const matched = filterByTaxonomy(cards, target.kind, target.value);
+  if (!matched || matched.length === 0) {
+    return null;
+  }
+
+  return buildTaxonomyArchivePath(target.kind, target.value, query.page);
+}
+
 export function canonicalSearchRedirect(
   params: URLSearchParams,
-  options: BoardQueryOptions
+  options: BoardQueryOptions,
+  cards: readonly JobListItem[]
 ): string | null {
   const query = parseBoardQuery(params, options);
   if (isArchiveCandidate(query, options)) {
-    const archive = facetTarget(query);
+    const archive = archivePath(query, cards);
     if (archive) {
       return archive;
     }

@@ -1,9 +1,9 @@
 import Link from "next/link";
-
 import {
   buildFilterGroups,
   FilterChips,
 } from "@/components/board/board-filters";
+import { MenuDetails } from "@/components/board/menu-details";
 import { SaveSearchButton } from "@/components/board/save-search-button";
 import type { BoardFacets } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
@@ -62,7 +62,10 @@ function LinkMenu({
   testId: string;
 }) {
   return (
-    <details className={cn("group relative", className)} data-testid={testId}>
+    <MenuDetails
+      className={cn("group relative", className)}
+      data-testid={testId}
+    >
       <summary
         className={cn(
           "text-muted-foreground hover:text-foreground -my-1.5 flex h-7 cursor-pointer list-none items-center gap-1 rounded-[6px] px-1.5 text-[12px] font-medium whitespace-nowrap lg:my-0 lg:text-[13px] [&::-webkit-details-marker]:hidden",
@@ -94,7 +97,7 @@ function LinkMenu({
           </li>
         ))}
       </ul>
-    </details>
+    </MenuDetails>
   );
 }
 

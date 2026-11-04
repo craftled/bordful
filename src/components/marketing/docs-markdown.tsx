@@ -189,7 +189,7 @@ function renderInline(text: string, repoBase: string): ReactNode[] {
     if (part.startsWith("`") && part.endsWith("`") && part.length > 1) {
       return (
         <code
-          className="bg-tag text-foreground rounded-sm px-1 py-0.5 font-mono text-[0.9em]"
+          className="bg-tag text-foreground rounded-sm px-1 py-0.5 font-mono text-[0.9em] [overflow-wrap:anywhere]"
           key={key}
         >
           {part.slice(1, -1)}

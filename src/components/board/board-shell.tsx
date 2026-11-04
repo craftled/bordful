@@ -6,6 +6,7 @@ import {
 } from "@/components/board/board-search-form";
 import { SiteFooter } from "@/components/board/site-footer";
 import { SiteHeader } from "@/components/board/site-header";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/skip-link";
 import { bordfulConfig } from "@/config";
 import { isMarketingEnabled } from "@/config/flags";
 import { boardHomePath, getNav } from "@/config/nav";
@@ -49,6 +50,7 @@ export async function BoardShell({
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
+      <SkipLink />
       {HeaderSlot ? (
         <HeaderSlot />
       ) : (
@@ -78,7 +80,7 @@ export async function BoardShell({
           }}
         />
       )}
-      <main className="flex-1">
+      <main className="flex-1" id={MAIN_CONTENT_ID}>
         {fullBleed ? (
           children
         ) : (

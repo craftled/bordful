@@ -450,3 +450,51 @@ test("text search finds published jobs by summary or skill, never drafts", async
   expect(await ids("PROTOTYP")).toEqual([String(designer.id)]);
   expect(await ids("kubernetes")).toEqual([]);
 });
+
+test("queryJobIdsMatchingText matches %, _ and \\ literally", async () => {
+  const bySlug = async (slug: string) => {
+    const [job] = (
+      await payload.find({
+        collection: "jobs",
+        depth: 0,
+        limit: 1,
+        overrideAccess: true,
+        where: { slug: { equals: slug } },
+      })
+    ).docs;
+    if (!job) {
+      throw new Error(`fixture job ${slug} missing`);
+    }
+    return job;
+  };
+  const backend = await bySlug("example-senior-backend-engineer");
+  const analyst = await bySlug("sample-remote-data-analyst");
+  await payload.update({
+    collection: "jobs",
+    data: {
+      skills: [{ value: "a_b" }],
+      summary: "Equity of 0.5% for early hires.",
+    },
+    depth: 0,
+    id: backend.id,
+    overrideAccess: true,
+  });
+  await payload.update({
+    collection: "jobs",
+    data: {
+      skills: [{ value: "axb" }],
+      summary: String.raw`Reads files under C:\data every night.`,
+    },
+    depth: 0,
+    id: analyst.id,
+    overrideAccess: true,
+  });
+
+  const ids = (q: string) =>
+    queryJobIdsMatchingText(payload, { limit: 100, q });
+  expect(await ids("%")).toEqual([String(backend.id)]);
+  expect(await ids("_")).toEqual([String(backend.id)]);
+  expect(await ids("a_b")).toEqual([String(backend.id)]);
+  expect(await ids("\\")).toEqual([String(analyst.id)]);
+  expect(await ids(String.raw`C:\data`)).toEqual([String(analyst.id)]);
+});
