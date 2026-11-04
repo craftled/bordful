@@ -24,8 +24,10 @@ export interface ComparableFields {
   salaryMin: number | null;
   salaryMinUsd: number | null;
   seniority: string | null;
+  skills: string[];
   slug: string;
   sourceListingUrl: string | null;
+  summary: string | null;
   title: string;
   validThrough: string | null;
   visaSponsorship: string | null;
@@ -71,8 +73,10 @@ const KEYS = [
   "salaryMin",
   "salaryMinUsd",
   "seniority",
+  "skills",
   "slug",
   "sourceListingUrl",
+  "summary",
   "title",
   "validThrough",
   "visaSponsorship",
@@ -104,8 +108,10 @@ export function comparableJobFields(
     salaryMin: job.salaryMin,
     salaryMinUsd: job.salaryMinUsd,
     seniority: job.seniority,
+    skills: job.skills.map((item) => item.value),
     slug: job.slug,
     sourceListingUrl: job.sourceListingUrl,
+    summary: job.summary,
     title: job.title,
     validThrough: job.validThrough,
     visaSponsorship: job.visaSponsorship,

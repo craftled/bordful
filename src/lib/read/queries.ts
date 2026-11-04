@@ -53,6 +53,32 @@ export async function queryPublishedJobs(
   return paginate(input.page, result, toJobListItem);
 }
 
+// Ids of published jobs whose summary or skills contain the text. Board cards
+// leave both out (the saved page ships every card to the browser), so search
+// asks Postgres for these matches and merges them with the card match.
+export async function queryJobIdsMatchingText(
+  payload: Payload,
+  input: { limit: number; q: string }
+): Promise<string[]> {
+  const result = await payload.find({
+    collection: "jobs",
+    depth: 0,
+    draft: false,
+    limit: input.limit,
+    overrideAccess: false,
+    pagination: false,
+    select: {},
+    where: {
+      or: [
+        { summary: { contains: input.q } },
+        { "skills.value": { contains: input.q } },
+      ],
+    },
+  });
+
+  return result.docs.map((doc) => String(doc.id));
+}
+
 export async function queryJobBySlug(
   payload: Payload,
   slug: string

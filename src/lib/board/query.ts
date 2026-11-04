@@ -26,6 +26,8 @@ export interface BoardQuery {
   salary: SalaryBandId[];
   seniority: JobSeniority[];
   sort: BoardSort;
+  // Server-only: ids whose summary or skills match q (see withTextMatches).
+  textMatchIds?: string[];
   types: JobEmploymentType[];
   visa: boolean;
 }

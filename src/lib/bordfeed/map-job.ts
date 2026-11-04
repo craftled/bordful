@@ -89,8 +89,10 @@ export interface MappedJob {
   salaryMin: number | null;
   salaryMinUsd: number | null;
   seniority: JobSeniority | null;
+  skills: StringRow[];
   slug: string;
   sourceListingUrl: string | null;
+  summary: string | null;
   title: string;
   validThrough: string | null;
   visaSponsorship: string | null;
@@ -227,8 +229,10 @@ export function mapBordfeedJob(
     salaryMin: numberOrNull(job.salary_min),
     salaryMinUsd: numberOrNull(job.salary_min_usd),
     seniority: firstLevel ? SENIORITY[firstLevel] : null,
+    skills: rows(job.skills),
     slug: jobSlug(title, trimToNull(job.slug), job.id),
     sourceListingUrl: httpUrl(job.listing_url),
+    summary: trimToNull(job.summary),
     title,
     validThrough: isoOrNull(job.valid_through),
     visaSponsorship: trimToNull(job.visa_sponsorship),

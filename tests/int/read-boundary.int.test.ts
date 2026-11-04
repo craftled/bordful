@@ -8,6 +8,7 @@ import {
   queryCompanies,
   queryCompanyBySlug,
   queryJobBySlug,
+  queryJobIdsMatchingText,
   queryPublishedJobs,
   querySiteSettings,
 } from "@/lib/read/queries";
@@ -398,4 +399,54 @@ test("site settings and companies use the public defaults", async () => {
   expect((await queryCompanyBySlug(payload, "example-co"))?.domain).toBe(
     "example.com"
   );
+});
+
+test("text search finds published jobs by summary or skill, never drafts", async () => {
+  const [designer] = (
+    await payload.find({
+      collection: "jobs",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { slug: { equals: "example-product-designer" } },
+    })
+  ).docs;
+  const [draft] = (
+    await payload.find({
+      collection: "jobs",
+      depth: 0,
+      draft: true,
+      limit: 1,
+      overrideAccess: true,
+      where: { slug: { equals: "example-draft-role" } },
+    })
+  ).docs;
+  if (!(designer && draft)) {
+    throw new Error("fixture jobs missing");
+  }
+  await payload.update({
+    collection: "jobs",
+    data: {
+      skills: [{ value: "Prototyping" }],
+      summary: "Shape the hiring flow with research and Paper prototypes.",
+    },
+    depth: 0,
+    id: designer.id,
+    overrideAccess: true,
+  });
+  await payload.update({
+    collection: "jobs",
+    data: { skills: [{ value: "Prototyping" }], summary: "Hiring flow." },
+    depth: 0,
+    draft: true,
+    id: draft.id,
+    overrideAccess: true,
+  });
+
+  const ids = (q: string) =>
+    queryJobIdsMatchingText(payload, { limit: 100, q });
+  expect(await ids("hiring flow")).toEqual([String(designer.id)]);
+  expect(await ids("prototyping")).toEqual([String(designer.id)]);
+  expect(await ids("PROTOTYP")).toEqual([String(designer.id)]);
+  expect(await ids("kubernetes")).toEqual([]);
 });

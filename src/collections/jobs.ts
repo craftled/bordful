@@ -197,6 +197,14 @@ export const Jobs: CollectionConfig = {
       name: "companyDomain",
       type: "text",
     }),
+    owned({
+      admin: {
+        description:
+          "A short plain-text summary of the role. Board search matches it.",
+      },
+      name: "summary",
+      type: "textarea",
+    }),
     owned({ name: "description", type: "richText" }),
     owned({ name: "applyUrl", type: "text", validate: httpUrl }),
     owned({ name: "applyEmail", type: "email" }),
@@ -253,6 +261,7 @@ export const Jobs: CollectionConfig = {
     owned({ name: "visaSponsorship", type: "text" }),
     owned(stringListField("languages", "Languages")),
     owned(stringListField("categories", "Categories")),
+    owned(stringListField("skills", "Skills")),
     {
       admin: { position: "sidebar" },
       defaultValue: false,

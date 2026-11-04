@@ -203,3 +203,26 @@ test("filters the board by category and featured", () => {
   expect(slugs("featured=true")).toEqual(["b-designer"]);
   expect(slugs("featured=true&categories=data")).toEqual([]);
 });
+
+test("text search matches location and the ids Postgres matched on summary or skills", () => {
+  const pool = [
+    makeCard({
+      locationDisplay: "Lisbon, PT",
+      slug: "lisbon",
+      title: "Designer",
+    }),
+    makeCard({ remoteRegion: "Europe", slug: "europe", title: "Writer" }),
+    makeCard({ slug: "kube", title: "Platform engineer" }),
+    makeCard({ slug: "other", title: "Accountant" }),
+  ];
+  const matched = (q: string, textMatchIds?: string[]) =>
+    buildBoardView(pool, {
+      ...parseBoardQuery(new URLSearchParams({ q }), options),
+      textMatchIds,
+    }).docs.map((card) => card.slug);
+
+  expect(matched("lisbon")).toEqual(["lisbon"]);
+  expect(matched("EUROPE")).toEqual(["europe"]);
+  expect(matched("kubernetes")).toEqual([]);
+  expect(matched("kubernetes", ["kube"])).toEqual(["kube"]);
+});
