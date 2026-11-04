@@ -110,7 +110,7 @@ test("the card's job link is the title, and the title is an H3", () => {
   expect(links[0]?.textContent).toBe("Senior Engineer");
   expect(links[0]?.getAttribute("href")).toBe("/jobs/senior-engineer");
   expect(
-    screen.getByRole("heading", { level: 3, name: "Senior Engineer" })
+    screen.getByRole("heading", { level: 2, name: "Senior Engineer" })
   ).toBeTruthy();
   expect(screen.getByText("Featured")).toBeTruthy();
   expect(screen.getByText("Full-time")).toBeTruthy();

@@ -176,7 +176,7 @@ export default function TermsPage() {
                   If you have any questions about these terms, please contact us
                   at{" "}
                   <a
-                    className="text-foreground underline-offset-4 hover:underline"
+                    className="text-foreground underline underline-offset-4"
                     href="mailto:support@bordful.com"
                   >
                     support@bordful.com
