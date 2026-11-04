@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
 import { ThemeScript } from "@/components/theme/theme-script";
+import { isMarketingEnabled } from "@/config/flags";
 import { getSiteSettings } from "@/lib/read";
+import { boardIcons } from "@/lib/seo/icons";
 import { FONT_VARIABLE_CLASSES } from "@/theme/fonts";
 import { resolveThemeTokens, tokensToCssVariables } from "@/theme/tokens";
 
@@ -14,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
 
   return {
+    icons: boardIcons(isMarketingEnabled(), settings.logoUrl),
     title: {
       default: settings.name,
       template: `%s | ${settings.name}`,

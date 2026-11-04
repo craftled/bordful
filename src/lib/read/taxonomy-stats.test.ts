@@ -80,7 +80,8 @@ test("other types skip the current one and keep real counts", () => {
 test("the intro count only covers roles that appear on a card", () => {
   expect(rolesWithTaxonomy(cards, "language")).toBe(1);
   expect(rolesWithTaxonomy(cards, "type")).toBe(4);
-  expect(rolesWithTaxonomy(cards, "level")).toBe(5);
+  // "c" has only a seniority; the Senior level card (and archive) lists it.
+  expect(rolesWithTaxonomy(cards, "level")).toBe(6);
 });
 
 test("every contract type has a one-line description", () => {

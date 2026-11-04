@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { marketingLayoutMetadata } from "./metadata";
+import { marketingHomeMetadata, marketingLayoutMetadata } from "./metadata";
 import { MARKETING_DESCRIPTION } from "./site";
 
 test("marketing layout metadata is empty when the flag is off", () => {
@@ -34,4 +34,19 @@ test("marketing layout metadata is the Bordful card when the flag is on", () => 
     site: "@bordful",
   });
   expect(metadata.metadataBase).toBeInstanceOf(URL);
+});
+
+test("the marketing home takes the same card with its own title", () => {
+  const layout = marketingLayoutMetadata(true);
+  const home = marketingHomeMetadata();
+
+  expect(home.title).toEqual({
+    absolute: "Bordful: open-source job board template",
+  });
+  expect(home.description).toBe(MARKETING_DESCRIPTION);
+  expect(home.icons).toEqual(layout.icons);
+  expect(home.openGraph).toEqual(layout.openGraph);
+  expect(home.twitter).toEqual(layout.twitter);
+  expect(home.alternates).toEqual({ canonical: "/" });
+  expect(home.metadataBase).toBeInstanceOf(URL);
 });

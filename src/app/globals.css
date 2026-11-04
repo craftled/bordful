@@ -201,6 +201,11 @@ textarea:focus-visible {
    small uppercase section labels. Layered so utilities can still override. */
 @layer components {
   .bordful-prose {
+    /* Imported descriptions glue words with no-break spaces (U+00A0,
+       U+202F) and carry long URLs; let them break so a phone page never
+       scrolls sideways. */
+    min-width: 0;
+    overflow-wrap: anywhere;
     @apply max-w-none text-[16px] text-foreground leading-5 md:text-[17px] md:text-foreground/83 md:leading-7 md:dark:text-muted-foreground;
 
     /* Payload's RichText wraps the blocks in a div; edges are on either level. */

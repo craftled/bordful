@@ -1,12 +1,14 @@
+/* Payload 4 dropped the --theme-* palette; each value falls back to the
+   --color-* token that replaced it, which Payload sets per admin theme. */
 .card {
   display: grid;
   gap: 0.75rem;
   max-width: 40rem;
   padding: 1rem 1.25rem;
   margin: 0 0 1.5rem;
-  color: var(--theme-text);
-  background: var(--theme-elevation-50);
-  border: 1px solid var(--theme-elevation-150);
+  color: var(--theme-text, var(--color-text));
+  background: var(--theme-elevation-50, var(--color-bg-secondary));
+  border: 1px solid var(--theme-elevation-150, var(--color-border));
 }
 
 .card h2 {
@@ -29,9 +31,9 @@
 .form select,
 .stack input {
   padding: 0.4rem 0.5rem;
-  color: var(--theme-text);
-  background: var(--theme-input-bg, var(--theme-elevation-0));
-  border: 1px solid var(--theme-elevation-150);
+  color: var(--theme-text, var(--color-text));
+  background: var(--theme-input-bg, var(--theme-elevation-0, var(--color-bg)));
+  border: 1px solid var(--theme-elevation-150, var(--color-border-control));
 }
 
 .actions {
@@ -46,7 +48,7 @@
 
 .error {
   margin: 0;
-  color: var(--theme-error-500);
+  color: var(--theme-error-500, var(--color-text-danger));
 }
 
 .hint {

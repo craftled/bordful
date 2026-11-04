@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { resolveServerUrl } from "@/config/server-url";
+import { BORDFUL_ICONS } from "@/lib/seo/icons";
 
 import { MARKETING_DESCRIPTION } from "./site";
 
@@ -20,10 +21,7 @@ export function marketingLayoutMetadata(enabled: boolean): Metadata {
 
   return {
     description: MARKETING_DESCRIPTION,
-    icons: {
-      apple: "/marketing/apple-icon.png",
-      icon: "/marketing/icon.svg",
-    },
+    icons: BORDFUL_ICONS,
     metadataBase: new URL(resolveServerUrl()),
     openGraph: {
       description: MARKETING_DESCRIPTION,
@@ -45,5 +43,16 @@ export function marketingLayoutMetadata(enabled: boolean): Metadata {
       site: "@bordful",
       title,
     },
+  };
+}
+
+// `/` lives in the (site) group, outside the marketing layout, so it takes the
+// same card here. The title is absolute: the board layout's template would
+// otherwise append the site name.
+export function marketingHomeMetadata(): Metadata {
+  return {
+    ...marketingLayoutMetadata(true),
+    alternates: { canonical: "/" },
+    title: { absolute: title },
   };
 }

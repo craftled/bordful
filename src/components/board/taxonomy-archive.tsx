@@ -7,6 +7,7 @@ import {
   listStats,
 } from "@/components/board/board-listing";
 import { BoardPagination } from "@/components/board/board-pagination";
+import { MenuDetails } from "@/components/board/menu-details";
 import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
 import {
   TAXONOMY_INDEX_LABEL,
@@ -197,7 +198,7 @@ function PickerPill({
   value: string | null;
 }) {
   return (
-    <details className="group relative">
+    <MenuDetails className="group relative">
       <summary
         className={cn(
           PILL,
@@ -231,7 +232,7 @@ function PickerPill({
           </li>
         ))}
       </ul>
-    </details>
+    </MenuDetails>
   );
 }
 

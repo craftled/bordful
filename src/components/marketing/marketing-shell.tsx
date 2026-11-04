@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/skip-link";
 import { cn } from "@/lib/utils";
 
 import { marketingFontVariables } from "./fonts";
@@ -28,13 +29,17 @@ export function MarketingShell({
       )}
       data-testid={testId}
     >
+      <SkipLink />
       <MarketingHeader />
       <div className="group/shell border-line mx-auto flex w-full max-w-[1200px] flex-1 flex-col min-[1200px]:border-x">
         {/* A page that brings Paper's slim desktop footer (docs, the 404)
             marks it with data-slim-footer: the full footer then shows on
             phones only, and main stretches so the slim one sits at the
             bottom. */}
-        <main className="flex-1 has-[[data-slim-footer]]:flex has-[[data-slim-footer]]:flex-col">
+        <main
+          className="flex-1 has-[[data-slim-footer]]:flex has-[[data-slim-footer]]:flex-col"
+          id={MAIN_CONTENT_ID}
+        >
           {children}
         </main>
         <MarketingFooter className="md:group-has-[[data-slim-footer]]/shell:hidden" />

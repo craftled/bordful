@@ -4,17 +4,26 @@ const BASE64_NONCE =
 // payload-theme-hash.test.ts fails when a Payload bump changes its content.
 export const PAYLOAD_THEME_SCRIPT_SHA256 =
   "eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM=";
+// Payload's code editor (Monaco) loads its stylesheet from this CDN folder.
+// Its scripts are inserted by a nonced script, so 'strict-dynamic' covers
+// them, and its icon font is inlined as data:. monaco-cdn.test.ts fails when
+// a Payload bump changes the folder.
+export const PAYLOAD_MONACO_CDN =
+  "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/";
 const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/u;
 const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*.]+\.[^*]+$/u;
 
 export function buildCsp({
   nonce,
   isDev,
+  admin = false,
   extraScriptOrigins = [],
   extraConnectOrigins = [],
 }: {
   nonce: string;
   isDev: boolean;
+  // Payload admin pages, which also allow the code editor's stylesheet.
+  admin?: boolean;
   extraScriptOrigins?: string[];
   extraConnectOrigins?: string[];
 }): string {
@@ -41,10 +50,16 @@ export function buildCsp({
     ...(isDev ? ["ws:"] : []),
   ].join(" ");
 
+  const styleSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    ...(admin ? [PAYLOAD_MONACO_CDN] : []),
+  ].join(" ");
+
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline'",
+    `style-src ${styleSrc}`,
     "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,

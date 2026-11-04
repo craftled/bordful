@@ -161,6 +161,28 @@ test("sorts oldest and salary with nulls last", () => {
   ]);
 });
 
+test("salary sort converts a non-USD salary like the salary filter", () => {
+  // 100k EUR is above 60k USD once converted, so it sorts above c-analyst.
+  const euro = makeCard({
+    salaryCurrency: "EUR",
+    salaryMax: 100_000,
+    salaryMin: 80_000,
+    slug: "d-euro",
+    title: "Example Euro Engineer",
+  });
+  const view = buildBoardView(
+    [...cards, euro],
+    parseBoardQuery(new URLSearchParams("sort=salary"), options)
+  );
+
+  expect(view.docs.map((card) => card.slug)).toEqual([
+    "a-backend",
+    "d-euro",
+    "c-analyst",
+    "b-designer",
+  ]);
+});
+
 test("paginates a generated pool and flags pages past the end", () => {
   const base = Date.parse("2026-10-01T00:00:00.000Z");
   const generated = Array.from({ length: 25 }, (_, index) => {

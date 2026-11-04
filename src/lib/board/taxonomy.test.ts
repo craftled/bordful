@@ -4,6 +4,7 @@ import type { JobListItem } from "@/lib/read/types";
 
 import { filterBoard } from "./filter";
 import {
+  countTaxonomy,
   filterByTaxonomy,
   taxonomyLabel,
   taxonomySearchQuery,
@@ -123,6 +124,28 @@ test("filterByTaxonomy includes seniority when careerLevel is empty", () => {
   expect(
     slugs(filterByTaxonomy([seniorOnly, cardA], "level", "senior"))
   ).toEqual(["senior-only", "a-backend"]);
+});
+
+test("countTaxonomy counts levels the way the level archive matches them", () => {
+  const leadOnly = makeCard({
+    careerLevel: [],
+    seniority: "lead",
+    slug: "lead-only",
+    title: "Lead only",
+  });
+  const leadBoth = makeCard({
+    careerLevel: ["Lead"],
+    seniority: "lead",
+    slug: "lead-both",
+    title: "Lead both",
+  });
+  const pool = [...cards, leadOnly, leadBoth];
+  const lead = countTaxonomy(pool).levels.find(
+    (facet) => facet.slug === "lead"
+  );
+
+  expect(lead?.count).toBe(filterByTaxonomy(pool, "level", "lead")?.length);
+  expect(lead?.count).toBe(2);
 });
 
 test("taxonomyLabel names countries and languages", () => {

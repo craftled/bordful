@@ -168,6 +168,13 @@ test("the desktop chips carry the filter test ids, once each", () => {
   expect(screen.getByTestId("filter-chip-type")).toBeTruthy();
 });
 
+test("the desktop chips are menus, so only one stays open", () => {
+  renderChips(queryWith({}));
+
+  const menu = screen.getByTestId("filter-chip-type").closest("details");
+  expect(menu?.hasAttribute("data-menu")).toBe(true);
+});
+
 test("categories filter by the lowercased name and show its label", () => {
   renderChips(queryWith({}));
 

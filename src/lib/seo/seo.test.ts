@@ -19,6 +19,7 @@ import type { FeedJob } from "./types";
 import { escapeXml } from "./xml";
 
 const siteUrl = "https://board.example";
+const ARCHIVE_URL = /\/jobs\/(?:type|level|location|language)\//u;
 const siteName = "Example Board";
 const ctx = { siteName, siteUrl };
 
@@ -248,6 +249,13 @@ test("fork sitemap skips sample jobs and orders companies by slug", () => {
     { url: "https://board.example/" },
     { url: "https://board.example/jobs" },
     { url: "https://board.example/companies" },
+    { url: "https://board.example/jobs/type/contract" },
+    { url: "https://board.example/jobs/type/full-time" },
+    { url: "https://board.example/jobs/level/senior" },
+    { url: "https://board.example/jobs/location/de" },
+    { url: "https://board.example/jobs/location/remote" },
+    { url: "https://board.example/jobs/location/us" },
+    { url: "https://board.example/jobs/language/en" },
     {
       lastModified: "2026-10-21T09:00:00.000Z",
       url: "https://board.example/jobs/example-product-designer",
@@ -305,6 +313,66 @@ test("marketing sitemap starts with the marketing pages", () => {
   expect(entries.some((entry) => entry.url.includes("sample-remote"))).toBe(
     false
   );
+});
+
+test("marketing sitemap lists the docs, FAQ and features pages", () => {
+  const urls = buildSitemapEntries({
+    jobs: [],
+    marketing: true,
+    siteUrl,
+  }).map((entry) => entry.url);
+  expect(urls.slice(9)).toEqual([
+    "https://board.example/features",
+    "https://board.example/faq",
+    "https://board.example/docs",
+    "https://board.example/docs/deploy",
+    "https://board.example/docs/configuration",
+    "https://board.example/docs/customization",
+    "https://board.example/docs/theming",
+    "https://board.example/docs/bordfeed",
+    "https://board.example/docs/post-a-job",
+    "https://board.example/docs/alerts",
+  ]);
+
+  const fork = buildSitemapEntries({ jobs: [], marketing: false, siteUrl });
+  expect(fork.some((entry) => entry.url.includes("/docs"))).toBe(false);
+  expect(fork.some((entry) => entry.url.endsWith("/faq"))).toBe(false);
+  expect(fork.some((entry) => entry.url.endsWith("/features"))).toBe(false);
+});
+
+test("sitemap archives come from indexable jobs the archive filter matches", () => {
+  const sampleOnly = {
+    ...listItem(
+      {
+        ...sampleRemoteDataAnalystJob,
+        careerLevel: ["Lead"],
+        countryCode: "FR",
+        employmentType: "part-time",
+        languages: [{ value: "fr" }],
+      },
+      "example-co"
+    ),
+  };
+  // Seniority alone still lands a job on its level archive.
+  const mid = {
+    ...designerList,
+    careerLevel: [],
+    seniority: "mid" as const,
+    slug: "example-mid-designer",
+  };
+  const urls = buildSitemapEntries({
+    jobs: [sampleOnly, mid],
+    marketing: false,
+    siteUrl,
+  })
+    .map((entry) => entry.url)
+    .filter((url) => ARCHIVE_URL.test(url));
+
+  expect(urls).toEqual([
+    "https://board.example/jobs/type/contract",
+    "https://board.example/jobs/level/mid",
+    "https://board.example/jobs/location/de",
+  ]);
 });
 
 test("robots points at the sitemap and blocks private routes", () => {

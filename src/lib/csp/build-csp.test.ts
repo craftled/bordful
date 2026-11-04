@@ -165,3 +165,13 @@ test("createNonce returns distinct base64 values of length 24", () => {
   expect(first).toMatch(base64Value);
   expect(second).toMatch(base64Value);
 });
+
+test("admin pages also allow the code editor stylesheet folder", () => {
+  expect(buildCsp({ admin: true, isDev: false, nonce })).toBe(
+    prod.replace(
+      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/"
+    )
+  );
+  expect(buildCsp({ admin: false, isDev: false, nonce })).toBe(prod);
+});
