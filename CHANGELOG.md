@@ -5,17 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Added
-
-- Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
-
-### Changed
-
-- Payload 4.0.0-beta.6 with Lexical 0.53. Rich-text data keeps its format and needs no migration.
-- Restoring an older job version in the admin now creates a draft. Publish it to make the restored version live.
-
 ## [1.0.0] - 2026-11-03
 
 ### Added
@@ -31,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update notice in the admin. Upgrade steps are in [UPGRADING.md](UPGRADING.md).
 - Nonce-based CSP and security headers.
 - Deploy to Vercel button that provisions Neon Postgres and Vercel Blob.
+- Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
+- Restoring an older job version in the admin creates a draft. Publish it to make the restored version live.
 
 ### Changed
 
-- Rebuilt on Payload 4 and Postgres.
+- Rebuilt on Payload 4 (4.0.0-beta.6, with Lexical 0.53) and Postgres.
 - Requires Node.js 26 LTS. `engines.node` is `26.x`, which overrides the Vercel project Node.js setting. Built-in fetch on Vercel uses HTTP/2 on Node 26. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
 ### Removed
