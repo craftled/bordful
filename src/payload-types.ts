@@ -140,12 +140,14 @@ export interface Config {
   globals: {
     'site-settings': SiteSetting;
     'bordfeed-connection': BordfeedConnection;
+    'import-blocklist': ImportBlocklist;
     'install-state': InstallState;
     'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'bordfeed-connection': BordfeedConnectionSelect<false> | BordfeedConnectionSelect<true>;
+    'import-blocklist': ImportBlocklistSelect<false> | ImportBlocklistSelect<true>;
     'install-state': InstallStateSelect<false> | InstallStateSelect<true>;
     'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
@@ -1088,6 +1090,29 @@ export interface BordfeedConnection {
   createdAt?: string | null;
 }
 /**
+ * Bordfeed jobs that match any entry are not imported. Saving also unpublishes matching imported jobs. Manual and paid jobs are never affected.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "import-blocklist".
+ */
+export interface ImportBlocklist {
+  id: number;
+  /**
+   * Exact company names. One per line. Not case-sensitive.
+   */
+  companies?: string | null;
+  /**
+   * Matched against the company domain and the apply and source links. A domain also covers its subdomains. One per line. Not case-sensitive.
+   */
+  domains?: string | null;
+  /**
+   * Whole words or phrases, matched in the job title and summary. One per line. Not case-sensitive.
+   */
+  keywords?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "install-state".
  */
@@ -1201,6 +1226,18 @@ export interface BordfeedConnectionSelect<T extends boolean = true> {
   jobsPerSync?: T;
   jobsPerDay?: T;
   showAttribution?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "import-blocklist_select".
+ */
+export interface ImportBlocklistSelect<T extends boolean = true> {
+  companies?: T;
+  domains?: T;
+  keywords?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

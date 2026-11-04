@@ -312,11 +312,25 @@ function removedPublishedFeed(
   );
 }
 
+// A job the import blocklist dropped from this sync comes down if it was
+// already on the board.
+function blockedPublished(
+  row: ExistingRow,
+  blockedIds: ReadonlySet<string>
+): boolean {
+  return (
+    (row.origin === "bordfeed" || row.origin === "bordfeed_sample") &&
+    row.status === "published" &&
+    blockedIds.has(row.bordfeedJobId ?? "")
+  );
+}
+
 function removalFor(
   row: ExistingRow,
   mode: "feed" | "sample",
   seen: Set<string>,
-  removedIds: ReadonlySet<string>
+  removedIds: ReadonlySet<string>,
+  blockedIds: ReadonlySet<string>
 ): "delete" | "keep" | "unpublish" {
   if (mode === "feed" && row.origin === "bordfeed_sample") {
     return "delete";
@@ -324,6 +338,10 @@ function removalFor(
 
   if (mode === "sample" && row.origin === "bordfeed_sample") {
     return row.bordfeedJobId && seen.has(row.bordfeedJobId) ? "keep" : "delete";
+  }
+
+  if (blockedPublished(row, blockedIds)) {
+    return "unpublish";
   }
 
   return mode === "feed" && removedPublishedFeed(row, seen, removedIds)
@@ -335,13 +353,14 @@ function removals(
   existing: ExistingRow[],
   mode: "feed" | "sample",
   seen: Set<string>,
-  removedIds: ReadonlySet<string>
+  removedIds: ReadonlySet<string>,
+  blockedIds: ReadonlySet<string>
 ) {
   const deleteIds: string[] = [];
   const unpublish: string[] = [];
 
   for (const row of existing) {
-    const action = removalFor(row, mode, seen, removedIds);
+    const action = removalFor(row, mode, seen, removedIds, blockedIds);
     if (action === "delete") {
       deleteIds.push(row.id);
     }
@@ -355,6 +374,9 @@ function removals(
 }
 
 export function planSync(input: {
+  // Bordfeed ids the import blocklist removed from `incoming`. Published
+  // copies already on the board are unpublished.
+  blockedIds?: ReadonlySet<string>;
   companyIds?: ReadonlyMap<string, number>;
   existing: ExistingRow[];
   incoming: MappedJob[];
@@ -376,12 +398,13 @@ export function planSync(input: {
     input.existing,
     input.mode,
     placed.seen,
-    input.removedIds ?? new Set()
+    input.removedIds ?? new Set(),
+    input.blockedIds ?? new Set()
   );
   return {
     create: placed.create,
     deleteIds: removed.deleteIds,
-    skipped: placed.skipped,
+    skipped: placed.skipped + (input.blockedIds?.size ?? 0),
     unpublish: removed.unpublish,
     update: placed.update,
   };

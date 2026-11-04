@@ -341,6 +341,69 @@ describe("bordfeed sync", () => {
     expect(stillPublished.totalDocs).toBe(23);
   });
 
+  test("the import blocklist keeps blocked jobs and their company off the board", async () => {
+    await payload.updateGlobal({
+      data: { companies: "acme example ltd" },
+      overrideAccess: true,
+      slug: "import-blocklist",
+    });
+
+    const summary = await runSampleSync(payload, { client: sampleClient() });
+    const companies = await payload.find({
+      collection: "companies",
+      depth: 0,
+      overrideAccess: true,
+    });
+
+    expect(summary).toMatchObject({ created: 2, skipped: 1 });
+    expect(companies.docs.map((company) => company.name)).toEqual([
+      "Example Co",
+    ]);
+  });
+
+  test("saving the blocklist unpublishes imported matches and syncs keep them down", async () => {
+    await connectFeed();
+    const jobs = feedJobs(4);
+    await runFeedSync(payload, { client: feedClient(jobs) });
+    const manual = await payload.create({
+      collection: "jobs",
+      data: {
+        _status: "published",
+        applyMethod: "url",
+        applyUrl: "https://acme.example/apply",
+        companyName: "Acme Example Ltd",
+        origin: "manual",
+        slug: "manual-acme-role",
+        title: "Manual Acme Role",
+      },
+      draft: false,
+      overrideAccess: true,
+    });
+
+    await payload.updateGlobal({
+      data: { domains: "acme.example\nnot a domain" },
+      overrideAccess: true,
+      slug: "import-blocklist",
+    });
+    const afterSave = await queryPublishedJobs(payload, { limit: 50, page: 1 });
+    expect(afterSave.items.map((job) => job.slug).sort()).toEqual([
+      "manual-acme-role",
+      "mock-feed-engineer-01",
+      "mock-feed-engineer-03",
+    ]);
+
+    // Bordfeed sends the blocked jobs again: they stay unpublished.
+    const rerun = await runFeedSync(payload, {
+      client: feedClient(
+        jobs.map((job) => ({ ...job, title: `${job.title}!` }))
+      ),
+    });
+    const afterSync = await queryPublishedJobs(payload, { limit: 50, page: 1 });
+    expect(rerun).toMatchObject({ created: 0, skipped: 2, updated: 2 });
+    expect(afterSync.totalDocs).toBe(3);
+    expect(afterSync.items.some((job) => job.slug === manual.slug)).toBe(true);
+  });
+
   test("a billed check stops the checks and shrinks the feed read", async () => {
     await connectFeed();
     await runFeedSync(payload, { client: feedClient(feedJobs(25)) });

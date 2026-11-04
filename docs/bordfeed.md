@@ -88,6 +88,23 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 - A job whose lookup keeps failing with an unexpected answer is skipped, so it cannot stop later checks. New jobs are read for at most 210 seconds of the sync, so the board write still fits in the cron's time limit.
 - Sample jobs are replaced when you connect, not unpublished one by one.
 
+## Import blocklist
+
+**Globals → Import blocklist** in the admin keeps Bordfeed jobs you don't want off the board. It has three lists, one entry per line. None of them are case-sensitive.
+
+| List | Matches |
+| --- | --- |
+| Companies | The exact company name. |
+| Domains | The company domain, the apply link and the source listing link. `example.com` also covers `jobs.example.com`. |
+| Keywords | Whole words or phrases in the job title and summary. `java` does not match `JavaScript`. |
+
+- A sync drops matching jobs before it creates their companies, so a blocked company gets no page. They count as skipped in the sync summary.
+- Saving the blocklist unpublishes imported jobs on the board that match it. Jobs are unpublished, not deleted.
+- A blocked job stays unpublished when Bordfeed sends it again.
+- Removing an entry does not republish anything. A job comes back only if Bordfeed sends it again.
+- Manual and paid jobs are never affected.
+- Bordfeed still delivers blocked jobs, so they still use credits.
+
 ## Credits per sync
 
 Bordfeed charges one credit for each job your workspace receives for the first time. A job it sends again, even after it changed or closed, is free, and an empty page is free. Checks are free too: Bordfeed answers a lookup of a job that is no longer active with a 404 before it charges anything, and the board only checks jobs it already received. If a check is ever billed (a job fetched under a different workspace), the sync counts the credit against its caps and stops checking for that run. On pay as you go one credit is $0.01, and a new account starts with 2,000 credits ($20).

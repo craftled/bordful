@@ -2,6 +2,7 @@ import * as migration_20261023_084704_initial from './20261023_084704_initial';
 import * as migration_20261103_014022_sync_budget from './20261103_014022_sync_budget';
 import * as migration_20261103_172311_settings_paper_defaults from './20261103_172311_settings_paper_defaults';
 import * as migration_20261104_091214_job_search_fields from './20261104_091214_job_search_fields';
+import * as migration_20261104_170559_import_blocklist from './20261104_170559_import_blocklist';
 
 export const migrations = [
   {
@@ -22,6 +23,11 @@ export const migrations = [
   {
     up: migration_20261104_091214_job_search_fields.up,
     down: migration_20261104_091214_job_search_fields.down,
-    name: '20261104_091214_job_search_fields'
+    name: '20261104_091214_job_search_fields',
+  },
+  {
+    up: migration_20261104_170559_import_blocklist.up,
+    down: migration_20261104_170559_import_blocklist.down,
+    name: '20261104_170559_import_blocklist'
   },
 ];

@@ -2,10 +2,13 @@ import type { Payload, Where } from "payload";
 import { bordfulConfig } from "@/config";
 import type { Company, Job } from "@/payload-types";
 import { resolveBordfeedBaseUrl } from "./base-url";
+import { isBlocked } from "./blocklist";
+import { blockableFromMapped, readBlocklist } from "./blocklist-store";
 import { type BordfeedClient, createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
 import type { ConnectionRecord } from "./connection-machine";
 import { dispatchConnectionEvent, readConnection } from "./connection-store";
+import { eachDoc, eachSerial } from "./each";
 import {
   BordfeedApiError,
   MASS_REMOVAL_MESSAGE,
@@ -114,38 +117,6 @@ function stringList(
   return value.flatMap((item) =>
     typeof item.value === "string" && item.value.length > 0 ? [item.value] : []
   );
-}
-
-async function eachDoc<T extends { id: number }>(
-  load: (page: number) => Promise<{ docs: T[]; totalPages: number }>,
-  page = 1,
-  totalPages = 1,
-  docs: T[] = []
-): Promise<T[]> {
-  if (page > totalPages) {
-    return docs;
-  }
-
-  const result = await load(page);
-  return eachDoc(
-    load,
-    page + 1,
-    result.totalPages || 1,
-    docs.concat(result.docs)
-  );
-}
-
-async function eachSerial<T>(
-  items: readonly T[],
-  visit: (item: T) => Promise<void>
-): Promise<void> {
-  const [head, ...rest] = items;
-  if (head === undefined) {
-    return;
-  }
-
-  await visit(head);
-  await eachSerial(rest, visit);
 }
 
 function loadJobs(payload: Payload): Promise<Job[]> {
@@ -789,11 +760,22 @@ async function runSync(
   const started = clockOf(deps)();
   const incomingJobs = input.incoming;
   const delta = input.fetch === "delta";
-  const jobs = incomingJobs.map((job) => mapBordfeedJob(job, origin));
-  const [existingJobs, companies] = await Promise.all([
+  const mapped = incomingJobs.map((job) => mapBordfeedJob(job, origin));
+  const [existingJobs, companies, blocklist] = await Promise.all([
     loadJobs(payload),
     loadCompanies(payload),
+    readBlocklist(payload),
   ]);
+  // Blocked jobs are dropped before companies are upserted, so a blocked
+  // company never gets a page.
+  const blockedIds = new Set<string>();
+  const jobs = mapped.filter((job) => {
+    if (isBlocked(blockableFromMapped(job), blocklist)) {
+      blockedIds.add(job.bordfeedJobId);
+      return false;
+    }
+    return true;
+  });
 
   // A connect or reset can land while the feed is downloading.
   if (!(await connectionStillMatches(payload, stamp))) {
@@ -819,6 +801,7 @@ async function runSync(
   const incomingIds = new Set(jobs.map((job) => job.bordfeedJobId));
   const existing = rowsFromJobs(existingJobs);
   const plan = planSync({
+    blockedIds,
     companyIds,
     existing,
     incoming: jobs,
