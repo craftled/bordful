@@ -20,8 +20,9 @@
   --line: rgb(0 0 0 / 8%);
   --line-strong: rgb(0 0 0 / 8%);
   --tag: rgb(0 0 0 / 5%);
-  --text-subtle: #8a8a8a;
-  --text-faint: #a3a3a3;
+  --text-subtle: #6b6b6b;
+  /* Faint is for large headings only: it clears 3:1, not 4.5:1. */
+  --text-faint: #8f8f8f;
   --wash-from: #ffffff;
   --wash-via: #f1f1ef;
   --wash-to: #e7e7e4;
@@ -59,8 +60,8 @@
     --line: rgb(255 255 255 / 8%);
     --line-strong: rgb(255 255 255 / 8%);
     --tag: rgb(255 255 255 / 7%);
-    --text-subtle: #757575;
-    --text-faint: #5e5e5e;
+    --text-subtle: #8f8f8f;
+    --text-faint: #686868;
     --wash-from: #1f1f1f;
     --wash-via: #121212;
     --wash-to: #0b0b0b;
@@ -94,8 +95,8 @@
   --line: rgb(255 255 255 / 8%);
   --line-strong: rgb(255 255 255 / 8%);
   --tag: rgb(255 255 255 / 7%);
-  --text-subtle: #757575;
-  --text-faint: #5e5e5e;
+  --text-subtle: #8f8f8f;
+  --text-faint: #686868;
   --wash-from: #1f1f1f;
   --wash-via: #121212;
   --wash-to: #0b0b0b;
@@ -130,8 +131,8 @@
   --line: rgb(255 255 255 / 8%);
   --line-strong: rgb(255 255 255 / 8%);
   --tag: rgb(255 255 255 / 7%);
-  --text-subtle: #757575;
-  --text-faint: #5e5e5e;
+  --text-subtle: #8f8f8f;
+  --text-faint: #686868;
   --wash-from: #1f1f1f;
   --wash-via: #121212;
   --wash-to: #0b0b0b;
