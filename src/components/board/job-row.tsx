@@ -263,7 +263,7 @@ export function JobRow({
         )}
       >
         <CompanyLogo job={job} variant={variant} />
-        <h3
+        <h2
           className={cn(
             "text-foreground min-w-0 truncate text-[15px] [grid-area:title] lg:self-end",
             styles.title
@@ -276,7 +276,7 @@ export function JobRow({
           >
             {job.title}
           </Link>
-        </h3>
+        </h2>
         {statuses.length > 0 || Extra ? (
           <div
             className={cn(

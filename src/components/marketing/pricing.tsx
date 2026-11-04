@@ -110,9 +110,9 @@ function CheckIcon() {
 function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
   return (
     <>
-      <h3 className="text-foreground text-[15px] leading-[18px] font-medium md:leading-[22px]">
+      <h2 className="text-foreground text-[15px] leading-[18px] font-medium md:leading-[22px]">
         {plan.name}
-      </h3>
+      </h2>
       <p className="flex items-baseline gap-1.5">
         <span className="text-foreground text-[40px] leading-[48px] font-medium tracking-[-0.03em] md:leading-[46px]">
           {plan.price}

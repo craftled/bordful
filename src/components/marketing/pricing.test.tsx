@@ -24,7 +24,7 @@ test("standalone pricing plan names are headings", () => {
 
   expect(
     screen
-      .getAllByRole("heading", { level: 3 })
+      .getAllByRole("heading", { level: 2 })
       .map((heading) => heading.textContent)
   ).toEqual(["Open Source", "Custom Setup"]);
 });
