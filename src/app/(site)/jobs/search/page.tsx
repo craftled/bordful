@@ -11,6 +11,7 @@ import {
   parseBoardQuery,
   urlSearchParamsFromRecord,
 } from "@/lib/board/query";
+import { withTextMatches } from "@/lib/board/text-search";
 import { buildBoardView } from "@/lib/board/view";
 import { getSiteSettings } from "@/lib/read";
 
@@ -32,7 +33,7 @@ export default async function SearchPage({
     redirect(target);
   }
 
-  const query = parseBoardQuery(params, options);
+  const query = await withTextMatches(parseBoardQuery(params, options));
   const cards = await loadBoardPool();
   if (buildBoardView(cards, query).outOfRange) {
     notFound();

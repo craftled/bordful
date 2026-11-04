@@ -7,6 +7,7 @@ import {
   queryCompanies,
   queryCompanyBySlug,
   queryJobBySlug,
+  queryJobIdsMatchingText,
   queryPublishedJobs,
   querySiteSettings,
 } from "./queries";
@@ -33,6 +34,18 @@ export function listPublishedJobs(input: { page: number; limit: number }) {
       return queryPublishedJobs(payload, input);
     },
     ["listPublishedJobs", String(input.page), String(input.limit)],
+    [READ_TAGS.jobs]
+  );
+}
+
+export function searchJobIdsByText(input: { limit: number; q: string }) {
+  const q = input.q.trim().toLowerCase();
+  return cachedRead(
+    async () => {
+      const payload = await getPayload({ config });
+      return queryJobIdsMatchingText(payload, { limit: input.limit, q });
+    },
+    ["searchJobIdsByText", q, String(input.limit)],
     [READ_TAGS.jobs]
   );
 }

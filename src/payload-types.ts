@@ -335,6 +335,10 @@ export interface Job {
   companySlug?: string | null;
   companyLogo?: (number | null) | Media;
   companyDomain?: string | null;
+  /**
+   * A short plain-text summary of the role. Board search matches it.
+   */
+  summary?: string | null;
   description?: LexicalRichText<LexicalNodes_CD9CA795> | null;
   applyUrl?: string | null;
   applyEmail?: string | null;
@@ -382,6 +386,12 @@ export interface Job {
       }[]
     | null;
   categories?:
+    | {
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  skills?:
     | {
         value: string;
         id?: string | null;
@@ -789,6 +799,7 @@ export interface JobsSelect<T extends boolean = true> {
   companySlug?: T;
   companyLogo?: T;
   companyDomain?: T;
+  summary?: T;
   description?: T;
   applyUrl?: T;
   applyEmail?: T;
@@ -815,6 +826,12 @@ export interface JobsSelect<T extends boolean = true> {
         id?: T;
       };
   categories?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  skills?:
     | T
     | {
         value?: T;

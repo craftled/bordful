@@ -122,15 +122,28 @@ function matchesSalary(card: JobListItem, bands: SalaryBandId[]): boolean {
   return bands.some((band) => overlaps(bounds, SALARY_BANDS[band]));
 }
 
-function matchesText(card: JobListItem, q: string): boolean {
+function includesText(value: string | null, needle: string): boolean {
+  return value?.toLowerCase().includes(needle) ?? false;
+}
+
+// Cards carry title, company and location. Summary and skills matches come
+// from Postgres as ids (query.textMatchIds), since cards leave those out.
+function matchesText(
+  card: JobListItem,
+  q: string,
+  textMatches: ReadonlySet<string> | null
+): boolean {
   if (q.length === 0) {
     return true;
   }
 
   const needle = q.toLowerCase();
   return (
-    card.title.toLowerCase().includes(needle) ||
-    card.companyName.toLowerCase().includes(needle)
+    includesText(card.title, needle) ||
+    includesText(card.companyName, needle) ||
+    includesText(card.locationDisplay, needle) ||
+    includesText(card.remoteRegion, needle) ||
+    (textMatches?.has(card.id) ?? false)
   );
 }
 
@@ -167,8 +180,12 @@ function matchesList<T extends string>(
   return value !== null && selected.includes(value);
 }
 
-function matchesCard(card: JobListItem, query: BoardQuery): boolean {
-  if (!matchesText(card, query.q)) {
+function matchesCard(
+  card: JobListItem,
+  query: BoardQuery,
+  textMatches: ReadonlySet<string> | null
+): boolean {
+  if (!matchesText(card, query.q, textMatches)) {
     return false;
   }
   if (query.featured && !card.featured) {
@@ -199,7 +216,8 @@ export function filterBoard(
   cards: JobListItem[],
   query: BoardQuery
 ): JobListItem[] {
-  return cards.filter((card) => matchesCard(card, query));
+  const textMatches = query.textMatchIds ? new Set(query.textMatchIds) : null;
+  return cards.filter((card) => matchesCard(card, query, textMatches));
 }
 
 function publishedMs(iso: string | null, now: number): number {

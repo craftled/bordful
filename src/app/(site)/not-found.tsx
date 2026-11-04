@@ -60,7 +60,7 @@ export default async function NotFound() {
               aria-label="Search jobs"
               className="bg-card border-line-strong placeholder:text-subtle text-foreground h-11 w-full rounded-[10px] border px-3.5 text-[14px] shadow-xs dark:border-white/12"
               name="q"
-              placeholder="Search jobs by role or company"
+              placeholder="Search jobs by role, company or skill"
               type="search"
             />
           </form>

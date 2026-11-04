@@ -29,10 +29,10 @@ export function searchHiddenFields(
   return fields;
 }
 
-// Search matches titles and company names, so the long form says exactly
-// that (Paper's "or skill" would promise a match the board does not make).
+// Search matches title, company, location, summary and skills, so the long
+// form can say what Paper says.
 export function searchPlaceholder(count?: number, long = false): string {
-  const suffix = long ? " by role or company" : "";
+  const suffix = long ? " by role, company or skill" : "";
   if (count === undefined || count <= 0) {
     return `Search jobs${suffix}`;
   }
