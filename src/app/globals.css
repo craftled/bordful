@@ -42,10 +42,10 @@
   --logo-tile: #eaeae8;
   --line: rgb(0 0 0 / 7%);
   --line-strong: rgb(0 0 0 / 10%);
-  --text-subtle: #8e8e8e;
-  --featured: #1a6fe0;
-  --new: #15803d;
-  --closing: #b45309;
+  --text-subtle: #6b6b6b;
+  --featured: #1760c2;
+  --new: #127136;
+  --closing: #9e4908;
   --destructive: #c62828;
   --input: rgb(0 0 0 / 10%);
   color-scheme: light;
@@ -80,7 +80,7 @@
     --logo-tile: rgb(255 255 255 / 5%);
     --line: rgb(255 255 255 / 6%);
     --line-strong: rgb(255 255 255 / 8%);
-    --text-subtle: #757575;
+    --text-subtle: #8f8f8f;
     --featured: #5aa7ff;
     --new: #4cc38a;
     --closing: #f1a10d;
@@ -115,7 +115,7 @@
   --logo-tile: rgb(255 255 255 / 5%);
   --line: rgb(255 255 255 / 6%);
   --line-strong: rgb(255 255 255 / 8%);
-  --text-subtle: #757575;
+  --text-subtle: #8f8f8f;
   --featured: #5aa7ff;
   --new: #4cc38a;
   --closing: #f1a10d;

@@ -207,7 +207,7 @@ export function Walkthrough() {
                       "text-[14px] leading-5 font-medium",
                       selected
                         ? "text-foreground"
-                        : "group-hover:text-muted-foreground text-(--text-faint)"
+                        : "group-hover:text-muted-foreground text-subtle"
                     )}
                     id={`${tabId(step)}-label`}
                   >
