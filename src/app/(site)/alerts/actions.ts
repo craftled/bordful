@@ -8,6 +8,7 @@ import { z } from "zod";
 import { resolvePayloadSecret } from "@/config/payload-secret";
 import { resolveServerUrl } from "@/config/server-url";
 import type { AlertsActionState } from "@/lib/alerts/action-state";
+import { isLikelyBot } from "@/lib/alerts/bot-check";
 import { alertsReady } from "@/lib/alerts/config";
 import {
   firstSearchValue,
@@ -73,7 +74,12 @@ export async function subscribeAction(
   }
 
   const headerList = await headers();
-  if (!allowSubscribeIp(clientIp(headerList.get("x-forwarded-for")))) {
+  if (!allowSubscribeIp(clientIp(headerList))) {
+    return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
+  }
+
+  // After the cheap IP window, so floods do not each cost a BotID check.
+  if (await isLikelyBot()) {
     return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
   }
 

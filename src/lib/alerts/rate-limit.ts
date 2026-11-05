@@ -1,6 +1,6 @@
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_HITS = 5;
-// x-forwarded-for is caller-controlled off Vercel, so each new value is a key.
+// Off Vercel the address can still be spoofed, so each new value is a key.
 const MAX_TRACKED_IPS = 10_000;
 
 const hitsByIp = new Map<string, number[]>();
@@ -42,12 +42,31 @@ function enforceCap(now: number): void {
   }
 }
 
-export function clientIp(header: string | null): string {
+interface HeaderSource {
+  get: (name: string) => string | null;
+}
+
+function firstAddress(header: string | null): string | null {
   const first = header?.split(",")[0]?.trim();
   if (!first) {
-    return "unknown";
+    return null;
   }
   return first;
+}
+
+// On Vercel, x-vercel-forwarded-for and x-real-ip are set by the edge and
+// are not caller-controlled. Off Vercel nothing strips x-vercel-forwarded-for,
+// so it is only read on Vercel; a fork's proxy can still set x-real-ip.
+export function clientIp(
+  headers: HeaderSource,
+  onVercel = process.env.VERCEL === "1"
+): string {
+  return (
+    (onVercel ? firstAddress(headers.get("x-vercel-forwarded-for")) : null) ??
+    firstAddress(headers.get("x-real-ip")) ??
+    firstAddress(headers.get("x-forwarded-for")) ??
+    "unknown"
+  );
 }
 
 export function subscribeRateLimitSize(): number {
