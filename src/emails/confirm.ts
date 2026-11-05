@@ -3,6 +3,7 @@ import { escapeHtml, headerSafe } from "./escape";
 import {
   EMAIL_COLORS,
   EMAIL_FONT,
+  primaryButtonBorder,
   renderEmailButton,
   renderEmailLayout,
 } from "./layout";
@@ -24,7 +25,7 @@ export function renderConfirmEmail(input: {
     bodyHtml: `<p style="margin:0 0 24px;${EMAIL_FONT}font-size:15px;line-height:22px;color:${EMAIL_COLORS.mutedForeground};">${escapeHtml(intro)}</p>
 ${renderEmailButton({
   background: brand.primary,
-  border: brand.primary,
+  border: primaryButtonBorder(brand.primary),
   color: brand.primaryForeground,
   href: confirmUrl,
   label: "Confirm job alerts",
@@ -34,7 +35,7 @@ ${renderEmailButton({
     brand,
     footerHtml: `You received this because someone entered this address on ${safeName}. ${ignore}`,
     heading: "Confirm your job alerts",
-    preheader: intro,
+    preheader: "Confirm your address to start getting new jobs.",
   });
   const text = [
     subject,

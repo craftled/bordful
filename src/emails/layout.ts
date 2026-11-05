@@ -1,3 +1,4 @@
+import { contrastRatio } from "@/theme/contrast";
 import { DEFAULT_THEME_TOKENS } from "@/theme/tokens";
 
 import type { EmailBrand } from "./brand";
@@ -21,7 +22,21 @@ export const EMAIL_COLORS = {
 export const EMAIL_FONT =
   "font-family:Geist,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;";
 
-// A table cell carries the background so Outlook paints the whole button.
+const MIN_BUTTON_EDGE_CONTRAST = 1.5;
+const PREHEADER_FILLER = "&zwnj;&nbsp;".repeat(80);
+
+// A primary this close to the white card would vanish, so it gets the card
+// border instead.
+export function primaryButtonBorder(primary: string): string {
+  const ratio = contrastRatio(primary, EMAIL_COLORS.card);
+  return ratio !== null && ratio < MIN_BUTTON_EDGE_CONTRAST
+    ? EMAIL_COLORS.border
+    : primary;
+}
+
+// The cell carries the background and mso-padding-alt so Outlook desktop,
+// which ignores padding on <a>, still paints a padded button. Other clients
+// pad the <a>, so the whole button stays clickable.
 export function renderEmailButton(input: {
   background: string;
   border: string;
@@ -34,7 +49,7 @@ export function renderEmailButton(input: {
   const color = escapeHtml(input.color);
   const radius = `border-radius:${input.radiusPx}px;`;
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
-<tr><td align="center" bgcolor="${background}" style="background-color:${background};border:1px solid ${escapeHtml(input.border)};${radius}">
+<tr><td align="center" bgcolor="${background}" style="background-color:${background};border:1px solid ${escapeHtml(input.border)};mso-padding-alt:11px 20px;${radius}">
 <a href="${escapeHtml(input.href)}" target="_blank" style="display:inline-block;padding:11px 20px;${EMAIL_FONT}font-size:14px;line-height:20px;font-weight:500;color:${color};text-decoration:none;${radius}">${escapeHtml(input.label)}</a>
 </td></tr>
 </table>`;
@@ -44,7 +59,7 @@ function renderHeader(brand: EmailBrand): string {
   const siteUrl = escapeHtml(brand.siteUrl);
   const name = `<a href="${siteUrl}" target="_blank" style="${EMAIL_FONT}font-size:14px;line-height:24px;font-weight:500;color:${EMAIL_COLORS.foreground};text-decoration:none;">${escapeHtml(brand.siteName)}</a>`;
   const logo = brand.logoUrl
-    ? `<td valign="middle" style="padding:0 8px 0 0;"><a href="${siteUrl}" target="_blank"><img src="${escapeHtml(brand.logoUrl)}" alt="" width="24" height="24" style="display:block;height:24px;width:auto;border:0;border-radius:6px;"></a></td>`
+    ? `<td valign="middle" style="padding:0 8px 0 0;"><a href="${siteUrl}" target="_blank"><img src="${escapeHtml(brand.logoUrl)}" alt="" height="24" style="display:block;height:24px;width:auto;max-width:160px;border:0;border-radius:6px;"></a></td>`
     : "";
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
 <tr>${logo}<td valign="middle">${name}</td></tr>
@@ -70,7 +85,7 @@ export function renderEmailLayout(input: {
 <title>${heading}</title>
 </head>
 <body bgcolor="${page}" style="margin:0;padding:0;background-color:${page};">
-<div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeHtml(input.preheader)}</div>
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeHtml(input.preheader)}${PREHEADER_FILLER}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${page}" style="background-color:${page};">
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">

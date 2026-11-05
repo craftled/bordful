@@ -2,6 +2,8 @@ import type { SiteSettingsView } from "@/lib/read/types";
 
 const TRAILING_SLASH = /\/+$/u;
 const REM_PX = 16;
+// Media also accepts webp and avif, which Outlook desktop cannot show.
+const EMAIL_IMAGE_EXTENSION = /\.(?:png|jpe?g|gif)$/iu;
 
 // The Bordful mark as a PNG. Gmail does not render SVG.
 const BORDFUL_MARK_PNG = "/marketing/apple-icon.png";
@@ -25,7 +27,7 @@ function imageUrl(value: string, base: string): string | null {
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     return null;
   }
-  if (url.pathname.toLowerCase().endsWith(".svg")) {
+  if (!EMAIL_IMAGE_EXTENSION.test(url.pathname)) {
     return null;
   }
   return url.href;

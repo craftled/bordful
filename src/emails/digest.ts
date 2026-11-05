@@ -25,7 +25,7 @@ function companyText(job: JobListItem): string {
 function jobRowHtml(job: JobListItem, url: string, first: boolean): string {
   const title = job.title.trim() || "Untitled role";
   const company = job.companyName.trim();
-  const initial = company.charAt(0).toUpperCase() || "?";
+  const initial = Array.from(company)[0]?.toUpperCase() || "?";
   const location = job.locationDisplay?.trim();
   const meta = location
     ? `${companyText(job)} · ${location}`
