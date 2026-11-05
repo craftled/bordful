@@ -23,8 +23,57 @@ function isAdminPath(pathname: string): boolean {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
+const CANONICAL_ORIGIN = "https://bordful.com";
+
+// Hostname only. Host headers may include a port (`bordful.com:443`).
+export function hostnameFromHostHeader(
+  hostHeader: string | null
+): string | null {
+  if (!hostHeader) {
+    return null;
+  }
+  const value = hostHeader.trim().toLowerCase();
+  if (!value) {
+    return null;
+  }
+  if (value.startsWith("[")) {
+    const end = value.indexOf("]");
+    return end === -1 ? null : value.slice(1, end);
+  }
+  const [name] = value.split(":");
+  return name || null;
+}
+
+// Staging and preview deploys on *.vercel.app must not serve the app.
+// Canonical and local hosts stay put. demo.bordful.com is redirected in vercel.json.
+export function shouldRedirectVercelAppHost(
+  hostHeader: string | null
+): boolean {
+  const host = hostnameFromHostHeader(hostHeader);
+  if (!host) {
+    return false;
+  }
+  if (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host === "bordful.com" ||
+    host === "www.bordful.com"
+  ) {
+    return false;
+  }
+  return host === "vercel.app" || host.endsWith(".vercel.app");
+}
+
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
+
+  if (shouldRedirectVercelAppHost(request.headers.get("host"))) {
+    return NextResponse.redirect(
+      `${CANONICAL_ORIGIN}${pathname}${search}`,
+      301
+    );
+  }
   // Crawlers ask for /favicon.ico. bordful.com points it at the Bordful mark;
   // a fork has no such file, so its request falls through to the 404.
   if (pathname === "/favicon.ico") {

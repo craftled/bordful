@@ -3,7 +3,13 @@ import { expect, test, vi } from "vitest";
 
 import { PAYLOAD_MONACO_CDN } from "@/lib/csp/build-csp";
 
-import { hasMalformedEncoding, MALFORMED_PATH_REWRITE, proxy } from "./proxy";
+import {
+  hasMalformedEncoding,
+  hostnameFromHostHeader,
+  MALFORMED_PATH_REWRITE,
+  proxy,
+  shouldRedirectVercelAppHost,
+} from "./proxy";
 
 const MALFORMED = [
   "/jobs/%E0%A4%A",
@@ -14,8 +20,10 @@ const MALFORMED = [
   "/jobs/type/%E0%A4%A",
 ];
 
-function run(path: string) {
-  return proxy(new NextRequest(`http://localhost:3100${path}`));
+function run(path: string, host = "localhost:3100") {
+  return proxy(
+    new NextRequest(`http://localhost:3100${path}`, { headers: { host } })
+  );
 }
 
 function styleSrc(csp: string | null): string {
@@ -76,6 +84,46 @@ test("bordful.com sends /favicon.ico to the Bordful mark", () => {
     );
   } finally {
     vi.unstubAllEnvs();
+  }
+});
+
+test("redirects vercel.app hosts to bordful.com and keeps path and query", () => {
+  for (const host of [
+    "bordful.vercel.app",
+    "bordful-v1.vercel.app",
+    "bordful-git-fix-abc123.vercel.app",
+    "bordful.vercel.app:443",
+  ]) {
+    const response = run("/jobs/example-role?q=design", host);
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(
+      "https://bordful.com/jobs/example-role?q=design"
+    );
+  }
+});
+
+test("does not redirect canonical, local, or demo hosts", () => {
+  expect(hostnameFromHostHeader(null)).toBeNull();
+  expect(hostnameFromHostHeader("")).toBeNull();
+  expect(shouldRedirectVercelAppHost(null)).toBe(false);
+  expect(shouldRedirectVercelAppHost("")).toBe(false);
+
+  for (const host of [
+    "bordful.com",
+    "www.bordful.com",
+    "bordful.com:443",
+    "localhost",
+    "localhost:3100",
+    "127.0.0.1",
+    "127.0.0.1:3100",
+    "[::1]:3100",
+    "demo.bordful.com",
+  ]) {
+    expect(shouldRedirectVercelAppHost(host)).toBe(false);
+    const response = run("/jobs?page=2", host);
+    expect(response.status).not.toBe(301);
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.get("location")).toBeNull();
   }
 });
 

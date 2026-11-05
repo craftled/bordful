@@ -37,6 +37,7 @@ export const Users: CollectionConfig = {
   },
   admin: { useAsTitle: "email" },
   auth: {
+    cookies: { sameSite: "Lax", secure: true },
     lockTime: 600_000,
     maxLoginAttempts: 5,
     useAPIKey: true,
