@@ -1,3 +1,5 @@
+import { isMarketingEnabled } from "../../config/flags";
+
 // Old bordful.com URLs from the pre-rebuild marketing site. The
 // demo.bordful.com host rule stays in vercel.json and is not listed here.
 export const legacyRedirects = [
@@ -23,3 +25,14 @@ export const legacyRedirects = [
     statusCode: 301,
   },
 ] as const;
+
+// Build-time gate: forks must not inherit bordful.com URL rewrites.
+export function legacyRedirectsFor(
+  env: Partial<NodeJS.ProcessEnv> = process.env
+): Array<(typeof legacyRedirects)[number]> {
+  if (!isMarketingEnabled(env)) {
+    return [];
+  }
+
+  return [...legacyRedirects];
+}

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { expect, test } from "vitest";
 
-import { legacyRedirects } from "./legacy-redirects";
+import { legacyRedirects, legacyRedirectsFor } from "./legacy-redirects";
 
 test("retired marketing URLs redirect with 301", () => {
   expect(legacyRedirects).toEqual([
@@ -31,6 +31,14 @@ test("retired marketing URLs redirect with 301", () => {
       source: "/manifest.json",
       statusCode: 301,
     },
+  ]);
+});
+
+test("legacy redirects only apply when marketing is on", () => {
+  expect(legacyRedirectsFor({})).toEqual([]);
+  expect(legacyRedirectsFor({ BORDFUL_MARKETING: "false" })).toEqual([]);
+  expect(legacyRedirectsFor({ BORDFUL_MARKETING: "true" })).toEqual([
+    ...legacyRedirects,
   ]);
 });
 

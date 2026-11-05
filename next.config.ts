@@ -4,7 +4,7 @@ import { readdirSync } from "node:fs";
 import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
-import { legacyRedirects } from "./src/lib/seo/legacy-redirects";
+import { legacyRedirectsFor } from "./src/lib/seo/legacy-redirects";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 
@@ -101,7 +101,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   async redirects() {
-    return legacyRedirects.map((redirect) => ({ ...redirect }));
+    return legacyRedirectsFor().map((redirect) => ({ ...redirect }));
   },
 };
 
