@@ -13,11 +13,11 @@ test("isLikelyBot returns the Vercel check result", async () => {
   const bot = vi.fn(async () => ({ isBot: true }));
 
   await expect(
-    isLikelyBot({ check: human, env: { VERCEL: "1" } })
+    isLikelyBot({ check: human, env: { NEXT_PUBLIC_VERCEL_ENV: "production" } })
   ).resolves.toBe(false);
-  await expect(isLikelyBot({ check: bot, env: { VERCEL: "1" } })).resolves.toBe(
-    true
-  );
+  await expect(
+    isLikelyBot({ check: bot, env: { NEXT_PUBLIC_VERCEL_ENV: "production" } })
+  ).resolves.toBe(true);
   expect(human).toHaveBeenCalledOnce();
   expect(bot).toHaveBeenCalledOnce();
 });
@@ -29,7 +29,7 @@ test("isLikelyBot fails closed when the Vercel check throws", async () => {
       check: () => {
         throw new Error("x-vercel-oidc-token header is missing");
       },
-      env: { VERCEL: "1" },
+      env: { NEXT_PUBLIC_VERCEL_ENV: "production" },
     })
   ).resolves.toBe(true);
   expect(error).toHaveBeenCalledWith(

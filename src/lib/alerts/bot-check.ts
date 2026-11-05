@@ -6,12 +6,14 @@ interface BotVerdict {
 
 export interface BotCheckDeps {
   check?: () => Promise<BotVerdict>;
-  env?: { VERCEL?: string };
+  env?: { NEXT_PUBLIC_VERCEL_ENV?: string };
 }
 
 export async function isLikelyBot(deps: BotCheckDeps = {}): Promise<boolean> {
+  // Same signal as src/instrumentation-client.ts, which only attaches BotID
+  // headers on Vercel. checkBotId also throws off Vercel (no OIDC token).
   const env = deps.env ?? process.env;
-  if (env.VERCEL !== "1") {
+  if (!env.NEXT_PUBLIC_VERCEL_ENV) {
     return false;
   }
 
