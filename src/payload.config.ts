@@ -3,7 +3,6 @@ import { fileURLToPath } from "node:url";
 
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
-import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { sharpTransformer } from "@payloadcms/transformer-sharp";
 import { buildConfig, type Payload } from "payload";
 import sharp from "sharp";
@@ -18,12 +17,12 @@ import { ensureSampleJobs } from "./lib/bordfeed/sample";
 import { stripDashes } from "./lib/codegen/strip-dashes";
 import { ensureInstallId } from "./lib/install/install-id";
 import { migrations } from "./migrations";
+import { resolveMediaStorage } from "./storage/media-storage";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const serverURL = resolveServerUrl();
 const secret = resolvePayloadSecret();
-const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
 
 async function ensureInstallIdSafely(payload: Payload): Promise<void> {
   try {
@@ -91,13 +90,7 @@ export default buildConfig({
   },
   secret,
   serverURL,
-  storage: [
-    vercelBlobStorage({
-      collections: { media: true },
-      enabled: Boolean(blobToken),
-      token: blobToken,
-    }),
-  ],
+  storage: [resolveMediaStorage()],
   telemetry: false,
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),

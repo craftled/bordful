@@ -27,16 +27,19 @@
     },
     "dompurify": "3.4.17",
     "happy-dom": "21.0.4",
-    "sharp": "0.35.5"
+    "sharp": "0.35.5",
+    "zod": "4.6.7"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "4.0.0-beta.6",
     "@payloadcms/email-resend": "4.0.0-beta.6",
     "@payloadcms/next": "4.0.0-beta.6",
+    "@payloadcms/plugin-cloud-storage": "4.0.0-beta.6",
     "@payloadcms/richtext-lexical": "4.0.0-beta.6",
     "@payloadcms/storage-vercel-blob": "4.0.0-beta.6",
     "@payloadcms/transformer-sharp": "^4.0.0-beta.7",
     "@payloadcms/ui": "4.0.0-beta.6",
+    "@vercel/blob": "2.8.2",
     "botid": "1.5.12",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

@@ -7,7 +7,7 @@ The button in the [README](../README.md) opens the Vercel project flow and clone
 It provisions:
 
 - Neon Postgres, which sets `DATABASE_URL`. Preview deployments get their own Neon branch.
-- Vercel Blob, which sets `BLOB_READ_WRITE_TOKEN`. The button asks for a public store. A private store, which is what Vercel offers first when you add Blob by hand, sets `BLOB_STORE_ID` instead of a token, so the storage adapter stays off and uploads fail. If a board ends up with a private store, create a public one and connect it to the project.
+- Vercel Blob, which sets `BLOB_STORE_ID`. Vercel connects new stores through OIDC, so there is no token to copy and Bordful uses the store as it is. The button asks for a public store, because logos are served straight from Blob. A private store cannot serve them, so if a board ends up with one, create a public store and connect it instead.
 
 It then asks you to enter:
 
@@ -28,7 +28,8 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `PAYLOAD_SECRET` | Yes | You | 32+ random characters. Mark Sensitive. Production uses one value. Preview uses a different value and its own Neon branch. |
 | `CRON_SECRET` | Yes | You | Bearer secret for `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`. |
 | `NEXT_PUBLIC_SERVER_URL` | No | You | Public origin, no trailing slash. Optional on Vercel (falls back to the production URL). Inlined at build time. |
-| `BLOB_READ_WRITE_TOKEN` | No locally | Blob integration on Vercel | On Vercel, uploads need Blob (the Deploy button provisions it). Without this token, Payload stores uploads in the local `media/` directory, which needs a persistent disk. Serverless and other read-only hosts cannot use that directory. |
+| `BLOB_STORE_ID` | No locally | Blob integration on Vercel | On Vercel, uploads need Blob (the Deploy button provisions it). Bordful authenticates to the store with Vercel OIDC. Without Blob, Payload stores uploads in the local `media/` directory, which needs a persistent disk. Serverless and other read-only hosts cannot use that directory. |
+| `BLOB_READ_WRITE_TOKEN` | No | You, optionally | A static Blob token. Older stores set it, and you need it to use Blob from a host other than Vercel. When it is set, it is used instead of OIDC. |
 | `BORDFUL_MARKETING` | No | You, only on bordful.com | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`. |
 | `RESEND_API_KEY` | No | You | Job alerts stay off without it. See [Job alerts](alerts.md). |
 | `RESEND_BASE_URL` | No | You | Resend API origin. Empty uses the SDK default. |
@@ -68,7 +69,7 @@ Bordful does not send admin password reset emails yet. Keep a second admin accou
 
 Run Node.js 26 LTS (see `.nvmrc`).
 
-Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. Without `BLOB_READ_WRITE_TOKEN`, media uploads go to the local `media/` directory, so the host needs a persistent disk. Blob is required on Vercel and on other read-only or serverless hosts: `payload.config.ts` enables the Blob adapter only when the token is set. Run migrations once:
+Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. Without `BLOB_READ_WRITE_TOKEN`, media uploads go to the local `media/` directory, so the host needs a persistent disk. Blob is required on Vercel and on other read-only or serverless hosts. Outside Vercel there is no OIDC, so create a read-write token for the store and set `BLOB_READ_WRITE_TOKEN`. Run migrations once:
 
 ```bash
 bun run payload migrate
