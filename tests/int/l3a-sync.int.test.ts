@@ -835,6 +835,52 @@ describe("bordfeed sync", () => {
     expect(jobs.totalDocs).toBe(0);
   });
 
+  test("concurrent first boots seed the sample once and leave the connection in sample", async () => {
+    await Promise.all(
+      Array.from({ length: 5 }, () => ensureSampleJobs(payload))
+    );
+    const jobs = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    const connection = await readConnection(payload);
+    expect(previewCalls).toHaveLength(1);
+    expect(jobs.totalDocs).toBe(3);
+    expect(connection.state).toBe("sample");
+    expect(connection.lastSyncAt).not.toBeNull();
+  });
+
+  test("ensureSampleJobs records a seed whose success was lost to a racing failure", async () => {
+    await runSampleSync(payload, { client: sampleClient() });
+    // A losing boot wrote its failure over the winner's success: samples are
+    // on the board, the state is error, and no sync is recorded.
+    await dispatchConnectionEvent(payload, { type: "reset" });
+    await dispatchConnectionEvent(payload, {
+      error: {
+        at: "2026-10-23T09:00:00.000Z",
+        code: "unknown",
+        message: "The Bordfeed request failed.",
+      },
+      type: "sync_failed",
+    });
+    const before = previewCalls.length;
+
+    await ensureSampleJobs(payload);
+    const jobs = await payload.count({
+      collection: "jobs",
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed_sample" } },
+    });
+    const connection = await readConnection(payload);
+    expect(previewCalls).toHaveLength(before);
+    expect(jobs.totalDocs).toBe(3);
+    expect(connection.state).toBe("sample");
+    expect(connection.lastSyncAt).not.toBeNull();
+    const summary = connection.lastSyncSummary as { created?: number } | null;
+    expect(summary?.created).toBe(3);
+  });
+
   test("a feed sync that loses the connection does not publish jobs", async () => {
     await connectFeed();
     const jobs = feedJobs(2);

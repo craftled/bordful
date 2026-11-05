@@ -11,6 +11,7 @@ import {
   queryPublishedJobs,
   querySiteSettings,
 } from "./queries";
+import { revalidateReadTags } from "./revalidate";
 import { companyTag, jobTag, READ_TAGS } from "./tags";
 
 // `next build` renders with the build machine's database. Caching that result
@@ -27,15 +28,33 @@ function cachedRead<T>(
   return unstable_cache(load, keyParts, { revalidate: 300, tags })();
 }
 
-export function listPublishedJobs(input: { page: number; limit: number }) {
-  return cachedRead(
-    async () => {
-      const payload = await getPayload({ config });
-      return queryPublishedJobs(payload, input);
-    },
+export async function listPublishedJobs(input: {
+  page: number;
+  limit: number;
+}) {
+  const load = async () => {
+    const payload = await getPayload({ config });
+    return queryPublishedJobs(payload, input);
+  };
+  const cached = await cachedRead(
+    load,
     ["listPublishedJobs", String(input.page), String(input.limit)],
     [READ_TAGS.jobs]
   );
+  if (cached.items.length > 0 || input.page !== 1) {
+    return cached;
+  }
+
+  // A fresh deploy renders its first pages while the sample jobs are still
+  // being seeded, and a tag revalidated during that render does not evict
+  // the entry the render then writes. An empty first page is rare and cheap
+  // to read again, so check the database before serving an empty board.
+  const fresh = await load();
+  if (fresh.items.length > 0) {
+    revalidateReadTags([READ_TAGS.jobs]);
+  }
+
+  return fresh;
 }
 
 export function searchJobIdsByText(input: { limit: number; q: string }) {

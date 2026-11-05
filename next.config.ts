@@ -103,6 +103,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return legacyRedirectsFor().map((redirect) => ({ ...redirect }));
   },
+  // `bun run typecheck` runs in CI and in `bun run check`. Running tsc again
+  // inside `next build` added about nine seconds to every Vercel deploy.
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default withPayload(nextConfig, { devBundleServerPackages: false });
