@@ -65,10 +65,21 @@ export function shouldRedirectVercelAppHost(
   return host === "vercel.app" || host.endsWith(".vercel.app");
 }
 
+function isApiPath(pathname: string): boolean {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  if (shouldRedirectVercelAppHost(request.headers.get("host"))) {
+  // Only bordful.com (marketing on) sends *.vercel.app traffic to the
+  // canonical host. Forks keep their own vercel.app URL. Cron and other
+  // /api calls hit the deployment host and must not follow a 301.
+  if (
+    !isApiPath(pathname) &&
+    isMarketingEnabled() &&
+    shouldRedirectVercelAppHost(request.headers.get("host"))
+  ) {
     return NextResponse.redirect(
       `${CANONICAL_ORIGIN}${pathname}${search}`,
       301
