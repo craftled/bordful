@@ -12,7 +12,12 @@ export interface BotCheckDeps {
 export async function isLikelyBot(deps: BotCheckDeps = {}): Promise<boolean> {
   // Same signal as src/instrumentation-client.ts, which only attaches BotID
   // headers on Vercel. checkBotId also throws off Vercel (no OIDC token).
-  const env = deps.env ?? process.env;
+  // Read process.env.NEXT_PUBLIC_VERCEL_ENV literally: Next inlines it at
+  // build, the same value the client gate sees. Vercel does not set it at
+  // runtime, so a dynamic process.env lookup is always empty there.
+  const env = deps.env ?? {
+    NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+  };
   if (!env.NEXT_PUBLIC_VERCEL_ENV) {
     return false;
   }
