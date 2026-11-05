@@ -33,7 +33,7 @@ test("isLikelyBot fails closed when the Vercel check throws", async () => {
     })
   ).resolves.toBe(true);
   expect(error).toHaveBeenCalledWith(
-    "BotID check failed; treating the signup as a bot."
+    "BotID check failed; treating the signup as a bot: x-vercel-oidc-token header is missing"
   );
   error.mockRestore();
 });

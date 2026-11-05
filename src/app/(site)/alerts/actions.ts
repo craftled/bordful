@@ -73,12 +73,13 @@ export async function subscribeAction(
     return { message: "Choose weekly or daily.", ok: false };
   }
 
-  if (await isLikelyBot()) {
+  const headerList = await headers();
+  if (!allowSubscribeIp(clientIp(headerList))) {
     return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
   }
 
-  const headerList = await headers();
-  if (!allowSubscribeIp(clientIp(headerList))) {
+  // After the cheap IP window, so floods do not each cost a BotID check.
+  if (await isLikelyBot()) {
     return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
   }
 

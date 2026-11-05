@@ -55,10 +55,14 @@ function firstAddress(header: string | null): string | null {
 }
 
 // On Vercel, x-vercel-forwarded-for and x-real-ip are set by the edge and
-// are not caller-controlled.
-export function clientIp(headers: HeaderSource): string {
+// are not caller-controlled. Off Vercel nothing strips x-vercel-forwarded-for,
+// so it is only read on Vercel; a fork's proxy can still set x-real-ip.
+export function clientIp(
+  headers: HeaderSource,
+  onVercel = process.env.VERCEL === "1"
+): string {
   return (
-    firstAddress(headers.get("x-vercel-forwarded-for")) ??
+    (onVercel ? firstAddress(headers.get("x-vercel-forwarded-for")) : null) ??
     firstAddress(headers.get("x-real-ip")) ??
     firstAddress(headers.get("x-forwarded-for")) ??
     "unknown"

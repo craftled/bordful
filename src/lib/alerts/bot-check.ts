@@ -21,8 +21,11 @@ export async function isLikelyBot(deps: BotCheckDeps = {}): Promise<boolean> {
   try {
     const result = await check();
     return result.isBot;
-  } catch {
-    console.error("BotID check failed; treating the signup as a bot.");
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "unknown error";
+    console.error(
+      `BotID check failed; treating the signup as a bot: ${reason}`
+    );
     return true;
   }
 }

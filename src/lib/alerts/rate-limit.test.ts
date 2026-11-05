@@ -18,9 +18,22 @@ test("clientIp prefers the Vercel edge address over a spoofed forwarded header",
         "x-forwarded-for": "198.51.100.9",
         "x-real-ip": "198.51.100.8",
         "x-vercel-forwarded-for": "203.0.113.10, 198.51.100.1",
-      })
+      }),
+      true
     )
   ).toBe("203.0.113.10");
+});
+
+test("clientIp ignores x-vercel-forwarded-for off Vercel", () => {
+  expect(
+    clientIp(
+      headers({
+        "x-real-ip": "203.0.113.40",
+        "x-vercel-forwarded-for": "198.51.100.66",
+      }),
+      false
+    )
+  ).toBe("203.0.113.40");
 });
 
 test("clientIp uses x-real-ip when the Vercel header is absent", () => {
