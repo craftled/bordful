@@ -26,7 +26,14 @@ export const EMPTY_FEED_MESSAGE =
   "The Bordfeed feed came back empty, so the board kept its current jobs.";
 
 export const MASS_REMOVAL_MESSAGE =
-  "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now. If a sync at least 12 hours later sees the same, it unpublishes them.";
+  "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now. Two later syncs, at least 12 hours apart, must see the same slice before any of those jobs can be unpublished, and only when mass unpublish is explicitly allowed.";
+
+export const MASS_REMOVAL_PENDING_MESSAGE =
+  "Bordfeed confirmed this slice of jobs as gone on two later syncs. Mass unpublish stays held until BORDFEED_ALLOW_MASS_UNPUBLISH=1. A later sync then unpublishes at most 10 of them.";
+
+export function massRemovalFloorMessage(cap: number): string {
+  return `Bordfeed confirmed a mass removal and this sync unpublished ${cap} jobs, the most one sync may remove after an incident. The rest stay published until a later sync.`;
+}
 
 export class SyncGuardError extends Error {
   constructor(message = EMPTY_FEED_MESSAGE) {

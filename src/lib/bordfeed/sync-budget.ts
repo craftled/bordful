@@ -35,10 +35,13 @@ export interface TrackState {
 }
 
 // A check slice that looked like a Bordfeed incident: most of it came back
-// gone. Its removals wait for a second sync to confirm them.
+// gone. Removals stay held until two later syncs of this same slice, each
+// at least 12 hours after the previous `at`, have confirmed it.
 export interface RemovalHold {
   after: string | null;
   at: string;
+  // Spaced reconfirmations after the hold was opened. Missing on older rows.
+  confirmations: number;
 }
 
 export interface SyncState {
@@ -142,10 +145,25 @@ function trackOf(value: unknown): TrackState {
   };
 }
 
+function confirmationsOf(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 0;
+  }
+
+  return Math.floor(value);
+}
+
 function holdOf(value: unknown): RemovalHold | null {
   const row = record(value);
   const at = text(row.at);
-  return at ? { after: text(row.after), at } : null;
+  // Rows written before `confirmations` existed count as zero.
+  return at
+    ? {
+        after: text(row.after),
+        at,
+        confirmations: confirmationsOf(row.confirmations),
+      }
+    : null;
 }
 
 // A different feed starts over with a capped first sync. Usage for the day

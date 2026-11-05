@@ -9,12 +9,18 @@ import {
 import {
   BordfeedApiError,
   MASS_REMOVAL_MESSAGE,
+  MASS_REMOVAL_PENDING_MESSAGE,
+  massRemovalFloorMessage,
   SyncGuardError,
 } from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
-import { runFeedSync, runSampleSync } from "@/lib/bordfeed/sync";
+import {
+  MAX_INCIDENT_REMOVALS_PER_SYNC,
+  runFeedSync,
+  runSampleSync,
+} from "@/lib/bordfeed/sync";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { queryPublishedJobs } from "@/lib/read/queries";
 
@@ -447,7 +453,7 @@ describe("bordfeed sync", () => {
     expect(published.totalDocs).toBe(30);
   });
 
-  test("most checked jobs gone waits for a second sync 12 hours later", async () => {
+  test("most checked jobs gone stays held until two confirmations and an allow flag", async () => {
     await connectFeed();
     const jobs = feedJobs(25);
     await runFeedSync(payload, { client: feedClient(jobs) });
@@ -458,27 +464,64 @@ describe("bordfeed sync", () => {
     const at = (hours: number) => () => new Date(start + hours * 3_600_000);
     const published = async () =>
       (await queryPublishedJobs(payload, { limit: 50, page: 1 })).totalDocs;
+    const runAt = (hours: number) =>
+      runFeedSync(payload, { client: gone(), now: at(hours) }).catch(
+        (caught: unknown) => caught
+      );
+    const previous = process.env.BORDFEED_ALLOW_MASS_UNPUBLISH;
+    delete process.env.BORDFEED_ALLOW_MASS_UNPUBLISH;
 
-    for (const hours of [0, 1]) {
-      // biome-ignore lint/performance/noAwaitInLoops: syncs run in order
-      const error = await runFeedSync(payload, {
-        client: gone(),
-        now: at(hours),
-      }).catch((caught: unknown) => caught);
-      expect(error).toBeInstanceOf(SyncGuardError);
-      expect(error).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
+    try {
+      for (const hours of [0, 1]) {
+        // biome-ignore lint/performance/noAwaitInLoops: syncs run in order
+        const error = await runAt(hours);
+        expect(error).toBeInstanceOf(SyncGuardError);
+        expect(error).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
+        expect(await published()).toBe(25);
+      }
+      const connection = await readConnection(payload);
+      expect(connection.lastError?.message).toBe(MASS_REMOVAL_MESSAGE);
+
+      // One confirmation, 13 hours later. Still held.
+      const once = await runAt(13);
+      expect(once).toBeInstanceOf(SyncGuardError);
+      expect(once).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
       expect(await published()).toBe(25);
-    }
-    const connection = await readConnection(payload);
-    expect(connection.lastError?.message).toBe(MASS_REMOVAL_MESSAGE);
 
-    // Still the same 12 hours later: the jobs really closed.
-    const confirmed = await runFeedSync(payload, {
-      client: gone(),
-      now: at(13),
-    });
-    expect(confirmed.unpublished).toBe(22);
-    expect(await published()).toBe(3);
+      // The allow flag does not skip the second confirmation.
+      process.env.BORDFEED_ALLOW_MASS_UNPUBLISH = "1";
+      const early = await runAt(14);
+      expect(early).toBeInstanceOf(SyncGuardError);
+      expect(early).toMatchObject({ message: MASS_REMOVAL_MESSAGE });
+      expect(await published()).toBe(25);
+      delete process.env.BORDFEED_ALLOW_MASS_UNPUBLISH;
+
+      // Second confirmation. Still held until the owner allows it.
+      const twice = await runAt(25);
+      expect(twice).toBeInstanceOf(SyncGuardError);
+      expect(twice).toMatchObject({ message: MASS_REMOVAL_PENDING_MESSAGE });
+      expect(await published()).toBe(25);
+      const pending = await readConnection(payload);
+      expect(pending.lastError?.message).toBe(MASS_REMOVAL_PENDING_MESSAGE);
+
+      process.env.BORDFEED_ALLOW_MASS_UNPUBLISH = "1";
+      const released = await runAt(26);
+      expect(released).toBeInstanceOf(SyncGuardError);
+      expect(released).toMatchObject({
+        message: massRemovalFloorMessage(MAX_INCIDENT_REMOVALS_PER_SYNC),
+      });
+      expect(await published()).toBe(25 - MAX_INCIDENT_REMOVALS_PER_SYNC);
+      const capped = await readConnection(payload);
+      expect(capped.lastError?.message).toBe(
+        massRemovalFloorMessage(MAX_INCIDENT_REMOVALS_PER_SYNC)
+      );
+    } finally {
+      if (previous === undefined) {
+        delete process.env.BORDFEED_ALLOW_MASS_UNPUBLISH;
+      } else {
+        process.env.BORDFEED_ALLOW_MASS_UNPUBLISH = previous;
+      }
+    }
   });
 
   test("a normal share of closures is unpublished at once", async () => {

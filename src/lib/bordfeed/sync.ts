@@ -12,6 +12,8 @@ import { eachDoc, eachSerial } from "./each";
 import {
   BordfeedApiError,
   MASS_REMOVAL_MESSAGE,
+  MASS_REMOVAL_PENDING_MESSAGE,
+  massRemovalFloorMessage,
   SyncGuardError,
   toSafeError,
 } from "./errors";
@@ -34,6 +36,7 @@ import {
   afterFirst,
   type FetchPlan,
   planFetch,
+  type RemovalHold,
   readSyncBudget,
   recordSpend,
   releaseSyncLease,
@@ -1138,10 +1141,63 @@ function looksLikeIncident(run: CheckRun): boolean {
   );
 }
 
-// Hold removals that look like an incident for one sync at least 12 hours
-// later. If the same slice still looks that way, the jobs really closed:
-// unpublish them and move on, so the guard can never stall the checks.
+// A sustained Bordfeed incident must not silently mass-unpublish. The first
+// incident opens a hold with confirmations 0. Each later sync of that same
+// slice, at least REMOVAL_HOLD_MS after hold.at, adds one confirmation and
+// refreshes `at`. After MASS_REMOVAL_CONFIRMATIONS the slice stays held
+// unless BORDFEED_ALLOW_MASS_UNPUBLISH=1. With that set, one sync unpublishes
+// at most MAX_INCIDENT_REMOVALS_PER_SYNC jobs and leaves any remainder held.
+// Churn below the incident line is unchanged and is not capped here.
 export const REMOVAL_HOLD_MS = 12 * 60 * 60 * 1000;
+export const MAX_INCIDENT_REMOVALS_PER_SYNC = 10;
+const MASS_REMOVAL_CONFIRMATIONS = 2;
+
+function holdMassRemoval(
+  run: CheckRun,
+  checkAfter: string | null,
+  nextHold: RemovalHold,
+  sameSlice: boolean
+): CheckRun {
+  const ready =
+    sameSlice &&
+    nextHold.confirmations >= MASS_REMOVAL_CONFIRMATIONS &&
+    process.env.BORDFEED_ALLOW_MASS_UNPUBLISH === "1";
+  if (!ready) {
+    const pending =
+      sameSlice && nextHold.confirmations >= MASS_REMOVAL_CONFIRMATIONS;
+    return {
+      ...run,
+      checkAfter,
+      error:
+        run.error ??
+        new SyncGuardError(
+          pending ? MASS_REMOVAL_PENDING_MESSAGE : MASS_REMOVAL_MESSAGE
+        ),
+      removedIds: new Set(),
+      state: { ...run.state, removalHold: nextHold },
+    };
+  }
+
+  if (run.removedIds.size <= MAX_INCIDENT_REMOVALS_PER_SYNC) {
+    return { ...run, state: { ...run.state, removalHold: null } };
+  }
+
+  // Stable Set order is the order jobs were checked. The rest stay on this
+  // slice's hold, so a later allowed sync can remove another batch.
+  return {
+    ...run,
+    checkAfter,
+    error:
+      run.error ??
+      new SyncGuardError(
+        massRemovalFloorMessage(MAX_INCIDENT_REMOVALS_PER_SYNC)
+      ),
+    removedIds: new Set(
+      [...run.removedIds].slice(0, MAX_INCIDENT_REMOVALS_PER_SYNC)
+    ),
+    state: { ...run.state, removalHold: nextHold },
+  };
+}
 
 function guardMassRemoval(
   run: CheckRun,
@@ -1153,25 +1209,26 @@ function guardMassRemoval(
     return { ...run, state: { ...run.state, removalHold: null } };
   }
 
-  const sameSlice = hold !== null && hold.after === checkAfter;
-  const confirmed =
-    sameSlice && startedAt.getTime() - Date.parse(hold.at) >= REMOVAL_HOLD_MS;
-  if (confirmed) {
-    return { ...run, state: { ...run.state, removalHold: null } };
+  if (hold !== null && hold.after === checkAfter) {
+    const due = startedAt.getTime() - Date.parse(hold.at) >= REMOVAL_HOLD_MS;
+    return holdMassRemoval(
+      run,
+      checkAfter,
+      {
+        after: checkAfter,
+        at: due ? startedAt.toISOString() : hold.at,
+        confirmations: hold.confirmations + (due ? 1 : 0),
+      },
+      true
+    );
   }
 
-  return {
-    ...run,
+  return holdMassRemoval(
+    run,
     checkAfter,
-    error: run.error ?? new SyncGuardError(MASS_REMOVAL_MESSAGE),
-    removedIds: new Set(),
-    state: {
-      ...run.state,
-      removalHold: sameSlice
-        ? hold
-        : { after: checkAfter, at: startedAt.toISOString() },
-    },
-  };
+    { after: checkAfter, at: startedAt.toISOString(), confirmations: 0 },
+    false
+  );
 }
 
 // A run where every lookup failed and was skipped reports the failure.
