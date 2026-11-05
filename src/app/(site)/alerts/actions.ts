@@ -8,6 +8,7 @@ import { z } from "zod";
 import { resolvePayloadSecret } from "@/config/payload-secret";
 import { resolveServerUrl } from "@/config/server-url";
 import type { AlertsActionState } from "@/lib/alerts/action-state";
+import { isLikelyBot } from "@/lib/alerts/bot-check";
 import { alertsReady } from "@/lib/alerts/config";
 import {
   firstSearchValue,
@@ -70,6 +71,10 @@ export async function subscribeAction(
   );
   if (!frequency) {
     return { message: "Choose weekly or daily.", ok: false };
+  }
+
+  if (await isLikelyBot()) {
+    return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
   }
 
   const headerList = await headers();

@@ -20,6 +20,8 @@ On `/alerts` they enter an email, pick filters, and choose weekly (the default) 
 
 Bordful always answers "Check your inbox to confirm your job alerts." It does not say whether that address was already subscribed.
 
+On Vercel, BotID checks each `/alerts` signup before any subscriber write or email. Deep Analysis can be enabled under Firewall, then Rules (Pro or Enterprise). Off Vercel the check is skipped, and the short per-IP window plus the per-email confirmation cooldown still apply.
+
 The confirmation email links to `/alerts/confirm`. The visitor must submit the confirm button. Opening the link does not confirm, so a mail scanner that prefetches the URL does not subscribe them.
 
 ## Digests and unsubscribe
