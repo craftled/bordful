@@ -78,7 +78,12 @@ test("since moves only after the additions series is read", () => {
       offset: null,
     }),
     checkAfter: "job-0042",
-    removalHold: { after: "job-0042", at: NOW.toISOString() },
+    removalHold: {
+      after: "job-0042",
+      at: NOW.toISOString(),
+      confirmations: 2,
+      ids: ["job-0043", "job-0044"],
+    },
   };
   expect(mid.additions.since).toBe(started.additions.since);
 
@@ -96,6 +101,8 @@ test("since moves only after the additions series is read", () => {
   expect(reread.removalHold).toEqual({
     after: "job-0042",
     at: NOW.toISOString(),
+    confirmations: 2,
+    ids: ["job-0043", "job-0044"],
   });
 
   expect(afterAdditions(reread.additions, plan2.additions, null)).toEqual({
@@ -118,6 +125,42 @@ test("the daily cap shrinks the next request and then skips it", () => {
 
   const tomorrow = new Date(NOW.getTime() + 24 * HOUR);
   expect(planFetch(state, limits, tomorrow)).toMatchObject({ limit: 50 });
+});
+
+test("a removal hold written without confirmations reads as zero", () => {
+  const state = parseSyncState(
+    {
+      feedId: FEED,
+      removalHold: { after: "job-0042", at: NOW.toISOString() },
+    },
+    FEED
+  );
+  expect(state.removalHold).toEqual({
+    after: "job-0042",
+    at: NOW.toISOString(),
+    confirmations: 0,
+    ids: [],
+  });
+});
+
+test("a removal hold without ids reads as an empty list", () => {
+  const state = parseSyncState(
+    {
+      feedId: FEED,
+      removalHold: {
+        after: "job-0042",
+        at: NOW.toISOString(),
+        confirmations: 1,
+      },
+    },
+    FEED
+  );
+  expect(state.removalHold).toEqual({
+    after: "job-0042",
+    at: NOW.toISOString(),
+    confirmations: 1,
+    ids: [],
+  });
 });
 
 test("a new feed id starts over but keeps the day's usage", () => {
