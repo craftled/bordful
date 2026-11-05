@@ -11,19 +11,42 @@ import type { JobListItem } from "@/lib/read/types";
 
 import type { SitemapEntry } from "./types";
 
-function sectionPaths(marketing: boolean): string[] {
-  if (!marketing) {
-    return ["/", "/jobs", "/companies"];
-  }
-
+function linkedPaths(
+  marketing: boolean,
+  features: { alerts: boolean; postJob: boolean }
+): string[] {
   const nav = getNav({
-    alertsEnabled: false,
-    marketing: true,
-    postJobEnabled: false,
+    alertsEnabled: features.alerts,
+    marketing,
+    postJobEnabled: features.postJob,
   });
-  const linked = [...nav.header, ...nav.footer]
+
+  return [...nav.header, ...nav.footer]
     .map((item) => item.href)
-    .filter((href) => href !== "/jobs" && href !== "/feed.xml");
+    .filter((href) => href !== "/" && href !== "/jobs" && href !== "/feed.xml");
+}
+
+// Post a job is a header button, not a nav href, so it is added on its own.
+function featurePaths(features: {
+  alerts: boolean;
+  postJob: boolean;
+}): string[] {
+  return [
+    ...(features.postJob ? ["/post"] : []),
+    ...(features.alerts ? ["/alerts"] : []),
+  ];
+}
+
+function sectionPaths(
+  marketing: boolean,
+  features: { alerts: boolean; postJob: boolean }
+): string[] {
+  const linked = linkedPaths(marketing, features);
+  const extras = featurePaths(features);
+
+  if (!marketing) {
+    return [...new Set(["/", "/jobs", "/companies", ...linked, ...extras])];
+  }
 
   // Marketing pages the nav does not link to, then every docs page.
   const unlinked = [
@@ -34,7 +57,9 @@ function sectionPaths(marketing: boolean): string[] {
   ];
 
   // First occurrence wins, so a later nav item cannot repeat a section URL.
-  return [...new Set(["/", "/jobs", ...linked, "/companies", ...unlinked])];
+  return [
+    ...new Set(["/", "/jobs", ...linked, "/companies", ...unlinked, ...extras]),
+  ];
 }
 
 // The archives a board renders (200) for these jobs: a value counts only when
@@ -119,10 +144,16 @@ function jobEntry(siteUrl: string, job: JobListItem): SitemapEntry {
 }
 
 export function buildSitemapEntries(input: {
+  alerts?: boolean;
   jobs: JobListItem[];
   marketing: boolean;
+  postJob?: boolean;
   siteUrl: string;
 }): SitemapEntry[] {
+  const features = {
+    alerts: input.alerts === true,
+    postJob: input.postJob === true,
+  };
   const indexable = input.jobs.filter((job) => job.indexable).sort(byNewest);
   const companies = [
     ...new Set(
@@ -133,9 +164,10 @@ export function buildSitemapEntries(input: {
   ].sort(bySlug);
 
   return [
-    ...[...sectionPaths(input.marketing), ...archivePaths(indexable)].map(
-      (path) => ({ url: `${input.siteUrl}${path}` })
-    ),
+    ...[
+      ...sectionPaths(input.marketing, features),
+      ...archivePaths(indexable),
+    ].map((path) => ({ url: `${input.siteUrl}${path}` })),
     ...indexable.map((job) => jobEntry(input.siteUrl, job)),
     ...companies.map((slug) => ({
       url: `${input.siteUrl}/companies/${slug}`,

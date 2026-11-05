@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { TAXONOMY_INDEX_PATH } from "@/components/board/taxonomy-tabs";
 import { isMarketingEnabled } from "@/config/flags";
 import { resolveServerUrl } from "@/config/server-url";
+import { getSiteSettings } from "@/lib/read";
 import { getSitemapJobs } from "@/lib/seo/queries";
 import { buildSitemapEntries } from "@/lib/seo/sitemap";
 
@@ -13,9 +14,15 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = resolveServerUrl();
+  const [jobs, settings] = await Promise.all([
+    getSitemapJobs(),
+    getSiteSettings(),
+  ]);
   const entries = buildSitemapEntries({
-    jobs: await getSitemapJobs(),
+    alerts: settings.alerts.enabled,
+    jobs,
     marketing: isMarketingEnabled(),
+    postJob: settings.postJob.enabled,
     siteUrl,
   });
   const known = new Set(entries.map((entry) => entry.url));

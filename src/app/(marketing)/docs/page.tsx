@@ -14,14 +14,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { firstSentence, listDocs } from "@/components/marketing/docs-content";
 import { DocsFrame } from "@/components/marketing/docs-layout";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingPageMetadata({
   description:
     "Guides for deploying, configuring, theming and extending a Bordful job board.",
+  path: "/docs",
   title: "Docs",
-};
+});
 
 const ICONS: Record<string, LucideIcon> = {
   alerts: Bell,

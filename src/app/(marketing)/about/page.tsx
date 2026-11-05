@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/marketing/container";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import {
@@ -9,11 +10,12 @@ import {
 } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingPageMetadata({
   description:
     "Bordful is an open-source job board template built by Craftled. Bordfeed powers the jobs.",
+  path: "/about",
   title: "About",
-};
+});
 
 export default function AboutPage() {
   assertMarketingEnabled();

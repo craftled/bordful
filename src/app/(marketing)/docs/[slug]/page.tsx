@@ -19,6 +19,7 @@ import {
   DocsMarkdown,
   extractHeadings,
 } from "@/components/marketing/docs-markdown";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
@@ -38,10 +39,11 @@ export async function generateMetadata({
   if (!source) {
     return {};
   }
-  return {
+  return marketingPageMetadata({
     description: docSummary(source),
+    path: `/docs/${slug}`,
     title: `${docTitle(source, slug)} | Docs`,
-  };
+  });
 }
 
 export default async function DocPage({

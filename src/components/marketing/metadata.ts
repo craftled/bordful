@@ -46,13 +46,46 @@ export function marketingLayoutMetadata(enabled: boolean): Metadata {
   };
 }
 
+// Per-page canonical and og:url. The layout does not know the path.
+export function marketingPageMetadata(input: {
+  description: string;
+  path: string;
+  title: string;
+}): Metadata {
+  const base = marketingLayoutMetadata(true);
+
+  return {
+    ...base,
+    alternates: { canonical: input.path },
+    description: input.description,
+    openGraph: {
+      ...base.openGraph,
+      description: input.description,
+      title: input.title,
+      url: input.path,
+    },
+    title: input.title,
+    twitter: {
+      ...base.twitter,
+      description: input.description,
+      title: input.title,
+    },
+  };
+}
+
 // `/` lives in the (site) group, outside the marketing layout, so it takes the
 // same card here. The title is absolute: the board layout's template would
 // otherwise append the site name.
 export function marketingHomeMetadata(): Metadata {
+  const base = marketingLayoutMetadata(true);
+
   return {
-    ...marketingLayoutMetadata(true),
+    ...base,
     alternates: { canonical: "/" },
+    openGraph: {
+      ...base.openGraph,
+      url: "/",
+    },
     title: { absolute: title },
   };
 }
