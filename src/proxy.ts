@@ -85,11 +85,12 @@ export function proxy(request: NextRequest) {
       301
     );
   }
-  // Crawlers ask for /favicon.ico. bordful.com points it at the Bordful mark;
-  // a fork has no such file, so its request falls through to the 404.
+  // Crawlers ask for /favicon.ico. bordful.com rewrites it to the Bordful mark
+  // so the response is 200 with the SVG body. A fork has no such file, so its
+  // request falls through to the 404.
   if (pathname === "/favicon.ico") {
     return isMarketingEnabled()
-      ? NextResponse.redirect(new URL(BORDFUL_ICON, request.url))
+      ? NextResponse.rewrite(new URL(BORDFUL_ICON, request.url))
       : NextResponse.next();
   }
 
@@ -115,7 +116,7 @@ export const config = {
     {
       missing: [{ key: "next-router-prefetch", type: "header" }],
       // Static files and prefetches skip the nonce. /api and /admin stay covered.
-      // /favicon.ico runs here only for the redirect above.
+      // /favicon.ico runs here only for the rewrite above.
       source: "/((?!_next/static|_next/image|robots.txt|sitemap.xml).*)",
     },
   ],

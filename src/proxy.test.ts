@@ -88,13 +88,15 @@ test("only admin pages allow the code editor stylesheet", () => {
   }
 });
 
-test("bordful.com sends /favicon.ico to the Bordful mark", () => {
+test("bordful.com rewrites /favicon.ico to the Bordful mark", () => {
   withMarketing("true", () => {
     const response = run("/favicon.ico");
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "http://localhost:3100/marketing/icon.svg"
-    );
+    const rewrite = response.headers.get("x-middleware-rewrite");
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(rewrite).not.toBeNull();
+    expect(new URL(rewrite ?? "").pathname).toBe("/marketing/icon.svg");
   });
 });
 
