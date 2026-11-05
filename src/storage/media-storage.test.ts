@@ -59,7 +59,7 @@ beforeEach(() => {
 test("a read-write token keeps Payload's adapter", () => {
   expect(
     mediaStorageMode({
-      BLOB_READ_WRITE_TOKEN: "vercel_blob_rw_abc123_secret",
+      BLOB_READ_WRITE_TOKEN: "set",
       BLOB_STORE_ID: "store_abc123",
     })
   ).toBe("token");
