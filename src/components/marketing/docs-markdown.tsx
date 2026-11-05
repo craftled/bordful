@@ -364,45 +364,47 @@ export function DocsMarkdown({
           }
           case "table":
             return (
-              <div
-                className="border-line overflow-x-auto rounded-lg border"
-                key={key}
-              >
-                <table className="w-full text-left text-[13px] leading-5">
-                  <thead className="bg-surface-sub text-foreground">
-                    <tr>
-                      {block.header.map((cell, cellIndex) => (
-                        <th
-                          className={cn(
-                            cellClass(cellIndex, block.header.length),
-                            "font-medium whitespace-nowrap"
-                          )}
-                          key={cell}
-                          scope="col"
-                        >
-                          {renderInline(cell, repoBase)}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-muted-foreground">
-                    {block.rows.map((row, rowIndex) => (
-                      <tr
-                        className="border-line border-t"
-                        key={`${rowIndex}-${row[0]}`}
-                      >
-                        {row.map((cell, cellIndex) => (
-                          <td
-                            className={cellClass(cellIndex, row.length)}
-                            key={`${cellIndex}-${cell}`}
+              <div key={key}>
+                <p className="text-subtle mb-2 text-[12px] leading-4 md:sr-only">
+                  Scroll sideways for all columns
+                </p>
+                <div className="border-line overflow-x-auto rounded-lg border">
+                  <table className="w-full text-left text-[13px] leading-5">
+                    <thead className="bg-surface-sub text-foreground">
+                      <tr>
+                        {block.header.map((cell, cellIndex) => (
+                          <th
+                            className={cn(
+                              cellClass(cellIndex, block.header.length),
+                              "font-medium whitespace-nowrap"
+                            )}
+                            key={cell}
+                            scope="col"
                           >
                             {renderInline(cell, repoBase)}
-                          </td>
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="text-muted-foreground">
+                      {block.rows.map((row, rowIndex) => (
+                        <tr
+                          className="border-line border-t"
+                          key={`${rowIndex}-${row[0]}`}
+                        >
+                          {row.map((cell, cellIndex) => (
+                            <td
+                              className={cellClass(cellIndex, row.length)}
+                              key={`${cellIndex}-${cell}`}
+                            >
+                              {renderInline(cell, repoBase)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           default:

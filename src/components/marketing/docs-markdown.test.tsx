@@ -52,6 +52,7 @@ test("renders headings, lists, tables, code and escapes markup", () => {
   ).toBe("/docs/deploy");
   expect(screen.getAllByRole("listitem")).toHaveLength(2);
   expect(screen.getByRole("table")).toBeTruthy();
+  expect(screen.getByText("Scroll sideways for all columns")).toBeTruthy();
   expect(container.querySelector("pre")?.textContent).toBe("bun run dev");
   expect(container.querySelector("script")).toBeNull();
   expect(container.textContent).toContain("<script>alert(1)</script>");
