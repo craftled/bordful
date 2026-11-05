@@ -5,16 +5,18 @@ import { Container } from "@/components/marketing/container";
 import { FeaturesPageGrid } from "@/components/marketing/features-page-grid";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Section } from "@/components/marketing/section";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { Button } from "@/components/ui/button";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingPageMetadata({
   description:
     "The board, filters, email alerts, Post a Job, theming, feeds and SEO, the Bordfeed sync, and the admin. Everything Bordful does today.",
+  path: "/features",
   title: "Features",
-};
+});
 
 // Paper's stats strip, with facts the site already states: the license, the
 // 1.0 release on Payload and Postgres, and "live in two minutes" from the

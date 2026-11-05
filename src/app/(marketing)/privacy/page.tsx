@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Container } from "@/components/marketing/container";
 import { DocsSectionNav } from "@/components/marketing/docs-section-nav";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 import {
@@ -11,10 +12,11 @@ import {
   LegalMobileBar,
 } from "../_components/legal-mobile-bar";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingPageMetadata({
   description: "How we handle your data and protect your privacy.",
+  path: "/privacy",
   title: "Privacy Policy",
-};
+});
 
 const SECTIONS = [
   "Introduction",

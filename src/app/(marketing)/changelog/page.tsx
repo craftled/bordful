@@ -4,14 +4,16 @@ import {
   changelogEntries,
 } from "@/components/marketing/changelog-entries";
 import { Container } from "@/components/marketing/container";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingPageMetadata({
   description: "What changed in Bordful.",
+  path: "/changelog",
   title: "Changelog",
-};
+});
 
 export default function ChangelogPage() {
   assertMarketingEnabled();
