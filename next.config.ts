@@ -98,6 +98,11 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
+  // `bun run typecheck` runs in CI and in `bun run check`. Running tsc again
+  // inside `next build` added about nine seconds to every Vercel deploy.
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default withPayload(nextConfig, { devBundleServerPackages: false });

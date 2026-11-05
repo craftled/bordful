@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The Deploy to Vercel button asks for a public Blob store. Vercel's new default is a private store, which sets no `BLOB_READ_WRITE_TOKEN`, so logo and media uploads failed on every new board.
 - A fresh deploy could show an empty board. Vercel's first requests each booted the app and seeded the sample jobs at the same time, and the board cached the empty page. One boot now takes the sync lease and seeds, the others skip, and an empty first page is read again before it is served.
+- `next build` no longer runs its own TypeScript pass. `bun run typecheck` already runs in CI, and the duplicate pass added about nine seconds to every deploy.
 
 ### Removed
 
