@@ -10,17 +10,14 @@ import {
   BordfeedApiError,
   MASS_REMOVAL_MESSAGE,
   MASS_REMOVAL_PENDING_MESSAGE,
+  MAX_INCIDENT_REMOVALS_PER_SYNC,
   massRemovalFloorMessage,
   SyncGuardError,
 } from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
-import {
-  MAX_INCIDENT_REMOVALS_PER_SYNC,
-  runFeedSync,
-  runSampleSync,
-} from "@/lib/bordfeed/sync";
+import { runFeedSync, runSampleSync } from "@/lib/bordfeed/sync";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { queryPublishedJobs } from "@/lib/read/queries";
 
@@ -515,6 +512,14 @@ describe("bordfeed sync", () => {
       expect(capped.lastError?.message).toBe(
         massRemovalFloorMessage(MAX_INCIDENT_REMOVALS_PER_SYNC)
       );
+
+      // A later allowed sync drains another batch of the same confirmed ids.
+      const again = await runAt(27);
+      expect(again).toBeInstanceOf(SyncGuardError);
+      expect(again).toMatchObject({
+        message: massRemovalFloorMessage(MAX_INCIDENT_REMOVALS_PER_SYNC),
+      });
+      expect(await published()).toBe(25 - 2 * MAX_INCIDENT_REMOVALS_PER_SYNC);
     } finally {
       if (previous === undefined) {
         delete process.env.BORDFEED_ALLOW_MASS_UNPUBLISH;

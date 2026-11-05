@@ -42,6 +42,9 @@ export interface RemovalHold {
   at: string;
   // Spaced reconfirmations after the hold was opened. Missing on older rows.
   confirmations: number;
+  // Bordfeed job ids that looked gone when the hold was opened or last
+  // confirmed. Only these ids may be unpublished after allow+confirmations.
+  ids: string[];
 }
 
 export interface SyncState {
@@ -153,15 +156,25 @@ function confirmationsOf(value: unknown): number {
   return Math.floor(value);
 }
 
+function idsOf(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(
+    (id): id is string => typeof id === "string" && id.length > 0
+  );
+}
+
 function holdOf(value: unknown): RemovalHold | null {
   const row = record(value);
   const at = text(row.at);
-  // Rows written before `confirmations` existed count as zero.
+  // Rows written before `confirmations` or `ids` existed start at zero / [].
   return at
     ? {
         after: text(row.after),
         at,
         confirmations: confirmationsOf(row.confirmations),
+        ids: idsOf(row.ids),
       }
     : null;
 }

@@ -13,6 +13,7 @@ import {
   BordfeedApiError,
   MASS_REMOVAL_MESSAGE,
   MASS_REMOVAL_PENDING_MESSAGE,
+  MAX_INCIDENT_REMOVALS_PER_SYNC,
   massRemovalFloorMessage,
   SyncGuardError,
   toSafeError,
@@ -1142,92 +1143,180 @@ function looksLikeIncident(run: CheckRun): boolean {
 }
 
 // A sustained Bordfeed incident must not silently mass-unpublish. The first
-// incident opens a hold with confirmations 0. Each later sync of that same
-// slice, at least REMOVAL_HOLD_MS after hold.at, adds one confirmation and
-// refreshes `at`. After MASS_REMOVAL_CONFIRMATIONS the slice stays held
-// unless BORDFEED_ALLOW_MASS_UNPUBLISH=1. With that set, one sync unpublishes
-// at most MAX_INCIDENT_REMOVALS_PER_SYNC jobs and leaves any remainder held.
-// Churn below the incident line is unchanged and is not capped here.
+// incident opens a hold with confirmations 0 and the gone ids. Each later
+// recheck of that same slice, at least REMOVAL_HOLD_MS after hold.at, adds
+// one confirmation and keeps only ids still gone. After
+// MASS_REMOVAL_CONFIRMATIONS the slice stays held unless
+// BORDFEED_ALLOW_MASS_UNPUBLISH=1. With that set, one sync unpublishes at
+// most MAX_INCIDENT_REMOVALS_PER_SYNC of the confirmed ids. Other slices
+// keep rotating while a hold is open. Churn below the incident line is
+// unchanged and is not capped here.
 export const REMOVAL_HOLD_MS = 12 * 60 * 60 * 1000;
-export const MAX_INCIDENT_REMOVALS_PER_SYNC = 10;
 const MASS_REMOVAL_CONFIRMATIONS = 2;
 
-function holdMassRemoval(
+function sortedIds(ids: Iterable<string>): string[] {
+  return [...ids].sort();
+}
+
+function intersectGone(held: string[], gone: ReadonlySet<string>): string[] {
+  return held.filter((id) => gone.has(id));
+}
+
+function massUnpublishAllowed(): boolean {
+  return process.env.BORDFEED_ALLOW_MASS_UNPUBLISH === "1";
+}
+
+function holdIsDue(hold: RemovalHold, startedAt: Date): boolean {
+  return startedAt.getTime() - Date.parse(hold.at) >= REMOVAL_HOLD_MS;
+}
+
+function shouldRecheckHold(hold: RemovalHold | null, startedAt: Date): boolean {
+  if (hold === null) {
+    return false;
+  }
+  if (holdIsDue(hold, startedAt)) {
+    return true;
+  }
+  return (
+    hold.confirmations >= MASS_REMOVAL_CONFIRMATIONS && massUnpublishAllowed()
+  );
+}
+
+function holdWithoutRelease(
   run: CheckRun,
-  checkAfter: string | null,
+  resumeCheckAfter: string | null,
   nextHold: RemovalHold,
-  sameSlice: boolean
+  message: string
 ): CheckRun {
-  const ready =
-    sameSlice &&
-    nextHold.confirmations >= MASS_REMOVAL_CONFIRMATIONS &&
-    process.env.BORDFEED_ALLOW_MASS_UNPUBLISH === "1";
-  if (!ready) {
-    const pending =
-      sameSlice && nextHold.confirmations >= MASS_REMOVAL_CONFIRMATIONS;
+  return {
+    ...run,
+    // Keep the rotating cursor moving. A recheck of a held slice must not
+    // rewind state.checkAfter back to that older window.
+    checkAfter: resumeCheckAfter,
+    error: run.error ?? new SyncGuardError(message),
+    removedIds: new Set(),
+    state: { ...run.state, removalHold: nextHold },
+  };
+}
+
+function releaseConfirmed(
+  run: CheckRun,
+  resumeCheckAfter: string | null,
+  hold: RemovalHold,
+  confirmed: string[]
+): CheckRun {
+  const release = confirmed.slice(0, MAX_INCIDENT_REMOVALS_PER_SYNC);
+  const remaining = confirmed.slice(MAX_INCIDENT_REMOVALS_PER_SYNC);
+  if (remaining.length === 0) {
     return {
       ...run,
-      checkAfter,
-      error:
-        run.error ??
-        new SyncGuardError(
-          pending ? MASS_REMOVAL_PENDING_MESSAGE : MASS_REMOVAL_MESSAGE
-        ),
-      removedIds: new Set(),
-      state: { ...run.state, removalHold: nextHold },
+      checkAfter: resumeCheckAfter,
+      removedIds: new Set(release),
+      state: { ...run.state, removalHold: null },
     };
   }
 
-  if (run.removedIds.size <= MAX_INCIDENT_REMOVALS_PER_SYNC) {
-    return { ...run, state: { ...run.state, removalHold: null } };
-  }
-
-  // Stable Set order is the order jobs were checked. The rest stay on this
-  // slice's hold, so a later allowed sync can remove another batch.
   return {
     ...run,
-    checkAfter,
+    checkAfter: resumeCheckAfter,
     error:
       run.error ??
       new SyncGuardError(
         massRemovalFloorMessage(MAX_INCIDENT_REMOVALS_PER_SYNC)
       ),
-    removedIds: new Set(
-      [...run.removedIds].slice(0, MAX_INCIDENT_REMOVALS_PER_SYNC)
-    ),
-    state: { ...run.state, removalHold: nextHold },
+    removedIds: new Set(release),
+    state: {
+      ...run.state,
+      removalHold: { ...hold, ids: remaining },
+    },
   };
 }
 
 function guardMassRemoval(
   run: CheckRun,
-  checkAfter: string | null,
+  sliceAfter: string | null,
+  resumeCheckAfter: string | null,
   startedAt: Date
 ): CheckRun {
   const hold = run.state.removalHold;
+
   if (!looksLikeIncident(run)) {
-    return { ...run, state: { ...run.state, removalHold: null } };
+    // A scheduled recheck that no longer looks like an incident clears the
+    // hold. Removals in this run are normal churn.
+    if (hold !== null && hold.after === sliceAfter) {
+      return {
+        ...run,
+        checkAfter: resumeCheckAfter,
+        state: { ...run.state, removalHold: null },
+      };
+    }
+    return { ...run, state: { ...run.state, removalHold: hold } };
   }
 
-  if (hold !== null && hold.after === checkAfter) {
-    const due = startedAt.getTime() - Date.parse(hold.at) >= REMOVAL_HOLD_MS;
-    return holdMassRemoval(
+  const goneIds = sortedIds(run.removedIds);
+
+  // A new incident while another hold is open: block this slice's removals
+  // but leave the existing hold and the rotating cursor alone.
+  if (hold !== null && hold.after !== sliceAfter) {
+    return holdWithoutRelease(
       run,
-      checkAfter,
-      {
-        after: checkAfter,
-        at: due ? startedAt.toISOString() : hold.at,
-        confirmations: hold.confirmations + (due ? 1 : 0),
-      },
-      true
+      resumeCheckAfter,
+      hold,
+      MASS_REMOVAL_MESSAGE
     );
   }
 
-  return holdMassRemoval(
+  if (hold === null) {
+    return holdWithoutRelease(
+      run,
+      // First sighting advances past this slice like a normal check.
+      run.checkAfter,
+      {
+        after: sliceAfter,
+        at: startedAt.toISOString(),
+        confirmations: 0,
+        ids: goneIds,
+      },
+      MASS_REMOVAL_MESSAGE
+    );
+  }
+
+  const stillGone = intersectGone(hold.ids, run.removedIds);
+  if (stillGone.length === 0) {
+    return holdWithoutRelease(
+      run,
+      resumeCheckAfter,
+      {
+        after: sliceAfter,
+        at: startedAt.toISOString(),
+        confirmations: 0,
+        ids: goneIds,
+      },
+      MASS_REMOVAL_MESSAGE
+    );
+  }
+
+  const due = holdIsDue(hold, startedAt);
+  const nextHold: RemovalHold = {
+    after: hold.after,
+    at: due ? startedAt.toISOString() : hold.at,
+    confirmations: hold.confirmations + (due ? 1 : 0),
+    ids: stillGone,
+  };
+
+  const ready =
+    nextHold.confirmations >= MASS_REMOVAL_CONFIRMATIONS &&
+    massUnpublishAllowed();
+  if (ready) {
+    return releaseConfirmed(run, resumeCheckAfter, nextHold, stillGone);
+  }
+
+  const pending = nextHold.confirmations >= MASS_REMOVAL_CONFIRMATIONS;
+  return holdWithoutRelease(
     run,
-    checkAfter,
-    { after: checkAfter, at: startedAt.toISOString(), confirmations: 0 },
-    false
+    resumeCheckAfter,
+    nextHold,
+    pending ? MASS_REMOVAL_PENDING_MESSAGE : MASS_REMOVAL_MESSAGE
   );
 }
 
@@ -1250,13 +1339,19 @@ async function checkBoardJobs(
   state: SyncState,
   context: TimedContext
 ): Promise<CheckRun> {
-  const ids = await nextBoardJobs(payload, plan.checkAfter, plan.checks);
+  const hold = state.removalHold;
+  const recheck = shouldRecheckHold(hold, context.startedAt);
+  const sliceAfter = recheck && hold !== null ? hold.after : plan.checkAfter;
+  // When rechecking a held slice, keep the saved rotating cursor so the
+  // rest of the board keeps getting checked on later syncs.
+  const resumeCheckAfter = recheck ? plan.checkAfter : null;
+  const ids = await nextBoardJobs(payload, sliceAfter, plan.checks);
   const run = await checkEach(
     client,
     ids,
     {
       charged: 0,
-      checkAfter: plan.checkAfter,
+      checkAfter: sliceAfter,
       checked: 0,
       removedIds: new Set(),
       state,
@@ -1265,7 +1360,8 @@ async function checkBoardJobs(
   );
   return guardMassRemoval(
     withSkipError(run),
-    plan.checkAfter,
+    sliceAfter,
+    resumeCheckAfter ?? run.checkAfter,
     context.startedAt
   );
 }
