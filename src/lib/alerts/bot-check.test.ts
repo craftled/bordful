@@ -37,3 +37,22 @@ test("isLikelyBot fails closed when the Vercel check throws", async () => {
   );
   error.mockRestore();
 });
+
+// Vitest does not inline env, so this cannot catch a dynamic process.env
+// lookup; the build-output check in PR #102 covers that.
+test("isLikelyBot reads NEXT_PUBLIC_VERCEL_ENV when no env is injected", async () => {
+  const bot = vi.fn(async () => ({ isBot: true }));
+  vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "production");
+  try {
+    await expect(isLikelyBot({ check: bot })).resolves.toBe(true);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+  vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "");
+  try {
+    await expect(isLikelyBot({ check: bot })).resolves.toBe(false);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+  expect(bot).toHaveBeenCalledOnce();
+});
