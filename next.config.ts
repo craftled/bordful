@@ -4,6 +4,8 @@ import { readdirSync } from "node:fs";
 import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
+import { legacyRedirects } from "./src/lib/seo/legacy-redirects";
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 
 // Each doc's last commit date, read once at build time. Serverless functions
@@ -98,6 +100,9 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return legacyRedirects.map((redirect) => ({ ...redirect }));
+  },
 };
 
 export default withPayload(nextConfig, { devBundleServerPackages: false });
