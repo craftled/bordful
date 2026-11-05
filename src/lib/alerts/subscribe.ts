@@ -1,5 +1,6 @@
 import type { Payload } from "payload";
 
+import type { EmailBrand } from "@/emails/brand";
 import { renderConfirmEmail } from "@/emails/confirm";
 import type { AlertFrequency, JobAlertQuery } from "@/lib/domain/job-vocab";
 import type { AlertSubscriber } from "@/payload-types";
@@ -28,12 +29,11 @@ export interface SubscribeInput {
 }
 
 export interface SubscribeDeps {
+  brand: EmailBrand;
   fromEmail: string;
   fromName: string;
   secret: string;
   sender: AlertSender;
-  siteName: string;
-  siteUrl: string;
 }
 
 export interface SubscribeResult {
@@ -112,12 +112,16 @@ async function sendConfirmation(
   confirmTokenHash: string
 ): Promise<void> {
   const rendered = renderConfirmEmail({
-    confirmUrl: confirmUrl(deps.siteUrl, confirmToken),
-    siteName: deps.siteName,
+    brand: deps.brand,
+    confirmUrl: confirmUrl(deps.brand.siteUrl, confirmToken),
   });
   await deps.sender.send(
     {
-      from: formatFromAddress(deps.fromName, deps.siteName, deps.fromEmail),
+      from: formatFromAddress(
+        deps.fromName,
+        deps.brand.siteName,
+        deps.fromEmail
+      ),
       headers: {},
       html: rendered.html,
       subject: rendered.subject,

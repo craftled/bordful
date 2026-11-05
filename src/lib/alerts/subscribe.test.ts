@@ -1,7 +1,9 @@
 import type { Payload } from "payload";
 import { expect, test } from "vitest";
 
+import { emailBrand } from "@/emails/brand";
 import { EMPTY_JOB_ALERT_QUERY } from "@/lib/domain/job-vocab";
+import { DEFAULT_THEME_TOKENS } from "@/theme/tokens";
 
 import type { AlertSender } from "./sender";
 import {
@@ -93,12 +95,15 @@ function memoryPayload(seed: Row[]): Payload & { rows: Row[] } {
 
 function deps(sender: AlertSender) {
   return {
+    brand: emailBrand(
+      { logoUrl: null, name: "Example Board", theme: DEFAULT_THEME_TOKENS },
+      "https://board.example",
+      false
+    ),
     fromEmail: "alerts@board.example",
     fromName: "Example Board",
     secret: "example-payload-secret-0123456789abcdef",
     sender,
-    siteName: "Example Board",
-    siteUrl: "https://board.example",
   };
 }
 
