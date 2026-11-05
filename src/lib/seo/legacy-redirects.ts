@@ -29,7 +29,7 @@ export const legacyRedirects = [
 // Build-time gate: forks must not inherit bordful.com URL rewrites.
 export function legacyRedirectsFor(
   env: Partial<NodeJS.ProcessEnv> = process.env
-): Array<(typeof legacyRedirects)[number]> {
+): (typeof legacyRedirects)[number][] {
   if (!isMarketingEnabled(env)) {
     return [];
   }
