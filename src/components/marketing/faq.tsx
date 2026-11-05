@@ -13,6 +13,8 @@ export const questions: {
   answer: ReactNode;
   question: string;
   short?: string;
+  // Plain text for FAQPage JSON-LD when `answer` is not a string.
+  text?: string;
 }[] = [
   {
     answer:
@@ -60,8 +62,16 @@ export const questions: {
     ),
     question: "How do I update a fork?",
     short: "How do I update my fork?",
+    text: "Pull the latest code from GitHub and run the database migrations. Your jobs stay in Postgres. Read the changelog before you deploy.",
   },
 ];
+
+export function faqPlainAnswers(): { answer: string; question: string }[] {
+  return questions.map((item) => ({
+    answer: item.text ?? (typeof item.answer === "string" ? item.answer : ""),
+    question: item.question,
+  }));
+}
 
 function Chevron() {
   return (

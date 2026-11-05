@@ -28,6 +28,7 @@ import type {
   JobListItem,
   PublicDetailField,
 } from "@/lib/read/types";
+import { cn } from "@/lib/utils";
 
 function initial(name: string): string {
   return name.trim().charAt(0).toUpperCase();
@@ -139,8 +140,11 @@ function AboutCompany({
       ) : null}
       <div className="flex flex-wrap gap-1.5 pt-0.5">
         {companyHref ? (
-          <Link className={RAIL_BUTTON} href={companyHref}>
-            All {job.companyName} jobs
+          <Link
+            className={cn(RAIL_BUTTON, "max-w-full min-w-0 shrink")}
+            href={companyHref}
+          >
+            <span className="truncate">All {job.companyName} jobs</span>
           </Link>
         ) : null}
         {website ? (

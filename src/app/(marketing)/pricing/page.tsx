@@ -4,17 +4,19 @@ import { Container } from "@/components/marketing/container";
 import { Faq } from "@/components/marketing/faq";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
+import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Pricing } from "@/components/marketing/pricing";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingPageMetadata({
   description:
     "Simple pricing for your job board. Bordful is open source and free to use commercially. Custom setup service available for a one-time fee.",
+  path: "/pricing",
   title: "Pricing",
-};
+});
 
 export default function PricingPage() {
   assertMarketingEnabled();

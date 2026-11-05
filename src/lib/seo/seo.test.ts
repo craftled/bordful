@@ -340,6 +340,45 @@ test("marketing sitemap lists the docs, FAQ and features pages", () => {
   expect(fork.some((entry) => entry.url.endsWith("/features"))).toBe(false);
 });
 
+test("sitemap lists /post and /alerts only when those features are on", () => {
+  const off = buildSitemapEntries({
+    alerts: false,
+    jobs: [],
+    marketing: true,
+    postJob: false,
+    siteUrl,
+  }).map((entry) => entry.url);
+  expect(off).not.toContain("https://board.example/post");
+  expect(off).not.toContain("https://board.example/alerts");
+
+  const fork = buildSitemapEntries({
+    alerts: true,
+    jobs: [],
+    marketing: false,
+    postJob: true,
+    siteUrl,
+  }).map((entry) => entry.url);
+  expect(fork).toEqual([
+    "https://board.example/",
+    "https://board.example/jobs",
+    "https://board.example/companies",
+    "https://board.example/alerts",
+    "https://board.example/post",
+  ]);
+
+  const marketing = buildSitemapEntries({
+    alerts: true,
+    jobs: [],
+    marketing: true,
+    postJob: true,
+    siteUrl,
+  }).map((entry) => entry.url);
+  expect(
+    marketing.filter((url) => url === "https://board.example/alerts")
+  ).toHaveLength(1);
+  expect(marketing.at(-1)).toBe("https://board.example/post");
+});
+
 test("sitemap archives come from indexable jobs the archive filter matches", () => {
   const sampleOnly = {
     ...listItem(

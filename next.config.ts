@@ -4,6 +4,8 @@ import { readdirSync } from "node:fs";
 import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
+import { legacyRedirectsFor } from "./src/lib/seo/legacy-redirects";
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 
 // Each doc's last commit date, read once at build time. Serverless functions
@@ -98,6 +100,9 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return legacyRedirectsFor().map((redirect) => ({ ...redirect }));
+  },
   // `bun run typecheck` runs in CI and in `bun run check`. Running tsc again
   // inside `next build` added about nine seconds to every Vercel deploy.
   typescript: {
