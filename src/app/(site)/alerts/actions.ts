@@ -73,7 +73,7 @@ export async function subscribeAction(
   }
 
   const headerList = await headers();
-  if (!allowSubscribeIp(clientIp(headerList.get("x-forwarded-for")))) {
+  if (!allowSubscribeIp(clientIp(headerList))) {
     return { message: SUBSCRIBE_OK_MESSAGE, ok: true };
   }
 
