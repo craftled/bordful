@@ -5,8 +5,10 @@ import { headers } from "next/headers";
 import { getPayload } from "payload";
 import { z } from "zod";
 
+import { isMarketingEnabled } from "@/config/flags";
 import { resolvePayloadSecret } from "@/config/payload-secret";
 import { resolveServerUrl } from "@/config/server-url";
+import { emailBrand } from "@/emails/brand";
 import type { AlertsActionState } from "@/lib/alerts/action-state";
 import { isLikelyBot } from "@/lib/alerts/bot-check";
 import { alertsReady } from "@/lib/alerts/config";
@@ -92,12 +94,11 @@ export async function subscribeAction(
       query: parseAlertQueryFromFormData(formData),
     },
     {
+      brand: emailBrand(settings, resolveServerUrl(), isMarketingEnabled()),
       fromEmail: settings.alerts.fromEmail,
       fromName: settings.alerts.fromName,
       secret: resolvePayloadSecret(),
       sender: resendSender(process.env.RESEND_API_KEY ?? ""),
-      siteName: settings.name,
-      siteUrl: resolveServerUrl(),
     }
   );
 }

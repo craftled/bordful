@@ -1,6 +1,9 @@
 import type { Payload } from "payload";
 
+import { isMarketingEnabled } from "@/config/flags";
 import { resolveServerUrl } from "@/config/server-url";
+import type { EmailBrand } from "@/emails/brand";
+import { emailBrand } from "@/emails/brand";
 import { renderDigestEmail } from "@/emails/digest";
 import type { AlertFrequency } from "@/lib/domain/job-vocab";
 import { queryPublishedJobs, querySiteSettings } from "@/lib/read/queries";
@@ -174,26 +177,24 @@ function toDueSubscriber(doc: AlertSubscriber): DueSubscriber {
 }
 
 function digestMessage(input: {
+  brand: EmailBrand;
   from: string;
   jobs: JobListItem[];
   secret: string;
-  siteName: string;
-  siteUrl: string;
   subscriber: DueSubscriber;
 }): OutgoingEmail {
   const token = unsubscribeTokenFor(
     { email: input.subscriber.email, id: input.subscriber.id },
     input.secret
   );
-  const unsubscribeUrl = unsubscribePageUrl(input.siteUrl, token);
+  const unsubscribeUrl = unsubscribePageUrl(input.brand.siteUrl, token);
   const rendered = renderDigestEmail({
+    brand: input.brand,
     frequency: input.subscriber.frequency,
     jobs: input.jobs,
-    siteName: input.siteName,
-    siteUrl: input.siteUrl,
     unsubscribeUrl,
   });
-  const oneClick = oneClickUnsubscribeUrl(input.siteUrl, token);
+  const oneClick = oneClickUnsubscribeUrl(input.brand.siteUrl, token);
 
   return {
     from: input.from,
@@ -231,7 +232,7 @@ async function deliverDigest(
   jobs: readonly JobListItem[],
   now: Date,
   sender: AlertSender,
-  context: { from: string; secret: string; siteName: string; siteUrl: string }
+  context: { brand: EmailBrand; from: string; secret: string }
 ): Promise<Delivery> {
   if (!isDue(subscriber, now)) {
     return "skip";
@@ -253,11 +254,10 @@ async function deliverDigest(
   try {
     await sender.send(
       digestMessage({
+        brand: context.brand,
         from: context.from,
         jobs: matched,
         secret: context.secret,
-        siteName: context.siteName,
-        siteUrl: context.siteUrl,
         subscriber,
       }),
       idempotencyKey(subscriber, subscriber.frequency, now)
@@ -318,13 +318,11 @@ export async function runAlertDigests(
   }
 
   const pool = await queryPublishedJobs(payload, { limit: 1000, page: 1 });
-  const siteUrl = resolveServerUrl();
   const secret = process.env.PAYLOAD_SECRET ?? "";
   const context = {
+    brand: emailBrand(settings, resolveServerUrl(), isMarketingEnabled()),
     from: formatFromAddress(fromName, settings.name, fromEmail),
     secret,
-    siteName: settings.name,
-    siteUrl,
   };
   const counts: DigestRunCounts = { due: 0, empty: 0, failed: 0, sent: 0 };
   let lastId = 0;

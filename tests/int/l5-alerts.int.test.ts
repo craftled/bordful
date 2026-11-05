@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 
 import { beforeAll, expect, test } from "vitest";
 import { resolveServerUrl } from "@/config/server-url";
+import { emailBrand } from "@/emails/brand";
 import { periodKey, runAlertDigests } from "@/lib/alerts/digest";
 import { alertQueryJson } from "@/lib/alerts/query";
 import type { AlertSender, OutgoingEmail } from "@/lib/alerts/sender";
@@ -105,12 +106,11 @@ test("subscribe, confirm, digest, and unsubscribe", async () => {
     query: EMPTY_JOB_ALERT_QUERY,
   };
   const deps = {
+    brand: emailBrand(settings, resolveServerUrl(), false),
     fromEmail: settings.alerts.fromEmail ?? "alerts@board.example",
     fromName: settings.alerts.fromName,
     secret,
     sender,
-    siteName: settings.name,
-    siteUrl: resolveServerUrl(),
   };
 
   const first = await subscribeToAlerts(payload, input, deps);
