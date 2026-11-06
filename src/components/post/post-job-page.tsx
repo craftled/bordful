@@ -55,7 +55,7 @@ export function PostJobPage({
       </header>
       <div className="flex flex-col items-start gap-5 md:flex-row md:gap-8">
         <section
-          className={`${cardClass} flex w-full flex-col gap-3 p-5 md:w-[640px] md:shrink-0 md:p-7`}
+          className={`${cardClass} flex w-full flex-col gap-3 p-5 md:min-w-0 md:flex-1 md:p-7`}
         >
           <h2 className="text-foreground text-[15px] leading-[18px] font-medium">
             How it works
@@ -73,7 +73,7 @@ export function PostJobPage({
           </ol>
         </section>
         <section
-          className={`${cardClass} flex w-full flex-col gap-3 p-5 md:w-[400px] md:shrink-0`}
+          className={`${cardClass} flex w-full flex-col gap-3 p-5 md:w-[320px] md:shrink-0 lg:w-[400px]`}
           data-testid="post-job-pricing"
         >
           <p className="text-subtle text-[13px] leading-4">Job listing</p>
