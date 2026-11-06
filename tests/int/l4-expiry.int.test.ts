@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { PAST_VALID_THROUGH_MESSAGE } from "@/collections/shared/validators";
+import { PAST_VALID_THROUGH_MESSAGE } from "@/collections/jobs";
 import type { Job, User } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
 import { loadBoardFixture } from "../fixtures/load";
@@ -363,6 +363,26 @@ describe("an editor publishing with a past Valid through", () => {
       user: editor,
     });
     expect(updated.title).toBe("Still a draft");
+  });
+
+  test("can still end a live job by setting a past date", async () => {
+    const job = await createJob({
+      _status: "published",
+      origin: "manual",
+      slug: "past-date-end-listing",
+      title: "Ending this listing",
+      validThrough: "2099-01-01T00:00:00.000Z",
+    });
+    const updated = await payload.update({
+      collection: "jobs",
+      data: { validThrough: past },
+      depth: 0,
+      id: job.id,
+      overrideAccess: true,
+      user: editor,
+    });
+    expect(isoOf(updated.validThrough)).toBe(past);
+    expect(updated._status).toBe("published");
   });
 
   test("does not apply to a write with no user", async () => {

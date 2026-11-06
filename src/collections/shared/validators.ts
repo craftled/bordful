@@ -1,5 +1,4 @@
 import type {
-  DateFieldValidation,
   SelectFieldSingleValidation,
   TextFieldSingleValidation,
 } from "payload";
@@ -76,25 +75,4 @@ export const syncOriginValidate: SelectFieldSingleValidation = (
   }
 
   return true;
-};
-
-export const PAST_VALID_THROUGH_MESSAGE =
-  "Set Valid through to a future date to publish this job.";
-
-// A past date would save, stay hidden and be drafted by the next expire run.
-// Sync and cron writes have no user, and Bordfeed's own dates are kept as sent.
-export const futureWhenPublished: DateFieldValidation = (
-  value,
-  { data, req }
-) => {
-  const published =
-    (data as { _status?: unknown } | undefined)?._status === "published";
-  if (!(req.user && published && value)) {
-    return true;
-  }
-
-  const time = new Date(value).getTime();
-  return !Number.isNaN(time) && time <= Date.now()
-    ? PAST_VALID_THROUGH_MESSAGE
-    : true;
 };

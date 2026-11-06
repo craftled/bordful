@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Saving a job as published with a past Valid through now shows an error in the admin. It used to save, stay hidden, and go back to draft at the next expire run.
+- Publishing a job with a past Valid through now shows an error in the admin. It used to save, stay hidden, and go back to draft at the next expire run. Setting a past date on a live job still ends the listing.
 - Digest emails say how to change alert filters.
 - Rebuilt on Payload 4 (4.0.0-beta.6, with Lexical 0.53) and Postgres.
 - Requires Node.js 26 LTS. `engines.node` is `26.x`, which overrides the Vercel project Node.js setting. Built-in fetch on Vercel uses HTTP/2 on Node 26. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
