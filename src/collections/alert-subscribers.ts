@@ -52,7 +52,9 @@ export const AlertSubscribers: CollectionConfig = {
       type: "text",
     },
     { name: "watermark", type: "date" },
-    { name: "lastSentAt", type: "date" },
+    // Unused: watermark holds the same time. Kept until a later release drops
+    // the column, so a rollback to the previous deployment still works.
+    { admin: { hidden: true }, name: "lastSentAt", type: "date" },
     { name: "confirmedAt", type: "date" },
   ],
   slug: "alert-subscribers",

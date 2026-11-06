@@ -33,8 +33,8 @@ const PERIOD_DAYS: Record<AlertFrequency, number> = {
 export interface DigestSchedule {
   confirmedAt?: string | null;
   frequency: AlertFrequency;
-  lastSentAt?: string | null;
   status: string;
+  watermark?: string | null;
 }
 
 export interface DigestRunCounts {
@@ -83,7 +83,7 @@ export function isDue(subscriber: DigestSchedule, now: Date): boolean {
     return false;
   }
 
-  const anchorRaw = subscriber.lastSentAt ?? subscriber.confirmedAt;
+  const anchorRaw = subscriber.watermark ?? subscriber.confirmedAt;
   if (!anchorRaw) {
     return false;
   }
@@ -157,7 +157,6 @@ interface DueSubscriber {
   email: string;
   frequency: AlertFrequency;
   id: number;
-  lastSentAt: string | null;
   query: unknown;
   status: AlertSubscriber["status"];
   unsubscribeTokenHash: string | null;
@@ -170,7 +169,6 @@ function toDueSubscriber(doc: AlertSubscriber): DueSubscriber {
     email: doc.email,
     frequency: doc.frequency,
     id: doc.id,
-    lastSentAt: doc.lastSentAt ?? null,
     query: doc.query,
     status: doc.status,
     unsubscribeTokenHash: doc.unsubscribeTokenHash ?? null,
@@ -240,10 +238,9 @@ async function markSent(
   subscriber: DueSubscriber,
   now: Date
 ): Promise<void> {
-  const stamp = now.toISOString();
   await payload.update({
     collection: "alert-subscribers",
-    data: { lastSentAt: stamp, watermark: stamp },
+    data: { watermark: now.toISOString() },
     depth: 0,
     id: subscriber.id,
     overrideAccess: true,

@@ -288,9 +288,6 @@ export async function confirmSubscription(
     data: {
       confirmedAt: stamp,
       confirmTokenHash: null,
-      // isDue anchors on lastSentAt before confirmedAt. A returning
-      // subscriber would otherwise be due on the old cadence immediately.
-      lastSentAt: null,
       status: "active",
       watermark: stamp,
     },
