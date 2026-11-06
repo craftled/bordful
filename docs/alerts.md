@@ -35,7 +35,7 @@ A signup nobody confirms is deleted after 7 days by the daily `/api/cron/expire`
 
 Sample jobs are never emailed. Jobs already covered by an earlier digest are not sent again. A second run in the same period does not send another copy.
 
-Every digest includes a one-click unsubscribe link. The message also sets `List-Unsubscribe` and `List-Unsubscribe-Post`. Mail clients that support one-click unsubscribe call `POST /alerts/unsubscribe/one-click`. Visitors can also open `/alerts/unsubscribe` and submit the button.
+Every digest includes a one-click unsubscribe link and says how to change filters: unsubscribe and sign up again. Submitting `/alerts` with an already active address changes nothing. The message also sets `List-Unsubscribe` and `List-Unsubscribe-Post`. Mail clients that support one-click unsubscribe call `POST /alerts/unsubscribe/one-click`. Visitors can also open `/alerts/unsubscribe` and submit the button.
 
 Confirm and unsubscribe pages stay available after you disable alerts, so people can still stop mail. Both pages are `noindex`.
 

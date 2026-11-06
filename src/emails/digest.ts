@@ -60,6 +60,7 @@ export function renderDigestEmail(input: {
     url: `${brand.siteUrl}/jobs/${encodeURIComponent(job.slug)}`,
   }));
   const allJobsUrl = `${brand.siteUrl}/jobs`;
+  const alertsUrl = `${brand.siteUrl}/alerts`;
   const safeName = escapeHtml(siteName);
   const safeUnsubscribe = escapeHtml(input.unsubscribeUrl);
   const cadence = input.frequency === "daily" ? "daily" : "weekly";
@@ -76,7 +77,7 @@ ${renderEmailButton({
   radiusPx: brand.radiusPx,
 })}`,
     brand,
-    footerHtml: `You are getting this ${cadence} digest because you confirmed job alerts on ${safeName}. <a href="${safeUnsubscribe}" target="_blank" style="color:${EMAIL_COLORS.mutedForeground};text-decoration:underline;">Unsubscribe</a>`,
+    footerHtml: `You are getting this ${cadence} digest because you confirmed job alerts on ${safeName}. <a href="${safeUnsubscribe}" target="_blank" style="color:${EMAIL_COLORS.mutedForeground};text-decoration:underline;">Unsubscribe</a><br>To change your filters, unsubscribe and <a href="${escapeHtml(alertsUrl)}" target="_blank" style="color:${EMAIL_COLORS.mutedForeground};text-decoration:underline;">sign up again</a>.`,
     heading: subject,
     preheader: jobs
       .map(({ job }) => job.title.trim())
@@ -92,6 +93,7 @@ ${renderEmailButton({
     "",
     `You are getting this ${cadence} digest because you confirmed job alerts on ${siteName}.`,
     `Unsubscribe: ${input.unsubscribeUrl}`,
+    `To change your filters, unsubscribe and sign up again: ${alertsUrl}`,
   ].join("\n");
 
   return { html, subject, text };

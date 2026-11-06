@@ -1,4 +1,8 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import {
+  type CollectionBeforeChangeHook,
+  type CollectionConfig,
+  ValidationError,
+} from "payload";
 import { jobsRead } from "@/access/jobs";
 import {
   denyAuthenticated,
@@ -148,6 +152,38 @@ const applyPaidExpiry: CollectionBeforeChangeHook = async ({
     publishedAt: typeof publishedAt === "string" ? publishedAt : null,
     validThrough: typeof validThrough === "string" ? validThrough : null,
   });
+
+  return data;
+};
+
+export const PAST_VALID_THROUGH_MESSAGE =
+  "Set Valid through to a future date to publish this job.";
+
+// Publishing past its date would save, stay hidden and be drafted by the next
+// expire run. Only the move to published is stopped: a past date on a live job
+// is how an editor ends a listing. Sync and cron writes have no user.
+const blockExpiredPublish: CollectionBeforeChangeHook = ({
+  collection,
+  data,
+  originalDoc,
+  req,
+}) => {
+  const publishing =
+    data._status === "published" && originalDoc?._status !== "published";
+  if (!(req.user && publishing)) {
+    return data;
+  }
+
+  const validThrough =
+    "validThrough" in data ? data.validThrough : originalDoc?.validThrough;
+  const time = validThrough ? new Date(validThrough).getTime() : Number.NaN;
+  if (time <= Date.now()) {
+    throw new ValidationError({
+      collection: collection.slug,
+      errors: [{ message: PAST_VALID_THROUGH_MESSAGE, path: "validThrough" }],
+      req,
+    });
+  }
 
   return data;
 };
@@ -337,7 +373,12 @@ export const Jobs: CollectionConfig = {
   hooks: {
     afterChange: [revalidateJobs],
     afterDelete: [revalidateJobsDelete],
-    beforeChange: [denormalizeCompany, stampPublishedAt, applyPaidExpiry],
+    beforeChange: [
+      denormalizeCompany,
+      stampPublishedAt,
+      applyPaidExpiry,
+      blockExpiredPublish,
+    ],
   },
   slug: "jobs",
   versions: { drafts: { autosave: false }, maxPerDoc: 20 },
