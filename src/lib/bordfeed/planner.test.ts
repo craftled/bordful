@@ -159,6 +159,33 @@ test("a draft that reappears is republished", () => {
   expect(plan.update).toEqual([{ data: {}, id: "id-j2", republish: true }]);
 });
 
+test("sample mode leaves a drafted sample row down", () => {
+  const sample = job("s1", "h1", "bordfeed_sample");
+  const plan = planSync({
+    existing: [row("id-s1", "s1", "bordfeed_sample", "draft", "h1", sample)],
+    incoming: [sample],
+    mode: "sample",
+    takenSlugs: new Set(["s1"]),
+  });
+
+  expect(plan.update).toEqual([]);
+  expect(plan.deleteIds).toEqual([]);
+});
+
+test("sample mode updates a drafted sample row without publishing it", () => {
+  const sample = job("s1", "h2", "bordfeed_sample");
+  const plan = planSync({
+    existing: [row("id-s1", "s1", "bordfeed_sample", "draft", "h1", sample)],
+    incoming: [sample],
+    mode: "sample",
+    takenSlugs: new Set(["s1"]),
+  });
+
+  expect(plan.update).toEqual([
+    { data: sample, id: "id-s1", republish: false },
+  ]);
+});
+
 test("sample mode leaves bordfeed rows alone", () => {
   const sample = job("s2", "h", "bordfeed_sample");
   const plan = planSync({

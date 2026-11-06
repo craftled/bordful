@@ -251,7 +251,8 @@ function placeIncoming(
   matches: Map<string, ExistingRow>,
   blocked: Set<string>,
   taken: Set<string>,
-  companyIds: ReadonlyMap<string, number> | undefined
+  companyIds: ReadonlyMap<string, number> | undefined,
+  mode: "feed" | "sample"
 ) {
   const create: MappedJob[] = [];
   const update: SyncPlan["update"] = [];
@@ -281,7 +282,9 @@ function placeIncoming(
     const changed =
       (match.hash ?? null) !== planned.bordfeedDescriptionHash ||
       !sameFields(match.fields, comparableJobFields(planned, companyIds));
-    const republish = match.status === "draft";
+    // Only an editor or the expiry sweep drafts a sample row, so it stays down.
+    // A feed row is also drafted by a disconnect, and a reconnect brings it back.
+    const republish = mode === "feed" && match.status === "draft";
     if (changed || republish) {
       update.push({
         data: changed ? planned : {},
@@ -392,7 +395,8 @@ export function planSync(input: {
     matches,
     blocked,
     taken,
-    input.companyIds
+    input.companyIds,
+    input.mode
   );
   const removed = removals(
     input.existing,

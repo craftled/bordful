@@ -6,7 +6,7 @@ import { isBlocked } from "./blocklist";
 import { blockableFromMapped, readBlocklist } from "./blocklist-store";
 import { type BordfeedClient, createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
-import type { ConnectionRecord } from "./connection-machine";
+import { type ConnectionRecord, holdsConnection } from "./connection-machine";
 import { dispatchConnectionEvent, readConnection } from "./connection-store";
 import { eachDoc, eachSerial } from "./each";
 import {
@@ -666,10 +666,7 @@ interface SyncStamp {
 }
 
 function syncMode(record: ConnectionRecord): "feed" | "sample" {
-  const feed =
-    record.state === "connected" ||
-    (record.state === "error" && record.previousState === "connected");
-  return feed ? "feed" : "sample";
+  return holdsConnection(record) ? "feed" : "sample";
 }
 
 async function connectionStillMatches(

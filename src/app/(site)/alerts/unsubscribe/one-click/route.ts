@@ -22,7 +22,14 @@ export async function POST(request: Request) {
   }
 
   const payload = await getPayload({ config });
-  await unsubscribeByToken(payload, token);
+  const found = await unsubscribeByToken(payload, token);
+  if (!found) {
+    return new Response("unknown token", {
+      headers: { "content-type": "text/plain; charset=utf-8" },
+      status: 404,
+    });
+  }
+
   return new Response("unsubscribed", {
     headers: { "content-type": "text/plain; charset=utf-8" },
     status: 200,

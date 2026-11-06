@@ -8,6 +8,7 @@ import { alertQueryJson } from "@/lib/alerts/query";
 import type { AlertSender, OutgoingEmail } from "@/lib/alerts/sender";
 import {
   confirmSubscription,
+  deleteStalePendingSubscribers,
   subscribeToAlerts,
   unsubscribeByToken,
 } from "@/lib/alerts/subscribe";
@@ -298,4 +299,75 @@ test("one thousand due subscribers finish within 60 seconds", async () => {
   console.info(`alert digest perf ms ${elapsedMs}`);
   expect(elapsedMs).toBeLessThan(60_000);
   expect(result).toMatchObject({ sent: 1000 });
+});
+
+test("a digest repairs an unsubscribe hash that no longer matches", async () => {
+  const secret = process.env.PAYLOAD_SECRET;
+  if (!secret) {
+    throw new Error("PAYLOAD_SECRET is not set.");
+  }
+
+  const confirmedAt = "2020-01-01T00:00:00.000Z";
+  const row = await payload.create({
+    collection: "alert-subscribers",
+    data: {
+      confirmedAt,
+      email: "stale-link@example.com",
+      frequency: "weekly",
+      query: alertQueryJson(EMPTY_JOB_ALERT_QUERY),
+      status: "active",
+      unsubscribeTokenHash: "hash-from-an-old-secret",
+      watermark: confirmedAt,
+    },
+    depth: 0,
+    overrideAccess: true,
+  });
+
+  const captured: CapturedEmail[] = [];
+  await runAlertDigests(payload, {
+    now: new Date(),
+    sender: recordingSender(captured),
+  });
+
+  expect(
+    captured.some((item) => item.message.to === "stale-link@example.com")
+  ).toBe(true);
+  const token = unsubscribeTokenFor(
+    { email: "stale-link@example.com", id: row.id },
+    secret
+  );
+  expect(await unsubscribeByToken(payload, token)).toBe(true);
+});
+
+test("only stale pending signups are deleted", async () => {
+  const now = new Date();
+  const create = (email: string, status: "active" | "pending") =>
+    payload.create({
+      collection: "alert-subscribers",
+      data: { email, frequency: "weekly", status },
+      depth: 0,
+      overrideAccess: true,
+    });
+  await create("fresh-pending@example.com", "pending");
+  await create("stale-active@example.com", "active");
+  const later = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000);
+
+  const removed = await deleteStalePendingSubscribers(payload, later);
+
+  expect(removed).toBeGreaterThanOrEqual(1);
+  const left = await payload.find({
+    collection: "alert-subscribers",
+    depth: 0,
+    limit: 0,
+    overrideAccess: true,
+    where: { status: { equals: "pending" } },
+  });
+  expect(left.docs).toEqual([]);
+  const active = await payload.find({
+    collection: "alert-subscribers",
+    depth: 0,
+    overrideAccess: true,
+    where: { email: { equals: "stale-active@example.com" } },
+  });
+  expect(active.docs).toHaveLength(1);
 });

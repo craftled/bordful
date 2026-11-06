@@ -1,6 +1,8 @@
 import type { Payload, TaskConfig, Where } from "payload";
 import { z } from "zod";
 
+import { deleteStalePendingSubscribers } from "@/lib/alerts/subscribe";
+
 const DAY_MS = 86_400_000;
 const BATCH_SIZE = 100;
 
@@ -160,6 +162,20 @@ export async function expireJobs(
   };
 }
 
+// Runs here because this cron stays on when alerts are turned off. A failure
+// must not fail the job sweep, which has already finished.
+async function cleanPendingSubscribers(
+  payload: Payload,
+  now: Date
+): Promise<number> {
+  try {
+    return await deleteStalePendingSubscribers(payload, now);
+  } catch (err) {
+    payload.logger.error({ err }, "pending subscriber cleanup failed");
+    return 0;
+  }
+}
+
 export const expireJobsTask: TaskConfig<"expire-jobs"> = {
   handler: async ({ input, req }) => {
     const parsed = expireJobsInputSchema.parse(
@@ -167,7 +183,8 @@ export const expireJobsTask: TaskConfig<"expire-jobs"> = {
     );
     const now = parsed.now === undefined ? new Date() : new Date(parsed.now);
     const result = await expireJobs(req.payload, now);
-    return { output: result };
+    const pendingDeleted = await cleanPendingSubscribers(req.payload, now);
+    return { output: { ...result, pendingDeleted } };
   },
   slug: "expire-jobs",
 };
