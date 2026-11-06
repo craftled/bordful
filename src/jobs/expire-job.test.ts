@@ -107,6 +107,7 @@ test("expireJobsTask rejects an invalid now", async () => {
 test("expireJobsTask queries the parsed now and falls back to the current time", async () => {
   const queried: string[] = [];
   const payload = {
+    delete: () => ({ docs: [], errors: [] }),
     find: (args: { where: Where }) => {
       const clauses = args.where.and;
       const validThrough = Array.isArray(clauses) ? clauses[1] : undefined;
@@ -127,7 +128,13 @@ test("expireJobsTask queries the parsed now and falls back to the current time",
   await expect(
     runHandler({ now: "2098-06-01T09:00:01.000Z" }, payload)
   ).resolves.toEqual({
-    output: { failed: 0, failedIds: [], ids: [], unpublished: 0 },
+    output: {
+      failed: 0,
+      failedIds: [],
+      ids: [],
+      pendingDeleted: 0,
+      unpublished: 0,
+    },
   });
   expect(queried[0]).toBe("2098-06-01T09:00:01.000Z");
 
@@ -181,4 +188,46 @@ test("one failed unpublish does not stop the sweep", async () => {
     ],
   });
   expect(logged).toEqual([{ id: 11, message: "expire job update failed" }]);
+});
+
+test("expireJobsTask deletes pending signups older than 7 days", async () => {
+  const wheres: Where[] = [];
+  const payload = {
+    delete: (args: { where: Where }) => {
+      wheres.push(args.where);
+      return { docs: [{ id: 1 }, { id: 2 }], errors: [] };
+    },
+    find: () => ({ docs: [], totalDocs: 0 }),
+  } as unknown as Payload;
+
+  const { output } = await runHandler(
+    { now: "2098-06-08T09:00:00.000Z" },
+    payload
+  );
+
+  expect(output).toMatchObject({ pendingDeleted: 2 });
+  expect(wheres).toEqual([
+    {
+      and: [
+        { status: { equals: "pending" } },
+        { updatedAt: { less_than: "2098-06-01T09:00:00.000Z" } },
+      ],
+    },
+  ]);
+});
+
+test("a failed pending cleanup does not fail the job sweep", async () => {
+  const logged: string[] = [];
+  const payload = {
+    delete: () => Promise.reject(new Error("db")),
+    find: () => ({ docs: [], totalDocs: 0 }),
+    logger: {
+      error: (_context: unknown, message: string) => logged.push(message),
+    },
+  } as unknown as Payload;
+
+  await expect(
+    runHandler({ now: "2098-06-08T09:00:00.000Z" }, payload)
+  ).resolves.toMatchObject({ output: { pendingDeleted: 0, unpublished: 0 } });
+  expect(logged).toEqual(["pending subscriber cleanup failed"]);
 });

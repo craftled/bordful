@@ -41,11 +41,20 @@ function accept(next: ConnectionRecord): ConnectionResult {
   return { next, ok: true };
 }
 
-function hasKey(record: ConnectionRecord): boolean {
+export function hasStoredKey(record: ConnectionRecord): boolean {
   return Boolean(record.apiKeyEncrypted);
 }
 
-function canStartConnect(record: ConnectionRecord): boolean {
+export function holdsConnection(
+  record: Pick<ConnectionRecord, "previousState" | "state">
+): boolean {
+  return (
+    record.state === "connected" ||
+    (record.state === "error" && record.previousState === "connected")
+  );
+}
+
+export function canStartConnect(record: ConnectionRecord): boolean {
   return (
     record.state === "sample" ||
     record.state === "awaiting_code" ||
@@ -53,8 +62,11 @@ function canStartConnect(record: ConnectionRecord): boolean {
   );
 }
 
-function registrationIsExpired(record: ConnectionRecord, now: Date): boolean {
-  if (!record.registrationExpiresAt) {
+export function registrationIsExpired(
+  record: Pick<ConnectionRecord, "registrationExpiresAt" | "state">,
+  now: Date
+): boolean {
+  if (record.state !== "awaiting_code" || !record.registrationExpiresAt) {
     return false;
   }
 
@@ -110,7 +122,7 @@ function applyFeedReady(
   record: ConnectionRecord,
   event: Extract<ConnectionEvent, { type: "feed_ready" }>
 ): ConnectionResult {
-  if (!(canStartConnect(record) && hasKey(record))) {
+  if (!(canStartConnect(record) && hasStoredKey(record))) {
     return reject("feed_ready requires a stored key in a connectable state");
   }
 
