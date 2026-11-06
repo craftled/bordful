@@ -63,7 +63,25 @@ The Bordfeed cron fetches only jobs new to the feed since the last sync, capped 
 
 ## Admin sign-in
 
-Bordful does not send admin password reset emails yet. Keep a second admin account, so one admin can change another's password in Users. After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
+After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
+
+Bordful does not send password reset emails. The "Forgot password?" link on the login page says it worked, but no email arrives. If you lose your password, set a new one from a clone of your repo. On Vercel, run:
+
+```bash
+bun install
+vercel link
+vercel env pull .env.local --environment=production
+PAYLOAD_SECRET=$(openssl rand -hex 32) bun run bordful reset-password --email owner@example.com
+rm .env.local
+```
+
+On any other host, set `DATABASE_URL` to the production database and run the `reset-password` line.
+
+The command prints a new password once, clears any lockout, and signs that user out everywhere. Sign in, then change the password in Users. If the email does not match a user, the command lists the admin emails.
+
+The `PAYLOAD_SECRET` in the command is a throwaway. A password reset does not need the real value, which Vercel will not show once it is Sensitive. Do not save it to the project.
+
+Anyone who has `DATABASE_URL` can reset a password this way, so treat it like an admin password.
 
 ## Self-hosting outside Vercel
 
