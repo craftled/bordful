@@ -17,7 +17,7 @@ import { matchesAlertQuery as jobMatchesQuery } from "./match";
 import { mapWithConcurrency } from "./pool";
 import { parseAlertQueryFromUnknown } from "./query";
 import type { AlertSender, OutgoingEmail } from "./sender";
-import { unsubscribeTokenFor } from "./tokens";
+import { hashToken, unsubscribeTokenFor } from "./tokens";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
@@ -160,6 +160,7 @@ interface DueSubscriber {
   lastSentAt: string | null;
   query: unknown;
   status: AlertSubscriber["status"];
+  unsubscribeTokenHash: string | null;
   watermark: string | null;
 }
 
@@ -172,6 +173,7 @@ function toDueSubscriber(doc: AlertSubscriber): DueSubscriber {
     lastSentAt: doc.lastSentAt ?? null,
     query: doc.query,
     status: doc.status,
+    unsubscribeTokenHash: doc.unsubscribeTokenHash ?? null,
     watermark: doc.watermark ?? null,
   };
 }
@@ -207,6 +209,30 @@ function digestMessage(input: {
     text: rendered.text,
     to: input.subscriber.email,
   };
+}
+
+// The link is rebuilt from the id, the email and PAYLOAD_SECRET, but checked
+// against a stored hash. Either input can change after signup, so store the
+// current hash before mailing a link that would otherwise be dead.
+async function keepUnsubscribeLinkValid(
+  payload: Payload,
+  subscriber: DueSubscriber,
+  secret: string
+): Promise<void> {
+  const unsubscribeTokenHash = hashToken(
+    unsubscribeTokenFor({ email: subscriber.email, id: subscriber.id }, secret)
+  );
+  if (unsubscribeTokenHash === subscriber.unsubscribeTokenHash) {
+    return;
+  }
+
+  await payload.update({
+    collection: "alert-subscribers",
+    data: { unsubscribeTokenHash },
+    depth: 0,
+    id: subscriber.id,
+    overrideAccess: true,
+  });
 }
 
 async function markSent(
@@ -252,6 +278,7 @@ async function deliverDigest(
   }
 
   try {
+    await keepUnsubscribeLinkValid(payload, subscriber, context.secret);
     await sender.send(
       digestMessage({
         brand: context.brand,
@@ -335,6 +362,7 @@ export async function runAlertDigests(
       depth: 0,
       limit: PAGE_SIZE,
       overrideAccess: true,
+      showHiddenFields: true,
       sort: "id",
       where: {
         and: [

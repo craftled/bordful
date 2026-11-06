@@ -24,6 +24,8 @@ On Vercel, BotID checks each `/alerts` signup before any subscriber write or ema
 
 The confirmation email links to `/alerts/confirm`. The visitor must submit the confirm button. Opening the link does not confirm, so a mail scanner that prefetches the URL does not subscribe them.
 
+A signup nobody confirms is deleted after 7 days by the daily `/api/cron/expire` run, and its confirm link stops working. The visitor can sign up again.
+
 ## Digests and unsubscribe
 
 `/api/cron/alerts` runs daily at 08:00 UTC. A subscriber receives a digest only when both are true:
@@ -37,4 +39,4 @@ Every digest includes a one-click unsubscribe link and says how to change filter
 
 Confirm and unsubscribe pages stay available after you disable alerts, so people can still stop mail. Both pages are `noindex`.
 
-Unsubscribe tokens and confirm tokens are stored as hashes. The unsubscribe token is derived from the subscriber id, the email, and `PAYLOAD_SECRET`.
+Unsubscribe tokens and confirm tokens are stored as hashes. The unsubscribe token is derived from the subscriber id, the email, and `PAYLOAD_SECRET`. Each digest stores the current hash before it is sent, so the newest email's link works even if the secret or the address changed. Links in older emails stop working after such a change.

@@ -12,6 +12,10 @@ import { bordfeedClientHeaders } from "../client-header";
 import {
   applyConnectionEvent,
   type ConnectionRecord,
+  canStartConnect,
+  hasStoredKey,
+  holdsConnection,
+  registrationIsExpired,
 } from "../connection-machine";
 import { dispatchConnectionEvent, readConnection } from "../connection-store";
 import { BordfeedApiError, toSafeError } from "../errors";
@@ -84,34 +88,6 @@ function step(
   extra?: Pick<ConnectStepResult, "fallback" | "summary" | "workspaces">
 ): ConnectStepResult {
   return { message, state: record.state, ...extra };
-}
-
-function holdsConnection(record: ConnectionRecord): boolean {
-  return (
-    record.state === "connected" ||
-    (record.state === "error" && record.previousState === "connected")
-  );
-}
-
-function canStart(record: ConnectionRecord): boolean {
-  return (
-    record.state === "sample" ||
-    record.state === "awaiting_code" ||
-    (record.state === "error" && record.previousState === "sample")
-  );
-}
-
-function hasStoredKey(record: ConnectionRecord): boolean {
-  return Boolean(record.apiKeyEncrypted);
-}
-
-function registrationExpired(record: ConnectionRecord, now: Date): boolean {
-  if (record.state !== "awaiting_code" || !record.registrationExpiresAt) {
-    return false;
-  }
-
-  const expires = new Date(record.registrationExpiresAt).getTime();
-  return !Number.isNaN(expires) && expires <= now.getTime();
 }
 
 function syncedCount(summary: SyncSummary): number {
@@ -360,7 +336,7 @@ export async function startConnect(
 ): Promise<ConnectStepResult> {
   const now = clock(deps);
   const record = await readConnection(payload);
-  if (holdsConnection(record) || !canStart(record)) {
+  if (!canStartConnect(record)) {
     return step(record, ALREADY_CONNECTED_MESSAGE);
   }
 
@@ -498,7 +474,7 @@ export async function submitCode(
     return step(record, NEED_CODE_MESSAGE);
   }
 
-  if (registrationExpired(record, now())) {
+  if (registrationIsExpired(record, now())) {
     const next = await dispatchConnectionEvent(
       payload,
       { type: "registration_expired" },
@@ -562,7 +538,7 @@ export async function pasteKey(
 ): Promise<ConnectStepResult> {
   const now = clock(deps);
   const record = await readConnection(payload);
-  if (holdsConnection(record) || !canStart(record)) {
+  if (!canStartConnect(record)) {
     return step(record, ALREADY_CONNECTED_MESSAGE);
   }
 
