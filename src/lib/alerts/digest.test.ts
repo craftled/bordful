@@ -64,7 +64,6 @@ function readyPayload(
             email: "ada@example.com",
             frequency: "weekly",
             id: 42,
-            lastSentAt: null,
             query: {},
             status: "active",
             unsubscribeTokenHash,

@@ -211,7 +211,9 @@ test("subscribe, confirm, digest, and unsubscribe", async () => {
     overrideAccess: true,
   });
   expect(unsubscribed.status).toBe("unsubscribed");
-  expect(unsubscribed.lastSentAt).toBeTruthy();
+  expect(new Date(unsubscribed.watermark ?? 0).toISOString()).toBe(
+    digestNow.toISOString()
+  );
 
   await payload.create({
     collection: "jobs",
@@ -261,7 +263,9 @@ test("subscribe, confirm, digest, and unsubscribe", async () => {
     overrideAccess: true,
   });
   expect(reconfirmed.status).toBe("active");
-  expect(reconfirmed.lastSentAt ?? null).toBeNull();
+  expect(new Date(reconfirmed.watermark ?? 0).toISOString()).toBe(
+    reconfirmedAt.toISOString()
+  );
   expect(await unsubscribeByToken(payload, unsubscribeToken)).toBe(true);
 });
 

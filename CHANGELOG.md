@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- The `bounced` alert subscriber status. Nothing set it, and Resend already stops delivery to addresses that hard bounce. A migration moves any row set by hand to `unsubscribed`.
 - Airtable.
 - Google Sheets.
 - Static generation.

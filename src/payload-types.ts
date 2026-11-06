@@ -426,7 +426,7 @@ export interface Job {
 export interface AlertSubscriber {
   id: number;
   email: string;
-  status: 'pending' | 'active' | 'unsubscribed' | 'bounced';
+  status: 'pending' | 'active' | 'unsubscribed';
   query?:
     | {
         [k: string]: unknown;

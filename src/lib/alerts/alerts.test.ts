@@ -88,7 +88,6 @@ test("isDue waits one hour less than the full period", () => {
       {
         confirmedAt: "2026-10-16T09:00:00.000Z",
         frequency: "weekly",
-        lastSentAt: null,
         status: "active",
       },
       now
@@ -99,7 +98,6 @@ test("isDue waits one hour less than the full period", () => {
       {
         confirmedAt: "2026-10-16T09:00:01.000Z",
         frequency: "weekly",
-        lastSentAt: null,
         status: "active",
       },
       now
@@ -110,8 +108,8 @@ test("isDue waits one hour less than the full period", () => {
       {
         confirmedAt: "2026-10-01T00:00:00.000Z",
         frequency: "weekly",
-        lastSentAt: "2026-10-17T08:00:00.000Z",
         status: "active",
+        watermark: "2026-10-17T08:00:00.000Z",
       },
       now
     )
@@ -121,8 +119,8 @@ test("isDue waits one hour less than the full period", () => {
       {
         confirmedAt: "2026-10-01T00:00:00.000Z",
         frequency: "daily",
-        lastSentAt: "2026-10-22T08:30:00.000Z",
         status: "active",
+        watermark: "2026-10-22T08:30:00.000Z",
       },
       now
     )
@@ -132,7 +130,6 @@ test("isDue waits one hour less than the full period", () => {
       {
         confirmedAt: "2026-10-16T09:00:00.000Z",
         frequency: "weekly",
-        lastSentAt: null,
         status: "pending",
       },
       now

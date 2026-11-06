@@ -66,7 +66,6 @@ export const ALERT_SUBSCRIBER_STATUSES = [
   "pending",
   "active",
   "unsubscribed",
-  "bounced",
 ] as const;
 export type AlertSubscriberStatus = (typeof ALERT_SUBSCRIBER_STATUSES)[number];
 
