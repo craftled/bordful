@@ -25,6 +25,7 @@ import { relationId } from "./shared/relation-id";
 import { revalidateJobs, revalidateJobsDelete } from "./shared/revalidate";
 import { stringListField } from "./shared/string-list";
 import {
+  futureWhenPublished,
   httpUrl,
   iso2,
   iso4217,
@@ -297,6 +298,7 @@ export const Jobs: CollectionConfig = {
       index: true,
       name: "validThrough",
       type: "date",
+      validate: futureWhenPublished,
     }),
     owned({
       admin: { position: "sidebar" },

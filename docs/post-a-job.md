@@ -33,6 +33,6 @@ Publishing a paid job sets Valid through to the publish time plus `durationDays`
 
 The expire cron runs daily at 05:30 UTC (`/api/cron/expire`). It unpublishes jobs whose Valid through is in the past. The row stays in the admin as a draft.
 
-To extend a listing, edit Valid through and publish again. A date you set is kept. The hook does not overwrite it with a new 30 day window.
+To extend a listing, edit Valid through and publish again. A date you set is kept. The hook does not overwrite it with a new 30 day window. Publishing with a Valid through in the past shows an error until you set a future date. This applies to every origin.
 
 Other origins are not given a duration by this feature. The same cron still unpublishes them when Valid through is set and has passed.

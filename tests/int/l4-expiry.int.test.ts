@@ -1,7 +1,9 @@
+import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 
-import { afterAll, beforeAll, expect, test } from "vitest";
-import type { Job } from "@/payload-types";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { PAST_VALID_THROUGH_MESSAGE } from "@/collections/shared/validators";
+import type { Job, User } from "@/payload-types";
 import { exampleDescription } from "../fixtures/board";
 import { loadBoardFixture } from "../fixtures/load";
 
@@ -281,4 +283,97 @@ test("the expire cron honors the test clock and ignores now without it", async (
   expect(live.unpublished).toBe(0);
   expect(live.now).not.toBe(SWEEP_AT);
   expect((await readJob(dueId, false))._status).toBe("published");
+});
+
+describe("an editor publishing with a past Valid through", () => {
+  const past = "2020-01-01T00:00:00.000Z";
+  let editor: User;
+
+  beforeAll(async () => {
+    const created = await payload.create({
+      collection: "users",
+      data: {
+        email: "past-date-editor@example.com",
+        password: randomBytes(16).toString("hex"),
+        roles: ["admin"],
+      },
+      depth: 0,
+      overrideAccess: true,
+    });
+    editor = { ...created, collection: "users" };
+  });
+
+  function expiredDraft(slug: string): Promise<Job> {
+    return createJob({
+      _status: "draft",
+      origin: "manual",
+      slug,
+      title: slug,
+      validThrough: past,
+    });
+  }
+
+  test("is stopped when only the status is sent", async () => {
+    const job = await expiredDraft("past-date-publish-click");
+    await expect(
+      payload.update({
+        collection: "jobs",
+        data: { _status: "published" },
+        depth: 0,
+        id: job.id,
+        overrideAccess: true,
+        user: editor,
+      })
+    ).rejects.toMatchObject({
+      data: {
+        errors: [{ message: PAST_VALID_THROUGH_MESSAGE, path: "validThrough" }],
+      },
+    });
+    const stored = await payload.findByID({
+      collection: "jobs",
+      depth: 0,
+      id: job.id,
+      overrideAccess: true,
+    });
+    expect(stored._status).toBe("draft");
+  });
+
+  test("goes through with a future date", async () => {
+    const job = await expiredDraft("past-date-new-date");
+    const updated = await payload.update({
+      collection: "jobs",
+      data: { _status: "published", validThrough: "2099-01-01T00:00:00.000Z" },
+      depth: 0,
+      id: job.id,
+      overrideAccess: true,
+      user: editor,
+    });
+    expect(updated._status).toBe("published");
+  });
+
+  test("can still save a draft", async () => {
+    const job = await expiredDraft("past-date-draft-edit");
+    const updated = await payload.update({
+      collection: "jobs",
+      data: { title: "Still a draft" },
+      depth: 0,
+      draft: true,
+      id: job.id,
+      overrideAccess: true,
+      user: editor,
+    });
+    expect(updated.title).toBe("Still a draft");
+  });
+
+  test("does not apply to a write with no user", async () => {
+    const job = await expiredDraft("past-date-sync-write");
+    const updated = await payload.update({
+      collection: "jobs",
+      data: { _status: "published" },
+      depth: 0,
+      id: job.id,
+      overrideAccess: true,
+    });
+    expect(updated._status).toBe("published");
+  });
 });
