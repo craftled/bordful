@@ -148,6 +148,29 @@ function logConfirmationFailure(payload: Payload, id: number): void {
   );
 }
 
+const PENDING_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Removes signups nobody confirmed. updatedAt moves when a confirmation is
+// resent, so a fresh link always gets its full lifetime.
+export async function deleteStalePendingSubscribers(
+  payload: Payload,
+  now: Date
+): Promise<number> {
+  const cutoff = new Date(now.getTime() - PENDING_LIFETIME_MS);
+  const deleted = await payload.delete({
+    collection: "alert-subscribers",
+    depth: 0,
+    overrideAccess: true,
+    where: {
+      and: [
+        { status: { equals: "pending" } },
+        { updatedAt: { less_than: cutoff.toISOString() } },
+      ],
+    },
+  });
+  return deleted.docs.length;
+}
+
 export async function subscribeToAlerts(
   payload: Payload,
   input: SubscribeInput,

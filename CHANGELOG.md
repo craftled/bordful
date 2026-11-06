@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Digest unsubscribe links keep working after `PAYLOAD_SECRET` or a subscriber's email changes. Each digest now stores the current hash before it is sent, and a digest is not sent if that fails.
+- One-click unsubscribe answers 404 for an unknown token instead of reporting success.
+- A sample job an editor unpublished no longer comes back on the next sync.
+- Alert signups nobody confirms are deleted after 7 days.
 - Logo and media uploads work on a board deployed with the button. Vercel now connects new Blob stores through OIDC and sets `BLOB_STORE_ID` with no `BLOB_READ_WRITE_TOKEN`, so Payload's Blob adapter stayed off and every upload failed. Bordful now talks to the store with OIDC, and the button asks for a public store so logos can be served from it.
 - A fresh deploy could show an empty board. Vercel's first requests each booted the app and seeded the sample jobs at the same time, and the board cached the empty page. One boot now takes the sync lease and seeds, the others skip, and an empty first page is read again before it is served.
 - `next build` no longer runs its own TypeScript pass. `bun run typecheck` already runs in CI, and the duplicate pass added about nine seconds to every deploy.
