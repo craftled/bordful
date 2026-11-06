@@ -89,11 +89,11 @@ export function FooterView({
               />
             ) : null}
           </div>
-          <div className="grid grid-cols-2 gap-x-10 gap-y-8 sm:grid-cols-3 lg:flex">
+          <div className="grid grid-cols-2 gap-x-10 gap-y-8 sm:grid-cols-3 lg:flex lg:min-w-0">
             {columns.map((column) => (
               <nav
                 aria-label={column.title}
-                className="lg:w-[140px] lg:shrink-0"
+                className="lg:w-[140px] lg:min-w-0"
                 key={column.id}
               >
                 <h2 className="text-subtle text-[12px] leading-4 font-medium">
