@@ -342,3 +342,17 @@ test("digest rows cope with a missing company and a missing location", () => {
   expect(rendered.html).toContain(">\u{1F600}</td>");
   expect(rendered.text).toContain("Location not listed");
 });
+
+test("renderDigestEmail says how to change filters", () => {
+  const rendered = renderDigestEmail({
+    brand,
+    frequency: "weekly",
+    jobs: [],
+    unsubscribeUrl: "https://board.example/alerts/unsubscribe?token=t",
+  });
+
+  expect(rendered.text).toContain(
+    `To change your filters, unsubscribe and sign up again: ${brand.siteUrl}/alerts`
+  );
+  expect(rendered.html).toContain(`href="${brand.siteUrl}/alerts"`);
+});
