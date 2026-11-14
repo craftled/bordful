@@ -35,6 +35,8 @@ test.describe("E10 marketing-flag", { tag: ["@E10"] }, () => {
     await page.goto("/");
     await expect(page.getByTestId("job-list")).toBeVisible();
     await expect(page.getByTestId("marketing-home")).toHaveCount(0);
+    await expect(page.getByTestId("site-footer")).toBeVisible();
+    await expect(page.getByTestId("top-boilerplates-badge")).toHaveCount(0);
 
     const blocked = await Promise.all(
       MARKETING_PAGES.map((path) => request.get(path))
@@ -46,6 +48,11 @@ test.describe("E10 marketing-flag", { tag: ["@E10"] }, () => {
     const marketing = marketingBase();
     await page.goto(marketing);
     await expect(page.getByTestId("marketing-home")).toBeVisible();
+    await expect(page.getByTestId("top-boilerplates-badge")).toBeVisible();
+    await expect(page.getByTestId("top-boilerplates-badge")).toHaveAttribute(
+      "href",
+      "https://topboilerplates.com/bordful?ref=badge"
+    );
     await expect(page.getByTestId("marketing-deploy-button")).toHaveAttribute(
       "href",
       new RegExp(
@@ -55,6 +62,7 @@ test.describe("E10 marketing-flag", { tag: ["@E10"] }, () => {
     );
     await page.goto(new URL("/jobs", marketing).href);
     await expect(page.getByTestId("job-list")).toBeVisible();
+    await expect(page.getByTestId("top-boilerplates-badge")).toHaveCount(0);
 
     await expectOneHeading(page, new URL("/pricing", marketing).href);
     await expectOneHeading(page, new URL("/showcase", marketing).href);

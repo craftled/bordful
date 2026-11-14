@@ -3,6 +3,15 @@ export const MARKETING_DESCRIPTION =
 
 export const GITHUB_URL = "https://github.com/craftled/bordful";
 
+export const TOP_BOILERPLATES_BADGE = {
+  alt: "Listed on Top Boilerplates",
+  darkSrc: "https://topboilerplates.com/badge/bordful.svg?theme=dark",
+  height: 56,
+  href: "https://topboilerplates.com/bordful?ref=badge",
+  lightSrc: "https://topboilerplates.com/badge/bordful.svg",
+  width: 224,
+} as const;
+
 export const BORDFEED_PRICING_URL =
   "https://bordfeed.com/?ref=bordful&utm_source=bordful&utm_medium=marketing&utm_campaign=pricing";
 
