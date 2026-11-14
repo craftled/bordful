@@ -29,7 +29,7 @@ export const questions: {
   },
   {
     answer:
-      "Bordfeed supplies the sample jobs on a fresh board and, after you connect, a feed of jobs for your board. You can skip the connection and publish your own jobs. Bordfeed sells its own plans.",
+      "Bordfeed supplies the sample jobs on a fresh board and, after you connect, a feed of jobs for your board. You can skip the connection and publish your own jobs. Bordfeed sells its own plans, and Custom Setup includes 1 year of Bordfeed Pro.",
     question: "What is Bordfeed and do I need it?",
     short: "Do I need Bordfeed?",
   },
