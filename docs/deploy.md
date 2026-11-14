@@ -61,6 +61,36 @@ The Bordfeed cron fetches only jobs new to the feed since the last sync, capped 
 3. Create the DNS records Vercel shows.
 4. When that domain is the production domain, leave `NEXT_PUBLIC_SERVER_URL` unset so the app uses the production URL. To pin the origin, set `NEXT_PUBLIC_SERVER_URL` to `https://board.example` and redeploy.
 
+## Firewall
+
+Bots can send `/jobs/search` thousands of different queries an hour. Search no longer reads the database for each one, but every request still runs a function, so add one Vercel Firewall rule after you deploy. The rule lives in the Vercel project, not in this repository, so a fork does not get it automatically.
+
+In the Vercel project, open Firewall, then Configure, and add a custom rule:
+
+| Setting | Value |
+| --- | --- |
+| Name | `Challenge search and alerts` |
+| If | Request Path equals `/jobs/search` and Method equals `GET` |
+| Or | Request Path equals `/alerts` and Method equals `GET` |
+| Then | Challenge |
+
+Publish the change. Browsers pass the challenge once. Scripts get HTTP 429 with `x-vercel-mitigated: challenge`. Search engines are unaffected, since `robots.txt` already disallows `/jobs/search`. The alerts form still works, because it posts with `POST`.
+
+The same rule from the Vercel CLI:
+
+```bash
+vercel firewall rules add "Challenge search and alerts" \
+  --condition '{"type":"path","op":"eq","value":"/jobs/search"}' \
+  --condition '{"type":"method","op":"eq","value":"GET"}' \
+  --or \
+  --condition '{"type":"path","op":"eq","value":"/alerts"}' \
+  --condition '{"type":"method","op":"eq","value":"GET"}' \
+  --action challenge
+vercel firewall publish
+```
+
+A per-IP rate limit does not help here. The traffic that prompted this rule came through residential proxies, with no single IP sending more than a few hundred requests a day.
+
 ## Admin sign-in
 
 Bordful does not send admin password reset emails yet. Keep a second admin account, so one admin can change another's password in Users. After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
