@@ -36,6 +36,44 @@ function paginate<T>(
   };
 }
 
+// The fields toJobListItem reads. The board pool loads up to 1000 jobs, so
+// leaving out the description, summary and the rest of the company keeps
+// each read (and Postgres network transfer) small.
+const JOB_LIST_SELECT = {
+  applyEmail: true,
+  applyUrl: true,
+  careerLevel: true,
+  categories: true,
+  company: true,
+  companyLogo: true,
+  companyName: true,
+  companySlug: true,
+  countryCode: true,
+  employmentType: true,
+  featured: true,
+  languages: true,
+  locationDisplay: true,
+  origin: true,
+  publishedAt: true,
+  remoteRegion: true,
+  salaryCurrency: true,
+  salaryMax: true,
+  salaryMaxUsd: true,
+  salaryMin: true,
+  salaryMinUsd: true,
+  seniority: true,
+  slug: true,
+  title: true,
+  validThrough: true,
+  visaSponsorship: true,
+  workplaceType: true,
+} as const;
+
+const JOB_LIST_POPULATE = {
+  companies: { logoUrl: true },
+  media: { filename: true, url: true, variants: true },
+} as const;
+
 export async function queryPublishedJobs(
   payload: Payload,
   input: { page: number; limit: number }
@@ -47,27 +85,29 @@ export async function queryPublishedJobs(
     limit: input.limit,
     overrideAccess: false,
     page: input.page,
+    populate: JOB_LIST_POPULATE,
+    select: JOB_LIST_SELECT,
     sort: ["-publishedAt", "-id"],
   });
 
   return paginate(input.page, result, toJobListItem);
 }
 
-// Payload turns `contains` into ILIKE '%q%' without escaping, and Postgres
-// reads `%`, `_` and its default escape `\` as pattern syntax. Escaping them
-// keeps q a literal substring, as in the board's card match.
-function escapeLikePattern(value: string): string {
-  return value.replace(/[\\%_]/gu, (char) => `\\${char}`);
+export interface JobTextEntry {
+  id: string;
+  // Summary and skills, lowercased, one per line.
+  text: string;
 }
 
-// Ids of published jobs whose summary or skills contain the text. Board cards
-// leave both out (the saved page ships every card to the browser), so search
-// asks Postgres for these matches and merges them with the card match.
-export async function queryJobIdsMatchingText(
+// Summary and skills of published jobs, for board search. Cards leave both
+// out (the saved page ships every card to the browser), so search matches
+// q against this index on the server. It is read once per cache period
+// rather than once per search string, so search traffic does not reach
+// Postgres.
+export async function queryJobTextIndex(
   payload: Payload,
-  input: { limit: number; q: string }
-): Promise<string[]> {
-  const pattern = escapeLikePattern(input.q);
+  input: { limit: number }
+): Promise<JobTextEntry[]> {
   const result = await payload.find({
     collection: "jobs",
     depth: 0,
@@ -75,16 +115,23 @@ export async function queryJobIdsMatchingText(
     limit: input.limit,
     overrideAccess: false,
     pagination: false,
-    select: {},
-    where: {
-      or: [
-        { summary: { contains: pattern } },
-        { "skills.value": { contains: pattern } },
-      ],
-    },
+    select: { skills: true, summary: true },
+    sort: ["-publishedAt", "-id"],
   });
 
-  return result.docs.map((doc) => String(doc.id));
+  return result.docs.map((doc) => {
+    const parts = [
+      doc.summary ?? "",
+      ...(doc.skills ?? []).map((skill) => skill.value ?? ""),
+    ];
+    return {
+      id: String(doc.id),
+      text: parts
+        .filter((part) => part.length > 0)
+        .join("\n")
+        .toLowerCase(),
+    };
+  });
 }
 
 export async function queryJobBySlug(

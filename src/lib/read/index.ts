@@ -7,7 +7,7 @@ import {
   queryCompanies,
   queryCompanyBySlug,
   queryJobBySlug,
-  queryJobIdsMatchingText,
+  queryJobTextIndex,
   queryPublishedJobs,
   querySiteSettings,
 } from "./queries";
@@ -57,14 +57,14 @@ export async function listPublishedJobs(input: {
   return fresh;
 }
 
-export function searchJobIdsByText(input: { limit: number; q: string }) {
-  const q = input.q.trim().toLowerCase();
+// One cached read per period, whatever the search strings are.
+export function getJobTextIndex(input: { limit: number }) {
   return cachedRead(
     async () => {
       const payload = await getPayload({ config });
-      return queryJobIdsMatchingText(payload, { limit: input.limit, q });
+      return queryJobTextIndex(payload, input);
     },
-    ["searchJobIdsByText", q, String(input.limit)],
+    ["getJobTextIndex", String(input.limit)],
     [READ_TAGS.jobs]
   );
 }

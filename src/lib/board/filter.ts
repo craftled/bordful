@@ -127,7 +127,8 @@ function includesText(value: string | null, needle: string): boolean {
 }
 
 // Cards carry title, company and location. Summary and skills matches come
-// from Postgres as ids (query.textMatchIds), since cards leave those out.
+// in as ids (query.textMatchIds, from withTextMatches), since cards leave
+// those out.
 function matchesText(
   card: JobListItem,
   q: string,
