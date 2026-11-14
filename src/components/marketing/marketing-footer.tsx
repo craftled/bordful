@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "./container";
 import { MarketingLogo } from "./marketing-header";
 import { MARKETING_FOOTER_COLUMNS, type MarketingLink } from "./nav-links";
-import { SOCIAL_LINKS } from "./site";
+import { SOCIAL_LINKS, TOP_BOILERPLATES_BADGE } from "./site";
 
 const linkClass = "text-muted-foreground hover:text-foreground rounded-sm";
 
@@ -56,6 +56,36 @@ export function MarketingFooter({ className }: { className?: string }) {
               </a>
               .
             </p>
+            <a
+              className="self-start rounded-sm opacity-80 transition-opacity hover:opacity-100"
+              data-testid="top-boilerplates-badge"
+              href={TOP_BOILERPLATES_BADGE.href}
+              rel="noopener"
+              target="_blank"
+            >
+              {
+                // biome-ignore lint/performance/noImgElement: remote SVG badge; next/image needs remotePatterns and dangerouslyAllowSVG
+                <img
+                  alt={TOP_BOILERPLATES_BADGE.alt}
+                  className="block h-auto w-[160px] dark:hidden"
+                  height={TOP_BOILERPLATES_BADGE.height}
+                  loading="lazy"
+                  src={TOP_BOILERPLATES_BADGE.lightSrc}
+                  width={TOP_BOILERPLATES_BADGE.width}
+                />
+              }
+              {
+                // biome-ignore lint/performance/noImgElement: remote SVG badge; next/image needs remotePatterns and dangerouslyAllowSVG
+                <img
+                  alt={TOP_BOILERPLATES_BADGE.alt}
+                  className="hidden h-auto w-[160px] dark:block"
+                  height={TOP_BOILERPLATES_BADGE.height}
+                  loading="lazy"
+                  src={TOP_BOILERPLATES_BADGE.darkSrc}
+                  width={TOP_BOILERPLATES_BADGE.width}
+                />
+              }
+            </a>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-6 md:flex-nowrap md:gap-5">
             {MARKETING_FOOTER_COLUMNS.map((column) => (
