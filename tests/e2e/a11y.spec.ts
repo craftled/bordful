@@ -70,6 +70,25 @@ async function scan(
 }
 
 test.describe("S0 accessibility", { tag: ["@S0-a11y"] }, () => {
+  // Rows seeded by later specs carry company links, which still fail
+  // target-size (a known finding), so the scan needs the fresh sample board.
+  test.beforeAll(async ({ browser }, testInfo) => {
+    const page = await browser.newPage({
+      baseURL: testInfo.project.use.baseURL,
+    });
+    await page.goto("/");
+    const rows = page.locator('[data-testid="job-row"]');
+    await expect(rows.first()).toBeVisible();
+    const origins = await rows.evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute("data-origin"))
+    );
+    expect(
+      origins.filter((origin) => origin !== "bordfeed_sample"),
+      "a11y needs a fresh database with only the sample jobs"
+    ).toEqual([]);
+    await page.close();
+  });
+
   for (const appPage of APP_PAGES) {
     for (const scheme of COLOR_SCHEMES) {
       test(`${appPage.name} in ${scheme} mode`, async ({ page }) => {

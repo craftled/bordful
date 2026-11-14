@@ -116,7 +116,7 @@ export function MarketingFooter({ className }: { className?: string }) {
                 {index > 0 ? <span aria-hidden="true">·</span> : null}
                 <a
                   aria-label={link.name}
-                  className="hover:text-foreground -my-1 flex min-h-6 min-w-6 items-center justify-center rounded-sm"
+                  className="hover:text-foreground -my-1 flex min-h-6 min-w-6 items-center justify-end rounded-sm"
                   href={link.href}
                   rel="noopener noreferrer"
                   target="_blank"
