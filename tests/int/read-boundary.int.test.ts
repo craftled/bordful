@@ -1,14 +1,16 @@
 import { existsSync } from "node:fs";
 
 import { afterAll, beforeAll, expect, test } from "vitest";
+import { matchTextIndex } from "@/lib/board/text-index";
 import { decryptSecret, encryptSecret } from "@/lib/crypto/secret-box";
 import { ensureInstallId } from "@/lib/install/install-id";
+import { toJobListItem } from "@/lib/read/mappers";
 import {
   queryBordfeedConnectionPublic,
   queryCompanies,
   queryCompanyBySlug,
   queryJobBySlug,
-  queryJobIdsMatchingText,
+  queryJobTextIndex,
   queryPublishedJobs,
   querySiteSettings,
 } from "@/lib/read/queries";
@@ -112,6 +114,84 @@ test("published jobs are the three public rows, newest first", async () => {
   ]);
   expect(page.totalDocs).toBe(3);
   expect(page.items.map((job) => job.indexable)).toEqual([false, true, true]);
+});
+
+test("the narrowed list read maps to the same cards as a full read", async () => {
+  const [designer, backend] = (
+    await payload.find({
+      collection: "jobs",
+      depth: 0,
+      limit: 2,
+      overrideAccess: true,
+      sort: "slug",
+      where: {
+        slug: {
+          in: ["example-product-designer", "example-senior-backend-engineer"],
+        },
+      },
+    })
+  ).docs;
+  if (!(designer && backend)) {
+    throw new Error("fixture jobs missing");
+  }
+  const { default: sharp } = await import("sharp");
+  const png = await sharp({
+    create: {
+      background: "#336699",
+      channels: 3,
+      height: 8,
+      width: 8,
+    },
+  })
+    .png()
+    .toBuffer();
+  const logo = await payload.create({
+    collection: "media",
+    data: { alt: "Logo" },
+    file: {
+      data: png,
+      mimetype: "image/png",
+      name: "narrow-select-logo.png",
+      size: png.length,
+    },
+    overrideAccess: true,
+  });
+  await payload.update({
+    collection: "jobs",
+    data: { companyLogo: logo.id },
+    depth: 0,
+    id: designer.id,
+    overrideAccess: true,
+  });
+  const companyId =
+    typeof backend.company === "object" ? backend.company?.id : backend.company;
+  if (companyId) {
+    await payload.update({
+      collection: "companies",
+      data: { logoUrl: "https://example.com/backend-logo.png" },
+      depth: 0,
+      id: companyId,
+      overrideAccess: true,
+    });
+  }
+
+  const narrowed = await queryPublishedJobs(payload, { limit: 20, page: 1 });
+  const full = await payload.find({
+    collection: "jobs",
+    depth: 1,
+    draft: false,
+    limit: 20,
+    overrideAccess: false,
+    sort: ["-publishedAt", "-id"],
+  });
+  expect(narrowed.items).toEqual(full.docs.map(toJobListItem));
+  const bySlug = new Map(narrowed.items.map((item) => [item.slug, item]));
+  expect(bySlug.get("example-product-designer")?.companyLogoUrl).toBeTruthy();
+  if (companyId) {
+    expect(bySlug.get("example-senior-backend-engineer")?.companyLogoUrl).toBe(
+      "https://example.com/backend-logo.png"
+    );
+  }
 });
 
 test("draft and expired jobs are not publicly readable", async () => {
@@ -443,15 +523,15 @@ test("text search finds published jobs by summary or skill, never drafts", async
     overrideAccess: true,
   });
 
-  const ids = (q: string) =>
-    queryJobIdsMatchingText(payload, { limit: 100, q });
-  expect(await ids("hiring flow")).toEqual([String(designer.id)]);
-  expect(await ids("prototyping")).toEqual([String(designer.id)]);
-  expect(await ids("PROTOTYP")).toEqual([String(designer.id)]);
-  expect(await ids("kubernetes")).toEqual([]);
+  const index = await queryJobTextIndex(payload, { limit: 100 });
+  const ids = (q: string) => matchTextIndex(index, q);
+  expect(ids("hiring flow")).toEqual([String(designer.id)]);
+  expect(ids("prototyping")).toEqual([String(designer.id)]);
+  expect(ids("PROTOTYP")).toEqual([String(designer.id)]);
+  expect(ids("kubernetes")).toEqual([]);
 });
 
-test("queryJobIdsMatchingText matches %, _ and \\ literally", async () => {
+test("the job text index matches %, _ and \\ literally", async () => {
   const bySlug = async (slug: string) => {
     const [job] = (
       await payload.find({
@@ -490,11 +570,11 @@ test("queryJobIdsMatchingText matches %, _ and \\ literally", async () => {
     overrideAccess: true,
   });
 
-  const ids = (q: string) =>
-    queryJobIdsMatchingText(payload, { limit: 100, q });
-  expect(await ids("%")).toEqual([String(backend.id)]);
-  expect(await ids("_")).toEqual([String(backend.id)]);
-  expect(await ids("a_b")).toEqual([String(backend.id)]);
-  expect(await ids("\\")).toEqual([String(analyst.id)]);
-  expect(await ids(String.raw`C:\data`)).toEqual([String(analyst.id)]);
+  const index = await queryJobTextIndex(payload, { limit: 100 });
+  const ids = (q: string) => matchTextIndex(index, q);
+  expect(ids("%")).toEqual([String(backend.id)]);
+  expect(ids("_")).toEqual([String(backend.id)]);
+  expect(ids("a_b")).toEqual([String(backend.id)]);
+  expect(ids("\\")).toEqual([String(analyst.id)]);
+  expect(ids(String.raw`C:\data`)).toEqual([String(analyst.id)]);
 });
