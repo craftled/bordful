@@ -11,6 +11,18 @@ export const REGISTER_RATE_LIMIT_MESSAGE =
 export const ALREADY_ISSUED_MESSAGE =
   "This code was already used and its API key was issued. Paste your Bordfeed API key instead.";
 
+// Bordfeed refuses to issue a key from an emailed code when the account has
+// two-factor sign-in. The key has to come from a signed-in dashboard session.
+export function twoFactorMessage(bordfeedOrigin: string): string {
+  return `This Bordfeed account uses two-factor sign-in, so an emailed code cannot create an API key. Sign in at ${bordfeedOrigin}/dashboard/organization/api-keys, create a key, and paste it below.`;
+}
+
+export const ACCOUNT_DISABLED_MESSAGE =
+  "This Bordfeed account is disabled. Connect with a different email, or paste an API key from another Bordfeed account.";
+
+export const SIGNUP_DISABLED_MESSAGE =
+  "Bordfeed is not accepting new sign-ups right now. Paste an API key from an existing Bordfeed account instead.";
+
 export const WORKSPACE_REQUIRED_MESSAGE =
   "Choose which Bordfeed workspace to connect.";
 

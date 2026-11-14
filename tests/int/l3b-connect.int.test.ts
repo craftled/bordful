@@ -1,11 +1,15 @@
 import { existsSync } from "node:fs";
 
 import { beforeEach, describe, expect, test } from "vitest";
+import { resolveBordfeedBaseUrl } from "@/lib/bordfeed/base-url";
 import type { BordfeedClient } from "@/lib/bordfeed/client";
 import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import {
+  ACCOUNT_DISABLED_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
   REGISTER_RATE_LIMIT_MESSAGE,
+  SIGNUP_DISABLED_MESSAGE,
+  twoFactorMessage,
 } from "@/lib/bordfeed/connect/messages";
 import {
   pasteKey,
@@ -345,6 +349,45 @@ describe("bordfeed connect", () => {
     expect(result.message).toBe(ALREADY_ISSUED_MESSAGE);
     expect(record.apiKeyEncrypted).toBeNull();
   });
+
+  test("two-factor accounts are told to paste a dashboard key", async () => {
+    const bordfeed = deps();
+    behavior.verifyError = new BordfeedApiError({
+      code: "two_factor_required",
+      message: "The Bordfeed request failed.",
+      status: 403,
+    });
+    await startConnect(payload, OWNER, bordfeed);
+    const result = await submitCode(payload, { code: "424242" }, bordfeed);
+    const record = await readConnection(payload);
+
+    expect(result.state).toBe("awaiting_code");
+    expect(result.fallback).toBe("paste_key");
+    expect(result.message).toBe(twoFactorMessage(resolveBordfeedBaseUrl()));
+    expect(result.message).not.toContain("rejected the API key");
+    expect(record.apiKeyEncrypted).toBeNull();
+    expect(record.lastError).toBeNull();
+  });
+
+  test.each([
+    ["account_disabled", ACCOUNT_DISABLED_MESSAGE],
+    ["signup_disabled", SIGNUP_DISABLED_MESSAGE],
+  ] as const)(
+    "%s at verify says so and offers a pasted key",
+    async (code, message) => {
+      const bordfeed = deps();
+      behavior.verifyError = new BordfeedApiError({
+        code,
+        message: "The Bordfeed request failed.",
+        status: 403,
+      });
+      await startConnect(payload, OWNER, bordfeed);
+      const result = await submitCode(payload, { code: "424242" }, bordfeed);
+
+      expect(result.fallback).toBe("paste_key");
+      expect(result.message).toBe(message);
+    }
+  );
 
   test("workspace_required lists workspaces and the next register sends the slug", async () => {
     const bordfeed = deps();
