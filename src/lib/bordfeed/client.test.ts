@@ -462,3 +462,36 @@ test("a dropped connection on a read is retried once", async () => {
   expect(fetches).toBe(2);
   expect(time.sleeps).toContain(1000);
 });
+
+test.each(["two_factor_required", "account_disabled", "signup_disabled"])(
+  "verify keeps Bordfeed's %s code on a 403",
+  async (code) => {
+    const time = clock();
+    const fetchImpl: typeof fetch = () =>
+      Promise.resolve(
+        jsonResponse({ error: { code, message: "Refused." } }, 403)
+      );
+    const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+    const error = await api
+      .verify({ code: "424242", registration_id: "reg_1" })
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(BordfeedApiError);
+    expect((error as BordfeedApiError).code).toBe(code);
+    expect((error as BordfeedApiError).status).toBe(403);
+  }
+);
+
+test("a 403 without a known code still reads as auth_failed", async () => {
+  const time = clock();
+  const fetchImpl: typeof fetch = () =>
+    Promise.resolve(
+      jsonResponse({ error: { code: "forbidden", message: "No." } }, 403)
+    );
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+  const error = await api
+    .verify({ code: "424242", registration_id: "reg_1" })
+    .catch((caught: unknown) => caught);
+  expect((error as BordfeedApiError).code).toBe("auth_failed");
+});

@@ -20,6 +20,8 @@ Open `/admin`. The Connect Bordfeed card asks for:
 
 If the code was already used, Bordfeed does not return the API key again. The card tells you to paste the key from your Bordfeed dashboard instead.
 
+If your Bordfeed account uses two-factor sign-in, an emailed code cannot create an API key. The card says so and opens the paste-key path. Sign in to Bordfeed, create a key under Organization, then API keys, and paste it. The card also opens the paste-key path when the Bordfeed account is disabled or Bordfeed is not accepting new sign-ups.
+
 "Already have a Bordfeed API key?" opens the paste-key path. A wrong key is not stored. After a valid key, Bordful creates the feed and runs the first sync.
 
 Bordfeed allows 5 signups per hour from one IP address. Shared hosts can hit that limit. Paste an API key, or try again in an hour.

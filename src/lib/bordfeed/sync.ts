@@ -315,12 +315,39 @@ function createData(
 interface CompanyIndex {
   byDomain: Map<string, Company>;
   byFeedId: Map<string, Company>;
+  // Sync-owned companies by name. Bordfeed sends a job that is under an hour
+  // old with the employer name alone, and the same job again with the full
+  // company once it is linked. The name is the only thing both share.
+  byName: Map<string, Company>;
   slugs: Set<string>;
+}
+
+function nameKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function isSyncOwned(company: Company): boolean {
+  return company.origin === "bordfeed" || company.origin === "bordfeed_sample";
+}
+
+// A company with a Bordfeed id keeps its place under a name, so a later job
+// that carries the name alone joins it instead of a bare namesake.
+function rememberName(index: CompanyIndex, company: Company): void {
+  if (!isSyncOwned(company)) {
+    return;
+  }
+
+  const key = nameKey(company.name);
+  const current = index.byName.get(key);
+  if (!current || current.id === company.id || !current.bordfeedCompanyId) {
+    index.byName.set(key, company);
+  }
 }
 
 function indexCompanies(companies: Company[]): CompanyIndex {
   const byFeedId = new Map<string, Company>();
   const byDomain = new Map<string, Company>();
+  const byName = new Map<string, Company>();
   const slugs = new Set<string>();
 
   for (const company of companies) {
@@ -333,7 +360,12 @@ function indexCompanies(companies: Company[]): CompanyIndex {
     }
   }
 
-  return { byDomain, byFeedId, slugs };
+  const index = { byDomain, byFeedId, byName, slugs };
+  for (const company of companies) {
+    rememberName(index, company);
+  }
+
+  return index;
 }
 
 function uniqueSlug(index: CompanyIndex, company: MappedCompany): string {
@@ -355,10 +387,24 @@ function knownCompany(
   const existing = company.bordfeedCompanyId
     ? index.byFeedId.get(company.bordfeedCompanyId)
     : undefined;
-  return (
+  const known =
     existing ??
-    (company.domain ? index.byDomain.get(company.domain) : undefined)
-  );
+    (company.domain ? index.byDomain.get(company.domain) : undefined);
+  if (known) {
+    return known;
+  }
+
+  // No id and no domain match. A job that names its employer and nothing
+  // else joins the company of that name. A linked job adopts a namesake that
+  // has no Bordfeed id yet, and never one that belongs to another id.
+  const namesake = index.byName.get(nameKey(company.name));
+  if (!namesake) {
+    return;
+  }
+
+  return company.bordfeedCompanyId && namesake.bordfeedCompanyId
+    ? undefined
+    : namesake;
 }
 
 function sameText(
@@ -368,12 +414,27 @@ function sameText(
   return (left ?? null) === right;
 }
 
+// The employer name alone says nothing about the logo or the domain, so it
+// must not clear what a linked job already brought.
+function nameOnlyPatch(
+  found: Company,
+  origin: SyncOrigin
+): CompanyPatch | null {
+  return origin === "bordfeed" && found.origin === "bordfeed_sample"
+    ? { origin: "bordfeed" }
+    : null;
+}
+
+type CompanyPatch = Partial<
+  Pick<Company, "bordfeedCompanyId" | "domain" | "logoUrl" | "name" | "origin">
+>;
+
 function companyPatch(
   found: Company,
   company: MappedCompany,
   index: CompanyIndex,
   origin: SyncOrigin
-): Partial<Pick<Company, "domain" | "logoUrl" | "name" | "origin">> | null {
+): CompanyPatch | null {
   const syncOwned =
     found.origin === "bordfeed" || found.origin === "bordfeed_sample";
   if (
@@ -383,8 +444,15 @@ function companyPatch(
     return null;
   }
 
-  const data: Partial<Pick<Company, "domain" | "logoUrl" | "name" | "origin">> =
-    {};
+  if (!(company.bordfeedCompanyId || company.domain)) {
+    return nameOnlyPatch(found, origin);
+  }
+
+  const data: CompanyPatch = {};
+  if (company.bordfeedCompanyId && !found.bordfeedCompanyId) {
+    data.bordfeedCompanyId = company.bordfeedCompanyId;
+  }
+
   if (found.name !== company.name) {
     data.name = company.name;
   }
@@ -425,6 +493,14 @@ function rememberCompany(
   if (after.domain) {
     index.byDomain.set(after.domain, after);
   }
+
+  if (nameKey(before.name) !== nameKey(after.name)) {
+    const key = nameKey(before.name);
+    if (index.byName.get(key)?.id === before.id) {
+      index.byName.delete(key);
+    }
+  }
+  rememberName(index, after);
 }
 
 async function refreshCompanyJobs(
@@ -520,6 +596,7 @@ async function ensureCompany(
   if (created.domain) {
     index.byDomain.set(created.domain, created);
   }
+  rememberName(index, created);
 }
 
 async function upsertCompanies(
