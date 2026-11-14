@@ -65,7 +65,7 @@ The Bordfeed cron fetches only jobs new to the feed since the last sync, capped 
 
 After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
 
-Bordful does not send password reset emails. The "Forgot password?" link on the login page says it worked, but no email arrives. If you lose your password, set a new one from a clone of your repo. On Vercel, run:
+Bordful does not send password reset emails. The "Forgot password?" link on the login page points here. If you lose your password, ask another admin to set a new one in Users, or set it yourself from a clone of your repo. On Vercel, run:
 
 ```bash
 bun install

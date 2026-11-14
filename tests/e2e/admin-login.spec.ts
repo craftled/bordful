@@ -9,6 +9,7 @@ import {
 } from "./support/html";
 
 const ADMIN_HOME = /\/admin\/?$/u;
+const FORGOT_PAGE = /\/admin\/forgot$/u;
 
 test("an admin can register and sign in without CSP violations", async ({
   page,
@@ -62,4 +63,16 @@ test("an admin can register and sign in without CSP violations", async ({
 
   const admin = await request.get("/admin");
   expect(admin.headers()["content-security-policy"]).toContain("nonce-");
+});
+
+test("forgot password explains the CLI reset instead of offering an email form", async ({
+  page,
+}) => {
+  await page.goto("/admin/login");
+  await page.getByText("Forgot password?").click();
+  await expect(page).toHaveURL(FORGOT_PAGE);
+  await expect(page.getByTestId("forgot-password")).toContainText(
+    "bun run bordful reset-password"
+  );
+  await expect(page.getByRole("textbox")).toHaveCount(0);
 });
