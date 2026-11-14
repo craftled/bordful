@@ -32,7 +32,7 @@ export default defineBordfulConfig({
 | `csp.extraScriptOrigins` | `[]` | Intended extra `script-src` origins. `https` origins only. Not applied yet. |
 | `csp.extraConnectOrigins` | `[]` | Intended extra `connect-src` origins. `https` origins only. Not applied yet. |
 
-Live Bordfeed template ids (2 Nov 2026): `fully-remote`, `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
+Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
 
 An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the shape `buildCsp` accepts. A path, a quote, a semicolon, a space, or a comma is rejected by `buildCsp`. One leading wildcard label is allowed (`https://*.example.com`). Those checks run only when the lists are passed in. Today they are not: `src/proxy.ts` calls `buildCsp({ isDev, nonce })` and ignores `bordful.config.ts`. An origin you add stays blocked until that call passes `csp.extraScriptOrigins` and `csp.extraConnectOrigins`.
 
