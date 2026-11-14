@@ -190,10 +190,13 @@ function readErrorBody(body: unknown): ErrorBody {
 }
 
 const AGENT_CODES = new Set([
+  "account_disabled",
   "already_issued",
   "code_expired",
   "invalid_registration",
   "locked",
+  "signup_disabled",
+  "two_factor_required",
   "workspace_not_found",
   "workspace_required",
 ]);
