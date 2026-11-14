@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logo and media uploads work on a board deployed with the button. Vercel now connects new Blob stores through OIDC and sets `BLOB_STORE_ID` with no `BLOB_READ_WRITE_TOKEN`, so Payload's Blob adapter stayed off and every upload failed. Bordful now talks to the store with OIDC, and the button asks for a public store so logos can be served from it.
 - A fresh deploy could show an empty board. Vercel's first requests each booted the app and seeded the sample jobs at the same time, and the board cached the empty page. One boot now takes the sync lease and seeds, the others skip, and an empty first page is read again before it is served.
 - `next build` no longer runs its own TypeScript pass. `bun run typecheck` already runs in CI, and the duplicate pass added about nine seconds to every deploy.
+- A company no longer appears twice after a sync. Bordfeed sends a job that is under an hour old with the employer name alone, and the same job again with the company's domain and logo once it is linked. The sync matched companies by Bordfeed id and domain only, so the second delivery created a second company and left the first one empty. It now matches the name as well, fills in the id, domain and logo on the company it already has, and a name-only job no longer clears a logo.
 
 ### Removed
 
