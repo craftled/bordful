@@ -5,14 +5,14 @@
     "": {
       "name": "bordful",
       "dependencies": {
-        "@payloadcms/db-postgres": "4.0.0-beta.6",
-        "@payloadcms/email-resend": "4.0.0-beta.6",
-        "@payloadcms/next": "4.0.0-beta.6",
-        "@payloadcms/plugin-cloud-storage": "4.0.0-beta.6",
-        "@payloadcms/richtext-lexical": "4.0.0-beta.6",
-        "@payloadcms/storage-vercel-blob": "4.0.0-beta.6",
-        "@payloadcms/transformer-sharp": "^4.0.0-beta.7",
-        "@payloadcms/ui": "4.0.0-beta.6",
+        "@payloadcms/db-postgres": "4.0.0-beta.9",
+        "@payloadcms/email-resend": "4.0.0-beta.9",
+        "@payloadcms/next": "4.0.0-beta.9",
+        "@payloadcms/plugin-cloud-storage": "4.0.0-beta.9",
+        "@payloadcms/richtext-lexical": "4.0.0-beta.9",
+        "@payloadcms/storage-vercel-blob": "4.0.0-beta.9",
+        "@payloadcms/transformer-sharp": "4.0.0-beta.9",
+        "@payloadcms/ui": "4.0.0-beta.9",
         "@vercel/blob": "2.8.2",
         "botid": "1.5.12",
         "class-variance-authority": "0.7.1",
@@ -21,7 +21,7 @@
         "lucide-react": "^1.69.0",
         "next": "^16.4.5",
         "parse5": "8.1.0",
-        "payload": "4.0.0-beta.6",
+        "payload": "4.0.0-beta.9",
         "radix-ui": "1.8.1",
         "react": "19.3.1",
         "react-dom": "19.3.1",
@@ -376,27 +376,27 @@
 
     "@oxc-project/types": ["@oxc-project/types@0.156.0", "", {}, "sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw=="],
 
-    "@payloadcms/db-postgres": ["@payloadcms/db-postgres@4.0.0-beta.6", "", { "dependencies": { "@payloadcms/drizzle": "4.0.0-beta.6", "@types/pg": "8.20.0", "console-table-printer": "2.15.0", "drizzle-kit": "0.31.7", "drizzle-orm": "0.45.2", "pg": "8.20.0", "prompts": "2.4.2", "to-snake-case": "1.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.6" } }, "sha512-mdF6JvuRP0j2ZPcfw3wWl49M1AfUp644vAxC80EFG7bcWLxrlnFPpmpA2WG1krvTqxzuu1u9KDBP6aaHwFeVZA=="],
+    "@payloadcms/db-postgres": ["@payloadcms/db-postgres@4.0.0-beta.9", "", { "dependencies": { "@payloadcms/drizzle": "4.0.0-beta.9", "@types/pg": "8.20.0", "console-table-printer": "2.15.0", "drizzle-kit": "0.31.7", "drizzle-orm": "0.45.2", "pg": "8.20.0", "prompts": "2.4.2", "to-snake-case": "1.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.9" } }, "sha512-92uj+Rxf1qM3jurz1rSkstY5TDNSB29Tr4CnUsjCU48Vksk240Q96L0VhUjj7uwC/5XXzoLXrkgZvaKh7f1r+g=="],
 
-    "@payloadcms/drizzle": ["@payloadcms/drizzle@4.0.0-beta.6", "", { "dependencies": { "console-table-printer": "2.15.0", "dequal": "2.0.3", "drizzle-orm": "0.45.2", "prompts": "2.4.2", "to-snake-case": "1.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.6" } }, "sha512-PDlC78XXbSSQZKRQYs4QHjRjKzv4jLbqWthroVN3d/gz3Tphyyc9j8elmB7kK3IGQWeK70oSapTc3J7mRBIIPQ=="],
+    "@payloadcms/drizzle": ["@payloadcms/drizzle@4.0.0-beta.9", "", { "dependencies": { "console-table-printer": "2.15.0", "dequal": "2.0.3", "drizzle-orm": "0.45.2", "prompts": "2.4.2", "to-snake-case": "1.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.9" } }, "sha512-djEa9hHghKjly82ZSuuuoDfs3AZptAoMIMKPYcIZ8O4ZgdfSYHCdJCyKBB40o/IFsJpzm3ev7Cryh4P6s2aTFw=="],
 
-    "@payloadcms/email-resend": ["@payloadcms/email-resend@4.0.0-beta.6", "", { "peerDependencies": { "payload": "4.0.0-beta.6" } }, "sha512-REApC/PSe4hMfpM8q3vCmKohuQlgDCUpXb3TQvo/44hMFx96nbPLCvRnP0gWUOmNocAai5epvizzcPLzSsSasg=="],
+    "@payloadcms/email-resend": ["@payloadcms/email-resend@4.0.0-beta.9", "", { "peerDependencies": { "payload": "4.0.0-beta.9" } }, "sha512-JxvG0r/zsSiwcHVN2AODIXVfq94TK01VZA4JQCMZ29bzZTvS/zQQHKHw4myWuihdxBE3ERHWwDAWYeupasp28A=="],
 
-    "@payloadcms/graphql": ["@payloadcms/graphql@4.0.0-beta.6", "", { "dependencies": { "graphql-scalars": "1.22.2", "pluralize": "8.0.0", "ts-essentials": "10.0.3", "tsx": "4.23.15" }, "peerDependencies": { "graphql": "^16.8.1", "payload": "4.0.0-beta.6" }, "bin": { "payload-graphql": "bin.js" } }, "sha512-tL5Fh6IFEibKvc5K7ZUmj/yCtmJxz+nvLT2pRFwExhRr7WE52tfM65DroJcGOzlZraiddH4iaOmhbyPLzPkdWw=="],
+    "@payloadcms/graphql": ["@payloadcms/graphql@4.0.0-beta.9", "", { "dependencies": { "graphql-scalars": "1.22.2", "pluralize": "8.0.0", "ts-essentials": "10.0.3", "tsx": "4.23.15" }, "peerDependencies": { "graphql": "^16.8.1", "payload": "4.0.0-beta.9" }, "bin": { "payload-graphql": "bin.js" } }, "sha512-0hd1aQbqPLiLCzECyuKv77FjXsM0mFYVQDWWZThkiuZRbbsKtV9N5BRjLWZ/KopjTkhmAR4s3msqeoIbwXtBsg=="],
 
-    "@payloadcms/next": ["@payloadcms/next@4.0.0-beta.6", "", { "dependencies": { "@dnd-kit/core": "6.3.1", "@dnd-kit/modifiers": "9.0.0", "@dnd-kit/sortable": "10.0.0", "@payloadcms/graphql": "4.0.0-beta.6", "@payloadcms/translations": "4.0.0-beta.6", "@payloadcms/ui": "4.0.0-beta.6", "busboy": "^1.6.0", "dequal": "2.0.3", "file-type": "22.0.1", "graphql-http": "1.22.4", "graphql-playground-html": "1.6.30", "path-to-regexp": "6.3.0", "qs-esm": "8.0.1", "sass": "1.77.4", "uuid": "14.0.0" }, "peerDependencies": { "graphql": "^16.8.1", "next": ">=16.4.0 <17.0.0", "payload": "4.0.0-beta.6" } }, "sha512-arkEmZKAm0OC1qSnnbMEeKfEfM3Pp3Nic6Xf6eLZWck6o9Kwh6KQdlm1id9k1Hy52VC3YuQd58jjl+AOun1+aA=="],
+    "@payloadcms/next": ["@payloadcms/next@4.0.0-beta.9", "", { "dependencies": { "@dnd-kit/core": "6.3.1", "@dnd-kit/modifiers": "9.0.0", "@dnd-kit/sortable": "10.0.0", "@payloadcms/graphql": "4.0.0-beta.9", "@payloadcms/translations": "4.0.0-beta.9", "@payloadcms/ui": "4.0.0-beta.9", "busboy": "^1.6.0", "dequal": "2.0.3", "file-type": "22.0.1", "graphql-http": "1.22.4", "graphql-playground-html": "1.6.30", "path-to-regexp": "6.3.0", "qs-esm": "8.0.1", "sass": "1.77.4", "uuid": "14.0.0" }, "peerDependencies": { "graphql": "^16.8.1", "next": ">=16.4.1 <17.0.0", "payload": "4.0.0-beta.9" } }, "sha512-zqxsRpVi+Gh70ZPsXwvqBygvv1qkCOcWuZT8eA5RoWpY03u7aTyz/C2SfW06pmEF1VeUgvWvaOeV1ChP7ff4/g=="],
 
-    "@payloadcms/plugin-cloud-storage": ["@payloadcms/plugin-cloud-storage@4.0.0-beta.6", "", { "dependencies": { "@payloadcms/ui": "4.0.0-beta.6", "find-node-modules": "^2.1.3", "range-parser": "^1.2.1" }, "peerDependencies": { "payload": "4.0.0-beta.6", "react": "^19.0.1 || ^19.1.2 || ^19.2.1", "react-dom": "^19.0.1 || ^19.1.2 || ^19.2.1" } }, "sha512-DksFR7F9B+RmrVhM5A3w7djZ785UmuRIcjQE/fMUSpP5FnBXeeR5GQV2fX1uRKr4dZlQ2oLxWkwgOAYCj8Kzng=="],
+    "@payloadcms/plugin-cloud-storage": ["@payloadcms/plugin-cloud-storage@4.0.0-beta.9", "", { "dependencies": { "@payloadcms/ui": "4.0.0-beta.9", "find-node-modules": "^2.1.3", "range-parser": "^1.2.1" }, "peerDependencies": { "payload": "4.0.0-beta.9", "react": "^19.3.1", "react-dom": "^19.3.1" } }, "sha512-K3zoSwZwW40HYJGUK9coxQtjwjwHIk2zze/WQ6/8lgq4AamASiluKLjwvxjIvFw76AG1D0Xua1KZiuZ5VcyCTA=="],
 
-    "@payloadcms/richtext-lexical": ["@payloadcms/richtext-lexical@4.0.0-beta.6", "", { "dependencies": { "@lexical/clipboard": "0.53.0", "@lexical/headless": "0.53.0", "@lexical/html": "0.53.0", "@lexical/link": "0.53.0", "@lexical/list": "0.53.0", "@lexical/mark": "0.53.0", "@lexical/markdown": "0.53.0", "@lexical/react": "0.53.0", "@lexical/rich-text": "0.53.0", "@lexical/selection": "0.53.0", "@lexical/table": "0.53.0", "@lexical/utils": "0.53.0", "@payloadcms/translations": "4.0.0-beta.6", "@payloadcms/ui": "4.0.0-beta.6", "acorn": "8.16.0", "bson-objectid": "2.0.4", "csstype": "3.2.3", "dequal": "2.0.3", "escape-html": "1.0.3", "jsox": "1.2.125", "lexical": "0.53.0", "mdast-util-from-markdown": "2.0.3", "mdast-util-mdx-jsx": "3.2.0", "micromark-extension-mdx-jsx": "3.0.2", "qs-esm": "8.0.1", "react-error-boundary": "6.1.1", "ts-essentials": "10.0.3", "uuid": "14.0.0" }, "peerDependencies": { "@faceless-ui/modal": "3.0.2", "@faceless-ui/scroll-info": "2.0.0", "payload": "4.0.0-beta.6", "react": "^19.0.1 || ^19.1.2 || ^19.2.1", "react-dom": "^19.0.1 || ^19.1.2 || ^19.2.1" } }, "sha512-yQJkQVQvRLj9mOWoDnD6x2dLyA2Mwf6Oy9ZVJ/8DScw13h1fA98rnoBKNYhZSOsOrL/uYBWxrzpMJ2f0/Aurtw=="],
+    "@payloadcms/richtext-lexical": ["@payloadcms/richtext-lexical@4.0.0-beta.9", "", { "dependencies": { "@lexical/clipboard": "0.53.0", "@lexical/headless": "0.53.0", "@lexical/html": "0.53.0", "@lexical/link": "0.53.0", "@lexical/list": "0.53.0", "@lexical/mark": "0.53.0", "@lexical/markdown": "0.53.0", "@lexical/react": "0.53.0", "@lexical/rich-text": "0.53.0", "@lexical/selection": "0.53.0", "@lexical/table": "0.53.0", "@lexical/utils": "0.53.0", "@payloadcms/translations": "4.0.0-beta.9", "@payloadcms/ui": "4.0.0-beta.9", "acorn": "8.16.0", "bson-objectid": "2.0.4", "csstype": "3.2.3", "dequal": "2.0.3", "escape-html": "1.0.3", "jsox": "1.2.125", "lexical": "0.53.0", "mdast-util-from-markdown": "2.0.3", "mdast-util-mdx-jsx": "3.2.0", "micromark-extension-mdx-jsx": "3.0.2", "qs-esm": "8.0.1", "react-error-boundary": "6.1.1", "ts-essentials": "10.0.3", "uuid": "14.0.0" }, "peerDependencies": { "@faceless-ui/modal": "3.0.2", "@faceless-ui/scroll-info": "2.0.0", "payload": "4.0.0-beta.9", "react": "^19.3.1", "react-dom": "^19.3.1" } }, "sha512-iYC0654NiC5Xq4CAHxebkcVjebhXwQNMSdrFxsN56MlrvtzeF4DfEvFuBJKDZiMoCC++S8qUA0kyMl0Yy+iYWQ=="],
 
-    "@payloadcms/storage-vercel-blob": ["@payloadcms/storage-vercel-blob@4.0.0-beta.6", "", { "dependencies": { "@payloadcms/plugin-cloud-storage": "4.0.0-beta.6", "@vercel/blob": "2.3.1" }, "peerDependencies": { "payload": "4.0.0-beta.6" } }, "sha512-ZnJEK2zN+10HZuSpl18a0kn+R6OKq0hZYQSSuoNG8hrCWbKg2K9FB57mMgS+FHGNUnSPIHajhzPcj+CnSxQ4WA=="],
+    "@payloadcms/storage-vercel-blob": ["@payloadcms/storage-vercel-blob@4.0.0-beta.9", "", { "dependencies": { "@payloadcms/plugin-cloud-storage": "4.0.0-beta.9", "@vercel/blob": "2.3.1" }, "peerDependencies": { "payload": "4.0.0-beta.9" } }, "sha512-vhqsHHYBiiftfDedVA0+7cWnEyxnuZM/y+xrI0hxT4sVgpot29skpJ0s9mY4yFIJsIkWygWCEb9Tx1HJdzma6w=="],
 
-    "@payloadcms/transformer-sharp": ["@payloadcms/transformer-sharp@4.0.0-beta.7", "", { "dependencies": { "sharp": "0.35.5" }, "peerDependencies": { "payload": "4.0.0-beta.7" } }, "sha512-Rf9omlx0GX8+bH8tHEqK4gll4lNI8qXpevuyX1XcYfNrAT9g79yt/f86cvSegWIIkGyZW80NrKIQofD1z54rUg=="],
+    "@payloadcms/transformer-sharp": ["@payloadcms/transformer-sharp@4.0.0-beta.9", "", { "dependencies": { "sharp": "0.35.5" }, "peerDependencies": { "payload": "4.0.0-beta.9" } }, "sha512-0EYJ4SSm1kCQ/SCG+4hq+89Uw4vKnS7UzMHev+z2+ERDwD4WvN65pPRG9WB85tqIZV6nDw6yOzLCkJzLWmGgag=="],
 
-    "@payloadcms/translations": ["@payloadcms/translations@4.0.0-beta.6", "", { "dependencies": { "date-fns": "4.4.0" } }, "sha512-0ytC7Sioj+F5deIHYMgwGLmU7cAJccLAS2GufNY6/rvsaAp4QfsIWbgI9sk4zofe0/0VIe9OcPHEghq1rGx6Fg=="],
+    "@payloadcms/translations": ["@payloadcms/translations@4.0.0-beta.9", "", { "dependencies": { "date-fns": "4.4.0" } }, "sha512-QkRO8TFCs+sV/IEsnPAost1Zfn5TvQeljFD9KmU55gBgx9FSE1F3cPMzKzDFtcNvRgoGMM30zgUhBcC9wH4Hhg=="],
 
-    "@payloadcms/ui": ["@payloadcms/ui@4.0.0-beta.6", "", { "dependencies": { "@date-fns/tz": "1.2.0", "@dnd-kit/core": "6.3.1", "@dnd-kit/modifiers": "9.0.0", "@dnd-kit/sortable": "10.0.0", "@dnd-kit/utilities": "3.2.2", "@faceless-ui/modal": "3.0.2", "@faceless-ui/scroll-info": "2.0.0", "@faceless-ui/window-info": "3.0.1", "@floating-ui/dom": "1.7.6", "@monaco-editor/react": "4.7.0", "@payloadcms/translations": "4.0.0-beta.6", "@swc/helpers": ">=0.5.17", "bson-objectid": "2.0.4", "date-fns": "4.4.0", "dequal": "2.0.3", "dom-accessibility-api": "0.5.16", "md5": "2.3.0", "object-to-formdata": "4.5.1", "path-to-regexp": "6.3.0", "qs-esm": "8.0.1", "react-datepicker": "9.1.0", "react-image-crop": "10.1.8", "react-select": "5.9.0", "scheduler": "0.25.0", "sonner": "^1.7.2", "ts-essentials": "10.0.3", "use-context-selector": "2.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.6", "react": "^19.0.1 || ^19.1.2 || ^19.2.1", "react-dom": "^19.0.1 || ^19.1.2 || ^19.2.1" } }, "sha512-uPkPx2VkC+jx1x8khA8QaeDmVWMatcf4VdmaM9YCaIoeZdb3owTfnFfHDxZjaBoYVVgSZ6xCyskiQ4HoGw5b4A=="],
+    "@payloadcms/ui": ["@payloadcms/ui@4.0.0-beta.9", "", { "dependencies": { "@date-fns/tz": "1.2.0", "@dnd-kit/core": "6.3.1", "@dnd-kit/modifiers": "9.0.0", "@dnd-kit/sortable": "10.0.0", "@dnd-kit/utilities": "3.2.2", "@faceless-ui/modal": "3.0.2", "@faceless-ui/scroll-info": "2.0.0", "@faceless-ui/window-info": "3.0.1", "@floating-ui/dom": "1.7.6", "@monaco-editor/react": "4.7.0", "@payloadcms/translations": "4.0.0-beta.9", "@swc/helpers": ">=0.5.17", "bson-objectid": "2.0.4", "date-fns": "4.4.0", "dequal": "2.0.3", "dom-accessibility-api": "0.5.16", "md5": "2.3.0", "object-to-formdata": "4.5.1", "path-to-regexp": "6.3.0", "qs-esm": "8.0.1", "react-datepicker": "9.1.0", "react-image-crop": "10.1.8", "react-select": "5.9.0", "scheduler": "0.25.0", "sonner": "^1.7.2", "ts-essentials": "10.0.3", "use-context-selector": "2.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.9", "react": "^19.3.1", "react-dom": "^19.3.1" } }, "sha512-YCEc23rSlDcHlNg4O1jjBdLZl6V1yuWwaZIIUgIaH6GdXJ7lmtsQBxm+L2wl8DgEB7MYmHW99VKvcxrG/Tabcg=="],
 
     "@pinojs/redact": ["@pinojs/redact@0.4.0", "", {}, "sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg=="],
 
@@ -1216,7 +1216,7 @@
 
     "pathe": ["pathe@2.0.3", "", {}, "sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w=="],
 
-    "payload": ["payload@4.0.0-beta.6", "", { "dependencies": { "@next/env": "16.4.2", "@payloadcms/translations": "4.0.0-beta.6", "@standard-schema/spec": "1.1.0", "@types/busboy": "1.5.4", "bson-objectid": "2.0.4", "busboy": "^1.6.0", "ci-info": "4.4.0", "commander": "15.0.0", "console-table-printer": "2.15.0", "croner": "10.0.1", "dataloader": "2.2.3", "deepmerge": "4.3.1", "dotenv": "16.4.5", "dotenv-expand": "11.0.6", "file-type": "22.0.1", "get-tsconfig": "4.14.0", "image-dimensions": "2.5.1", "ipaddr.js": "2.3.0", "jose": "6.2.12", "json-schema-to-typescript": "15.0.3", "path-to-regexp": "6.3.0", "pino": "10.3.1", "pino-pretty": "13.1.3", "pluralize": "8.0.0", "qs-esm": "8.0.1", "range-parser": "1.2.1", "sanitize-filename": "1.6.4", "sax": "1.6.1", "ts-essentials": "10.0.3", "tsx": "4.23.15", "undici": "7.30.1", "uuid": "14.0.0", "ws": "^8.16.0", "zod": "^4.6.0" }, "peerDependencies": { "graphql": "^16.8.1" }, "bin": { "payload": "bin.js" } }, "sha512-4mqkbVq8N+M8Cw1GYohU6f8X38RtcZUCBBDMIULT90/Kaj06wMPYjBzyLWYRuxsMMcY+ihpYtBex3swPCjrxpw=="],
+    "payload": ["payload@4.0.0-beta.9", "", { "dependencies": { "@next/env": "16.4.2", "@payloadcms/translations": "4.0.0-beta.9", "@standard-schema/spec": "1.1.0", "@types/busboy": "1.5.4", "bson-objectid": "2.0.4", "busboy": "^1.6.0", "ci-info": "4.4.0", "commander": "15.0.0", "console-table-printer": "2.15.0", "croner": "10.0.1", "dataloader": "2.2.3", "deepmerge": "4.3.1", "dotenv": "16.4.5", "dotenv-expand": "11.0.6", "file-type": "22.0.1", "get-tsconfig": "4.14.0", "image-dimensions": "2.5.1", "ipaddr.js": "2.3.0", "jose": "6.2.12", "json-schema-to-typescript": "15.0.3", "path-to-regexp": "6.3.0", "pino": "10.3.1", "pino-pretty": "13.1.3", "pluralize": "8.0.0", "qs-esm": "8.0.1", "range-parser": "1.2.1", "sanitize-filename": "1.6.4", "sax": "1.6.1", "ts-essentials": "10.0.3", "tsx": "4.23.15", "undici": "7.30.1", "uuid": "14.0.0", "ws": "^8.16.0", "zod": "^4.6.0" }, "peerDependencies": { "graphql": "^16.8.1" }, "bin": { "payload": "bin.js" } }, "sha512-bpn8FQpsZJhxtSF672PCI1blIwpc92GHqKDx1NfHNDDANoccSMiKSgwAPeFtRHiElt3lnx28cyVI55Wfge+Mwg=="],
 
     "pg": ["pg@8.20.0", "", { "dependencies": { "pg-connection-string": "^2.12.0", "pg-pool": "^3.13.0", "pg-protocol": "^1.13.0", "pg-types": "2.2.0", "pgpass": "1.0.5" }, "optionalDependencies": { "pg-cloudflare": "^1.3.0" }, "peerDependencies": { "pg-native": ">=3.0.1" }, "optionalPeers": ["pg-native"] }, "sha512-ldhMxz2r8fl/6QkXnBD3CR9/xg694oT6DZQ2s6c/RI28OjtSOpxnPrUCGOBJ46RCUxcWdx3p6kw/xnDHjKvaRA=="],
 

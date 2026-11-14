@@ -10,7 +10,7 @@ Stay on the [airtable branch](https://github.com/craftled/bordful/tree/airtable)
 
 Read [Changelog](CHANGELOG.md) before you merge. Breaking notes are listed there.
 
-1.0 requires Node.js 26 LTS. `engines.node` is `26.x`, which overrides the Node.js version in your Vercel project settings, so the next deploy runs on Node 26. Built-in fetch then uses HTTP/2. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
+1.0 requires Node.js 26 LTS. `engines.node` is `^26.13.1` (Payload 4.0.0-beta.9 needs 26.13.1 or later), which overrides the Node.js version in your Vercel project settings, so the next deploy runs on Node 26. Built-in fetch then uses HTTP/2. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
 Add the upstream remote once:
 
