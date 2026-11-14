@@ -9,6 +9,7 @@ import {
   type JobOrigin,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
+import { logoDevUrl } from "@/lib/logo-dev";
 import { resolveThemeTokens } from "@/theme/tokens";
 
 import { isIndexable } from "./indexable";
@@ -108,13 +109,18 @@ function mediaUrl(value: unknown): string | null {
   return typeof media.url === "string" ? media.url : null;
 }
 
-function companyLogoFallback(company: unknown): string | null {
-  if (company === null || typeof company !== "object") {
-    return null;
+// A job's company mark when the job has no copied logo upload: the company's
+// logo URL, else Logo.dev by domain (when configured), else none.
+function companyLogoFallback(
+  company: unknown,
+  companyDomain: unknown
+): string | null {
+  const row = record(company);
+  if (typeof row.logoUrl === "string" && row.logoUrl.length > 0) {
+    return row.logoUrl;
   }
 
-  const { logoUrl } = record(company);
-  return typeof logoUrl === "string" ? logoUrl : null;
+  return logoDevUrl(companyDomain ?? row.domain);
 }
 
 function dateOrNull(value: unknown): string | null {
@@ -140,7 +146,8 @@ export function toCompanySummary(doc: unknown): CompanySummary {
     industry: stringOrNull(row.industry),
     linkedinUrl: stringOrNull(row.linkedinUrl),
     location: stringOrNull(row.location),
-    logoUrl: mediaUrl(row.logo) ?? stringOrNull(row.logoUrl),
+    logoUrl:
+      mediaUrl(row.logo) || stringOrNull(row.logoUrl) || logoDevUrl(row.domain),
     name: stringOrNull(row.name) ?? "",
     slug: stringOrNull(row.slug) ?? "",
     twitterUrl: stringOrNull(row.twitterUrl),
@@ -160,7 +167,8 @@ export function toJobListItem(doc: unknown): JobListItem {
     careerLevel: choiceList(CAREER_LEVELS, row.careerLevel),
     categories: stringList(row.categories),
     companyLogoUrl:
-      mediaUrl(row.companyLogo) ?? companyLogoFallback(row.company),
+      mediaUrl(row.companyLogo) ??
+      companyLogoFallback(row.company, row.companyDomain),
     companyName: stringOrNull(row.companyName) ?? "",
     companySlug: stringOrNull(row.companySlug),
     countryCode: stringOrNull(row.countryCode),

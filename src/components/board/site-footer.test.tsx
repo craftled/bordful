@@ -94,3 +94,14 @@ test("shows the Bordfeed credit only when attribution is on", () => {
   renderFooter({ showAttribution: true });
   expect(screen.getByTestId("bordfeed-credit")).toBeTruthy();
 });
+
+test("credits Logo.dev only when its logos are on", () => {
+  const { unmount } = renderFooter();
+  expect(screen.queryByTestId("logo-dev-credit")).toBeNull();
+  unmount();
+
+  renderFooter({ logoDevCredit: true });
+  const credit = screen.getByTestId("logo-dev-credit");
+  expect(credit.textContent).toBe("Logos provided by Logo.dev");
+  expect(credit.getAttribute("href")).toBe("https://logo.dev");
+});

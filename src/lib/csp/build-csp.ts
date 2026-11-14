@@ -60,7 +60,7 @@ export function buildCsp({
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `style-src ${styleSrc}`,
-    "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com",
+    "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://img.logo.dev",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
     "frame-src 'none'",

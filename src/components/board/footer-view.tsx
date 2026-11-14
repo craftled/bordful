@@ -7,6 +7,10 @@ import {
   type SocialProfiles,
 } from "@/components/board/social-links";
 import type { FooterColumn } from "@/config/nav";
+import {
+  LOGO_DEV_ATTRIBUTION_HREF,
+  LOGO_DEV_ATTRIBUTION_LABEL,
+} from "@/lib/logo-dev";
 
 const FOOTER_LINK_CLASS =
   "text-muted-foreground hover:text-foreground transition-colors";
@@ -22,6 +26,7 @@ export interface FooterStats {
 export function FooterView({
   bordfulMark = false,
   columns,
+  logoDevCredit = false,
   logoUrl,
   name,
   showAlert,
@@ -32,6 +37,8 @@ export function FooterView({
 }: {
   bordfulMark?: boolean;
   columns: FooterColumn[];
+  // Logo.dev's free tier asks for a visible credit wherever its logos show.
+  logoDevCredit?: boolean;
   logoUrl: string | null;
   name: string;
   showAlert: boolean;
@@ -123,7 +130,21 @@ export function FooterView({
                 }`
               : ` ${name}`}
           </p>
-          {showAttribution ? <BordfeedCredit /> : null}
+          {showAttribution || logoDevCredit ? (
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {logoDevCredit ? (
+                <a
+                  className="hover:text-foreground transition-colors"
+                  data-testid="logo-dev-credit"
+                  href={LOGO_DEV_ATTRIBUTION_HREF}
+                  rel="noopener"
+                >
+                  {LOGO_DEV_ATTRIBUTION_LABEL}
+                </a>
+              ) : null}
+              {showAttribution ? <BordfeedCredit /> : null}
+            </p>
+          ) : null}
         </div>
       </div>
     </footer>

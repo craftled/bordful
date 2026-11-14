@@ -45,6 +45,7 @@ const JOB_LIST_SELECT = {
   careerLevel: true,
   categories: true,
   company: true,
+  companyDomain: true,
   companyLogo: true,
   companyName: true,
   companySlug: true,
