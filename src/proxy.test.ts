@@ -33,6 +33,12 @@ function styleSrc(csp: string | null): string {
   );
 }
 
+function imgSrc(csp: string | null): string {
+  return (
+    csp?.split("; ").find((directive) => directive.startsWith("img-src ")) ?? ""
+  );
+}
+
 function withMarketing(value: "true" | "false", runTest: () => void) {
   const previous = process.env.BORDFUL_MARKETING;
   process.env.BORDFUL_MARKETING = value;
@@ -46,6 +52,20 @@ function withMarketing(value: "true" | "false", runTest: () => void) {
     }
   }
 }
+
+test("only marketing CSP allows Top Boilerplates badge images", () => {
+  withMarketing("true", () => {
+    expect(imgSrc(run("/").headers.get("Content-Security-Policy"))).toBe(
+      "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://topboilerplates.com"
+    );
+  });
+
+  withMarketing("false", () => {
+    expect(imgSrc(run("/").headers.get("Content-Security-Policy"))).toBe(
+      "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com"
+    );
+  });
+});
 
 test("detects paths with a broken percent escape", () => {
   for (const path of MALFORMED) {
