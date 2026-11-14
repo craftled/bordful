@@ -62,6 +62,8 @@ async function lockOwner(): Promise<void> {
   await expect(login(OLD_PASSWORD)).rejects.toThrow();
 }
 
+const DATABASE_HOST = new URL(databaseUrl).hostname;
+
 function runBordful(args: string[], env: Record<string, string>) {
   return spawnSync("bun", ["run", "bordful", ...args, "--json"], {
     cwd: process.cwd(),
@@ -132,9 +134,10 @@ test("the CLI resets a password without the deployment's PAYLOAD_SECRET", async 
   const before = await storedOwner();
   await lockOwner();
 
-  const run = runBordful(["reset-password", "--email", OWNER], {
-    PAYLOAD_SECRET: "a-different-throwaway-value",
-  });
+  const run = runBordful(
+    ["reset-password", "--email", OWNER, "--database-host", DATABASE_HOST],
+    { PAYLOAD_SECRET: "a-different-throwaway-value" }
+  );
   expect(run.status, run.stderr).toBe(0);
   const output = JSON.parse(run.stdout) as {
     result: { email: string; password: string };
@@ -153,12 +156,36 @@ test("the CLI resets a password without the deployment's PAYLOAD_SECRET", async 
 
 test("the CLI names the admins when the email is missing or wrong", () => {
   for (const args of [
-    ["reset-password"],
-    ["reset-password", "--email", "other@example.com"],
+    ["reset-password", "--database-host", DATABASE_HOST],
+    [
+      "reset-password",
+      "--email",
+      "other@example.com",
+      "--database-host",
+      DATABASE_HOST,
+    ],
   ]) {
     const run = runBordful(args, {});
     expect(run.status).toBe(1);
     const output = JSON.parse(run.stdout) as { result: { admins: string[] } };
     expect(output.result.admins).toEqual([OWNER]);
   }
+});
+
+test("the CLI changes nothing until --database-host matches DATABASE_URL", async () => {
+  for (const args of [
+    ["reset-password", "--email", OWNER],
+    ["reset-password", "--email", OWNER, "--database-host", "other.example"],
+  ]) {
+    const run = runBordful(args, {});
+    expect(run.status).toBe(1);
+    const output = JSON.parse(run.stdout) as {
+      result: { databaseHost: string | null };
+    };
+    expect(output.result.databaseHost).toBe(DATABASE_HOST);
+  }
+
+  await expect(login(OLD_PASSWORD)).resolves.toMatchObject({
+    user: { email: OWNER },
+  });
 });
