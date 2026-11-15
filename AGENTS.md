@@ -1,3 +1,6 @@
+## Skills
+- [modern-web-guidance](.agents/skills/modern-web-guidance/SKILL.md): search it before writing HTML, CSS or client-side JS. Installed with `npx modern-web-guidance@latest install` and pinned in `skills-lock.json`; update with `npx modern-web-guidance@latest update`.
+
 # Project Context
 Ultracite enforces strict type safety, accessibility standards, and consistent code quality for JavaScript/TypeScript projects using Biome's lightning-fast formatter and linter.
 
