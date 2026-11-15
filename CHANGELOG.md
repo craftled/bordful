@@ -25,9 +25,11 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Deploy to Vercel button that provisions Neon Postgres and Vercel Blob.
 - Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
 - Restoring an older job version in the admin creates a draft. Publish it to make the restored version live.
+- Company logos from [Logo.dev](https://logo.dev). Set `NEXT_PUBLIC_LOGO_DEV_TOKEN` to a publishable key, and companies with no uploaded logo and no logo URL show their logo by domain. The footer then credits Logo.dev. See [docs/deploy.md](docs/deploy.md#environment-variables).
 - Light and dark themes. The board follows the visitor's system setting, and a header toggle switches between system, light and dark and remembers the choice. See [docs/theming.md](docs/theming.md).
 - Board search also matches location, remote region, summary and skills.
 - On Vercel, alert signup is checked by Vercel BotID. See [docs/alerts.md](docs/alerts.md).
+- `bun run bordful reset-password` gets you back into the admin after a lost password, with no email setup. It first shows the database it would change as `host:port/database` and runs only after you confirm it with `--database-host`. The admin's "Forgot password?" page now shows this command instead of a form that never sent an email. See [docs/deploy.md](docs/deploy.md#admin-sign-in).
 
 ### Changed
 
@@ -42,6 +44,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Fixed
 
+- Job descriptions from Bordfeed are parsed with parse5 8.1.1, which fixes crashes and very slow parsing on some malformed HTML.
 - Connecting Bordfeed with an account that uses two-factor sign-in now says an emailed code cannot create an API key and opens the paste-key path. It used to say "Bordfeed rejected the API key." Disabled accounts and closed sign-ups get their own messages too.
 - Board search no longer queries Postgres for each search string. Summary and skills are matched against a cached index that is read at most once every 5 minutes, and the job list reads only the fields its cards show. Bots sending many different searches used to run one database query per request and could use up a hosted database's monthly transfer allowance.
 - Digest unsubscribe links keep working after `PAYLOAD_SECRET` or a subscriber's email changes. Each digest now stores the current hash before it is sent, and a digest is not sent if that fails.
@@ -52,7 +55,6 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - A fresh deploy could show an empty board. Vercel's first requests each booted the app and seeded the sample jobs at the same time, and the board cached the empty page. One boot now takes the sync lease and seeds, the others skip, and an empty first page is read again before it is served.
 - `next build` no longer runs its own TypeScript pass. `bun run typecheck` already runs in CI, and the duplicate pass added about nine seconds to every deploy.
 - A company no longer appears twice after a sync. Bordfeed sends a job that is under an hour old with the employer name alone, and the same job again with the company's domain and logo once it is linked. The sync matched companies by Bordfeed id and domain only, so the second delivery created a second company and left the first one empty. It now matches the name as well, fills in the id, domain and logo on the company it already has, and a name-only job no longer clears a logo.
-
 - An unreadable percent escape in a URL, such as `/jobs/%E0%A4%A`, shows the 404 page instead of a plain-text 500.
 - Salary sort uses the same converted USD range as the salary filter. The `/jobs/levels` counts match the level archives. `/jobs/search?types=...` redirects only to archives that have jobs.
 - Deleting a company, or changing its slug or domain, updates its jobs, so job pages no longer link to a 404. Changing or deleting a media file refreshes the cached logo.

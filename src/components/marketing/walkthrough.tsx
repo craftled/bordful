@@ -184,10 +184,6 @@ export function Walkthrough() {
               return (
                 <button
                   aria-controls={panelId(step)}
-                  aria-describedby={
-                    selected ? `${tabId(step)}-desc` : undefined
-                  }
-                  aria-labelledby={`${tabId(step)}-label`}
                   aria-selected={selected}
                   className={cn(
                     "group focus-visible:ring-ring relative flex flex-col gap-1.5 rounded-sm pl-4 text-left outline-none focus-visible:ring-2",
@@ -209,16 +205,13 @@ export function Walkthrough() {
                         ? "text-foreground"
                         : "group-hover:text-muted-foreground text-subtle"
                     )}
-                    id={`${tabId(step)}-label`}
                   >
                     {step.label}
                   </span>
                   {selected ? (
                     <>
-                      <span
-                        className="text-muted-foreground text-[13px] leading-[19px]"
-                        id={`${tabId(step)}-desc`}
-                      >
+                      {" "}
+                      <span className="text-muted-foreground text-[13px] leading-[19px]">
                         {step.description}
                       </span>
                       <span

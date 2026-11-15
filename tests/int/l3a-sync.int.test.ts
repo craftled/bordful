@@ -12,12 +12,12 @@ import {
   MASS_REMOVAL_PENDING_MESSAGE,
   MAX_INCIDENT_REMOVALS_PER_SYNC,
   massRemovalFloorMessage,
-  SyncGuardError,
 } from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
 import { runFeedSync, runSampleSync } from "@/lib/bordfeed/sync";
+import { SyncGuardError } from "@/lib/bordfeed/sync-guard-error";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { queryPublishedJobs } from "@/lib/read/queries";
 

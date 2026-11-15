@@ -13,6 +13,12 @@
       "enabled": true
     },
     {
+      "id": "S0-a11y",
+      "file": "a11y.spec.ts",
+      "requires": ["L1"],
+      "enabled": true
+    },
+    {
       "id": "E1",
       "file": "e01-fresh-deploy-sample.spec.ts",
       "requires": ["L1", "L3a"],

@@ -122,7 +122,7 @@ export function AlertsForm({
                 aria-describedby={
                   failed ? "alerts-privacy alerts-error" : "alerts-privacy"
                 }
-                aria-invalid={failed || undefined}
+                aria-invalid={state?.field === "email" || undefined}
                 autoComplete="email"
                 className="h-10 px-3 text-[14px] leading-[18px]"
                 data-testid="alerts-email"

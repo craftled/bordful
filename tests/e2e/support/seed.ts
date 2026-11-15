@@ -97,6 +97,20 @@ export async function createJob(
   return readBody(response);
 }
 
+// query is a Payload REST where clause, e.g. "where[title][like]=Abc".
+export async function deleteWhere(
+  request: APIRequestContext,
+  collection: string,
+  query: string
+): Promise<void> {
+  // Without a where clause Payload deletes the whole collection.
+  if (!query.startsWith("where[")) {
+    throw new Error(`deleteWhere needs a where clause, got "${query}"`);
+  }
+  const response = await request.delete(`/api/${collection}?${query}`);
+  await readBody(response);
+}
+
 export async function updateGlobal(
   request: APIRequestContext,
   slug: string,
