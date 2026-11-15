@@ -262,8 +262,6 @@ export function getLanguageDisplayName(codeOrName: string): string | undefined {
   if (byName) {
     return byName.displayName || byName.name;
   }
-
-  return;
 }
 
 // For backward compatibility and simpler migration

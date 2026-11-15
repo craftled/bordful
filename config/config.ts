@@ -10,4 +10,3 @@
 import type { Config } from './config.example';
 
 export const config = {} satisfies Partial<Config>;
-

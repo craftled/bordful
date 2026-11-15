@@ -46,9 +46,8 @@ type FAQContentProps = {
 };
 
 // Generate a stable ID for each FAQ item – pure function, no component dependencies
-const getItemId = (categoryTitle: string, question: string) => {
-  return `${slugify(categoryTitle)}-${slugify(question)}`;
-};
+const getItemId = (categoryTitle: string, question: string) =>
+  `${slugify(categoryTitle)}-${slugify(question)}`;
 
 export function FAQContent({ categories }: FAQContentProps) {
   const router = useRouter();
@@ -209,7 +208,7 @@ export function FAQContent({ categories }: FAQContentProps) {
       {/* Search Bar */}
       <div className="mb-8 w-full">
         <div className="relative">
-          <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             aria-label="Search FAQs"
             className="h-10 pl-9"
@@ -222,7 +221,7 @@ export function FAQContent({ categories }: FAQContentProps) {
           {searchTerm && (
             <button
               aria-label="Clear search"
-              className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-400 hover:text-gray-600"
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               onClick={() => {
                 setSearchTerm('');
                 setExpandedItems([]);
@@ -267,7 +266,7 @@ export function FAQContent({ categories }: FAQContentProps) {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <h2 className="font-semibold text-lg text-zinc-900">
+                  <h2 className="text-lg font-semibold text-zinc-900">
                     {category.title}
                   </h2>
                   <button
@@ -298,7 +297,7 @@ export function FAQContent({ categories }: FAQContentProps) {
                         key={itemIndex}
                         value={itemId}
                       >
-                        <AccordionTrigger className="py-4 font-medium text-sm text-zinc-800 hover:no-underline">
+                        <AccordionTrigger className="py-4 text-sm font-medium text-zinc-800 hover:no-underline">
                           {item.question}
                         </AccordionTrigger>
                         <AccordionContent className="pt-1 pb-4 text-sm text-zinc-600">
@@ -338,8 +337,8 @@ export function FAQContent({ categories }: FAQContentProps) {
         )}
 
         {/* Contact Section */}
-        <div className="mt-12 border-zinc-200 border-t pt-8 text-center">
-          <h2 className="mb-2 font-semibold text-lg text-zinc-900">
+        <div className="mt-12 border-t border-zinc-200 pt-8 text-center">
+          <h2 className="mb-2 text-lg font-semibold text-zinc-900">
             Still have questions?
           </h2>
           <p className="mb-6 text-sm text-zinc-600">

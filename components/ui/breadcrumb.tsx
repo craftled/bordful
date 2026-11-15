@@ -39,7 +39,7 @@ const BreadcrumbList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ol
     className={cn(
-      'flex flex-wrap items-center gap-1.5 break-words text-muted-foreground text-sm sm:gap-2.5',
+      'text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5',
       className
     )}
     ref={ref}
@@ -70,7 +70,7 @@ const BreadcrumbLink = React.forwardRef<
 
   return (
     <Comp
-      className={cn('transition-colors hover:text-foreground', className)}
+      className={cn('hover:text-foreground transition-colors', className)}
       ref={ref}
       {...props}
     />
@@ -85,7 +85,7 @@ const BreadcrumbPage = React.forwardRef<
   <span
     aria-current="page"
     aria-disabled="true"
-    className={cn('font-normal text-foreground', className)}
+    className={cn('text-foreground font-normal', className)}
     ref={ref}
     role="link"
     {...props}
@@ -143,7 +143,7 @@ function ServerBreadcrumb({
         type="application/ld+json"
       />
       <nav aria-label="breadcrumb" className={className}>
-        <ol className="flex flex-wrap items-center gap-1.5 break-words text-muted-foreground text-xs sm:gap-2.5">
+        <ol className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs break-words sm:gap-2.5">
           {items.map((item, index) => {
             const isLastItem = index === items.length - 1;
 
@@ -161,7 +161,7 @@ function ServerBreadcrumb({
                     </span>
                   ) : (
                     <a
-                      className="text-gray-500 transition-colors hover:text-foreground"
+                      className="hover:text-foreground text-gray-500 transition-colors"
                       href={item.url}
                     >
                       {item.name}
@@ -189,11 +189,11 @@ function ServerBreadcrumb({
 
 export {
   Breadcrumb,
-  BreadcrumbList,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  BreadcrumbEllipsis,
   ServerBreadcrumb,
 };

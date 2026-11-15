@@ -1,9 +1,7 @@
 import {
   ArrowRight,
   ArrowUpRight,
-  Github,
   HelpCircle,
-  Linkedin,
   type LucideIcon,
   Mail,
   MessageSquare,
@@ -30,9 +28,14 @@ const iconMap: Record<string, LucideIcon> = {
   HelpCircle,
   Phone,
   MessageSquare,
-  Github,
-  Linkedin,
   Rss,
+};
+
+// lucide-react 1.x dropped brand icons, so brands use the bundled SVGs.
+const brandIcons: Record<string, { alt: string; src: string }> = {
+  Twitter: { alt: 'Twitter/X', src: '/assets/social/twitter.svg' },
+  Github: { alt: 'GitHub', src: '/assets/social/github.svg' },
+  Linkedin: { alt: 'LinkedIn', src: '/assets/social/linkedin.svg' },
 };
 
 export function SupportChannelCard({
@@ -42,11 +45,8 @@ export function SupportChannelCard({
   buttonLink,
   icon,
 }: SupportChannelCardProps) {
-  // Check if it's Twitter icon
-  const isTwitterIcon = icon === 'Twitter';
-
-  // Get the icon component or use HelpCircle as fallback
-  const IconComponent = isTwitterIcon ? null : iconMap[icon] || HelpCircle;
+  const brandIcon = brandIcons[icon];
+  const IconComponent = iconMap[icon] ?? HelpCircle;
 
   const isExternalLink =
     buttonLink.startsWith('http') || buttonLink.startsWith('mailto');
@@ -55,13 +55,13 @@ export function SupportChannelCard({
     <div className="flex h-full flex-col rounded-lg border p-5 transition-all hover:border-gray-400">
       <div className="space-y-3 pb-2">
         <div>
-          {isTwitterIcon ? (
+          {brandIcon ? (
             <div className="relative h-5 w-5">
               <Image
-                alt="Twitter/X"
+                alt={brandIcon.alt}
                 className="object-contain"
                 height={20}
-                src="/assets/social/twitter.svg"
+                src={brandIcon.src}
                 width={20}
               />
             </div>
@@ -69,10 +69,10 @@ export function SupportChannelCard({
             <IconComponent className="h-5 w-5 text-zinc-700" />
           )}
         </div>
-        <h3 className="font-medium text-base text-zinc-900">{title}</h3>
+        <h3 className="text-base font-medium text-zinc-900">{title}</h3>
       </div>
       <div className="flex-grow pb-6">
-        <p className="text-sm text-zinc-600 leading-relaxed">{description}</p>
+        <p className="text-sm leading-relaxed text-zinc-600">{description}</p>
       </div>
       <div className="mt-auto pt-0">
         <Button

@@ -1,12 +1,5 @@
 import { ImageResponse } from 'next/og';
 import config from '@/config';
-import {
-  getFontFamilyCSS,
-  getFontInfo,
-  loadGoogleFontData,
-  prepareImageResponseFonts,
-} from '@/lib/utils/font-utils';
-import { fetchImageAsDataURI } from '@/lib/utils/image-utils';
 import type { MinimalJob } from '@/lib/utils/job-validation';
 import {
   createLinearGradient,
@@ -15,8 +8,8 @@ import {
 } from '@/lib/utils/og-config';
 
 export interface JobProcessedOGConfig extends ProcessedOGConfig {
-  jobTitle: string;
   companyName: string;
+  jobTitle: string;
   workplaceType: string;
 }
 
@@ -33,30 +26,34 @@ export function createJobOGConfig(job: MinimalJob): JobProcessedOGConfig {
     backgroundColor:
       ogJobConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450',
     backgroundOpacity:
-      ogJobConfig.backgroundOpacity !== undefined
-        ? ogJobConfig.backgroundOpacity
-        : 0.8,
+      ogJobConfig.backgroundOpacity === undefined
+        ? 0.8
+        : ogJobConfig.backgroundOpacity,
     backgroundImage: ogJobConfig.backgroundImage || null,
     titleColor: ogJobConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF',
     descriptionColor:
-      ogJobConfig.descriptionColor || config.ui.heroSubtitleColor || '#FFFFFF',
-    gradientEnabled: ogJobConfig.gradient?.enabled !== false,
+      (ogJobConfig as { descriptionColor?: string }).descriptionColor ||
+      config.ui.heroSubtitleColor ||
+      '#FFFFFF',
+    gradientEnabled:
+      (ogJobConfig.gradient?.enabled as boolean | undefined) !== false,
     gradientColor:
       ogJobConfig.gradient?.color ||
-      ogJobConfig.backgroundColor || config.ui.heroBackgroundColor ||
+      ogJobConfig.backgroundColor ||
+      config.ui.heroBackgroundColor ||
       '#005450',
     gradientAngle:
-      ogJobConfig.gradient?.angle !== undefined
-        ? ogJobConfig.gradient.angle
-        : 0,
+      ogJobConfig.gradient?.angle === undefined
+        ? 0
+        : ogJobConfig.gradient.angle,
     gradientStartOpacity:
-      ogJobConfig.gradient?.startOpacity !== undefined
-        ? ogJobConfig.gradient.startOpacity
-        : 0,
+      ogJobConfig.gradient?.startOpacity === undefined
+        ? 0
+        : ogJobConfig.gradient.startOpacity,
     gradientEndOpacity:
-      ogJobConfig.gradient?.endOpacity !== undefined
-        ? ogJobConfig.gradient.endOpacity
-        : 1,
+      ogJobConfig.gradient?.endOpacity === undefined
+        ? 1
+        : ogJobConfig.gradient.endOpacity,
     jobTitle: job.title,
     companyName: job.company,
     workplaceType: job.workplace_type,

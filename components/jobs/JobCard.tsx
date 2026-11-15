@@ -54,7 +54,7 @@ export function JobCard({ job }: { job: Job }) {
         <div className="space-y-2">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="flex max-w-full flex-wrap items-center gap-2">
-              <h2 className="line-clamp-2 font-medium text-base">
+              <h2 className="line-clamp-2 text-base font-medium">
                 {job.title}
               </h2>
               {isNew() && <JobBadge type="new">New</JobBadge>}
@@ -69,8 +69,8 @@ export function JobCard({ job }: { job: Job }) {
               </JobBadge>
             )}
           </div>
-          <div className="text-gray-600 text-sm">{job.company}</div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500 text-xs">
+          <div className="text-sm text-gray-600">{job.company}</div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
             <span className="whitespace-nowrap">{job.type}</span>
             {showSalary && (
               <>

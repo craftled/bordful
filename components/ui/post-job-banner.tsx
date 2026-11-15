@@ -23,14 +23,14 @@ export function PostJobBanner() {
 
   return (
     <Card className="rounded-lg border p-6 shadow-none">
-      <h3 className="mb-3 font-semibold text-lg">{title}</h3>
-      <p className="mb-4 text-muted-foreground text-sm">{description}</p>
+      <h3 className="mb-3 text-lg font-semibold">{title}</h3>
+      <p className="text-muted-foreground mb-4 text-sm">{description}</p>
 
       {showTrustedBy && (
         <div className="mb-4 flex items-center gap-2">
-          <div className="-space-x-3 flex">
+          <div className="flex -space-x-3">
             {companyAvatars.map((avatar, index) => (
-              <Avatar className="h-7 w-7 border border-background" key={index}>
+              <Avatar className="border-background h-7 w-7 border" key={index}>
                 <AvatarImage alt={avatar.alt} src={avatar.src} />
                 <AvatarFallback>{avatar.fallback}</AvatarFallback>
               </Avatar>
@@ -59,7 +59,7 @@ export function PostJobBanner() {
         </Button>
       </a>
 
-      <p className="mt-4 text-center text-muted-foreground text-xs">
+      <p className="text-muted-foreground mt-4 text-center text-xs">
         {trustMessage}
       </p>
     </Card>

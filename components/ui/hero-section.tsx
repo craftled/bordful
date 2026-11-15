@@ -77,9 +77,9 @@ export function HeroSection({
       overlayStyle = {
         backgroundColor: heroBackgroundImage.overlay.color,
         opacity:
-          heroBackgroundImage.overlay.opacity !== undefined
-            ? heroBackgroundImage.overlay.opacity
-            : 0.7,
+          heroBackgroundImage.overlay.opacity === undefined
+            ? 0.7
+            : heroBackgroundImage.overlay.opacity,
       };
     }
   }
@@ -119,7 +119,7 @@ export function HeroSection({
           style={overlayStyle}
         />
       )}
-      <div className="container relative z-10 mx-auto px-0 py-6 sm:px-4 sm:py-8 md:px-6 md:py-12">
+      <div className="relative z-10 container mx-auto px-0 py-6 sm:px-4 sm:py-8 md:px-6 md:py-12">
         <div className="flex flex-col items-center gap-4 md:flex-row md:gap-8 lg:gap-12">
           <div className="w-full space-y-3 px-4 sm:space-y-4 sm:px-0 md:w-1/2">
             <div className="space-y-2 sm:space-y-3">
@@ -136,7 +136,7 @@ export function HeroSection({
               </Badge>
               <h1
                 className={cn(
-                  'font-bold text-2xl tracking-tight sm:text-3xl md:text-4xl'
+                  'text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl'
                 )}
                 style={{ color: heroTitleColor || undefined }}
               >

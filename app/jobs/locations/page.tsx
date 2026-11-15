@@ -40,8 +40,8 @@ function LocationCard({ href, title, count }: LocationCardProps) {
       href={href}
     >
       <div className="space-y-1.5 sm:space-y-2">
-        <h2 className="font-medium text-sm sm:text-base">{title}</h2>
-        <div className="text-gray-500 text-xs sm:text-sm">
+        <h2 className="text-sm font-medium sm:text-base">{title}</h2>
+        <div className="text-xs text-gray-500 sm:text-sm">
           {count.toLocaleString()} {count === 1 ? 'position' : 'positions'}{' '}
           available
         </div>
@@ -126,9 +126,9 @@ export default async function LocationsPage() {
               <div className="mb-4 flex items-center gap-2">
                 <Globe
                   aria-hidden="true"
-                  className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
+                  className="text-muted-foreground h-4 w-4 sm:h-5 sm:w-5"
                 />
-                <h2 className="font-semibold text-lg sm:text-xl">
+                <h2 className="text-lg font-semibold sm:text-xl">
                   Remote Opportunities
                 </h2>
               </div>
@@ -147,9 +147,9 @@ export default async function LocationsPage() {
             <div className="mb-4 flex items-center gap-2">
               <Globe
                 aria-hidden="true"
-                className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5"
+                className="text-muted-foreground h-4 w-4 sm:h-5 sm:w-5"
               />
-              <h2 className="font-semibold text-lg sm:text-xl">
+              <h2 className="text-lg font-semibold sm:text-xl">
                 Jobs by Country
               </h2>
             </div>

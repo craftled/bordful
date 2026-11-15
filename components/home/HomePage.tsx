@@ -356,13 +356,14 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
   }, [initialJobs]);
 
   // Calculate jobs added today
-  const jobsAddedToday = useMemo(() => {
-    return initialJobs.filter((job) => isToday(new Date(job.posted_date)))
-      .length;
-  }, [initialJobs]);
+  const jobsAddedToday = useMemo(
+    () =>
+      initialJobs.filter((job) => isToday(new Date(job.posted_date))).length,
+    [initialJobs]
+  );
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="bg-background min-h-screen">
       <HeroSection
         badge={config.badge}
         description={config.description}
@@ -377,7 +378,7 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
         {/* Quick Stats - Reverted to original structure with color customization */}
         {(config.quickStats?.enabled ?? true) && (
           <div
-            className="mt-6 grid max-w-[480px] grid-cols-3 gap-4 text-muted-foreground text-xs"
+            className="text-muted-foreground mt-6 grid max-w-[480px] grid-cols-3 gap-4 text-xs"
             // Apply base color here, specific elements might override
             style={{ color: config.ui.heroStatsColor || undefined }}
           >
@@ -385,7 +386,7 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
             {(config.quickStats?.sections?.openJobs?.enabled ?? true) && (
               <div>
                 <div
-                  className="font-medium text-foreground"
+                  className="text-foreground font-medium"
                   // Override title color if heroStatsColor is set
                   style={{
                     color:
@@ -425,7 +426,7 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
               lastUpdatedTimestamp && ( // Ensure timestamp exists
                 <div>
                   <div
-                    className="font-medium text-foreground"
+                    className="text-foreground font-medium"
                     style={{
                       color:
                         config.ui.heroStatsColor ||
@@ -447,7 +448,7 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
             {(config.quickStats?.sections?.trending?.enabled ?? true) && (
               <div>
                 <div
-                  className="font-medium text-foreground"
+                  className="text-foreground font-medium"
                   style={{
                     color:
                       config.ui.heroStatsColor ||
@@ -477,7 +478,7 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
           <div className="order-2 flex-[3] md:order-1">
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-0">
               <div className="w-full space-y-1 sm:w-auto">
-                <h2 className="flex flex-wrap items-center gap-2 font-semibold text-xl tracking-tight">
+                <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight">
                   Latest Opportunities
                   {page > 1 && (
                     <span className="font-normal text-gray-500">

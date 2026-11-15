@@ -13,10 +13,10 @@ export function slugify(text: string | null | undefined): string {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/&/g, '-and-') // Replace & with 'and'
-    .replace(/[^\w-]+/g, '') // Remove all non-word characters
-    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/\s+/gu, '-') // Replace spaces with -
+    .replace(/&/gu, '-and-') // Replace & with 'and'
+    .replace(/[^\w-]+/gu, '') // Remove all non-word characters
+    .replace(/--+/gu, '-') // Replace multiple - with single -
     .replace(LEADING_DASHES_REGEX, '') // Trim - from start of text
     .replace(TRAILING_DASHES_REGEX, ''); // Trim - from end of text
 }

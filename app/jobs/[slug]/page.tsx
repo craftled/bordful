@@ -23,7 +23,7 @@ import { generateJobSlug } from '@/lib/utils/slugify';
 const CHECKBOX_MARKER_LENGTH = 4;
 
 // Regex constants for performance
-const FINAL_WORD_REGEX = /(\w)$/;
+const FINAL_WORD_REGEX = /(\w)$/u;
 
 // Generate static params for all active jobs
 export async function generateStaticParams() {
@@ -155,7 +155,7 @@ export async function generateMetadata({
   const description = parts
     .join('. ')
     // Fix any double periods
-    .replace(/\.\./g, '.')
+    .replace(/\.\./gu, '.')
     // Ensure there's a period at the end
     .replace(FINAL_WORD_REGEX, '$1.');
 
@@ -239,10 +239,10 @@ export default async function JobPostPage({
           </div>
           <div className="mb-8">
             <div className="space-y-2">
-              <h1 className="font-semibold text-2xl">{job.title}</h1>
+              <h1 className="text-2xl font-semibold">{job.title}</h1>
               <div className="text-base text-gray-600">{job.company}</div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
-                <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                   <span>{job.type}</span>
                   {showSalary && (
                     <>
@@ -281,7 +281,7 @@ export default async function JobPostPage({
 
           <div className="prose prose-sm prose-gray max-w-none">
             <div aria-hidden="true" className="my-8 h-px bg-gray-200" />
-            <div className="markdown-content [&_a:hover]:text-zinc-800 [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a]:transition-colors">
+            <div className="markdown-content [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a]:transition-colors [&_a:hover]:text-zinc-800">
               {!job.description && (
                 <p className="text-red-500">No description available</p>
               )}
@@ -290,16 +290,16 @@ export default async function JobPostPage({
                 components={{
                   // Customize heading styles - consistent with the rest of the app
                   h1: ({ ...props }) => (
-                    <h1 className="mb-2 font-semibold text-2xl" {...props} />
+                    <h1 className="mb-2 text-2xl font-semibold" {...props} />
                   ),
                   h2: ({ ...props }) => (
-                    <h2 className="mb-2 font-semibold text-xl" {...props} />
+                    <h2 className="mb-2 text-xl font-semibold" {...props} />
                   ),
                   h3: ({ ...props }) => (
-                    <h3 className="mb-2 font-semibold text-lg" {...props} />
+                    <h3 className="mb-2 text-lg font-semibold" {...props} />
                   ),
                   h4: ({ ...props }) => (
-                    <h4 className="mb-2 font-semibold text-base" {...props} />
+                    <h4 className="mb-2 text-base font-semibold" {...props} />
                   ),
                   // Style links
                   a: ({ href, ...props }) =>
@@ -324,20 +324,18 @@ export default async function JobPostPage({
                       />
                     );
                   },
-                  ol: ({ className, ...props }) => {
-                    return (
-                      <ol
-                        className={`my-2 ml-4 list-decimal ${className || ''}`}
-                        {...props}
-                      />
-                    );
-                  },
+                  ol: ({ className, ...props }) => (
+                    <ol
+                      className={`my-2 ml-4 list-decimal ${className || ''}`}
+                      {...props}
+                    />
+                  ),
                   // Style paragraphs
                   p: ({ ...props }) => <p className="my-2" {...props} />,
                   // Style blockquotes (for Airtable quote blocks)
                   blockquote: ({ ...props }) => (
                     <blockquote
-                      className="my-4 border-gray-200 border-l-4 pl-4 italic"
+                      className="my-4 border-l-4 border-gray-200 pl-4 italic"
                       {...props}
                     />
                   ),
@@ -427,11 +425,11 @@ export default async function JobPostPage({
           {/* Application Requirements - Prominently displayed before apply button */}
           {job.application_requirements && (
             <div className="mt-6 mb-4 rounded-md border border-amber-200 bg-amber-50 p-2">
-              <h3 className="mb-1.5 flex items-center gap-1 font-semibold text-xs">
+              <h3 className="mb-1.5 flex items-center gap-1 text-xs font-semibold">
                 <ClipboardList className="h-3.5 w-3.5 text-amber-600" />
                 Application Requirements
               </h3>
-              <p className="text-gray-700 text-xs">
+              <p className="text-xs text-gray-700">
                 {job.application_requirements}
               </p>
             </div>
@@ -462,7 +460,7 @@ export default async function JobPostPage({
                   const deadline = new Date(job.valid_through);
                   return (
                     !Number.isNaN(deadline.getTime()) && (
-                      <span className="w-full text-center text-gray-500 text-xs sm:w-auto sm:text-left">
+                      <span className="w-full text-center text-xs text-gray-500 sm:w-auto sm:text-left">
                         Apply before:{' '}
                         {deadline.toLocaleDateString('en-US', {
                           year: 'numeric',

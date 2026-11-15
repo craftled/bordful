@@ -184,7 +184,7 @@ function parseExperienceMonths(
   // Look for years pattern (e.g., "2+ years", "2-3 years", "minimum 2 years")
   const yearsMatch = experienceText
     .toLowerCase()
-    .match(/(\d+)(?:\s*\+|\s*-\s*\d+)?\s*years?/);
+    .match(/(\d+)(?:\s*\+|\s*-\s*\d+)?\s*years?/u);
   if (yearsMatch?.[1]) {
     return Number.parseInt(yearsMatch[1], 10) * 12; // Convert years to months
   }
@@ -192,7 +192,7 @@ function parseExperienceMonths(
   // Look for months pattern (e.g., "6 months", "6+ months")
   const monthsMatch = experienceText
     .toLowerCase()
-    .match(/(\d+)(?:\s*\+|\s*-\s*\d+)?\s*months?/);
+    .match(/(\d+)(?:\s*\+|\s*-\s*\d+)?\s*months?/u);
   if (monthsMatch?.[1]) {
     return Number.parseInt(monthsMatch[1], 10);
   }

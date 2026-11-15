@@ -31,7 +31,7 @@ export function JobsPerPageSelect() {
     config.jobListings?.labels?.perPage?.text || 'Jobs per page:';
 
   // Ensure perPage is a valid option
-  const validPerPage = perPageOptions.includes(perPage)
+  const validPerPage = (perPageOptions as readonly number[]).includes(perPage)
     ? perPage
     : defaultPerPage;
 
@@ -43,7 +43,7 @@ export function JobsPerPageSelect() {
       {/* Only show label if configured */}
       {showLabel && (
         <label
-          className="hidden whitespace-nowrap text-muted-foreground text-sm sm:inline"
+          className="text-muted-foreground hidden text-sm whitespace-nowrap sm:inline"
           htmlFor="per-page-trigger"
         >
           {labelText}

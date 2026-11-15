@@ -67,7 +67,7 @@ function FilterItem({
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
         <Checkbox checked={checked} id={id} onCheckedChange={onCheckedChange} />
-        <Label className="font-normal text-sm" htmlFor={id}>
+        <Label className="text-sm font-normal" htmlFor={id}>
           {label}
         </Label>
       </div>
@@ -102,7 +102,7 @@ function SwitchItem({
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
         <Switch checked={checked} id={id} onCheckedChange={onCheckedChange} />
-        <Label className="font-normal text-gray-500 text-sm" htmlFor={id}>
+        <Label className="text-sm font-normal text-gray-500" htmlFor={id}>
           {checked ? 'Yes' : 'No'}
         </Label>
       </div>
@@ -231,12 +231,11 @@ export function JobFilters({
     (
       filterType: Extract<FilterType, 'remote' | 'visa'>,
       setter: (value: boolean | null) => Promise<URLSearchParams>
-    ) => {
-      return async (checked: boolean) => {
+    ) =>
+      async (checked: boolean) => {
         await setter(checked || null);
         onFilterChange(filterType, checked);
-      };
-    },
+      },
     [onFilterChange]
   );
 
@@ -245,12 +244,11 @@ export function JobFilters({
     (
       filterType: Extract<FilterType, 'type' | 'role' | 'salary' | 'language'>,
       setter: (value: null) => Promise<URLSearchParams>
-    ) => {
-      return async () => {
+    ) =>
+      async () => {
         await setter(null);
         onFilterChange(filterType, []);
-      };
-    },
+      },
     [onFilterChange]
   );
 
@@ -259,12 +257,11 @@ export function JobFilters({
     (
       filterType: Extract<FilterType, 'remote' | 'visa'>,
       setter: (value: null) => Promise<URLSearchParams>
-    ) => {
-      return async () => {
+    ) =>
+      async () => {
         await setter(null);
         onFilterChange(filterType, false);
-      };
-    },
+      },
     [onFilterChange]
   );
 
@@ -474,7 +471,7 @@ export function JobFilters({
     <div className="relative rounded-lg border bg-gray-50 p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="font-semibold text-md">Filters</h2>
+          <h2 className="text-md font-semibold">Filters</h2>
           <button
             aria-controls="filter-content"
             aria-expanded={isExpanded}
@@ -511,7 +508,7 @@ export function JobFilters({
       >
         {/* Job Type */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-md">Job Type</h3>
+          <h3 className="text-md font-semibold">Job Type</h3>
           <div className="space-y-3">
             {/* Map over job types from constants instead of hardcoding */}
             {Object.entries(JOB_TYPE_DISPLAY_NAMES).map(
@@ -531,7 +528,7 @@ export function JobFilters({
 
         {/* Career Level */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-md">Career Level</h3>
+          <h3 className="text-md font-semibold">Career Level</h3>
           <div className="space-y-3">
             {visibleLevels.map((level) => (
               <FilterItem
@@ -554,7 +551,7 @@ export function JobFilters({
 
         {/* Remote Only */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-md">Remote Only</h3>
+          <h3 className="text-md font-semibold">Remote Only</h3>
           <SwitchItem
             checked={remoteParam}
             count={counts.remote}
@@ -566,13 +563,13 @@ export function JobFilters({
 
         {/* Salary Range */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-md">Salary Range</h3>
+          <h3 className="text-md font-semibold">Salary Range</h3>
           <div className="space-y-3">
             {Object.entries(counts.salary).map(([range, count]) => (
               <FilterItem
                 checked={salaryRangesParam.includes(range)}
                 count={count}
-                id={`salary-${range.toLowerCase().replace(/[\s$>]/g, '-')}`}
+                id={`salary-${range.toLowerCase().replace(/[\s$>]/gu, '-')}`}
                 key={range}
                 label={`${range}/year`}
                 onCheckedChange={(checked) =>
@@ -585,7 +582,7 @@ export function JobFilters({
 
         {/* Visa Sponsorship */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-md">Visa Sponsorship</h3>
+          <h3 className="text-md font-semibold">Visa Sponsorship</h3>
           <SwitchItem
             checked={visaParam}
             count={counts.visa || 0}
@@ -596,7 +593,7 @@ export function JobFilters({
 
         {/* Languages */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-md">Languages</h3>
+          <h3 className="text-md font-semibold">Languages</h3>
           <div className="space-y-3">
             {languageEntries.visible.map(([lang, count]) => (
               <FilterItem

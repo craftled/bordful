@@ -62,7 +62,7 @@ export function JobSearchInput({
 
   return (
     <div className="relative">
-      <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
+      <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
       <Input
         aria-label={finalAriaLabel}
         className={className}
@@ -76,14 +76,14 @@ export function JobSearchInput({
       {inputValue && (
         <button
           aria-label="Clear search"
-          className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-400 hover:text-gray-600"
+          className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           onClick={onClear}
         >
           <X className="h-4 w-4" />
         </button>
       )}
       {isSearching && (
-        <div className="-translate-y-1/2 absolute top-1/2 right-10">
+        <div className="absolute top-1/2 right-10 -translate-y-1/2">
           <div className="pulse-dot h-2 w-2 rounded-full bg-blue-500 opacity-75" />
         </div>
       )}

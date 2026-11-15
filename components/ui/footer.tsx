@@ -23,14 +23,14 @@ type BaseFooterColumn = {
 };
 
 interface LinksFooterColumn extends BaseFooterColumn {
-  type?: 'links';
-  links: FooterLink[];
   autoAddFeatures?: {
     jobAlerts?: boolean;
     pricing?: boolean;
     faq?: boolean;
     contact?: boolean;
   };
+  links: FooterLink[];
+  type?: 'links';
 }
 
 interface FeedsFooterColumn extends BaseFooterColumn {
@@ -57,10 +57,10 @@ export function Footer() {
     const startYear = config.footer.copyright.startYear;
     const currentYear = new Date().getFullYear();
 
-    if (currentYear !== startYear) {
-      setCopyrightYears(`${startYear}-${currentYear}`);
-    } else {
+    if (currentYear === startYear) {
       setCopyrightYears(startYear.toString());
+    } else {
+      setCopyrightYears(`${startYear}-${currentYear}`);
     }
   }, []);
 
@@ -118,7 +118,7 @@ export function Footer() {
             />
           </Link>
         ) : (
-          <h3 className="mb-3.5 font-semibold text-sm" style={headingStyle}>
+          <h3 className="mb-3.5 text-sm font-semibold" style={headingStyle}>
             {config.nav.title}
           </h3>
         )}
@@ -270,7 +270,7 @@ export function Footer() {
   // Generate job feeds column content
   const renderJobFeedsContent = (title: string) => (
     <div className="space-y-2">
-      <h3 className="mb-2 font-semibold text-sm" style={headingStyle}>
+      <h3 className="mb-2 text-sm font-semibold" style={headingStyle}>
         {title}
       </h3>
       <ul className="space-y-2.5">
@@ -332,7 +332,7 @@ export function Footer() {
     links: Array<{ label: string; link: string; external?: boolean }>
   ) => (
     <div className="space-y-2">
-      <h3 className="mb-2 font-semibold text-sm" style={headingStyle}>
+      <h3 className="mb-2 text-sm font-semibold" style={headingStyle}>
         {title}
       </h3>
       <ul className="space-y-1">
@@ -455,10 +455,10 @@ export function Footer() {
       <div className="container mx-auto px-4">
         {/* Post Job Banner - Moved to the top and redesigned */}
         {config.footer.postJob.show && (
-          <div className="border-zinc-800 border-b py-12">
+          <div className="border-b border-zinc-800 py-12">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div className="mb-6 space-y-2 lg:mb-0">
-                <h2 className="font-semibold text-xl" style={headingStyle}>
+                <h2 className="text-xl font-semibold" style={headingStyle}>
                   {config.footer.postJob.title ||
                     'Start your 30-day free trial'}
                 </h2>
@@ -542,18 +542,18 @@ export function Footer() {
 
         <div className="py-10">
           <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-1 gap-4 border-zinc-800 border-b pb-8 sm:grid-cols-1">
+            <div className="grid grid-cols-1 gap-4 border-b border-zinc-800 pb-8 sm:grid-cols-1">
               {/* Special handling for brand column */}
               {sortedColumns.length > 0 && sortedColumns[0].id === 'brand' ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-10 min-[960px]:grid-cols-12">
+                <div className="grid grid-cols-1 gap-4 min-[960px]:grid-cols-12 md:grid-cols-10">
                   {/* Brand column takes up full height on the left */}
-                  <div className="self-start md:sticky md:top-8 md:col-span-3 min-[960px]:col-span-3">
+                  <div className="self-start min-[960px]:col-span-3 md:sticky md:top-8 md:col-span-3">
                     {sortedColumns[0].content}
                   </div>
 
                   {/* Other columns stack in remaining space */}
-                  <div className="md:col-span-7 min-[960px]:col-span-9">
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 min-[300px]:grid-cols-2 min-[960px]:grid-cols-4">
+                  <div className="min-[960px]:col-span-9 md:col-span-7">
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-8 min-[300px]:grid-cols-2 min-[960px]:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
                       {sortedColumns.slice(1).map((column) => (
                         <div key={column.id}>{column.content}</div>
                       ))}
@@ -562,7 +562,7 @@ export function Footer() {
                 </div>
               ) : (
                 /* Fallback to regular grid if brand isn't first */
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 min-[300px]:grid-cols-2 min-[960px]:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 min-[300px]:grid-cols-2 min-[960px]:grid-cols-4 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
                   {sortedColumns.map((column) => (
                     <div key={column.id}>{column.content}</div>
                   ))}

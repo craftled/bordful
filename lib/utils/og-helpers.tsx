@@ -18,17 +18,17 @@ import {
 } from '@/lib/utils/og-config';
 
 export interface LogoConfig {
+  height?: number | string;
   show?: boolean;
   src?: string;
   width?: number | string;
-  height?: number | string;
 }
 
 export interface ProcessedLogoConfig {
   dataUri: string;
+  enabled: boolean;
   height: number;
   width: number;
-  enabled: boolean;
 }
 
 /**
@@ -94,7 +94,9 @@ export async function prepareOGAssets(parsedConfig: ProcessedOGConfig) {
 export async function prepareBackgroundImage(
   backgroundImage?: string | null
 ): Promise<string> {
-  if (!backgroundImage) return '';
+  if (!backgroundImage) {
+    return '';
+  }
 
   return await fetchImageAsDataURI(backgroundImage, config.url);
 }
@@ -170,8 +172,7 @@ export async function createOGImageResponse(
           }}
           width={SHARED_STYLES.DIMENSIONS.WIDTH}
         />
-      )
-}
+      )}
 
       {/* Background Color Overlay */}
       <div

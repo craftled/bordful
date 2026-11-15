@@ -84,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...new Set(jobs.map((job) => job.type).filter(Boolean)),
     ];
     const typeRoutes = uniqueTypes.map((type) => ({
-      url: `${baseUrl}/jobs/type/${type.toLowerCase().replace(/\s+/g, '-')}`,
+      url: `${baseUrl}/jobs/type/${type.toLowerCase().replace(/\s+/gu, '-')}`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.6,
@@ -115,7 +115,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const locationRoutes = locations.map((location) => ({
       url: `${baseUrl}/jobs/location/${location
         .toLowerCase()
-        .replace(/\s+/g, '-')}`,
+        .replace(/\s+/gu, '-')}`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.6,

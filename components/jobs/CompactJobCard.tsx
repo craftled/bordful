@@ -39,7 +39,7 @@ export function CompactJobCard({ job }: { job: Job }) {
         {/* Title and badges */}
         <div className="min-w-0 flex-grow">
           <div className="flex items-center gap-1.5">
-            <h3 className="line-clamp-1 max-w-[calc(100%-70px)] font-medium text-sm">
+            <h3 className="line-clamp-1 max-w-[calc(100%-70px)] text-sm font-medium">
               {limitedTitle}
             </h3>
             <div className="flex shrink-0 flex-nowrap gap-1">
@@ -63,13 +63,13 @@ export function CompactJobCard({ job }: { job: Job }) {
           </div>
 
           {/* Company */}
-          <div className="line-clamp-1 text-gray-600 text-xs">
+          <div className="line-clamp-1 text-xs text-gray-600">
             {job.company}
           </div>
         </div>
 
         {/* Essential info */}
-        <div className="flex shrink-0 items-center gap-2 text-gray-500 text-xs">
+        <div className="flex shrink-0 items-center gap-2 text-xs text-gray-500">
           <span className="whitespace-nowrap">{job.type}</span>
           {showSalary && (
             <>

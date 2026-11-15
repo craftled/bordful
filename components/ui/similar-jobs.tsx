@@ -44,7 +44,7 @@ export function SimilarJobs({ currentJob, allJobs }: SimilarJobsProps) {
 
   return (
     <div>
-      <h2 className="mb-3 font-semibold text-lg">Similar Jobs</h2>
+      <h2 className="mb-3 text-lg font-semibold">Similar Jobs</h2>
       <div className="space-y-3">
         {similarJobs.map((job) => {
           // Format location based on workplace type
@@ -72,7 +72,7 @@ export function SimilarJobs({ currentJob, allJobs }: SimilarJobsProps) {
               key={job.id}
             >
               <div className="text-xs leading-tight">{job.title}</div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500 leading-tight">
+              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] leading-tight text-gray-500">
                 <span>{job.company}</span>
                 <span>•</span>
                 <span>{job.type}</span>

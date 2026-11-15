@@ -201,7 +201,7 @@ export function JobsLayout({ filteredJobs }: JobsLayoutProps) {
         <div className="order-2 flex-[3] lg:order-1">
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-0">
             <div className="w-full space-y-1 sm:w-auto">
-              <h1 className="flex flex-wrap items-center gap-2 font-semibold text-xl tracking-tight lg:text-2xl">
+              <h1 className="flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight lg:text-2xl">
                 Latest Jobs
                 {page > 1 && (
                   <span className="font-normal text-gray-500">Page {page}</span>

@@ -223,12 +223,12 @@ export function resolveColor(color?: string): string {
   }
 
   // If it starts with #, rgb, rgba, hsl, etc., it's already a CSS color
-  if (/^(#|rgb|rgba|hsl|hsla)/.test(color)) {
+  if (/^(#|rgb|rgba|hsl|hsla)/u.test(color)) {
     return color;
   }
 
   // Check if it's a Tailwind color pattern (color-shade)
-  const match = color.match(/^([a-z]+)-([0-9]+)$/);
+  const match = color.match(/^([a-z]+)-([0-9]+)$/u);
   if (match) {
     const [, colorName, shade] = match;
     const shadeNum = Number.parseInt(shade, 10);

@@ -23,15 +23,15 @@ export function normalizeMarkdown(raw: string): string {
   let fixed = raw;
 
   // Preserve literal asterisks in text by temporarily replacing them
-  fixed = fixed.replace(/\\\*/g, '___ESCAPED_ASTERISK___');
+  fixed = fixed.replace(/\\\*/gu, '___ESCAPED_ASTERISK___');
 
   // Ensure bolded section headers are properly separated into their own paragraphs
-  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+(?::\*\*|\*\*))/g, '$1\n\n$2');
-  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+:[^*\n]*\*\*)/g, '$1\n\n$2');
+  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+(?::\*\*|\*\*))/gu, '$1\n\n$2');
+  fixed = fixed.replace(/([^\n])\n(\*\*[^*\n:]+:[^*\n]*\*\*)/gu, '$1\n\n$2');
 
   // Detect and fix section introductions with bold text ending in colons
   // like "As a distributed team, **some key qualities are particularly important** for all of us at Hop Labs:"
-  fixed = fixed.replace(/^(.+\s\*\*[^*\n:]+\*\*[^:\n]*:)\s*$/gm, (match) => {
+  fixed = fixed.replace(/^(.+\s\*\*[^*\n:]+\*\*[^:\n]*:)\s*$/gmu, (match) => {
     // Ensure it has proper paragraph breaks before and after
     return `\n${match}\n`;
   });
@@ -39,7 +39,7 @@ export function normalizeMarkdown(raw: string): string {
   // Fix common pattern where a list item has a paragraph marker attached to the end
   // This handles cases like "item text\nNew paragraph" where it should be "item text\n\nNew paragraph"
   fixed = fixed.replace(
-    /^(\s*[-*+]\s+.+?)(\n)([A-Z][a-z])/gm,
+    /^(\s*[-*+]\s+.+?)(\n)([A-Z][a-z])/gmu,
     (_match, listItem, _newline, startOfParagraph) => {
       // Only add a blank line if it appears to be a new sentence/paragraph and not part of the list item
       return `${listItem}\n\n${startOfParagraph}`;
@@ -49,7 +49,7 @@ export function normalizeMarkdown(raw: string): string {
   // Fix cases where section introductions appear after list items
   // E.g., "last list item. What we're looking for **specifically for this role**:"
   fixed = fixed.replace(
-    /^(\s*[-*+]\s+[^\n]+)(\s+)([A-Z][a-z][^:]*\s\*\*[^*\n]+\*\*[^:\n]*:)$/gm,
+    /^(\s*[-*+]\s+[^\n]+)(\s+)([A-Z][a-z][^:]*\s\*\*[^*\n]+\*\*[^:\n]*:)$/gmu,
     (_match, listItem, _spacing, sectionIntro) => {
       // Split the section intro as a separate paragraph
       return `${listItem}\n\n${sectionIntro}`;
@@ -99,10 +99,10 @@ export function normalizeMarkdown(raw: string): string {
 
     // Detect section introductions with bold text that end with a colon
     const sectionIntroMatch = trimmedLine.match(
-      /^([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)$/
+      /^([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)$/u
     );
 
-    if (sectionIntroMatch && !originalLine.match(/^(\s*)[-*+]\s+/)) {
+    if (sectionIntroMatch && !originalLine.match(/^(\s*)[-*+]\s+/u)) {
       // This is a section introduction paragraph - should be separated
 
       // If we were inside a list item, finish that first
@@ -134,10 +134,10 @@ export function normalizeMarkdown(raw: string): string {
 
     // Detect standalone bold section headers (not in lists) with or without colons
     const boldSectionHeaderMatch = trimmedLine.match(
-      /^\*\*([^*\n:]+)(?::|)\*\*$/
+      /^\*\*([^*\n:]+)(?::|)\*\*$/u
     );
 
-    if (boldSectionHeaderMatch && !originalLine.match(/^(\s*)[-*+]\s+/)) {
+    if (boldSectionHeaderMatch && !originalLine.match(/^(\s*)[-*+]\s+/u)) {
       // This is a standalone bolded section header, add an empty line before it
       // if it's not already preceded by one
       if (
@@ -169,13 +169,13 @@ export function normalizeMarkdown(raw: string): string {
     }
 
     // Calculate indentation level
-    const indentMatch = originalLine.match(/^(\s*)/);
+    const indentMatch = originalLine.match(/^(\s*)/u);
     const indentation = indentMatch ? indentMatch[1].length : 0;
 
     // Detect list items - handle standard numbered lists, letter lists, and unordered lists
-    const unorderedMatch = trimmedLine.match(/^[-*+]\s+(.*)/);
-    const orderedNumMatch = trimmedLine.match(/^\d+\.\s+(.*)/);
-    const orderedLetterMatch = trimmedLine.match(/^[a-z]\.\s+(.*)/i);
+    const unorderedMatch = trimmedLine.match(/^[-*+]\s+(.*)/u);
+    const orderedNumMatch = trimmedLine.match(/^\d+\.\s+(.*)/u);
+    const orderedLetterMatch = trimmedLine.match(/^[a-z]\.\s+(.*)/iu);
 
     // Combine all list item matches
     const orderedMatch = orderedNumMatch || orderedLetterMatch;
@@ -210,14 +210,14 @@ export function normalizeMarkdown(raw: string): string {
       }
 
       // Check if this is a bolded header with colon (e.g., "**Frontend Development:**")
-      const hasBoldHeader = /^\*\*[^*]+:\*\*/.test(content);
+      const hasBoldHeader = /^\*\*[^*]+:\*\*/u.test(content);
 
       // Start a new list item
       insideListItem = true;
 
       // Detect bolded list item that contains another bolded section header
       const containsEmbeddedHeader = content.match(
-        /^(.*?)\s+(\*\*[^*\n:]+(?::|)\*\*)\s*$/
+        /^(.*?)\s+(\*\*[^*\n:]+(?::|)\*\*)\s*$/u
       );
 
       if (containsEmbeddedHeader) {
@@ -237,7 +237,7 @@ export function normalizeMarkdown(raw: string): string {
               hasBoldHeader: false,
               markerStyle,
             });
-          } else if (indentation > listStack.at(-1).indent) {
+          } else if (indentation > (listStack.at(-1)?.indent ?? -1)) {
             // This is a nested list
             listStack.push({
               indent: indentation,
@@ -250,7 +250,7 @@ export function normalizeMarkdown(raw: string): string {
             // Pop items from stack until we find the appropriate level
             while (
               listStack.length > 0 &&
-              indentation <= listStack.at(-1).indent
+              indentation <= (listStack.at(-1)?.indent ?? -1)
             ) {
               listStack.pop();
             }
@@ -285,7 +285,7 @@ export function normalizeMarkdown(raw: string): string {
       // Look for section introductions embedded in list items
       // Like "You have 5+ years of experience. As a distributed team, **qualities are important**:"
       const embeddedSectionIntro = content.match(
-        /^(.*?\.)(\s+)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)$/
+        /^(.*?\.)(\s+)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)$/u
       );
 
       if (embeddedSectionIntro) {
@@ -305,7 +305,7 @@ export function normalizeMarkdown(raw: string): string {
               hasBoldHeader,
               markerStyle,
             });
-          } else if (indentation > listStack.at(-1).indent) {
+          } else if (indentation > (listStack.at(-1)?.indent ?? -1)) {
             // This is a nested list
             listStack.push({
               indent: indentation,
@@ -318,7 +318,7 @@ export function normalizeMarkdown(raw: string): string {
             // Pop items from stack until we find the appropriate level
             while (
               listStack.length > 0 &&
-              indentation <= listStack.at(-1).indent
+              indentation <= (listStack.at(-1)?.indent ?? -1)
             ) {
               listStack.pop();
             }
@@ -355,7 +355,7 @@ export function normalizeMarkdown(raw: string): string {
 
       // Check for list items that have new paragraph indicators
       const newParagraphIndicator = content.match(
-        /^(.*?)(\s{2,}|\t)([A-Z][a-z].+)$/
+        /^(.*?)(\s{2,}|\t)([A-Z][a-z].+)$/u
       );
       if (newParagraphIndicator) {
         // There's a paragraph break within the list item content
@@ -376,7 +376,7 @@ export function normalizeMarkdown(raw: string): string {
               hasBoldHeader,
               markerStyle,
             });
-          } else if (indentation > listStack.at(-1).indent) {
+          } else if (indentation > (listStack.at(-1)?.indent ?? -1)) {
             // This is a nested list
             listStack.push({
               indent: indentation,
@@ -389,7 +389,7 @@ export function normalizeMarkdown(raw: string): string {
             // Pop items from stack until we find the appropriate level
             while (
               listStack.length > 0 &&
-              indentation <= listStack.at(-1).indent
+              indentation <= (listStack.at(-1)?.indent ?? -1)
             ) {
               listStack.pop();
             }
@@ -428,7 +428,7 @@ export function normalizeMarkdown(raw: string): string {
           hasBoldHeader,
           markerStyle,
         });
-      } else if (indentation > listStack.at(-1).indent) {
+      } else if (indentation > (listStack.at(-1)?.indent ?? -1)) {
         // This is a nested list
         listStack.push({
           indent: indentation,
@@ -439,7 +439,10 @@ export function normalizeMarkdown(raw: string): string {
         });
       } else {
         // Pop items from stack until we find the appropriate level
-        while (listStack.length > 0 && indentation <= listStack.at(-1).indent) {
+        while (
+          listStack.length > 0 &&
+          indentation <= (listStack.at(-1)?.indent ?? -1)
+        ) {
           listStack.pop();
         }
         listStack.push({
@@ -474,11 +477,12 @@ export function normalizeMarkdown(raw: string): string {
       // This is not a list item
       if (listStack.length > 0) {
         // Check if this is content belonging to the previous list item
-        const lastItem = listStack.at(-1);
+        // listStack is non-empty here, so the fallback never applies.
+        const lastIndent = listStack.at(-1)?.indent ?? 0;
 
         // Check if this is a section introduction (with bold text and ending in colon)
         const isSectionIntro = trimmedLine.match(
-          /^[A-Z].*?\s\*\*[^*\n]+\*\*[^:\n]*:$/
+          /^[A-Z].*?\s\*\*[^*\n]+\*\*[^:\n]*:$/u
         );
 
         if (isSectionIntro) {
@@ -507,15 +511,15 @@ export function normalizeMarkdown(raw: string): string {
           continue;
         }
 
-        if (indentation >= lastItem.indent) {
+        if (indentation >= lastIndent) {
           // This is content at the same or greater indentation level as the list item
           const listIndent = '  '.repeat(listStack.length - 1);
           const contentIndent = '  '; // Standard markdown indentation for content
 
           // Check if this starts with a bold section marker that should be separated
           if (
-            /^\*\*[^*\n:]+:?\*\*/.test(trimmedLine) &&
-            !trimmedLine.match(/^\*\*[^*:]+\*\*.*?[a-z]/)
+            /^\*\*[^*\n:]+:?\*\*/u.test(trimmedLine) &&
+            !trimmedLine.match(/^\*\*[^*:]+\*\*.*?[a-z]/u)
           ) {
             // Not a bold inside a sentence
 
@@ -542,10 +546,10 @@ export function normalizeMarkdown(raw: string): string {
           }
           // Check if this line appears to be a new paragraph starting with a capital letter
           else if (
-            /^[A-Z][a-z]/.test(trimmedLine) || // Line starts with a capital letter
-            (!trimmedLine.match(/^[-*+]|^\d+\.|^[a-z]\./) && // Not a list marker
+            /^[A-Z][a-z]/u.test(trimmedLine) || // Line starts with a capital letter
+            (!trimmedLine.match(/^[-*+]|^\d+\.|^[a-z]\./u) && // Not a list marker
               trimmedLine !== '' && // Not an empty line
-              indentation === lastItem.indent) // At the exact same indentation as the list item
+              indentation === lastIndent) // At the exact same indentation as the list item
           ) {
             // This looks like a new paragraph or non-list content
 
@@ -567,7 +571,7 @@ export function normalizeMarkdown(raw: string): string {
           } else {
             // Check if this line contains a bold header that should be separated
             const embeddedBoldHeader = trimmedLine.match(
-              /^\*\*([^*\n:]+)(?::|)\*\*$/
+              /^\*\*([^*\n:]+)(?::|)\*\*$/u
             );
 
             if (embeddedBoldHeader) {
@@ -584,7 +588,7 @@ export function normalizeMarkdown(raw: string): string {
               if (insideListItem) {
                 // Check if this contains a section intro pattern within content
                 const contentSectionIntro = trimmedLine.match(
-                  /^(.*?\.)(\s+)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)$/
+                  /^(.*?\.)(\s+)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)$/u
                 );
 
                 if (contentSectionIntro) {
@@ -626,7 +630,7 @@ export function normalizeMarkdown(raw: string): string {
                 // If content contains a line starting with bold, special handling
                 if (
                   trimmedLine.startsWith('**') &&
-                  !trimmedLine.match(/^\*\*[^*]+\*\*[^A-Z]/)
+                  !trimmedLine.match(/^\*\*[^*]+\*\*[^A-Z]/u)
                 ) {
                   // Not just emphasis in a sentence
 
@@ -690,8 +694,8 @@ export function normalizeMarkdown(raw: string): string {
           !nextLine.startsWith('-') &&
           !nextLine.startsWith('*') &&
           !nextLine.startsWith('+') &&
-          !nextLine.match(/^\d+\.\s+/) &&
-          !nextLine.match(/^[a-z]\.\s+/i)
+          !nextLine.match(/^\d+\.\s+/u) &&
+          !nextLine.match(/^[a-z]\.\s+/iu)
         ) {
           result.push('');
         }
@@ -712,26 +716,26 @@ export function normalizeMarkdown(raw: string): string {
   // Apply additional formatting with regex for specific patterns
 
   // Ensure standalone bold headers are properly formatted with spacing
-  processed = processed.replace(/^(\*\*[^*\n:]+(?::|)\*\*)\s*$/gm, (match) => {
-    return `${match}\n`;
-  });
+  processed = processed.replace(
+    /^(\*\*[^*\n:]+(?::|)\*\*)\s*$/gmu,
+    (match) => `${match}\n`
+  );
 
   // Fix bolded headers with proper spacing
   processed = processed.replace(
-    /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*$/gm,
-    (_match, indent, title) => {
-      return `${indent}- **${title}:**`;
-    }
+    /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*$/gmu,
+    (_match, indent, title) => `${indent}- **${title}:**`
   );
 
   // Fix bold headers with colons to preserve spaces after the colon
-  processed = processed.replace(/\*\*([^*\n:]+):\s*\*\*/g, (_match, title) => {
-    return `**${title}:** `;
-  });
+  processed = processed.replace(
+    /\*\*([^*\n:]+):\s*\*\*/gu,
+    (_match, title) => `**${title}:** `
+  );
 
   // Ensure proper nesting for nested lists following bold headers
   processed = processed.replace(
-    /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*\n(\s*)[-*+]\s+/gm,
+    /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*\n(\s*)[-*+]\s+/gmu,
     (match, indent1, title, indent2) => {
       // Check if the following list item should be nested
       if (indent2.length <= indent1.length) {
@@ -744,7 +748,7 @@ export function normalizeMarkdown(raw: string): string {
 
   // Ensure proper nesting for mixed list types (numbered followed by unordered)
   processed = processed.replace(
-    /^(\s*)(\d+)\.\s+\*\*([^*\n]+):\*\*\s*\n(\s*)[-*+]\s+/gm,
+    /^(\s*)(\d+)\.\s+\*\*([^*\n]+):\*\*\s*\n(\s*)[-*+]\s+/gmu,
     (match, indent1, number, title, indent2) => {
       // Check if the following list item should be nested
       if (indent2.length <= indent1.length) {
@@ -757,7 +761,7 @@ export function normalizeMarkdown(raw: string): string {
 
   // Ensure proper nesting for mixed list types (unordered followed by numbered)
   processed = processed.replace(
-    /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*\n(\s*)(\d+)\.\s+/gm,
+    /^(\s*)[-*+]\s+\*\*([^*\n]+):\*\*\s*\n(\s*)(\d+)\.\s+/gmu,
     (match, indent1, title, indent2, number) => {
       // Check if the following list item should be nested
       if (indent2.length <= indent1.length) {
@@ -770,7 +774,7 @@ export function normalizeMarkdown(raw: string): string {
 
   // Fix nested numbering for ordered lists
   processed = processed.replace(
-    /^(\s*)(\d+)\.\s+(.+)\n(\s*)(\d+)\.\s+/gm,
+    /^(\s*)(\d+)\.\s+(.+)\n(\s*)(\d+)\.\s+/gmu,
     (match, indent1, number1, content, indent2) => {
       // If indentation increases, this is a nested list
       if (indent2.length > indent1.length) {
@@ -783,7 +787,7 @@ export function normalizeMarkdown(raw: string): string {
 
   // Find section introductions that aren't properly separated
   processed = processed.replace(
-    /([^\n])(\n)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)(\n)/g,
+    /([^\n])(\n)([A-Z][a-z].*?\s\*\*[^*\n]+\*\*[^:\n]*:)(\n)/gu,
     (_match, prevContent, _newline1, sectionIntro) => {
       // Make sure section intros have paragraphs breaks
       return `${prevContent}\n\n${sectionIntro}\n\n`;
@@ -791,31 +795,30 @@ export function normalizeMarkdown(raw: string): string {
   );
 
   // Handle bold text formatting (preserve original spacing)
-  processed = processed.replace(/\*\*\s*([^*\n]+?)\s*\*\*/g, (_, content) => {
-    return `**${content}**`;
-  });
+  processed = processed.replace(
+    /\*\*\s*([^*\n]+?)\s*\*\*/gu,
+    (_, content) => `**${content}**`
+  );
 
   // Fix missing spaces between bold text and opening parentheses
-  processed = processed.replace(/\*\*([^*\n]+?)\*\*\(/g, '**$1** (');
+  processed = processed.replace(/\*\*([^*\n]+?)\*\*\(/gu, '**$1** (');
 
   // Ensure proper separation between paragraphs and lists
-  processed = processed.replace(/([^\n])\n([-*+\d][.*\-+]?\s)/g, '$1\n\n$2');
+  processed = processed.replace(/([^\n])\n([-*+\d][.*\-+]?\s)/gu, '$1\n\n$2');
 
   // Ensure proper separation between headings and content
-  processed = processed.replace(/(^#[^\n]+)\n([^#\n])/gm, '$1\n\n$2');
+  processed = processed.replace(/(^#[^\n]+)\n([^#\n])/gmu, '$1\n\n$2');
 
   // Fix line breaks within list items that might contain bolded text
   // This prevents improper breaking of lines with bold formatting
   processed = processed.replace(
-    /^(\s*)[-*+]\s+([^*\n]*)\*\*([^*\n]+)\*\*$/gm,
-    (_match, indent, prefix, boldText) => {
-      return `${indent}- ${prefix}**${boldText}**`;
-    }
+    /^(\s*)[-*+]\s+([^*\n]*)\*\*([^*\n]+)\*\*$/gmu,
+    (_match, indent, prefix, boldText) => `${indent}- ${prefix}**${boldText}**`
   );
 
   // Fix incorrectly split bold text in list items
   processed = processed.replace(
-    /^(\s*)[-*+]\s+([^*\n]*?)(\n+)(\*\*[^*\n]+\*\*)/gm,
+    /^(\s*)[-*+]\s+([^*\n]*?)(\n+)(\*\*[^*\n]+\*\*)/gmu,
     (match, indent, prefix, _newlines, boldText) => {
       // Only combine if it looks like they should be together
       if (
@@ -832,15 +835,16 @@ export function normalizeMarkdown(raw: string): string {
   );
 
   // Ensure proper separation around bold headers that are section markers
-  processed = processed.replace(/^(\*\*[^*\n:]+(?::|)\*\*)$/gm, (match) => {
-    return `\n${match}\n`;
-  });
+  processed = processed.replace(
+    /^(\*\*[^*\n:]+(?::|)\*\*)$/gmu,
+    (match) => `\n${match}\n`
+  );
 
   // Remove excessive blank lines (more than 2 consecutive)
-  processed = processed.replace(/\n{3,}/g, '\n\n');
+  processed = processed.replace(/\n{3,}/gu, '\n\n');
 
   // Restore literal asterisks
-  processed = processed.replace(/___ESCAPED_ASTERISK___/g, '\\*');
+  processed = processed.replace(/___ESCAPED_ASTERISK___/gu, '\\*');
 
   // Process the Markdown through unified with standard settings
   const file = unified()

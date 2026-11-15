@@ -21,7 +21,7 @@ const rateLimitMap = new Map<string, RateLimitInfo>();
 const RATE_LIMIT_MAX = 5; // Maximum requests per window
 
 // Email validation regex
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/u;
 
 // Rate limiting function
 function isRateLimited(ip: string): boolean {

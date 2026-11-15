@@ -13,7 +13,7 @@ export function CompactJobCardList({
   return (
     <div className={`overflow-hidden rounded-md border ${className}`}>
       {jobs.map((job, index) => (
-        <div className={index !== 0 ? 'border-t' : ''} key={job.id}>
+        <div className={index === 0 ? '' : 'border-t'} key={job.id}>
           <CompactJobCard job={job} />
         </div>
       ))}

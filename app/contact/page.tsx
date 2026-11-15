@@ -49,9 +49,9 @@ export default function ContactPage() {
   // If contact page is not enabled, redirect to home page
   if (!config.contact?.enabled) {
     return (
-      <main className="min-h-screen bg-background">
+      <main className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="mb-4 font-bold text-2xl">
+          <h1 className="mb-4 text-2xl font-bold">
             Contact Page Not Available
           </h1>
           <p className="mb-6">The contact page is currently not available.</p>
@@ -69,7 +69,7 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="bg-background min-h-screen">
       {/* Add ContactPage Schema */}
       <ContactSchema
         address={config.contact.contactInfo.address}
@@ -92,7 +92,7 @@ export default function ContactPage() {
           <MetadataBreadcrumb metadata={metadata} pathname="/contact" />
         </div>
 
-        <h2 className="mb-8 text-center font-semibold text-2xl text-zinc-900">
+        <h2 className="mb-8 text-center text-2xl font-semibold text-zinc-900">
           {config.contact.supportChannels.title}
         </h2>
 

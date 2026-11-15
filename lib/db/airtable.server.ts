@@ -13,8 +13,8 @@ import {
   type LanguageCode,
 } from '@/lib/constants/languages';
 import type { RemoteRegion, WorkplaceType } from '@/lib/constants/workplace';
-import { normalizeMarkdown } from '@/lib/utils/markdown';
 import type { CareerLevel, Job, SalaryUnit } from '@/lib/db/airtable';
+import { normalizeMarkdown } from '@/lib/utils/markdown';
 
 type AirtableBase = ReturnType<Airtable['base']>;
 
@@ -22,7 +22,7 @@ const getAirtableBase = cache((): AirtableBase | null => {
   const apiKey = process.env.AIRTABLE_ACCESS_TOKEN;
   const baseId = process.env.AIRTABLE_BASE_ID;
 
-  if (!apiKey || !baseId) {
+  if (!(apiKey && baseId)) {
     return null;
   }
 
@@ -48,13 +48,13 @@ function normalizeCareerLevel(value: unknown): CareerLevel[] {
     // Convert Airtable's display values to our enum values
     return value.map((level) => {
       // Handle Airtable's display format (e.g., "Entry Level" -> "EntryLevel")
-      const normalized = level.replace(/\s+/g, '');
+      const normalized = level.replace(/\s+/gu, '');
       return normalized as CareerLevel;
     });
   }
 
   // Handle single value
-  const normalized = (value as string).replace(/\s+/g, '');
+  const normalized = (value as string).replace(/\s+/gu, '');
   return [normalized as CareerLevel];
 }
 
@@ -102,7 +102,7 @@ function normalizeLanguages(value: unknown): LanguageCode[] {
     .map((item) => {
       if (typeof item === 'string') {
         // Extract code from "Language Name (code)" format
-        const languageCodeMatch = /.*?\(([a-z]{2})\)$/i.exec(item);
+        const languageCodeMatch = /.*?\(([a-z]{2})\)$/iu.exec(item);
         if (languageCodeMatch?.[1]) {
           const extractedCode = languageCodeMatch[1].toLowerCase();
           if (LANGUAGE_CODES.includes(extractedCode as LanguageCode)) {
@@ -138,7 +138,7 @@ function normalizeCurrency(value: unknown): CurrencyCode {
 
   if (typeof value === 'string') {
     // Extract code from "USD (United States Dollar)" format
-    const currencyCodeMatch = /^([A-Z]{2,5})\s*\(.*?\)$/i.exec(value);
+    const currencyCodeMatch = /^([A-Z]{2,5})\s*\(.*?\)$/iu.exec(value);
     if (currencyCodeMatch?.[1]) {
       const extractedCode = currencyCodeMatch[1].toUpperCase();
       if (CURRENCY_CODES.includes(extractedCode as CurrencyCode)) {
@@ -207,10 +207,10 @@ function normalizeVisaSponsorship(
 
   if (typeof value === 'string') {
     const normalizedValue = value.trim();
-    if (/^yes$/i.test(normalizedValue)) {
+    if (/^yes$/iu.test(normalizedValue)) {
       return 'Yes';
     }
-    if (/^no$/i.test(normalizedValue)) {
+    if (/^no$/iu.test(normalizedValue)) {
       return 'No';
     }
   }
@@ -336,7 +336,8 @@ export const getJob = cache(async (id: string): Promise<Job | null> => {
       skills: (fields.skills as string) || null,
       qualifications: (fields.qualifications as string) || null,
       education_requirements: (fields.education_requirements as string) || null,
-      experience_requirements: (fields.experience_requirements as string) || null,
+      experience_requirements:
+        (fields.experience_requirements as string) || null,
       industry: (fields.industry as string) || null,
       occupational_category: (fields.occupational_category as string) || null,
       responsibilities: (fields.responsibilities as string) || null,
@@ -363,4 +364,3 @@ export async function testConnection(): Promise<boolean> {
     return false;
   }
 }
-
