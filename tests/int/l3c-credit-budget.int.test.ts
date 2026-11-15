@@ -19,7 +19,7 @@ const mock = createBordfeedMock({ feedTotal: 2000 });
 const originalFetch = globalThis.fetch;
 globalThis.fetch = (input, init) => {
   const request = new Request(input, init);
-  if (request.url.startsWith(MOCK_ORIGIN)) {
+  if (new URL(request.url).origin === MOCK_ORIGIN) {
     return mock.handle(request);
   }
 
