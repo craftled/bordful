@@ -1,8 +1,9 @@
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 
 import { isIndexable } from "./indexable";
 import {
   toBordfeedConnectionPublic,
+  toCompanySummary,
   toJobListItem,
   toSiteSettingsView,
 } from "./mappers";
@@ -108,4 +109,59 @@ test("empty site settings resolve to the documented defaults", () => {
     priceLabel: "",
   });
   expect(settings.alerts.defaultFrequency).toBe("weekly");
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+const LOGO_DEV =
+  "https://img.logo.dev/acme.com?format=png&retina=true&size=64&token=pk_test";
+
+test("job logos fall back to Logo.dev by company domain only when a key is set", () => {
+  const job = { company: { logoUrl: null }, companyDomain: "acme.com", id: 1 };
+
+  expect(toJobListItem(job).companyLogoUrl).toBeNull();
+
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
+  expect(toJobListItem(job).companyLogoUrl).toBe(LOGO_DEV);
+  expect(
+    toJobListItem({ company: { domain: "acme.com" }, id: 1 }).companyLogoUrl
+  ).toBe(LOGO_DEV);
+  expect(toJobListItem({ company: 7, id: 1 }).companyLogoUrl).toBeNull();
+});
+
+test("an uploaded logo or a logo URL wins over Logo.dev", () => {
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
+
+  expect(
+    toJobListItem({
+      company: { logoUrl: "https://cdn.example/acme.png" },
+      companyDomain: "acme.com",
+      id: 1,
+    }).companyLogoUrl
+  ).toBe("https://cdn.example/acme.png");
+  expect(
+    toJobListItem({
+      companyDomain: "acme.com",
+      companyLogo: { url: "/api/media/file/acme.png" },
+      id: 1,
+    }).companyLogoUrl
+  ).toBe("/api/media/file/acme.png");
+
+  expect(
+    toCompanySummary({ domain: "acme.com", id: 1, logoUrl: "" }).logoUrl
+  ).toBe(LOGO_DEV);
+  expect(
+    toCompanySummary({
+      domain: "acme.com",
+      id: 1,
+      logoUrl: "https://cdn.example/acme.png",
+    }).logoUrl
+  ).toBe("https://cdn.example/acme.png");
+});
+
+test("a secret Logo.dev key is never put in a logo URL", () => {
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "sk_secret");
+  expect(toCompanySummary({ domain: "acme.com", id: 1 }).logoUrl).toBeNull();
 });

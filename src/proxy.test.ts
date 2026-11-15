@@ -56,13 +56,13 @@ function withMarketing(value: "true" | "false", runTest: () => void) {
 test("only marketing CSP allows Top Boilerplates badge images", () => {
   withMarketing("true", () => {
     expect(imgSrc(run("/").headers.get("Content-Security-Policy"))).toBe(
-      "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://topboilerplates.com"
+      "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://img.logo.dev https://topboilerplates.com"
     );
   });
 
   withMarketing("false", () => {
     expect(imgSrc(run("/").headers.get("Content-Security-Policy"))).toBe(
-      "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com"
+      "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://img.logo.dev"
     );
   });
 });

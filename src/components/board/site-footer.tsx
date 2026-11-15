@@ -8,6 +8,7 @@ import { BOARD_POOL_LIMIT } from "@/lib/board/constants";
 import { buildBoardFacets } from "@/lib/board/filter";
 import { BOARD_SEARCH_PATH } from "@/lib/board/paths";
 import { countTaxonomy, type TaxonomyFacet } from "@/lib/board/taxonomy";
+import { isLogoDevConfigured } from "@/lib/logo-dev";
 import { getSiteSettings, listPublishedJobs } from "@/lib/read";
 
 const FACET_LIMIT = 5;
@@ -153,6 +154,7 @@ export async function SiteFooter({
       <FooterView
         bordfulMark={bordfulMark}
         columns={footerColumns}
+        logoDevCredit={isLogoDevConfigured()}
         logoUrl={logoUrl}
         name={name}
         showAlert={alertsEnabled}

@@ -66,6 +66,7 @@ export function buildCsp({
     "https://*.public.blob.vercel-storage.com",
     "https://bordfeed.com",
     "https://*.bordfeed.com",
+    "https://img.logo.dev",
     ...(marketing ? [TOP_BOILERPLATES_ORIGIN] : []),
   ].join(" ");
 
