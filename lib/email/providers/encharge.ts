@@ -73,7 +73,10 @@ export class EnchargeProvider implements EmailProvider {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Subscription failed';
-      throw new EmailProviderError(errorMessage, 'encharge');
+      throw new EmailProviderError(errorMessage, {
+        cause: error,
+        provider: 'encharge',
+      });
     }
   }
 }

@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 # Next.js App Router Structure
 
-Bordful uses Next.js 15 with the App Router for file-based routing. Understanding this structure is crucial for navigation and adding new features.
+Bordful uses Next.js 16 with the App Router for file-based routing. Understanding this structure is crucial for navigation and adding new features.
 
 ## Core Layout
 

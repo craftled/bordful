@@ -23,11 +23,15 @@ export type EmailProvider = {
  * Custom error class for email provider errors
  */
 export class EmailProviderError extends Error {
+  provider: string;
+
   constructor(
     message: string,
-    public provider: string
+    { cause, provider }: { cause?: unknown; provider: string }
   ) {
-    super(message);
+    super(message, { cause });
     this.name = 'EmailProviderError';
+    this.provider = provider;
   }
 }
+
