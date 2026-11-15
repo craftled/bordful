@@ -33,6 +33,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Changed
 
+- Disconnecting Bordfeed deletes every imported job instead of turning them into drafts, and the confirm step says how many. A reconnect imports only the newest `jobsPerSync` jobs, so drafts used to pile up in the admin and never came back. Companies are kept. Disconnect waits while a sync is running.
 - Publishing a job with a past Valid through now shows an error in the admin. It used to save, stay hidden, and go back to draft at the next expire run. Setting a past date on a live job still ends the listing.
 - Digest emails say how to change alert filters.
 - Alert confirmation and digest emails use the board's name, logo, button color and radius from Site settings, and the confirm email has a button.

@@ -26,6 +26,8 @@ import {
   CONNECT_LIMIT_MESSAGE,
   CREDIT_HIDDEN_MESSAGE,
   CREDIT_SHOWN_MESSAGE,
+  DISCONNECT_BUSY_MESSAGE,
+  disconnectWarning,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
   NEED_CODE_MESSAGE,
@@ -42,6 +44,8 @@ import styles from "./connect-card.module.css";
 export interface ConnectCardView {
   boardName: string;
   email: string;
+  importedJobs: number;
+  jobsPerSync: number;
   keyHint: string | null;
   lastErrorMessage: string | null;
   lastSyncAt: string | null;
@@ -53,6 +57,7 @@ export interface ConnectCardView {
 
 const ERROR_MESSAGES = new Set([
   ALREADY_CONNECTED_MESSAGE,
+  DISCONNECT_BUSY_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
   ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
   CONNECT_LIMIT_MESSAGE,
@@ -391,11 +396,15 @@ function AttributionField({
 }
 
 function ConnectedTools({
+  importedJobs,
+  jobsPerSync,
   resetForm,
   resetPending,
   syncAction,
   syncPending,
 }: {
+  importedJobs: number;
+  jobsPerSync: number;
   resetForm: (payload: FormData) => void;
   resetPending: boolean;
   syncAction: (payload: FormData) => void;
@@ -423,8 +432,8 @@ function ConnectedTools({
       </form>
       {confirming ? (
         <form action={resetForm} className={styles.form}>
-          <p className={styles.hint}>
-            Disconnecting removes the saved key and shows sample jobs again.
+          <p className={styles.hint} data-testid="bordfeed-reset-warning">
+            {disconnectWarning(importedJobs, jobsPerSync)}
           </p>
           <div className={styles.actions}>
             <button
@@ -598,6 +607,8 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
       />
       {showTools ? (
         <ConnectedTools
+          importedJobs={view.importedJobs}
+          jobsPerSync={view.jobsPerSync}
           resetForm={resetFormAction}
           resetPending={resetPending}
           syncAction={syncAction}

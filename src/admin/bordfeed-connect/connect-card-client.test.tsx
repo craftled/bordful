@@ -44,6 +44,8 @@ function view(overrides: Partial<ConnectCardView>): ConnectCardView {
   return {
     boardName: "Board",
     email: "owner@example.com",
+    importedJobs: 0,
+    jobsPerSync: 50,
     keyHint: null,
     lastErrorMessage: null,
     lastSyncAt: null,
@@ -118,4 +120,22 @@ test("a saved credit change keeps the checkbox at the click", async () => {
   fireEvent.click(box);
   expect(await screen.findByText(CREDIT_SHOWN_MESSAGE)).toBeTruthy();
   expect(box.checked).toBe(true);
+});
+
+test("the disconnect warning names the imported jobs it deletes", () => {
+  render(
+    <ConnectCardClient view={view({ importedJobs: 312, jobsPerSync: 50 })} />
+  );
+  fireEvent.click(screen.getByTestId("bordfeed-reset"));
+  expect(screen.getByTestId("bordfeed-reset-warning").textContent).toBe(
+    "Disconnecting deletes the 312 imported jobs and the saved key, and shows sample jobs again. Reconnecting imports the newest 50."
+  );
+});
+
+test("the disconnect warning stays short with no imported jobs", () => {
+  render(<ConnectCardClient view={view({ importedJobs: 0 })} />);
+  fireEvent.click(screen.getByTestId("bordfeed-reset"));
+  expect(screen.getByTestId("bordfeed-reset-warning").textContent).toBe(
+    "Disconnecting removes the saved key and shows sample jobs again."
+  );
 });

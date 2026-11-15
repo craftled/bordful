@@ -283,7 +283,8 @@ function placeIncoming(
       (match.hash ?? null) !== planned.bordfeedDescriptionHash ||
       !sameFields(match.fields, comparableJobFields(planned, companyIds));
     // Only an editor or the expiry sweep drafts a sample row, so it stays down.
-    // A feed row is also drafted by a disconnect, and a reconnect brings it back.
+    // A feed row drafted by the job check comes back if Bordfeed sends it
+    // again, which also heals a job the incident guard let through by mistake.
     const republish = mode === "feed" && match.status === "draft";
     if (changed || republish) {
       update.push({
