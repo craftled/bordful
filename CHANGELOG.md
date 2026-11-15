@@ -68,6 +68,6 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Google Sheets.
 - Static generation.
 
-## 0.1.x (Airtable edition)
+## 0.x (Airtable edition)
 
 The legacy Airtable version and its changelog live on the [airtable branch](https://github.com/craftled/bordful/blob/airtable/CHANGELOG.md).

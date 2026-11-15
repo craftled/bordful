@@ -1,6 +1,6 @@
 # Upgrading
 
-## From 0.1.x (Airtable)
+## From 0.x (Airtable)
 
 There is no in-place upgrade. 1.0 is a new app: Payload 4 and Postgres, not Airtable.
 

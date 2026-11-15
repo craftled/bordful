@@ -16,17 +16,17 @@ test("changelog starts at 1.0.0 and names Airtable only on the legacy title", ()
       expect(part.includes("Airtable")).toBe(false);
     }
 
-    if (entry.title !== "0.1.x (Airtable edition)") {
+    if (entry.title !== "0.x (Airtable edition)") {
       expect(entry.title.includes("Airtable")).toBe(false);
     }
   }
 
   expect(
-    changelogEntries.some((entry) => entry.title === "0.1.x (Airtable edition)")
+    changelogEntries.some((entry) => entry.title === "0.x (Airtable edition)")
   ).toBe(true);
 
   const [current] = changelogEntries;
-  const legacy = changelogEntries.find((entry) => entry.version === "0.1.x");
+  const legacy = changelogEntries.find((entry) => entry.version === "0.x");
 
   if (!(current && legacy)) {
     throw new Error("changelog is missing the current or legacy entry");
