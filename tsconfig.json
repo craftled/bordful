@@ -21,7 +21,8 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": ["bun", "node"]
   },
   "include": [
     "next-env.d.ts",
