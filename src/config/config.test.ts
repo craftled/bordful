@@ -75,3 +75,35 @@ test("the parsed config is frozen", () => {
   expect(Object.isFrozen(config.bordfeed)).toBe(true);
   expect(Object.isFrozen(config.csp.extraScriptOrigins)).toBe(true);
 });
+
+const BAD_SCRIPT_ORIGIN =
+  /csp\.extraScriptOrigins\.0: CSP origin must be an https URL/u;
+const BAD_CONNECT_ORIGIN = /csp\.extraConnectOrigins\.0/u;
+
+test("accepts https CSP origins, including one leading wildcard", () => {
+  const config = defineBordfulConfig({
+    csp: {
+      extraConnectOrigins: ["https://api.example.com"],
+      extraScriptOrigins: ["https://*.example.com"],
+    },
+  });
+  expect(config.csp.extraScriptOrigins).toEqual(["https://*.example.com"]);
+  expect(config.csp.extraConnectOrigins).toEqual(["https://api.example.com"]);
+});
+
+test("rejects CSP origins the proxy could not use", () => {
+  for (const origin of [
+    "http://cdn.example.com",
+    "https://cdn.example.com/path",
+    "https://evil.example;default-src",
+    "'unsafe-inline'",
+    "*",
+  ]) {
+    expect(() =>
+      defineBordfulConfig({ csp: { extraScriptOrigins: [origin] } })
+    ).toThrow(BAD_SCRIPT_ORIGIN);
+  }
+  expect(() =>
+    defineBordfulConfig({ csp: { extraConnectOrigins: ["ftp://x.example"] } })
+  ).toThrow(BAD_CONNECT_ORIGIN);
+});
