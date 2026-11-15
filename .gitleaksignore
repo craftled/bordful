@@ -1,3 +1,7 @@
 9116f2ff5a485a34fb0c68f34f004e7496b95f78:.env.development:airtable-api-key:2
 9116f2ff5a485a34fb0c68f34f004e7496b95f78:.env.development:generic-api-key:1
 ee5324f748e63a715b8615a20881f9c1597fc02f:src/storage/media-storage.test.ts:generic-api-key:62
+# airtable v0.2.0 (#135): the modern-web-guidance skill quotes the algorithm
+# name 'MLKEM768-X25519' in a SubtleCrypto example. Not a secret.
+d1be743702f163e93e179b8e556cbabd167a3201:.agents/skills/modern-web-guidance/guides/security/client-side-encryption.md:generic-api-key:187
+d1be743702f163e93e179b8e556cbabd167a3201:.agents/skills/modern-web-guidance/guides/security/client-side-encryption.md:generic-api-key:201
