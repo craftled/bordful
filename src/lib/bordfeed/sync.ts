@@ -15,7 +15,6 @@ import {
   MASS_REMOVAL_PENDING_MESSAGE,
   MAX_INCIDENT_REMOVALS_PER_SYNC,
   massRemovalFloorMessage,
-  SyncGuardError,
   toSafeError,
 } from "./errors";
 import type { BordfeedJob } from "./job-schema";
@@ -45,6 +44,7 @@ import {
   type SyncState,
   writeSyncState,
 } from "./sync-budget";
+import { SyncGuardError } from "./sync-guard-error";
 
 type JobWrite = Omit<
   Job,

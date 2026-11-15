@@ -41,6 +41,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Fixed
 
+- Job descriptions from Bordfeed are parsed with parse5 8.1.1, which fixes crashes and very slow parsing on some malformed HTML.
 - Connecting Bordfeed with an account that uses two-factor sign-in now says an emailed code cannot create an API key and opens the paste-key path. It used to say "Bordfeed rejected the API key." Disabled accounts and closed sign-ups get their own messages too.
 - Board search no longer queries Postgres for each search string. Summary and skills are matched against a cached index that is read at most once every 5 minutes, and the job list reads only the fields its cards show. Bots sending many different searches used to run one database query per request and could use up a hosted database's monthly transfer allowance.
 - Digest unsubscribe links keep working after `PAYLOAD_SECRET` or a subscriber's email changes. Each digest now stores the current hash before it is sent, and a digest is not sent if that fails.
@@ -51,7 +52,6 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - A fresh deploy could show an empty board. Vercel's first requests each booted the app and seeded the sample jobs at the same time, and the board cached the empty page. One boot now takes the sync lease and seeds, the others skip, and an empty first page is read again before it is served.
 - `next build` no longer runs its own TypeScript pass. `bun run typecheck` already runs in CI, and the duplicate pass added about nine seconds to every deploy.
 - A company no longer appears twice after a sync. Bordfeed sends a job that is under an hour old with the employer name alone, and the same job again with the company's domain and logo once it is linked. The sync matched companies by Bordfeed id and domain only, so the second delivery created a second company and left the first one empty. It now matches the name as well, fills in the id, domain and logo on the company it already has, and a name-only job no longer clears a logo.
-
 - An unreadable percent escape in a URL, such as `/jobs/%E0%A4%A`, shows the 404 page instead of a plain-text 500.
 - Salary sort uses the same converted USD range as the salary filter. The `/jobs/levels` counts match the level archives. `/jobs/search?types=...` redirects only to archives that have jobs.
 - Deleting a company, or changing its slug or domain, updates its jobs, so job pages no longer link to a 404. Changing or deleting a media file refreshes the cached logo.
