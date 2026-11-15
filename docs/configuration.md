@@ -38,18 +38,19 @@ Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `eng
 
 An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the accepted shape. One leading wildcard label is allowed (`https://*.example.com`). A path, `http`, a quote, a semicolon, a space, or a comma fails config parsing, so the dev server and the build stop with `Invalid bordful.config.ts` and name the bad entry. Every page, `/api` and `/admin` response then sends the origins in its `Content-Security-Policy` header.
 
-The script policy uses a per-request nonce with `'strict-dynamic'`. Browsers that support `'strict-dynamic'` (all current ones) ignore origin lists in `script-src`, so listing a host does not let a plain `<script src>` from it run. A third-party script runs when its tag carries the page nonce, and anything that script loads is then allowed too. `extraScriptOrigins` only matters for older browsers without `'strict-dynamic'`.
+The script policy uses a per-request nonce with `'strict-dynamic'`. Browsers that support `'strict-dynamic'` (all current ones) ignore origin lists in `script-src`, so listing a host does not let a plain `<script src>` tag from it run. A script runs when it carries the page nonce or when an already trusted script inserts it. `extraScriptOrigins` only matters for older browsers without `'strict-dynamic'`.
 
-To load a script in a `src/custom/**` slot, read the nonce from the `x-nonce` request header and put it on the tag. Add the hosts that script calls to `extraConnectOrigins`.
+To load a third-party script from a `src/custom/**` slot, use `next/script`. Next inserts it from its own nonced code after the page loads, so it runs with no nonce of yours. Add every host that script calls to `extraConnectOrigins`.
 
 ```tsx
-import { headers } from "next/headers";
+import Script from "next/script";
 
-export async function Analytics() {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
-  return <script async nonce={nonce} src="https://cdn.example.com/a.js" />;
+export function Analytics() {
+  return <Script src="https://cdn.example.com/a.js" strategy="afterInteractive" />;
 }
 ```
+
+Check it with `bun run build && bun run start`. Under `next dev` the script may not load.
 
 ## Site settings
 
