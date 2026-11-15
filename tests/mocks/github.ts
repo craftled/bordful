@@ -5,7 +5,14 @@ export interface GithubRelease {
   tag_name: string;
 }
 
+// The beta sits above the stable releases so E11 proves a stable board skips it.
 export const DEFAULT_RELEASES: GithubRelease[] = [
+  {
+    draft: false,
+    html_url: "https://github.com/craftled/bordful/releases/tag/v1.1.0-beta.1",
+    prerelease: true,
+    tag_name: "v1.1.0-beta.1",
+  },
   {
     draft: false,
     html_url: "https://github.com/craftled/bordful/releases/tag/v1.0.1",
