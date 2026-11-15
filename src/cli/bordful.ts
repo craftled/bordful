@@ -274,7 +274,8 @@ async function runResetPassword(
   args: { databaseHost?: string; email?: string },
   isJSON: boolean
 ): Promise<number | { exitCode: number; result: unknown }> {
-  // Checked before booting: boot alone migrates and seeds the target database.
+  // Checked before booting: boot seeds the target database (onInit), and
+  // migrates it when NODE_ENV is production.
   const target = checkDatabaseTarget(
     process.env.DATABASE_URL,
     args.databaseHost
@@ -283,7 +284,7 @@ async function runResetPassword(
     return finish(
       isJSON,
       1,
-      { databaseHost: target.host, message: target.message },
+      { databaseTarget: target.target, message: target.message },
       [target.message]
     );
   }
@@ -295,7 +296,7 @@ async function runResetPassword(
     const admins = await adminEmails(payload);
     const message = email
       ? `No user has the email ${email}.`
-      : `Email is required. Example: bordful reset-password --email owner@example.com --database-host ${target.host}`;
+      : `Email is required. Example: bordful reset-password --email owner@example.com --database-host ${target.target}`;
     return finish(isJSON, 1, { admins, message }, [
       message,
       `Admins: ${admins.join(", ") || "none"}`,
@@ -311,14 +312,14 @@ async function runResetPassword(
 export const bordfulCommand = defineCLICommand({
   cli: { action: "argument", json: false },
   description:
-    "Bordfeed and admin commands for this board. Positional [action] is connect, sample, sync, status, or reset-password. Options from the input schema: --email <email>, --board-name <boardName>, --workspace <workspace>, --code <code>, --key <key>, --database-host <host>. reset-password requires --database-host to match the DATABASE_URL host. Prefer BORDFEED_API_KEY over --key so the key stays out of shell history. Payload reserves --json for one JSON response on stdout.",
+    "Bordfeed and admin commands for this board. Positional [action] is connect, sample, sync, status, or reset-password. Options from the input schema: --email <email>, --board-name <boardName>, --workspace <workspace>, --code <code>, --key <key>, --database-host <host:port/database>. reset-password requires --database-host to match the host:port/database target it prints for DATABASE_URL. Prefer BORDFEED_API_KEY over --key so the key stays out of shell history. Payload reserves --json for one JSON response on stdout.",
   examples: [
     'bordful connect --email owner@example.com --board-name "Example Board"',
     "BORDFEED_API_KEY=... bun run bordful connect",
     "bordful sample",
     "bordful sync",
     "bordful status",
-    "bordful reset-password --email owner@example.com --database-host ep-example.neon.tech",
+    "bordful reset-password --email owner@example.com --database-host ep-example.neon.tech:5432/neondb",
   ],
   handler: async ({ args, getPayload, isJSON }) => {
     if (args.action === "reset-password") {

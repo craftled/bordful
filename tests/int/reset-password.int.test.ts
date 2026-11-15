@@ -62,7 +62,8 @@ async function lockOwner(): Promise<void> {
   await expect(login(OLD_PASSWORD)).rejects.toThrow();
 }
 
-const DATABASE_HOST = new URL(databaseUrl).hostname;
+const parsedUrl = new URL(databaseUrl);
+const DATABASE_TARGET = `${parsedUrl.hostname.toLowerCase()}:${parsedUrl.port || "5432"}/${decodeURIComponent(parsedUrl.pathname.slice(1))}`;
 
 function runBordful(args: string[], env: Record<string, string>) {
   return spawnSync("bun", ["run", "bordful", ...args, "--json"], {
@@ -135,7 +136,7 @@ test("the CLI resets a password without the deployment's PAYLOAD_SECRET", async 
   await lockOwner();
 
   const run = runBordful(
-    ["reset-password", "--email", OWNER, "--database-host", DATABASE_HOST],
+    ["reset-password", "--email", OWNER, "--database-host", DATABASE_TARGET],
     { PAYLOAD_SECRET: "a-different-throwaway-value" }
   );
   expect(run.status, run.stderr).toBe(0);
@@ -156,13 +157,13 @@ test("the CLI resets a password without the deployment's PAYLOAD_SECRET", async 
 
 test("the CLI names the admins when the email is missing or wrong", () => {
   for (const args of [
-    ["reset-password", "--database-host", DATABASE_HOST],
+    ["reset-password", "--database-host", DATABASE_TARGET],
     [
       "reset-password",
       "--email",
       "other@example.com",
       "--database-host",
-      DATABASE_HOST,
+      DATABASE_TARGET,
     ],
   ]) {
     const run = runBordful(args, {});
@@ -175,14 +176,20 @@ test("the CLI names the admins when the email is missing or wrong", () => {
 test("the CLI changes nothing until --database-host matches DATABASE_URL", async () => {
   for (const args of [
     ["reset-password", "--email", OWNER],
-    ["reset-password", "--email", OWNER, "--database-host", "other.example"],
+    [
+      "reset-password",
+      "--email",
+      OWNER,
+      "--database-host",
+      "other.example:5432/other",
+    ],
   ]) {
     const run = runBordful(args, {});
     expect(run.status).toBe(1);
     const output = JSON.parse(run.stdout) as {
-      result: { databaseHost: string | null };
+      result: { databaseTarget: string | null };
     };
-    expect(output.result.databaseHost).toBe(DATABASE_HOST);
+    expect(output.result.databaseTarget).toBe(DATABASE_TARGET);
   }
 
   await expect(login(OLD_PASSWORD)).resolves.toMatchObject({
