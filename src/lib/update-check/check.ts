@@ -2,7 +2,7 @@ import type { Payload } from "payload";
 
 import { BORDFUL_VERSION } from "@/lib/bordfeed/client-header";
 
-import { compareVersions, pickLatestRelease } from "./version";
+import { compareVersions, isPrerelease, pickLatestRelease } from "./version";
 
 const DEFAULT_RELEASES_URL =
   "https://api.github.com/repos/craftled/bordful/releases?per_page=20";
@@ -96,7 +96,9 @@ async function fetchLatest(
   }
 
   const body: unknown = await response.json();
-  return pickLatestRelease(body);
+  return pickLatestRelease(body, {
+    includePrereleases: isPrerelease(BORDFUL_VERSION),
+  });
 }
 
 export async function checkForUpdate(
