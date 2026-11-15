@@ -54,7 +54,7 @@ export default async function JobAlertsPage() {
   const latestJobs = allJobs.slice(0, LATEST_JOBS_COUNT); // Show latest jobs
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="bg-background min-h-screen">
       <HeroSection
         badge={config.jobAlerts.hero?.badge || 'Job Alerts'}
         description={
@@ -73,7 +73,7 @@ export default async function JobAlertsPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Job alerts form */}
           <div className="lg:col-span-1">
-            <h2 className="mb-4 font-semibold text-xl">
+            <h2 className="mb-4 text-xl font-semibold">
               {config.jobAlerts.form?.heading || 'Subscribe for Updates'}
             </h2>
             <p className="mb-6 text-sm text-zinc-600">

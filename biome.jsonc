@@ -1,6 +1,13 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.7/schema.json",
-  "extends": ["ultracite"],
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
+  "files": {
+    "includes": ["!!**/node_modules", "!!**/.next"]
+  },
   "javascript": {
     "formatter": {
       "quoteStyle": "single"
@@ -9,6 +16,7 @@
   "linter": {
     "rules": {
       "suspicious": {
+        // Tailwind 3 directives (@tailwind, @apply) in app/globals.css.
         "noUnknownAtRules": "off"
       }
     }

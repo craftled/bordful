@@ -1,6 +1,140 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/typography';
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1100px) {
+    max-width: 1100px;
+  }
+}
+
+@theme {
+  --font-sans: var(--font-geist-sans), var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-ibm-plex-serif), Georgia, Times New Roman, serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility markdown-content {
+  @apply prose prose-sm prose-gray max-w-none;
+
+  h1 {
+    @apply text-2xl font-semibold mb-2;
+  }
+  h2 {
+    @apply text-xl font-semibold mb-2;
+  }
+  h3 {
+    @apply text-lg font-semibold mb-2;
+  }
+  h4 {
+    @apply text-base font-semibold mb-2;
+  }
+
+  /* Base text size */
+  p,
+  ul,
+  ol {
+    @apply text-sm text-gray-700 leading-relaxed;
+  }
+
+  /* Lists */
+  ul {
+    @apply list-disc pl-4 mb-4 space-y-1;
+  }
+  ol {
+    @apply list-decimal pl-4 mb-4 space-y-1;
+  }
+
+  /* Links */
+  a {
+    @apply text-blue-600 hover:text-blue-800 no-underline hover:underline;
+  }
+
+  /* Code blocks */
+  pre {
+    @apply bg-gray-50 p-4 rounded-lg mb-4 overflow-x-auto text-sm;
+  }
+  code {
+    @apply bg-gray-50 px-1.5 py-0.5 rounded-sm text-sm font-normal text-gray-800;
+  }
+
+  /* Blockquotes */
+  blockquote {
+    @apply border-l-4 border-gray-200 pl-4 italic my-4 text-gray-600;
+  }
+
+  /* Lists inside lists */
+  ul ul,
+  ol ol,
+  ul ol,
+  ol ul {
+    @apply mt-1 mb-1;
+  }
+
+  /* Tables */
+  table {
+    @apply w-full border-collapse mb-4 text-sm;
+  }
+
+  thead {
+    @apply bg-gray-50;
+  }
+
+  th {
+    @apply border border-gray-200 px-3 py-2 text-left font-medium text-gray-700;
+  }
+
+  td {
+    @apply border border-gray-200 px-3 py-2 text-gray-700;
+  }
+
+  tr:nth-child(even) {
+    @apply bg-gray-50;
+  }
+}
 
 @layer base {
   :root {
@@ -16,100 +150,19 @@
   }
 }
 
-@layer components {
-  .markdown-content {
-    @apply prose prose-sm prose-gray max-w-none;
-
-    h1 {
-      @apply text-2xl font-semibold mb-2;
-    }
-    h2 {
-      @apply text-xl font-semibold mb-2;
-    }
-    h3 {
-      @apply text-lg font-semibold mb-2;
-    }
-    h4 {
-      @apply text-base font-semibold mb-2;
-    }
-
-    /* Base text size */
-    p,
-    ul,
-    ol {
-      @apply text-sm text-gray-700 leading-relaxed;
-    }
-
-    /* Lists */
-    ul {
-      @apply list-disc pl-4 mb-4 space-y-1;
-    }
-    ol {
-      @apply list-decimal pl-4 mb-4 space-y-1;
-    }
-
-    /* Links */
-    a {
-      @apply text-blue-600 hover:text-blue-800 no-underline hover:underline;
-    }
-
-    /* Code blocks */
-    pre {
-      @apply bg-gray-50 p-4 rounded-lg mb-4 overflow-x-auto text-sm;
-    }
-    code {
-      @apply bg-gray-50 px-1.5 py-0.5 rounded text-sm font-normal text-gray-800;
-    }
-
-    /* Blockquotes */
-    blockquote {
-      @apply border-l-4 border-gray-200 pl-4 italic my-4 text-gray-600;
-    }
-
-    /* Lists inside lists */
-    ul ul,
-    ol ol,
-    ul ol,
-    ol ul {
-      @apply mt-1 mb-1;
-    }
-
-    /* Tables */
-    table {
-      @apply w-full border-collapse mb-4 text-sm;
-    }
-
-    thead {
-      @apply bg-gray-50;
-    }
-
-    th {
-      @apply border border-gray-200 px-3 py-2 text-left font-medium text-gray-700;
-    }
-
-    td {
-      @apply border border-gray-200 px-3 py-2 text-gray-700;
-    }
-
-    tr:nth-child(even) {
-      @apply bg-gray-50;
-    }
-  }
-}
-
 /* Pulse animation for search indicator */
 @keyframes pulse {
   0% {
-    transform: scale(0.95);
     opacity: 0.5;
+    transform: scale(0.95);
   }
   50% {
-    transform: scale(1.05);
     opacity: 0.8;
+    transform: scale(1.05);
   }
   100% {
-    transform: scale(0.95);
     opacity: 0.5;
+    transform: scale(0.95);
   }
 }
 

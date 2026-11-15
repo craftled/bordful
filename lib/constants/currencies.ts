@@ -247,7 +247,6 @@ export function getCurrencyByCode(code: string): Currency | undefined {
   if (CURRENCY_CODES.includes(code as CurrencyCode)) {
     return CURRENCY_MAP[code as CurrencyCode];
   }
-  return;
 }
 
 // Get currency by name

@@ -46,9 +46,9 @@ export default function FAQPage() {
   // If FAQ is not enabled, redirect to home page
   if (!config.faq?.enabled) {
     return (
-      <main className="min-h-screen bg-background">
+      <main className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="mb-4 font-bold text-2xl">FAQ Not Available</h1>
+          <h1 className="mb-4 text-2xl font-bold">FAQ Not Available</h1>
           <p className="mb-6">The FAQ page is currently not available.</p>
           <Link href="/">
             <Button>Return Home</Button>
@@ -59,7 +59,7 @@ export default function FAQPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="bg-background min-h-screen">
       <HeroSection
         badge={config.faq.badge || 'FAQ'}
         description={config.faq.description}

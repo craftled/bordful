@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-This repository is the Airtable version of Bordful. Version 0.1.x is its final release line and receives security fixes only. No new features will be added.
+This repository is the Airtable version of Bordful. Version 0.2.x is its release line and receives security fixes only. No new features will be added.
 
 | Version | Supported                        |
 | ------- | -------------------------------- |
-| 0.1.61 (final legacy release, Airtable) | :white_check_mark: Security fixes only |
-| < 0.1.61 | :x: Unsupported. Update to 0.1.61 |
+| 0.2.x (Airtable edition) | :white_check_mark: Security fixes only |
+| < 0.2.0 | :x: Unsupported. Update to 0.2.0 |
 
 Bordful 1.0, built on Payload, is released on `main` and replaces this version.
 

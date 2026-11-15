@@ -12,9 +12,6 @@ import {
   processLogo,
 } from '@/lib/utils/og-helpers';
 
-// Specify that this route should run on Vercel's edge runtime
-export const runtime = 'edge';
-
 /**
  * Generate a dynamic Open Graph image based on the site configuration
  * using dynamically fetched Google Fonts.

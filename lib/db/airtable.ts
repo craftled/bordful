@@ -97,7 +97,7 @@ export function formatSalary(
 
     // Apply forced scale if provided (for consistent range formatting)
     if (forceScale === 'M') {
-      return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+      return `${(num / 1_000_000).toFixed(1).replace(/\.0$/u, '')}M`;
     }
     if (forceScale === 'k') {
       return `${(num / 1000).toFixed(0)}k`;
@@ -105,7 +105,7 @@ export function formatSalary(
 
     // Format with appropriate scale based on magnitude
     if (num >= mThreshold) {
-      return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+      return `${(num / 1_000_000).toFixed(1).replace(/\.0$/u, '')}M`;
     }
     if (num >= kThreshold) {
       return `${(num / 1000).toFixed(0)}k`;

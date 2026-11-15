@@ -29,7 +29,7 @@ export function JobSearch({
   return (
     <div className="mb-8">
       <JobSearchInput
-        className="w-full max-w-md rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full max-w-md rounded-lg border px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         placeholder="Search jobs..."
       />
     </div>

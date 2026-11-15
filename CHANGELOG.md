@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-15
+
+Maintenance release of the Airtable edition: every dependency is on its latest version, and the branch builds again. It still receives security fixes only; new features go to Bordful 1.0 on `main`.
+
+### Upgrade notes
+- **Tailwind CSS 4.** `tailwind.config.ts` is gone. The theme now lives in the `@theme` block of `app/globals.css`, and PostCSS uses `@tailwindcss/postcss`. If your fork customized `tailwind.config.ts`, move those values into `@theme` (see `docs/guides/customization.md`). Class names were migrated with the official `@tailwindcss/upgrade` tool.
+- **lucide-react 1.x** no longer ships brand icons (`Github`, `Linkedin`, `Twitter`). Replace any you added with your own SVGs.
+- **`EmailProviderError`** now takes `new EmailProviderError(message, { provider, cause })`. This only matters if you wrote a custom email provider.
+
+### Fixed
+- `next build` failed in `next/font` while loading Google Fonts on Next.js 15.5. It builds again on Next.js 16.
+- The Free plan's "Get Started" button linked to `/post`, which does not exist. It now links to `/contact`.
+- Typecheck errors are gone, so CI now fails on type errors, and `next.config.ts` no longer skips them during the build.
+
+### Changed
+- Next.js 15.5.28 to 16.4.6, React and React DOM 19.3.1, Tailwind CSS 3.4 to 4.3.5, TypeScript 5.9 to 7.0, lucide-react 0.542 to 1.73, dotenv 18, feed 6, schema-dts 2, nuqs 2.10.3, geist 1.9.2, `@types/node` 26.
+- Biome 2.6.7 with ultracite 8.2.1 presets (`ultracite/biome/core`, `react`, `next`); safe fixes and formatting applied. The full-repo lint stays advisory in CI; the security files are still gated.
+- The Open Graph image route runs on the Node.js runtime instead of the deprecated Edge runtime.
+- The original error is kept as `cause` when the Encharge provider fails.
+
+### Removed
+- Unused `tailwindcss-animate`, `@tailwindcss/forms` and `autoprefixer` (Tailwind 4 adds vendor prefixes itself).
+- Unused `components/ui/icons.tsx` and `lib/utils/rss.ts`.
+- The `@trpc/server` and `browserslist` overrides; neither package is in the dependency tree anymore.
+
+### Added
+- The [modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) agent skill in `.agents/skills/`, pinned in `skills-lock.json` and linked from `AGENTS.md`.
+
 ## [0.1.61] - 2026-10-23
 
 Final release of the Airtable version. Forks should update to this release for security fixes.

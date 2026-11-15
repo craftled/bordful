@@ -29,7 +29,7 @@ export function JobAlertsForm() {
     }
 
     // Validate email with regex
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/u;
     if (!email) {
       newErrors.email =
         config.jobAlerts.form?.fields?.email?.required || 'Email is required';
@@ -141,11 +141,11 @@ export function JobAlertsForm() {
         <div className="rounded-lg border border-green-200 bg-green-50 p-6">
           <div className="flex flex-col items-center space-y-3 text-center">
             <CheckCircle className="h-10 w-10 text-green-500" />
-            <h3 className="font-semibold text-green-800 text-md">
+            <h3 className="text-md font-semibold text-green-800">
               {config.jobAlerts.form?.successHeading ||
                 'Subscription Confirmed!'}
             </h3>
-            <p className="mb-4 text-green-700 text-sm">
+            <p className="mb-4 text-sm text-green-700">
               {config.jobAlerts.form?.successDescription ||
                 "Thank you for subscribing to job alerts. You'll receive emails when jobs matching your interests are posted."}
             </p>
@@ -165,7 +165,7 @@ export function JobAlertsForm() {
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="font-medium text-sm" htmlFor="name">
+                <Label className="text-sm font-medium" htmlFor="name">
                   {config.jobAlerts.form?.fields?.name?.label || 'Name *'}
                 </Label>
                 <Input
@@ -182,12 +182,12 @@ export function JobAlertsForm() {
                   value={name}
                 />
                 {errors.name && (
-                  <p className="mt-1 text-red-500 text-sm">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label className="font-medium text-sm" htmlFor="email">
+                <Label className="text-sm font-medium" htmlFor="email">
                   {config.jobAlerts.form?.fields?.email?.label || 'Email *'}
                 </Label>
                 <Input
@@ -204,7 +204,7 @@ export function JobAlertsForm() {
                   value={email}
                 />
                 {errors.email && (
-                  <p className="mt-1 text-red-500 text-sm">{errors.email}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                 )}
               </div>
             </div>

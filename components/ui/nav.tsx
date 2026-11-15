@@ -373,7 +373,7 @@ export function Nav() {
               >
                 {item.label}
               </NavLink>
-              <div className="mt-1 border-zinc-200 border-l pl-4">
+              <div className="mt-1 border-l border-zinc-200 pl-4">
                 {item.items.map((subItem) => (
                   <NavLink
                     className="mb-1 block"
@@ -414,7 +414,7 @@ export function Nav() {
 
             {isDropdownOpen && (
               <div
-                className="absolute left-0 z-50 mt-1 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                className="ring-opacity-5 absolute left-0 z-50 mt-1 w-40 rounded-md bg-white shadow-lg ring-1 ring-black"
                 onMouseEnter={() => handleDropdownMouseEnter(item.label)}
                 onMouseLeave={() => handleDropdownMouseLeave(item.label)}
               >
@@ -456,7 +456,7 @@ export function Nav() {
   const renderMobileNavItems = () => renderNavItems(true);
 
   return (
-    <header className="relative z-40 border-zinc-200 border-b bg-white">
+    <header className="relative z-40 border-b border-zinc-200 bg-white">
       <div className="container mx-auto px-4">
         <nav
           aria-label="Main navigation"
@@ -484,7 +484,7 @@ export function Nav() {
             ) : (
               <>
                 <BrandIcon />
-                <span className="font-medium text-sm">{config.nav.title}</span>
+                <span className="text-sm font-medium">{config.nav.title}</span>
               </>
             )}
           </Link>
@@ -550,7 +550,7 @@ export function Nav() {
               {config.nav.postJob.show && (
                 <Button
                   asChild
-                  className="ml-5 gap-1.5 whitespace-nowrap text-xs"
+                  className="ml-5 gap-1.5 text-xs whitespace-nowrap"
                   size="xs"
                   style={
                     config.nav.postJob.variant === 'primary'
@@ -580,7 +580,7 @@ export function Nav() {
         </nav>
 
         {isOpen && (
-          <div className="border-zinc-200 border-t lg:hidden">
+          <div className="border-t border-zinc-200 lg:hidden">
             <nav
               aria-label="Mobile navigation"
               className="flex flex-col px-4 py-4"
@@ -589,7 +589,7 @@ export function Nav() {
               {renderMobileNavItems()}
 
               {/* Social Links */}
-              <div className="mt-2 flex items-center space-x-3 border-zinc-200 border-t px-4 py-4">
+              <div className="mt-2 flex items-center space-x-3 border-t border-zinc-200 px-4 py-4">
                 {renderSocialLinks()}
               </div>
 

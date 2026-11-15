@@ -14,63 +14,35 @@ Bordful uses Tailwind CSS for styling, providing a flexible and consistent desig
 
 ### Main Configuration Files
 
-- **`tailwind.config.ts`**: Theme configuration for colors, typography, spacing, and more
-- **`app/globals.css`**: Global styles including Tailwind directives and global CSS variables
+- **`app/globals.css`**: Tailwind CSS 4 entry point. It imports Tailwind, loads the typography plugin, and holds the theme (`@theme`), custom utilities and global styles. There is no `tailwind.config.ts`.
 - **`components/*`**: Individual component styles and Tailwind composition
 
 ### Tailwind Configuration
 
-The `tailwind.config.ts` file is the primary way to customize the visual design system:
+Tailwind CSS 4 is configured in CSS. Add theme values to the `@theme` block in `app/globals.css`; each variable becomes utilities (for example `--color-primary` gives `bg-primary`, `text-primary`):
 
-```typescript
-// tailwind.config.ts
-const config = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        // Primary colors
-        primary: {
-          DEFAULT: '#0070f3',
-          50: '#f0f7ff',
-          100: '#e0f0ff',
-          // ... other shades
-        },
-        // Secondary colors
-        secondary: {
-          DEFAULT: '#7928ca',
-          // ... other shades
-        },
-        // ... other color definitions
-      },
-      typography: {
-        // Custom typography settings
-      },
-      // ... other theme extensions
-    },
-  },
-  plugins: [
-    // Add any Tailwind plugins here
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/forms'),
-  ],
-};
+```css
+/* app/globals.css */
+@import 'tailwindcss';
 
-export default config;
+@plugin '@tailwindcss/typography';
+
+@theme {
+  --color-primary: #0070f3;
+  --color-primary-50: #f0f7ff;
+  --color-secondary: #7928ca;
+  --font-sans: var(--font-geist-sans), var(--font-inter), system-ui, sans-serif;
+}
 ```
+
+Tailwind 4 finds class names in your source files automatically, so there is no `content` list to maintain.
 
 ### Global Styles
 
 The `app/globals.css` file contains global styles and CSS variables:
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
 :root {
   /* CSS variables for theme */
@@ -376,9 +348,9 @@ Bordful provides dedicated documentation for customizing specific components:
 
 ### Common Styling Issues
 
-1. **Tailwind Classes Not Applied**: Ensure the file containing your component is included in the `content` array in `tailwind.config.ts`.
+1. **Tailwind Classes Not Applied**: Tailwind 4 scans source files automatically but skips files listed in `.gitignore`. Build class names from complete strings, not concatenated fragments.
 
-2. **Custom Colors Not Working**: Check that you've defined the color in the `theme.extend.colors` section of your Tailwind configuration.
+2. **Custom Colors Not Working**: Check that the color is defined as a `--color-*` variable in the `@theme` block of `app/globals.css`.
 
 3. **Dark Mode Issues**: Ensure you're using the correct dark mode variant (`dark:`) and that dark mode is properly configured in Tailwind.
 
@@ -394,41 +366,23 @@ Bordful provides dedicated documentation for customizing specific components:
 
 ### Custom Color Scheme Example
 
-```typescript
-// tailwind.config.ts
-const config = {
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          DEFAULT: '#8B5CF6', // Purple
-          50: '#F5F3FF',
-          // ... other shades
-        },
-        secondary: {
-          DEFAULT: '#EC4899', // Pink
-          // ... other shades
-        },
-      },
-    },
-  },
-};
+```css
+/* app/globals.css */
+@theme {
+  --color-primary: #8b5cf6; /* Purple */
+  --color-primary-50: #f5f3ff;
+  --color-secondary: #ec4899; /* Pink */
+}
 ```
 
 ### Custom Font Example
 
-```typescript
-// tailwind.config.ts
-const config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
-        heading: ['Montserrat', 'sans-serif'],
-      },
-    },
-  },
-};
+```css
+/* app/globals.css */
+@theme {
+  --font-sans: 'Poppins', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+}
 ```
 
 ```css

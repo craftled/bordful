@@ -68,9 +68,9 @@ export function parseOGConfig(ogConfig: OGConfig = {}): ProcessedOGConfig {
   const backgroundColor =
     ogConfig.backgroundColor || config.ui.heroBackgroundColor || '#005450';
   const backgroundOpacity =
-    ogConfig.backgroundOpacity !== undefined
-      ? ogConfig.backgroundOpacity
-      : DEFAULT_BACKGROUND_OPACITY;
+    ogConfig.backgroundOpacity === undefined
+      ? DEFAULT_BACKGROUND_OPACITY
+      : ogConfig.backgroundOpacity;
   const backgroundImage = ogConfig.backgroundImage || null;
   const titleColor =
     ogConfig.titleColor || config.ui.heroTitleColor || '#FFFFFF';
@@ -81,15 +81,15 @@ export function parseOGConfig(ogConfig: OGConfig = {}): ProcessedOGConfig {
   const gradientEnabled = ogConfig.gradient?.enabled !== false;
   const gradientColor = ogConfig.gradient?.color || backgroundColor;
   const gradientAngle =
-    ogConfig.gradient?.angle !== undefined ? ogConfig.gradient.angle : 0;
+    ogConfig.gradient?.angle === undefined ? 0 : ogConfig.gradient.angle;
   const gradientStartOpacity =
-    ogConfig.gradient?.startOpacity !== undefined
-      ? ogConfig.gradient.startOpacity
-      : 0;
+    ogConfig.gradient?.startOpacity === undefined
+      ? 0
+      : ogConfig.gradient.startOpacity;
   const gradientEndOpacity =
-    ogConfig.gradient?.endOpacity !== undefined
-      ? ogConfig.gradient.endOpacity
-      : 1;
+    ogConfig.gradient?.endOpacity === undefined
+      ? 1
+      : ogConfig.gradient.endOpacity;
 
   return {
     fontFamily,

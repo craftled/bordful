@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [airtable]
+    branches: [ airtable ]
 
 permissions:
   contents: read
@@ -39,15 +39,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Pre-existing type errors on main; non-blocking for the legacy release.
       - name: Typecheck
         run: bun run typecheck
-        continue-on-error: true
 
       - name: Lint files changed in the security release
         run: bunx biome check next.config.ts lib/email/providers/encharge.ts lib/email/providers/encharge.test.ts
 
-      # Pre-existing lint errors on main; non-blocking for the legacy release.
+      # The full-repo ultracite 8 rule set reports older style findings on this
+      # frozen line; advisory only. The step above gates the security files.
       - name: Lint
         run: bun run lint
         continue-on-error: true

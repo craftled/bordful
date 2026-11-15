@@ -8,7 +8,7 @@ export default function JobNotFound() {
   return (
     <main className="container py-16">
       <div className="mx-auto max-w-[640px] text-center">
-        <h1 className="mb-4 font-semibold text-2xl">Job Not Found</h1>
+        <h1 className="mb-4 text-2xl font-semibold">Job Not Found</h1>
         <p className="mb-3 text-gray-600">
           The job posting you&apos;re looking for doesn&apos;t exist, has been
           removed, or has expired.

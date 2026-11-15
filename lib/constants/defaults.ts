@@ -53,8 +53,8 @@ export const RATE_LIMIT_WINDOW_MS =
 
 // Regex patterns for performance optimization
 export const FONT_URL_REGEX =
-  /src: url\((.+?)\) format\('(opentype|truetype)'\)/;
-export const LEADING_DASHES_REGEX = /^-+/;
-export const TRAILING_DASHES_REGEX = /-+$/;
-export const WHITESPACE_REGEX = /\s/g;
-export const PARENTHESIS_CONTENT_REGEX = /\s*\([^)]*\)\s*/g;
+  /src: url\((.+?)\) format\('(opentype|truetype)'\)/u;
+export const LEADING_DASHES_REGEX = /^-+/u;
+export const TRAILING_DASHES_REGEX = /-+$/u;
+export const WHITESPACE_REGEX = /\s/gu;
+export const PARENTHESIS_CONTENT_REGEX = /\s*\([^)]*\)\s*/gu;

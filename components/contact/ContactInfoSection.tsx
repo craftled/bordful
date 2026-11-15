@@ -25,7 +25,7 @@ export function ContactInfoSection({
   return (
     <div className="rounded-lg border p-5 transition-all hover:border-gray-400">
       <div className="pb-4">
-        <h3 className="font-semibold text-xl text-zinc-900">{title}</h3>
+        <h3 className="text-xl font-semibold text-zinc-900">{title}</h3>
         <p className="mt-1 text-sm text-zinc-600">{description}</p>
       </div>
       <div>
@@ -47,7 +47,7 @@ export function ContactInfoSection({
             <Phone className="h-4 w-4 text-zinc-500" />
             <a
               className="text-sm hover:underline"
-              href={`tel:${phone.replace(/\D/g, '')}`}
+              href={`tel:${phone.replace(/\D/gu, '')}`}
               style={{ color: primaryColor }}
             >
               {phone}

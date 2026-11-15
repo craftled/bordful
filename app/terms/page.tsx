@@ -29,8 +29,8 @@ export default function TermsPage() {
         </div>
         <div className="mb-8">
           <div className="space-y-2">
-            <h1 className="font-semibold text-2xl">Terms of Service</h1>
-            <div className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-semibold">Terms of Service</h1>
+            <div className="text-sm text-gray-500">
               Last updated:{' '}
               {new Date().toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -43,7 +43,7 @@ export default function TermsPage() {
 
         <div className="prose prose-sm prose-gray max-w-none">
           <div aria-hidden="true" className="my-8 h-px bg-gray-200" />
-          <div className="markdown-content [&_a:hover]:text-zinc-800 [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a]:transition-colors">
+          <div className="markdown-content [&_a]:text-zinc-900 [&_a]:underline [&_a]:underline-offset-4 [&_a]:transition-colors [&_a:hover]:text-zinc-800">
             <h2>Agreement to Terms</h2>
             <p>
               By accessing or using our job board platform, you agree to be

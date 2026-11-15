@@ -86,8 +86,8 @@ export function matchRoute(path: string): RouteConfig | undefined {
     if (route.path.includes('[')) {
       // Convert route path to regex pattern
       const pattern = route.path
-        .replace(/\[([^\]]+)\]/g, '([^/]+)') // Replace [param] with regex capture group
-        .replace(/\//g, '\\/'); // Escape forward slashes
+        .replace(/\[([^\]]+)\]/gu, '([^/]+)') // Replace [param] with regex capture group
+        .replace(/\//gu, '\\/'); // Escape forward slashes
       const regex = new RegExp(`^${pattern}$`);
       return regex.test(path);
     }
@@ -106,8 +106,8 @@ export function extractParams(
   }
 
   const pattern = route.path
-    .replace(/\[([^\]]+)\]/g, '([^/]+)') // Replace [param] with regex capture group
-    .replace(/\//g, '\\/'); // Escape forward slashes
+    .replace(/\[([^\]]+)\]/gu, '([^/]+)') // Replace [param] with regex capture group
+    .replace(/\//gu, '\\/'); // Escape forward slashes
   const regex = new RegExp(`^${pattern}$`);
   const matches = path.match(regex);
 
@@ -117,7 +117,7 @@ export function extractParams(
 
   const params: Record<string, string> = {};
   const paramNames =
-    route.path.match(/\[([^\]]+)\]/g)?.map((p) => p.slice(1, -1)) || [];
+    route.path.match(/\[([^\]]+)\]/gu)?.map((p) => p.slice(1, -1)) || [];
 
   paramNames.forEach((name, index) => {
     params[name] = matches[index + 1];

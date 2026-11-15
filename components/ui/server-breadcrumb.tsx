@@ -93,7 +93,7 @@ const formatSegment = (
   if (context) {
     if (context.type === 'location' || context.parentSegment === 'location') {
       // Handle hyphenated location names by converting to spaces before formatting
-      const formattedLocation = segment.replace(/-/g, ' ');
+      const formattedLocation = segment.replace(/-/gu, ' ');
       return formatLocationTitle(formattedLocation);
     }
 
@@ -134,13 +134,11 @@ const formatSegment = (
 const handleJobDetailPage = (
   _segments: string[],
   dynamicData: { name: string; url: string }
-): { name: string; url: string }[] => {
-  return [
-    { name: 'Home', url: '/' },
-    { name: 'Jobs', url: '/jobs' },
-    dynamicData,
-  ];
-};
+): { name: string; url: string }[] => [
+  { name: 'Home', url: '/' },
+  { name: 'Jobs', url: '/jobs' },
+  dynamicData,
+];
 
 // Handle job category detail page breadcrumbs (like /jobs/type/full-time)
 const handleCategoryDetailPage = (

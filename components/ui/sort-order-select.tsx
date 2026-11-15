@@ -49,7 +49,7 @@ export function SortOrderSelect() {
       {/* Only show label if configured */}
       {showLabel && (
         <label
-          className="hidden whitespace-nowrap text-muted-foreground text-sm sm:inline"
+          className="text-muted-foreground hidden text-sm whitespace-nowrap sm:inline"
           htmlFor="sort-order-trigger"
         >
           {labelText}

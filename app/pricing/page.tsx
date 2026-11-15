@@ -10,9 +10,8 @@ import config from '@/config';
 import { resolveColor } from '@/lib/utils/colors';
 
 // Format a billing term for display
-const formatPricingBillingTerm = (billingTerm: string): string => {
-  return `/${billingTerm}`;
-};
+const formatPricingBillingTerm = (billingTerm: string): string =>
+  `/${billingTerm}`;
 
 // Add metadata for SEO
 export const metadata: Metadata = {
@@ -54,9 +53,9 @@ export default function PricingPage() {
   // If pricing is not enabled, redirect to home page
   if (!config.pricing?.enabled) {
     return (
-      <main className="min-h-screen bg-background">
+      <main className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="mb-4 font-bold text-2xl">Pricing Not Available</h1>
+          <h1 className="mb-4 text-2xl font-bold">Pricing Not Available</h1>
           <p className="mb-6">The pricing page is currently not available.</p>
           <Link href="/">
             <Button>Return Home</Button>
@@ -67,7 +66,7 @@ export default function PricingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="bg-background min-h-screen">
       <HeroSection
         badge={config.pricing.badge || 'Pricing'}
         description={config.pricing.description}
@@ -93,7 +92,7 @@ export default function PricingPage() {
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-2">
-                    <h2 className="font-medium text-lg">{plan.name}</h2>
+                    <h2 className="text-lg font-medium">{plan.name}</h2>
                     {plan.badge && (
                       <JobBadge
                         icon={<Sparkles className="h-3 w-3" />}
@@ -105,17 +104,17 @@ export default function PricingPage() {
                   </div>
 
                   <div className="flex items-baseline">
-                    <span className="font-bold text-2xl">
+                    <span className="text-2xl font-bold">
                       {plan.price === 0 ? 'Free' : `$${plan.price}`}
                     </span>
                     {plan.price > 0 && (
-                      <span className="ml-1 text-gray-500 text-sm">
+                      <span className="ml-1 text-sm text-gray-500">
                         {formatPricingBillingTerm(plan.billingTerm)}
                       </span>
                     )}
                   </div>
 
-                  <div className="text-gray-600 text-sm">
+                  <div className="text-sm text-gray-600">
                     {plan.description}
                   </div>
 
@@ -125,13 +124,13 @@ export default function PricingPage() {
                       className="w-full gap-1.5 text-xs"
                       size="xs"
                       style={
-                        plan.cta.variant !== 'outline'
-                          ? {
+                        plan.cta.variant === 'outline'
+                          ? undefined
+                          : {
                               backgroundColor: resolveColor(
                                 config.ui.primaryColor
                               ),
                             }
-                          : undefined
                       }
                       variant={
                         plan.cta.variant === 'outline' ? 'outline' : 'primary'
@@ -164,8 +163,8 @@ export default function PricingPage() {
                   <ul className="space-y-2.5">
                     {plan.features.map((feature, featureIndex) => (
                       <li className="flex items-start" key={featureIndex}>
-                        <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-600" />
-                        <span className="text-gray-700 text-sm">{feature}</span>
+                        <Check className="mt-0.5 mr-2 h-4 w-4 shrink-0 text-green-600" />
+                        <span className="text-sm text-gray-700">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -178,7 +177,7 @@ export default function PricingPage() {
         {/* Payment Processing Information */}
         {config.pricing.paymentProcessingText && (
           <div className="mx-auto mt-12 max-w-sm text-center">
-            <p className="text-balance text-gray-500 text-xs">
+            <p className="text-xs text-balance text-gray-500">
               {config.pricing.paymentProcessingText}
             </p>
 

@@ -12,7 +12,7 @@ export function CollapsibleText({ text, maxLength }: CollapsibleTextProps) {
 
   // If text is shorter than maxLength, just return it
   if (text.length <= maxLength) {
-    return <p className="whitespace-pre-line text-gray-600 text-sm">{text}</p>;
+    return <p className="text-sm whitespace-pre-line text-gray-600">{text}</p>;
   }
 
   const displayText = isExpanded
@@ -21,7 +21,7 @@ export function CollapsibleText({ text, maxLength }: CollapsibleTextProps) {
 
   return (
     <div>
-      <p className="whitespace-pre-line text-gray-600 text-sm">{displayText}</p>
+      <p className="text-sm whitespace-pre-line text-gray-600">{displayText}</p>
       <button
         className="mt-1 text-sm text-zinc-900 underline underline-offset-4 transition-colors hover:text-zinc-700"
         onClick={() => setIsExpanded(!isExpanded)}
