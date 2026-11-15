@@ -1,5 +1,5 @@
 import { jobApplyHref } from "@/lib/board/apply";
-import { domainFromWebsite } from "@/lib/bordfeed/map-company";
+import { domainFromWebsite, normalizeDomain } from "@/lib/bordfeed/map-company";
 import {
   ALERT_FREQUENCIES,
   type AlertFrequency,
@@ -35,10 +35,6 @@ function record(value: unknown): Record<string, unknown> {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
-}
-
-function nonEmptyStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function numberOrNull(value: unknown): number | null {
@@ -126,8 +122,8 @@ function companyLogoFallback(
   }
 
   return logoDevUrl(
-    nonEmptyStringOrNull(companyDomain) ??
-      nonEmptyStringOrNull(row.domain) ??
+    normalizeDomain(stringOrNull(companyDomain)) ??
+      normalizeDomain(stringOrNull(row.domain)) ??
       domainFromWebsite(row.website)
   );
 }
@@ -159,7 +155,8 @@ export function toCompanySummary(doc: unknown): CompanySummary {
       mediaUrl(row.logo) ||
       stringOrNull(row.logoUrl) ||
       logoDevUrl(
-        nonEmptyStringOrNull(row.domain) ?? domainFromWebsite(row.website)
+        normalizeDomain(stringOrNull(row.domain)) ??
+          domainFromWebsite(row.website)
       ),
     name: stringOrNull(row.name) ?? "",
     slug: stringOrNull(row.slug) ?? "",

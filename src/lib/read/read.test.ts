@@ -135,12 +135,15 @@ test("job logos fall back to Logo.dev by company domain only when a key is set",
   expect(toJobListItem({ company: 7, id: 1 }).companyLogoUrl).toBeNull();
 });
 
-test("an uploaded logo or a logo URL wins over Logo.dev", () => {
+test("an uploaded logo or a logo URL wins over Logo.dev and the website", () => {
   vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
 
   expect(
     toJobListItem({
-      company: { logoUrl: "https://cdn.example/acme.png" },
+      company: {
+        logoUrl: "https://cdn.example/acme.png",
+        website: "https://other.example",
+      },
       companyDomain: "acme.com",
       id: 1,
     }).companyLogoUrl
@@ -149,20 +152,48 @@ test("an uploaded logo or a logo URL wins over Logo.dev", () => {
     toJobListItem({
       companyDomain: "acme.com",
       companyLogo: { url: "/api/media/file/acme.png" },
+      company: { website: "https://other.example" },
       id: 1,
     }).companyLogoUrl
   ).toBe("/api/media/file/acme.png");
 
   expect(
-    toCompanySummary({ domain: "acme.com", id: 1, logoUrl: "" }).logoUrl
+    toCompanySummary({
+      domain: "acme.com",
+      id: 1,
+      logoUrl: "",
+      website: "https://other.example",
+    }).logoUrl
   ).toBe(LOGO_DEV);
   expect(
     toCompanySummary({
       domain: "acme.com",
       id: 1,
       logoUrl: "https://cdn.example/acme.png",
+      website: "https://other.example",
     }).logoUrl
   ).toBe("https://cdn.example/acme.png");
+});
+
+test("empty logo URLs fall through to a valid company website", () => {
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
+
+  expect(
+    toJobListItem({
+      company: {
+        logoUrl: "",
+        website: "https://www.acme.example/jobs",
+      },
+      id: 1,
+    }).companyLogoUrl
+  ).toBe(ACME_EXAMPLE_LOGO_DEV);
+  expect(
+    toCompanySummary({
+      id: 1,
+      logoUrl: "",
+      website: "https://www.acme.example/jobs",
+    }).logoUrl
+  ).toBe(ACME_EXAMPLE_LOGO_DEV);
 });
 
 test("company websites supply Logo.dev domains for jobs and summaries", () => {
@@ -180,6 +211,24 @@ test("company websites supply Logo.dev domains for jobs and summaries", () => {
       website: "https://www.acme.example/jobs",
     }).logoUrl
   ).toBe(ACME_EXAMPLE_LOGO_DEV);
+});
+
+test("valid company websites do not produce Logo.dev URLs without a token", () => {
+  for (const token of [undefined, ""]) {
+    vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", token);
+    expect(
+      toJobListItem({
+        company: { website: "https://www.acme.example" },
+        id: 1,
+      }).companyLogoUrl
+    ).toBeNull();
+    expect(
+      toCompanySummary({
+        id: 1,
+        website: "https://www.acme.example",
+      }).logoUrl
+    ).toBeNull();
+  }
 });
 
 test("stored company domains take priority over website domains", () => {
@@ -229,6 +278,36 @@ test("an empty job company domain does not block its website fallback", () => {
       id: 1,
     }).companyLogoUrl
   ).toBe(ACME_EXAMPLE_LOGO_DEV);
+});
+
+test("invalid stored company domains fall through to website domains", () => {
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
+
+  for (const domain of ["   ", "not a domain"]) {
+    expect(
+      toJobListItem({
+        company: { website: "https://www.acme.example/jobs" },
+        companyDomain: domain,
+        id: 1,
+      }).companyLogoUrl
+    ).toBe(ACME_EXAMPLE_LOGO_DEV);
+    expect(
+      toJobListItem({
+        company: {
+          domain,
+          website: "https://www.acme.example/jobs",
+        },
+        id: 1,
+      }).companyLogoUrl
+    ).toBe(ACME_EXAMPLE_LOGO_DEV);
+    expect(
+      toCompanySummary({
+        domain,
+        id: 1,
+        website: "https://www.acme.example/jobs",
+      }).logoUrl
+    ).toBe(ACME_EXAMPLE_LOGO_DEV);
+  }
 });
 
 test("published job queries select company domains and populate domain sources", async () => {
