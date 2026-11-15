@@ -27,15 +27,15 @@ export function buildCsp({
   // Payload admin pages, which also allow the code editor's stylesheet.
   admin?: boolean;
   marketing?: boolean;
-  extraScriptOrigins?: string[];
-  extraConnectOrigins?: string[];
+  extraScriptOrigins?: readonly string[];
+  extraConnectOrigins?: readonly string[];
 }): string {
   if (nonce.length === 0 || !BASE64_NONCE.test(nonce)) {
     throw new Error("CSP nonce must be base64");
   }
 
   for (const origin of [...extraScriptOrigins, ...extraConnectOrigins]) {
-    assertHttpsOrigin(origin);
+    assertCspOrigin(origin);
   }
 
   const scriptSrc = [
@@ -88,7 +88,9 @@ export function buildCsp({
   return directives.join("; ");
 }
 
-function assertHttpsOrigin(origin: string): void {
+// Also run by bordful.config.ts parsing, so a bad origin fails at boot and
+// build instead of throwing on every request in the proxy.
+export function assertCspOrigin(origin: string): void {
   if (origin.length === 0 || FORBIDDEN_ORIGIN_CHARS.test(origin)) {
     throw new Error(
       "CSP origin must be an https URL without quotes, semicolons, spaces, or commas"
