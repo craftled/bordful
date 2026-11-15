@@ -33,6 +33,7 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `BORDFUL_MARKETING` | No | You, only on bordful.com | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`. |
 | `RESEND_API_KEY` | No | You | Job alerts stay off without it. See [Job alerts](alerts.md). |
 | `RESEND_BASE_URL` | No | You | Resend API origin. Empty uses the SDK default. |
+| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | You | A [Logo.dev](https://logo.dev) publishable key (`pk_...`). Companies with no uploaded logo and no logo URL then show their Logo.dev logo by domain, and the footer credits Logo.dev. A secret key (`sk_...`) is ignored, because the key is visible in page HTML. Inlined at build time, so redeploy after changing it. |
 | `BORDFEED_BASE_URL` | No | You | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board. |
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
 | `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |

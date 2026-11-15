@@ -24,6 +24,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Deploy to Vercel button that provisions Neon Postgres and Vercel Blob.
 - Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
 - Restoring an older job version in the admin creates a draft. Publish it to make the restored version live.
+- Company logos from [Logo.dev](https://logo.dev). Set `NEXT_PUBLIC_LOGO_DEV_TOKEN` to a publishable key, and companies with no uploaded logo and no logo URL show their logo by domain. The footer then credits Logo.dev. See [docs/deploy.md](docs/deploy.md#environment-variables).
 - Light and dark themes. The board follows the visitor's system setting, and a header toggle switches between system, light and dark and remembers the choice. See [docs/theming.md](docs/theming.md).
 - Board search also matches location, remote region, summary and skills.
 - On Vercel, alert signup is checked by Vercel BotID. See [docs/alerts.md](docs/alerts.md).
