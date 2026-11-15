@@ -2,7 +2,9 @@
 
 Defaults live in `src/theme/tokens.ts`. Site settings, Theme, overrides them. Empty color fields keep the default. Saving applies on the next page load. You do not redeploy.
 
-Dark mode is not part of the board theme. The marketing site styling is separate and only used on bordful.com (`BORDFUL_MARKETING=true`).
+The board follows the visitor's system light or dark setting. A toggle in the header switches between system, light and dark, and the browser remembers the choice. The color overrides below apply to the light theme. The dark theme uses fixed colors that Site settings do not change. Radius and fonts apply to both.
+
+The marketing site styling is separate and only used on bordful.com (`BORDFUL_MARKETING=true`).
 
 ## Colors
 

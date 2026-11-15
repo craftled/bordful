@@ -25,6 +25,8 @@ Bordful 1.0 includes:
 - Connect Bordfeed in the admin, or with `bun run bordful connect`
 - Post a Job through a Stripe payment link, with admin publish and automatic expiry
 - Email job alerts via Resend with double opt-in (weekly default, daily option)
+- Import blocklist for Bordfeed jobs
+- Light and dark themes, with a header toggle
 - Theme colors, fonts, radius, and logo in admin settings
 - An update notice in the admin
 - Nonce-based CSP and security headers
@@ -56,6 +58,13 @@ Open `http://localhost:3000/admin` and create the first admin. That user gets th
 - [Job alerts](docs/alerts.md)
 - [Theming](docs/theming.md)
 - [Customization](docs/customization.md)
+
+## Known limits
+
+- Payload 4 is still a beta upstream. Bordful pins it and bumps it by hand.
+- There are no admin password reset emails. See [Deploy](docs/deploy.md#admin-sign-in).
+- `csp.extraScriptOrigins` and `csp.extraConnectOrigins` are accepted but not applied. See [Configuration](docs/configuration.md).
+- Migrations run on first database connect in production, which can happen during the build. Keep your own migrations backward compatible. See [Deploy](docs/deploy.md).
 
 ## Customizing without merge conflicts
 
