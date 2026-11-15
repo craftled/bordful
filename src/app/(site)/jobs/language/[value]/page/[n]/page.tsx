@@ -7,6 +7,7 @@ import {
   TaxonomyArchive,
 } from "@/components/board/taxonomy-archive";
 import { buildTaxonomyArchivePath, parsePathPage } from "@/lib/board/paths";
+import { loadBoardPool } from "@/lib/board/pool";
 import type { BoardSearchParams } from "@/lib/board/query";
 import { taxonomyArchiveMetadata } from "@/lib/board/taxonomy";
 
@@ -16,7 +17,12 @@ export async function generateMetadata({
   params: Promise<{ n: string; value: string }>;
 }): Promise<Metadata> {
   const { n, value } = await params;
-  return taxonomyArchiveMetadata("language", value, parsePathPage(n) ?? 1);
+  return taxonomyArchiveMetadata(
+    "language",
+    value,
+    parsePathPage(n) ?? 1,
+    await loadBoardPool()
+  );
 }
 
 export default async function LanguageArchivePagedPage({

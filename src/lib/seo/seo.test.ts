@@ -1,6 +1,11 @@
 import { expect, test } from "vitest";
 
 import { GET as getAtom } from "@/app/atom.xml/route";
+import {
+  isThinArchive,
+  MIN_INDEXED_ARCHIVE_JOBS,
+  taxonomyArchiveMetadata,
+} from "@/lib/board/taxonomy";
 import { toJobDetail, toJobListItem } from "@/lib/read/mappers";
 import type { JobDetail, JobListItem } from "@/lib/read/types";
 import {
@@ -239,6 +244,7 @@ test("JSON Feed item matches the backend fixture", () => {
 });
 
 test("fork sitemap skips sample jobs and orders companies by slug", () => {
+  // Two indexable jobs make every archive thin, so none is listed.
   expect(
     buildSitemapEntries({
       jobs: [sampleList, designerList, backendList],
@@ -249,13 +255,6 @@ test("fork sitemap skips sample jobs and orders companies by slug", () => {
     { url: "https://board.example/" },
     { url: "https://board.example/jobs" },
     { url: "https://board.example/companies" },
-    { url: "https://board.example/jobs/type/contract" },
-    { url: "https://board.example/jobs/type/full-time" },
-    { url: "https://board.example/jobs/level/senior" },
-    { url: "https://board.example/jobs/location/de" },
-    { url: "https://board.example/jobs/location/remote" },
-    { url: "https://board.example/jobs/location/us" },
-    { url: "https://board.example/jobs/language/en" },
     {
       lastModified: "2026-10-21T09:00:00.000Z",
       url: "https://board.example/jobs/example-product-designer",
@@ -399,8 +398,13 @@ test("sitemap archives come from indexable jobs the archive filter matches", () 
     seniority: "mid" as const,
     slug: "example-mid-designer",
   };
+  const mids = [1, 2, 3].map((n) => ({
+    ...mid,
+    id: `mid-${n}`,
+    slug: `example-mid-designer-${n}`,
+  }));
   const urls = buildSitemapEntries({
-    jobs: [sampleOnly, mid],
+    jobs: [sampleOnly, ...mids],
     marketing: false,
     siteUrl,
   })
@@ -451,4 +455,43 @@ test("atom.xml redirects to the RSS feed", async () => {
   expect(response.headers.get("location")).toBe(
     "https://board.example/feed.xml"
   );
+});
+
+test("an archive below MIN_INDEXED_ARCHIVE_JOBS is noindex and left out of the sitemap", () => {
+  const jobs = (count: number, overrides: Partial<typeof designerList> = {}) =>
+    Array.from({ length: count }, (_, n) => ({
+      ...designerList,
+      id: `d-${n}`,
+      slug: `designer-${n}`,
+      ...overrides,
+    }));
+  const archiveUrls = (list: (typeof designerList)[]) =>
+    buildSitemapEntries({ jobs: list, marketing: false, siteUrl })
+      .map((entry) => entry.url)
+      .filter((url) => url.endsWith("/jobs/location/de"));
+
+  expect(MIN_INDEXED_ARCHIVE_JOBS).toBe(3);
+  expect(isThinArchive(jobs(2), "location", "de")).toBe(true);
+  expect(isThinArchive(jobs(3), "location", "de")).toBe(false);
+  // Sample jobs never count toward the minimum.
+  expect(
+    isThinArchive(
+      [...jobs(2), ...jobs(5, { indexable: false })],
+      "location",
+      "de"
+    )
+  ).toBe(true);
+
+  expect(archiveUrls(jobs(2))).toEqual([]);
+  expect(archiveUrls(jobs(3))).toEqual([
+    "https://board.example/jobs/location/de",
+  ]);
+
+  expect(taxonomyArchiveMetadata("location", "de", 1, jobs(2)).robots).toEqual({
+    follow: true,
+    index: false,
+  });
+  expect(
+    taxonomyArchiveMetadata("location", "de", 2, jobs(3)).robots
+  ).toBeUndefined();
 });
