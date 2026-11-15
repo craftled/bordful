@@ -78,8 +78,8 @@ export function Hero() {
             <ThemedImage
               alt="The demo board's job list on a phone"
               className="block h-auto w-full"
-              loading="eager"
               name="mobileListLight"
+              priority
             />
           </a>
           <ul className="text-subtle hidden gap-3 font-mono text-[11px] leading-[14px] md:flex">

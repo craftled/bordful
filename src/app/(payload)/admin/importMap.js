@@ -28,6 +28,7 @@ import { LLMInstructionsCell as LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4
 import { ColorField as ColorField_a2bf26ab898d427b9cba95e6bb1c5867 } from '../../../admin/components/color-field'
 import { BordfeedConnectCard as BordfeedConnectCard_9a07360f1637bd5d650db6ada2f80144 } from '../../../admin/bordfeed-connect/connect-card'
 import { UpdateNotice as UpdateNotice_40edb2e7b3eaf30b029c5d4aa8261ae8 } from '../../../admin/components/update-notice'
+import { ForgotPassword as ForgotPassword_4ff4603e77a99ae9ca018ab0ba9a6639 } from '../../../admin/components/forgot-password'
 import { WelcomeWidget as WelcomeWidget_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { CollectionQueryWidget as CollectionQueryWidget_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
@@ -70,6 +71,7 @@ export const importMap = {
   "/admin/components/color-field#ColorField": ColorField_a2bf26ab898d427b9cba95e6bb1c5867,
   "/admin/bordfeed-connect/connect-card#BordfeedConnectCard": BordfeedConnectCard_9a07360f1637bd5d650db6ada2f80144,
   "/admin/components/update-notice#UpdateNotice": UpdateNotice_40edb2e7b3eaf30b029c5d4aa8261ae8,
+  "/admin/components/forgot-password#ForgotPassword": ForgotPassword_4ff4603e77a99ae9ca018ab0ba9a6639,
   "@payloadcms/ui/rsc#WelcomeWidget": WelcomeWidget_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/ui/rsc#CollectionCards": CollectionCards_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/ui/rsc#CollectionQueryWidget": CollectionQueryWidget_ab83ff7e88da8d3530831f296ec4756a,

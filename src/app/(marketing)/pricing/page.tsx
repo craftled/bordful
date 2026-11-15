@@ -13,7 +13,7 @@ import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = marketingPageMetadata({
   description:
-    "Simple pricing for your job board. Bordful is open source and free to use commercially. Custom setup service available for a one-time fee.",
+    "Simple pricing for your job board. Bordful is open source and free to use commercially. Custom setup is a one-time fee and includes 1 year of Bordfeed Pro.",
   path: "/pricing",
   title: "Pricing",
 });

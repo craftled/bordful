@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 
-import { BordfeedApiError, SyncGuardError, toSafeError } from "./errors";
+import { BordfeedApiError, toSafeError } from "./errors";
+import { SyncGuardError } from "./sync-guard-error";
 
 const now = new Date("2026-10-23T09:00:00.000Z");
 const at = "2026-10-23T09:00:00.000Z";

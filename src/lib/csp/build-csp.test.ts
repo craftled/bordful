@@ -24,6 +24,12 @@ test("builds the production policy for a fixed nonce", () => {
   expect(buildCsp({ isDev: false, nonce })).toBe(prod);
 });
 
+test("marketing policy allows Top Boilerplates badge images", () => {
+  expect(buildCsp({ isDev: false, marketing: true, nonce })).toBe(
+    "default-src 'self'; script-src 'self' 'nonce-dGVzdG5vbmNlMTIzNDU2Nw==' 'strict-dynamic' 'sha256-eW4XVtkvWTCtmjlnNAPE5rZMcNdfXCcVtmT7b4zs/SM='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://img.logo.dev https://topboilerplates.com; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://checkout.stripe.com; upgrade-insecure-requests"
+  );
+});
+
 test("builds the development policy for a fixed nonce", () => {
   expect(buildCsp({ isDev: true, nonce })).toBe(dev);
 });

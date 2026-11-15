@@ -34,6 +34,7 @@ import type {
 } from "../types";
 
 import {
+  ACCOUNT_DISABLED_MESSAGE,
   ALREADY_CONNECTED_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
   ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
@@ -48,8 +49,10 @@ import {
   REGISTRATION_EXPIRED_MESSAGE,
   RESET_MESSAGE,
   registeredMessage,
+  SIGNUP_DISABLED_MESSAGE,
   skippedSyncMessage,
   syncedMessage,
+  twoFactorMessage,
   WORKSPACE_REQUIRED_MESSAGE,
   WRONG_CODE_MESSAGE,
 } from "./messages";
@@ -432,6 +435,20 @@ function verifyFailure(
     return step(record, WORKSPACE_REQUIRED_MESSAGE, {
       workspaces: error.workspaces,
     });
+  }
+
+  if (error.code === "two_factor_required") {
+    return step(record, twoFactorMessage(resolveBordfeedBaseUrl()), {
+      fallback: "paste_key",
+    });
+  }
+
+  if (error.code === "account_disabled") {
+    return step(record, ACCOUNT_DISABLED_MESSAGE, { fallback: "paste_key" });
+  }
+
+  if (error.code === "signup_disabled") {
+    return step(record, SIGNUP_DISABLED_MESSAGE, { fallback: "paste_key" });
   }
 
   if (error.code === "already_issued" && !hasStoredKey(record)) {

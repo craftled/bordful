@@ -10,6 +10,7 @@ export const PAYLOAD_THEME_SCRIPT_SHA256 =
 // a Payload bump changes the folder.
 export const PAYLOAD_MONACO_CDN =
   "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/";
+export const TOP_BOILERPLATES_ORIGIN = "https://topboilerplates.com";
 const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/u;
 const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*.]+\.[^*]+$/u;
 
@@ -17,6 +18,7 @@ export function buildCsp({
   nonce,
   isDev,
   admin = false,
+  marketing = false,
   extraScriptOrigins = [],
   extraConnectOrigins = [],
 }: {
@@ -24,6 +26,7 @@ export function buildCsp({
   isDev: boolean;
   // Payload admin pages, which also allow the code editor's stylesheet.
   admin?: boolean;
+  marketing?: boolean;
   extraScriptOrigins?: string[];
   extraConnectOrigins?: string[];
 }): string {
@@ -56,11 +59,22 @@ export function buildCsp({
     ...(admin ? [PAYLOAD_MONACO_CDN] : []),
   ].join(" ");
 
+  const imgSrc = [
+    "'self'",
+    "blob:",
+    "data:",
+    "https://*.public.blob.vercel-storage.com",
+    "https://bordfeed.com",
+    "https://*.bordfeed.com",
+    "https://img.logo.dev",
+    ...(marketing ? [TOP_BOILERPLATES_ORIGIN] : []),
+  ].join(" ");
+
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `style-src ${styleSrc}`,
-    "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://bordfeed.com https://*.bordfeed.com https://img.logo.dev",
+    `img-src ${imgSrc}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
     "frame-src 'none'",

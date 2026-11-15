@@ -8,13 +8,15 @@ import { Section } from "./section";
 import { SectionHeader } from "./section-header";
 import { GITHUB_URL } from "./site";
 
-// The home section shows a shorter card: Paper's own lines, three features
+type Feature = string | { label: string; value: string };
+
+// The home section shows a shorter card: Paper's own lines, a few features
 // and the deploy button on the free plan.
 interface HomePlan {
   badge?: string;
   cta: string;
   description: string;
-  features: readonly string[];
+  features: readonly Feature[];
   href: string;
   unit: string;
 }
@@ -23,7 +25,7 @@ interface Plan {
   cta: string;
   description: string;
   external: boolean;
-  features: readonly string[];
+  features: readonly Feature[];
   highlight?: boolean;
   home: HomePlan;
   href: string;
@@ -41,6 +43,7 @@ const plans: readonly Plan[] = [
     features: [
       "Next.js codebase",
       "Full job board features",
+      "Bordfeed integration",
       "Self-hosted solution",
       "MIT license",
       "Community support",
@@ -50,7 +53,12 @@ const plans: readonly Plan[] = [
       cta: "Deploy to Vercel",
       description:
         "For developers and hobbyists. Self-host on your own accounts.",
-      features: ["Full job board features", "MIT license", "Community support"],
+      features: [
+        "Full job board features",
+        "Bordfeed integration",
+        "MIT license",
+        "Community support",
+      ],
       href: DEPLOY_URL,
       unit: "forever",
     },
@@ -64,6 +72,8 @@ const plans: readonly Plan[] = [
     external: true,
     features: [
       "Full installation service",
+      { label: "1 year of Bordfeed Pro", value: "$758 value" },
+      "Bordfeed integration",
       "Custom domain setup",
       "One-time payment",
       "1-hour consultation",
@@ -76,6 +86,8 @@ const plans: readonly Plan[] = [
         "We install it, set your domain and walk you through it. Pay once.",
       features: [
         "Full installation",
+        { label: "1 year of Bordfeed Pro", value: "$758 value" },
+        "Bordfeed integration",
         "Custom domain setup",
         "1-hour consultation",
       ],
@@ -107,6 +119,16 @@ function CheckIcon() {
   );
 }
 
+function FeatureText({ feature }: { feature: Feature }) {
+  return typeof feature === "string" ? (
+    feature
+  ) : (
+    <span>
+      {feature.label} (<span className="text-foreground">{feature.value}</span>)
+    </span>
+  );
+}
+
 function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
   return (
     <>
@@ -125,17 +147,17 @@ function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
         {plan.features.map((feature) => (
           <li
             className="text-muted-foreground flex items-center gap-2 text-[14px] leading-[18px] md:text-[13px] md:leading-[19px]"
-            key={feature}
+            key={typeof feature === "string" ? feature : feature.label}
           >
             <CheckIcon />
-            {feature}
+            <FeatureText feature={feature} />
           </li>
         ))}
       </ul>
       <Button
         asChild
         className={cn(
-          "h-11 w-full px-4 text-[15px] leading-[18px] md:h-9 md:w-auto md:self-start md:text-[13px] md:leading-[1.5]",
+          "h-11 w-full px-4 text-[15px] leading-[18px] md:mt-auto md:h-9 md:w-auto md:self-start md:text-[13px] md:leading-[1.5]",
           !primary && "shadow-xs"
         )}
         variant={primary ? "default" : "outline"}
@@ -184,7 +206,7 @@ function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
         {home.features.map((feature) => (
           <li
             className="text-muted-foreground flex items-center gap-2 text-[14px] leading-[18px] md:items-start md:text-[13px] md:leading-5"
-            key={feature}
+            key={typeof feature === "string" ? feature : feature.label}
           >
             <span className="md:hidden">
               <CheckIcon />
@@ -192,14 +214,14 @@ function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
             <span aria-hidden="true" className="text-subtle hidden md:inline">
               ✓
             </span>
-            {feature}
+            <FeatureText feature={feature} />
           </li>
         ))}
       </ul>
       <Button
         asChild
         className={cn(
-          "h-11 w-full gap-[7px] px-3.5 text-[15px] leading-[18px] md:h-[34px] md:w-auto md:self-start md:text-[13px] md:leading-[1.5]",
+          "h-11 w-full gap-[7px] px-3.5 text-[15px] leading-[18px] md:mt-auto md:h-[34px] md:w-auto md:self-start md:text-[13px] md:leading-[1.5]",
           !primary && "shadow-xs"
         )}
         variant={primary ? "default" : "outline"}
@@ -274,8 +296,8 @@ export function Pricing({
       </div>
       <Container className="border-line pt-5 pb-10 md:border-t md:py-3.5">
         <p className="text-subtle text-[11px] leading-[14px]">
-          Payments by Stripe. Prices in USD, VAT may apply. Bordfeed has its own
-          plans.
+          Payments by Stripe. Prices in USD, VAT may apply. Bordfeed Pro is
+          included with Custom Setup for 12 months.
         </p>
       </Container>
     </Section>

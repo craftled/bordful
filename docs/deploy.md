@@ -36,7 +36,7 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | You | A [Logo.dev](https://logo.dev) publishable key (`pk_...`). Companies with no uploaded logo and no logo URL then show their Logo.dev logo by domain, and the footer credits Logo.dev. A secret key (`sk_...`) is ignored, because the key is visible in page HTML. Inlined at build time, so redeploy after changing it. |
 | `BORDFEED_BASE_URL` | No | You | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board. |
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
-| `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Two later syncs at least 12 hours apart must see the same slice first, and each sync removes at most 10. Leave unset. |
+| `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
 | `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
 | `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. Must end in `_int`. Do not set this on Vercel. |
 | `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. |
@@ -62,9 +62,64 @@ The Bordfeed cron fetches only jobs new to the feed since the last sync, capped 
 3. Create the DNS records Vercel shows.
 4. When that domain is the production domain, leave `NEXT_PUBLIC_SERVER_URL` unset so the app uses the production URL. To pin the origin, set `NEXT_PUBLIC_SERVER_URL` to `https://board.example` and redeploy.
 
+## Firewall
+
+Bots can send `/jobs/search` thousands of different queries an hour. Search no longer reads the database for each one, but every request still runs a function, so add one Vercel Firewall rule after you deploy. The rule lives in the Vercel project, not in this repository, so a fork does not get it automatically.
+
+In the Vercel project, open Firewall, then Configure, and add a custom rule:
+
+| Setting | Value |
+| --- | --- |
+| Name | `Challenge search and alerts` |
+| If | Request Path equals `/jobs/search` and Method equals `GET` |
+| Or | Request Path equals `/alerts` and Method equals `GET` |
+| Then | Challenge |
+
+Publish the change. Browsers pass the challenge once. Scripts get HTTP 429 with `x-vercel-mitigated: challenge`. Search engines are unaffected, since `robots.txt` already disallows `/jobs/search`. The alerts form still works, because it posts with `POST`.
+
+The same rule from the Vercel CLI:
+
+```bash
+vercel firewall rules add "Challenge search and alerts" \
+  --condition '{"type":"path","op":"eq","value":"/jobs/search"}' \
+  --condition '{"type":"method","op":"eq","value":"GET"}' \
+  --or \
+  --condition '{"type":"path","op":"eq","value":"/alerts"}' \
+  --condition '{"type":"method","op":"eq","value":"GET"}' \
+  --action challenge
+vercel firewall publish
+```
+
+A per-IP rate limit does not help here. The traffic that prompted this rule came through residential proxies, with no single IP sending more than a few hundred requests a day.
+
 ## Admin sign-in
 
-Bordful does not send admin password reset emails yet. Keep a second admin account, so one admin can change another's password in Users. After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
+After 5 failed sign-ins an account locks for 10 minutes, then it can sign in again.
+
+Bordful does not send password reset emails. The "Forgot password?" link on the login page points here. If you lose your password, ask another admin to set a new one in Users, or set it yourself from a clone of your repo. On Vercel, run:
+
+```bash
+bun install
+vercel link
+vercel env pull .env.local --environment=production
+PAYLOAD_SECRET=$(openssl rand -hex 32) bun run bordful reset-password --email owner@example.com
+```
+
+The first run changes nothing. It prints the database it would change as `host:port/database`. Check that this is your board's database, in Vercel under Storage or in your Neon dashboard, then run the same line again with `--database-host` and that exact text. When you are done, run `rm .env.local`.
+
+If the command says `DATABASE_URL` is empty, Vercel kept the value back because it is Sensitive. Copy the connection string from your Neon dashboard and run `export DATABASE_URL='...'` first.
+
+On any other host, set `DATABASE_URL` to the production database and run the `reset-password` line the same way.
+
+The check matters because the command boots your app, which seeds whatever `DATABASE_URL` points at, and migrates it when `NODE_ENV` is `production`. If the folder you run it from has no `.env` file, the Payload CLI loads the first one it finds in a parent folder, which can belong to a different project. The check also stops if `DATABASE_URL` connects somewhere other than its URL host, for example through a `host` query parameter or a socket path.
+
+Check out the same commit your site is deployed from before you run the command. Booting with `NODE_ENV=production` applies pending migrations, so a newer checkout could migrate the production database ahead of the live app.
+
+The command prints a new password once, clears any lockout, and signs that user out everywhere. Sign in, then change the password in Users. If the email does not match a user, the command lists the admin emails.
+
+The `PAYLOAD_SECRET` in the command is a throwaway. A password reset does not need the real value, which Vercel will not show once it is Sensitive. Do not save it to the project.
+
+Anyone who has `DATABASE_URL` can reset a password this way, so treat it like an admin password.
 
 ## Self-hosting outside Vercel
 
