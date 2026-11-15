@@ -20,6 +20,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Email job alerts via Resend, with double opt-in (weekly default, daily option).
 - Theme colors, fonts, radius, and logo in admin settings.
 - Update notice in the admin. Upgrade steps are in [UPGRADING.md](UPGRADING.md).
+- `bun run bordful:upgrade` merges the latest release into a board, including the first upgrade of a Deploy button project. See [UPGRADING.md](UPGRADING.md#upgrade-command).
 - Nonce-based CSP and security headers.
 - Deploy to Vercel button that provisions Neon Postgres and Vercel Blob.
 - Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
