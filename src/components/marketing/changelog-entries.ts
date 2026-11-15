@@ -33,7 +33,7 @@ export const changelogEntries: readonly ChangelogEntry[] = [
     bullets: ["The previous edition stays on the airtable branch."],
     date: null,
     href: "https://github.com/craftled/bordful/tree/airtable",
-    title: "0.1.x (Airtable edition)",
-    version: "0.1.x",
+    title: "0.x (Airtable edition)",
+    version: "0.x",
   },
 ];

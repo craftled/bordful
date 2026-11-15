@@ -5,7 +5,7 @@
 | Version | Supported |
 | --- | --- |
 | 1.0.x | Supported |
-| 0.1.x (airtable branch) | Critical fixes, best effort |
+| 0.2.x (airtable branch) | Security fixes only |
 
 ## Reporting a Vulnerability
 
