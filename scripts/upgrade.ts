@@ -31,8 +31,10 @@ export interface UpgradeResult {
   conflicts: string[];
   /** True when the merge changed package.json or bun.lock. */
   dependenciesChanged: boolean;
-  /** Git's error output when a merge could not start. */
+  /** Git's error output when a merge fails. */
   mergeError?: string;
+  /** True when Git merged the files but left the merge uncommitted. */
+  mergeOpen?: boolean;
   /** Upstream commit recorded as the shared base, for a Deploy button project. */
   recordedBase: string | null;
   status: UpgradeStatus;
@@ -128,6 +130,46 @@ function preflightStatus(root: string): UpgradeStatus | null {
   return null;
 }
 
+function ignoredAdditions(root: string): string[] {
+  const additions = lines(
+    git(root, [
+      "-c",
+      "core.quotePath=false",
+      "diff",
+      "--name-only",
+      "--diff-filter=A",
+      "HEAD",
+      TARGET,
+    ])
+  );
+  return additions.filter(
+    (file) =>
+      existsSync(resolve(root, file)) &&
+      tryGit(root, ["check-ignore", "-q", "--", file]) !== null
+  );
+}
+
+function ignoredAdditionFailure(root: string): UpgradeResult | null {
+  if (
+    tryGit(root, ["merge-base", "HEAD", TARGET]) !== null ||
+    findUpstreamBase(root) === null
+  ) {
+    return null;
+  }
+
+  const ignored = ignoredAdditions(root);
+  if (ignored.length === 0) {
+    return null;
+  }
+
+  return result("merge-failed", {
+    mergeError: [
+      "Git refused to overwrite ignored working tree files:",
+      ...ignored.map((file) => `  ${file}`),
+    ].join("\n"),
+  });
+}
+
 function recordUpstreamBase(root: string, log: (line: string) => void) {
   if (tryGit(root, ["merge-base", "HEAD", TARGET]) !== null) {
     return null;
@@ -181,6 +223,11 @@ export function upgrade(options: UpgradeOptions): UpgradeResult {
     return result("up-to-date");
   }
 
+  const ignoredFailure = ignoredAdditionFailure(root);
+  if (ignoredFailure !== null) {
+    return ignoredFailure;
+  }
+
   const recordedBase = recordUpstreamBase(root, log);
   if (recordedBase === false) {
     return result("base-not-found");
@@ -193,7 +240,13 @@ export function upgrade(options: UpgradeOptions): UpgradeResult {
   log(`Merging ${commits} upstream commit${commits === 1 ? "" : "s"}...`);
 
   try {
-    git(root, ["merge", "--no-edit", "--no-stat", TARGET]);
+    git(root, [
+      "merge",
+      "--no-edit",
+      "--no-stat",
+      "--no-overwrite-ignore",
+      TARGET,
+    ]);
   } catch (error) {
     const conflicts = lines(
       git(root, [
@@ -205,16 +258,19 @@ export function upgrade(options: UpgradeOptions): UpgradeResult {
       ])
     );
     if (conflicts.length === 0) {
+      const mergeOpen =
+        tryGit(root, ["rev-parse", "-q", "--verify", "MERGE_HEAD"]) !== null;
       const stderr =
         error instanceof Error &&
         "stderr" in error &&
-        Buffer.isBuffer(error.stderr)
-          ? error.stderr.toString("utf8").trim()
+        typeof error.stderr === "string"
+          ? error.stderr.trim()
           : "";
       return result("merge-failed", {
         commits,
         mergeError:
           stderr || (error instanceof Error ? error.message : String(error)),
+        mergeOpen,
         recordedBase,
       });
     }
@@ -270,6 +326,15 @@ export function report(outcome: UpgradeResult): string[] {
         "The command stopped without changing your files or commits. Follow the manual steps in UPGRADING.md.",
       ];
     case "merge-failed":
+      if (outcome.mergeOpen) {
+        return [
+          outcome.mergeError ?? "Git merged the files but did not commit.",
+          "Review the merged files, then run `git commit`, or run `git merge --abort` to put them back.",
+          ...(outcome.recordedBase
+            ? ["The base record commit stays and changes no files."]
+            : []),
+        ];
+      }
       return [
         outcome.mergeError ?? "Git could not start the merge.",
         "The merge did not start. Your files are unchanged. Fix the error above and run this again.",
@@ -297,8 +362,10 @@ export function report(outcome: UpgradeResult): string[] {
       return [
         `Merged ${outcome.commits} upstream commit${outcome.commits === 1 ? "" : "s"}.`,
       ];
-    default:
-      return [];
+    default: {
+      const exhaustive: never = outcome.status;
+      return exhaustive;
+    }
   }
 }
 

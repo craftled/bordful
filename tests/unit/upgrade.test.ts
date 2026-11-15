@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import {
+  chmodSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -268,17 +269,7 @@ test("refuses a paused rebase without changing HEAD or adding a remote", () => {
   commit(board, "initial", { "src/core.ts": "export const core = 1;\n" });
   commit(board, "first", { "src/core.ts": "export const core = 2;\n" });
   commit(board, "second", { "src/core.ts": "export const core = 3;\n" });
-  const previousEditor = process.env.GIT_SEQUENCE_EDITOR;
-  process.env.GIT_SEQUENCE_EDITOR = "sed -i '1s/^pick /edit /'";
-  try {
-    git(board, "rebase", "-i", "HEAD~2");
-  } finally {
-    if (previousEditor === undefined) {
-      delete process.env.GIT_SEQUENCE_EDITOR;
-    } else {
-      process.env.GIT_SEQUENCE_EDITOR = previousEditor;
-    }
-  }
+  expect(() => git(board, "rebase", "--exec", "false", "HEAD~1")).toThrow();
   const head = git(board, "rev-parse", "HEAD");
 
   const outcome = upgrade({ cwd: board, upstreamUrl: "/unused" });
@@ -343,7 +334,7 @@ test("reports an untracked-file collision as a merge failure and keeps the file"
   const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
 
   expect(outcome.status).toBe("merge-failed");
-  expect(outcome.mergeError).toContain("untracked working tree files");
+  expect(outcome.mergeError).toContain("would be overwritten by merge");
   expect(read(board, "src/new.ts")).toBe("owner's untracked file\n");
   expect(() => git(board, "rev-parse", "--verify", "MERGE_HEAD")).toThrow();
   expect(report(outcome)).toContain(
@@ -352,6 +343,85 @@ test("reports an untracked-file collision as a merge failure and keeps the file"
   expect(report(outcome)).toContain(
     "The base record commit stays and changes no files."
   );
+});
+
+test("does not overwrite an ignored local file tracked upstream", () => {
+  const upstream = repo();
+  commit(upstream, "release", BASE_FILES);
+  const board = mkdtempSync(path.join(tmpdir(), "bordful-upgrade-"));
+  temporary.push(board);
+  git(board, "clone", "-q", upstream, ".");
+  git(board, "config", "user.name", "Test");
+  git(board, "config", "user.email", "test@example.com");
+  git(board, "config", "commit.gpgsign", "false");
+  const ignoredFiles = path.join(board, ".git", "info", "exclude");
+  writeFileSync(ignoredFiles, `${readFileSync(ignoredFiles, "utf8")}.env\n`);
+  const localContents = Buffer.from("LOCAL_TEST_CONFIG=owner-value\n");
+  writeFileSync(path.join(board, ".env"), localContents);
+  commit(upstream, "track local config path", {
+    ".env": "UPSTREAM_TEST_CONFIG=upstream-value\n",
+  });
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("merge-failed");
+  expect(outcome.mergeError).toContain("untracked working tree files");
+  expect(readFileSync(path.join(board, ".env"))).toEqual(localContents);
+  expect(() => git(board, "rev-parse", "--verify", "MERGE_HEAD")).toThrow();
+});
+
+test("protects ignored files before recording the first upstream base", () => {
+  const { board, upstream } = deployButtonProject();
+  const ignoredFiles = path.join(board, ".git", "info", "exclude");
+  writeFileSync(ignoredFiles, `${readFileSync(ignoredFiles, "utf8")}.env\n`);
+  const localContents = Buffer.from("LOCAL_TEST_CONFIG=owner-value\n");
+  writeFileSync(path.join(board, ".env"), localContents);
+  commit(upstream, "track local config path", {
+    ".env": "UPSTREAM_TEST_CONFIG=upstream-value\n",
+  });
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("merge-failed");
+  expect(outcome.recordedBase).toBeNull();
+  expect(outcome.mergeError).toContain("ignored working tree files");
+  expect(readFileSync(path.join(board, ".env"))).toEqual(localContents);
+  expect(git(board, "log", "-1", "--format=%s")).toBe("Initial commit");
+  expect(() => git(board, "rev-parse", "--verify", "MERGE_HEAD")).toThrow();
+});
+
+test("reports a hook-rejected merge as open and gives recovery steps", () => {
+  const upstream = repo();
+  commit(upstream, "release", BASE_FILES);
+  const board = mkdtempSync(path.join(tmpdir(), "bordful-upgrade-"));
+  temporary.push(board);
+  git(board, "clone", "-q", upstream, ".");
+  git(board, "config", "user.name", "Test");
+  git(board, "config", "user.email", "test@example.com");
+  git(board, "config", "commit.gpgsign", "false");
+  commit(board, "board customization", {
+    "bordful.config.ts": "export default { name: 'Mine' };\n",
+  });
+  commit(upstream, "upstream update", {
+    "src/core.ts": "export const core = 2;\n",
+  });
+  const hook = path.join(board, ".git", "hooks", "pre-merge-commit");
+  writeFileSync(hook, "#!/bin/sh\nexit 1\n");
+  chmodSync(hook, 0o755);
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("merge-failed");
+  expect(outcome.mergeOpen).toBe(true);
+  expect(read(board, "src/core.ts")).toBe("export const core = 2;\n");
+  expect(git(board, "rev-parse", "--verify", "MERGE_HEAD")).not.toBe("");
+  expect(report(outcome)).toContain(
+    "Review the merged files, then run `git commit`, or run `git merge --abort` to put them back."
+  );
+  expect(report(outcome)).not.toContain(
+    "The merge did not start. Your files are unchanged. Fix the error above and run this again."
+  );
+  git(board, "merge", "--abort");
 });
 
 test("prints non-ASCII conflict paths without quoting", () => {
