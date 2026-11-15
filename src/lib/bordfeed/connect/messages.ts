@@ -38,6 +38,31 @@ export const REGISTRATION_EXPIRED_MESSAGE = "The code expired. Start again.";
 
 export const RESET_MESSAGE = "Disconnected. The board shows sample jobs again.";
 
+function importedJobs(count: number): string {
+  return count === 1 ? "1 imported job" : `${count} imported jobs`;
+}
+
+export function resetMessage(deleted: number): string {
+  return deleted === 0
+    ? RESET_MESSAGE
+    : `Disconnected. Deleted ${importedJobs(deleted)}. The board shows sample jobs again.`;
+}
+
+export const DISCONNECT_BUSY_MESSAGE =
+  "A Bordfeed sync is running. Try Disconnect again in a minute.";
+
+// The confirm step before a disconnect. Disconnect deletes imported jobs, and
+// a reconnect starts again from the newest page of the feed.
+export function disconnectWarning(
+  imported: number,
+  jobsPerSync: number
+): string {
+  if (imported === 0) {
+    return "Disconnecting removes the saved key and shows sample jobs again.";
+  }
+  return `Disconnecting deletes the ${importedJobs(imported)} and the saved key, and shows sample jobs again. Reconnecting imports the newest ${jobsPerSync}.`;
+}
+
 export const ALREADY_CONNECTED_MESSAGE =
   "Already connected. Disconnect first to connect another account.";
 

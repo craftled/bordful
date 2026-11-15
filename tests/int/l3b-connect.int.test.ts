@@ -7,6 +7,7 @@ import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import {
   ACCOUNT_DISABLED_MESSAGE,
   ALREADY_ISSUED_MESSAGE,
+  DISCONNECT_BUSY_MESSAGE,
   REGISTER_RATE_LIMIT_MESSAGE,
   SIGNUP_DISABLED_MESSAGE,
   twoFactorMessage,
@@ -23,10 +24,14 @@ import { readConnection } from "@/lib/bordfeed/connection-store";
 import { BordfeedApiError } from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { runSampleSync } from "@/lib/bordfeed/sync";
+import { acquireSyncLease, releaseSyncLease } from "@/lib/bordfeed/sync-budget";
 import type { CreateFeedRequest, RegisterRequest } from "@/lib/bordfeed/types";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { bordfeedInstallId } from "@/lib/install/install-id";
 import { toBordfeedConnectionPublic } from "@/lib/read/mappers";
+import type { Job } from "@/payload-types";
+
+import { exampleDescription } from "../fixtures/board";
 
 if (existsSync(".env")) {
   process.loadEnvFile(".env");
@@ -487,45 +492,105 @@ describe("bordfeed connect", () => {
     expect(toBordfeedConnectionPublic(doc).showAttribution).toBe(false);
   });
 
-  test("reset drafts feed jobs, syncs samples, and a reconnect republishes them", async () => {
+  test("reset deletes every feed job, drafts included, and keeps companies", async () => {
     const bordfeed = deps();
     await pasteKey(payload, { apiKey: API_KEY }, bordfeed);
+    // More rows than one feed page, half of them drafts, so the delete has
+    // to cover a whole board and not only what the last sync returned.
+    // Sequential: parallel creates each hold a transaction and can exhaust
+    // the pool.
+    for (let n = 0; n < 60; n += 1) {
+      // biome-ignore lint/performance/noAwaitInLoops: see above
+      await payload.create({
+        collection: "jobs",
+        data: {
+          _status: n % 2 === 0 ? "published" : "draft",
+          bordfeedJobId: `old-${n}`,
+          companyName: "Example Co",
+          description: exampleDescription as NonNullable<Job["description"]>,
+          origin: "bordfeed",
+          slug: `old-feed-job-${n}`,
+          title: `Old feed job ${n}`,
+        },
+        depth: 0,
+        draft: n % 2 === 1,
+        overrideAccess: true,
+      });
+    }
+    const companiesBefore = await payload.count({
+      collection: "companies",
+      overrideAccess: true,
+    });
     calls.length = 0;
+
     const reset = await resetToSample(payload, bordfeed);
     const afterReset = await readConnection(payload);
-    const drafted = await payload.find({
+    const left = await payload.count({
       collection: "jobs",
-      depth: 0,
-      draft: true,
-      limit: 20,
       overrideAccess: true,
       where: { origin: { equals: "bordfeed" } },
+    });
+    const companiesAfter = await payload.count({
+      collection: "companies",
+      overrideAccess: true,
     });
 
     expect(reset.state).toBe("sample");
     expect(reset.message).toBe(
-      "Disconnected. The board shows sample jobs again."
+      "Disconnected. Deleted 63 imported jobs. The board shows sample jobs again."
+    );
+    expect(left.totalDocs).toBe(0);
+    expect(companiesAfter.totalDocs).toBeGreaterThanOrEqual(
+      companiesBefore.totalDocs
     );
     expect(afterReset.apiKeyEncrypted).toBeNull();
     expect(afterReset.keyHint).toBeNull();
     expect(afterReset.feedId).toBeNull();
-    expect(drafted.docs.length).toBeGreaterThan(0);
-    expect(drafted.docs.every((job) => job._status === "draft")).toBe(true);
     expect(calls.some((call) => call.type === "preview")).toBe(true);
+  });
+
+  test("a reconnect after reset imports only the newest feed page", async () => {
+    const bordfeed = deps();
+    await pasteKey(payload, { apiKey: API_KEY }, bordfeed);
+    await resetToSample(payload, bordfeed);
 
     await pasteKey(payload, { apiKey: API_KEY }, bordfeed);
-    const republished = await payload.find({
+    const imported = await payload.find({
       collection: "jobs",
       depth: 0,
-      draft: false,
-      limit: 20,
+      draft: true,
+      limit: 100,
       overrideAccess: true,
       where: { origin: { equals: "bordfeed" } },
     });
-    expect(republished.docs).toHaveLength(3);
-    expect(republished.docs.every((job) => job._status === "published")).toBe(
+    expect(imported.docs).toHaveLength(3);
+    expect(imported.docs.every((job) => job._status === "published")).toBe(
       true
     );
+  });
+
+  test("reset waits while a sync holds the lease", async () => {
+    const bordfeed = deps();
+    await pasteKey(payload, { apiKey: API_KEY }, bordfeed);
+    const token = await acquireSyncLease(payload, new Date());
+    expect(token).not.toBeNull();
+
+    try {
+      const busy = await resetToSample(payload, bordfeed);
+      const still = await payload.count({
+        collection: "jobs",
+        overrideAccess: true,
+        where: { origin: { equals: "bordfeed" } },
+      });
+      expect(busy.message).toBe(DISCONNECT_BUSY_MESSAGE);
+      expect(busy.state).toBe("connected");
+      expect(still.totalDocs).toBe(3);
+    } finally {
+      await releaseSyncLease(payload, token as string);
+    }
+
+    const reset = await resetToSample(payload, bordfeed);
+    expect(reset.state).toBe("sample");
   });
 
   test("a stored key finishes after the code expires without another verify", async () => {
