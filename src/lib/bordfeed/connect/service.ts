@@ -26,6 +26,7 @@ import {
   runSampleSync,
   type SyncSummary,
 } from "../sync";
+import { acquireSyncLease, releaseSyncLease } from "../sync-budget";
 import type {
   BordfeedConnectionState,
   BordfeedWorkspace,
@@ -42,13 +43,14 @@ import {
   CREDIT_SHOWN_MESSAGE,
   connectedMessage,
   connectedSyncFailedMessage,
+  DISCONNECT_BUSY_MESSAGE,
   INVALID_KEY_MESSAGE,
   INVALID_START_MESSAGE,
   NEED_CODE_MESSAGE,
   REGISTER_RATE_LIMIT_MESSAGE,
   REGISTRATION_EXPIRED_MESSAGE,
-  RESET_MESSAGE,
   registeredMessage,
+  resetMessage,
   SIGNUP_DISABLED_MESSAGE,
   skippedSyncMessage,
   syncedMessage,
@@ -599,17 +601,29 @@ export async function pasteKey(
   return syncFeed(payload, deps, now);
 }
 
-async function unpublishFeedJobs(payload: Payload): Promise<void> {
-  await payload.update({
+// Every imported job goes, published or draft. A reconnect makes a new feed
+// and starts again from its newest page, so drafts kept here would never be
+// matched again. Companies stay: one with no jobs already 404s, and keeping
+// it keeps any logo an editor uploaded for the next connect.
+async function deleteFeedJobs(payload: Payload): Promise<number> {
+  const where = { origin: { equals: "bordfeed" } } as const;
+  const result = await payload.delete({
     collection: "jobs",
-    data: { _status: "draft" },
     depth: 0,
     overrideAccess: true,
-    where: {
-      _status: { equals: "published" },
-      origin: { equals: "bordfeed" },
-    },
+    where,
   });
+  if (result.errors.length > 0) {
+    // A row that failed to delete must not stay live on a sample board.
+    await payload.update({
+      collection: "jobs",
+      data: { _status: "draft" },
+      depth: 0,
+      overrideAccess: true,
+      where: { ...where, _status: { equals: "published" } },
+    });
+  }
+  return result.docs.length;
 }
 
 export async function resetToSample(
@@ -617,18 +631,25 @@ export async function resetToSample(
   deps?: ConnectDeps
 ): Promise<ConnectStepResult> {
   const now = clock(deps);
-  await unpublishFeedJobs(payload);
-  await dispatchConnectionEvent(payload, { type: "reset" }, now());
-
-  try {
-    await runSampleSync(payload, { client: deps?.client, now });
-  } catch {
-    const record = await readConnection(payload);
-    return step(record, RESET_MESSAGE);
+  // Holding the sync lease stops a running sync from writing feed jobs back
+  // after they are deleted.
+  const token = await acquireSyncLease(payload, now());
+  if (!token) {
+    return step(await readConnection(payload), DISCONNECT_BUSY_MESSAGE);
   }
 
-  const record = await readConnection(payload);
-  return step(record, RESET_MESSAGE);
+  try {
+    const deleted = await deleteFeedJobs(payload);
+    await dispatchConnectionEvent(payload, { type: "reset" }, now());
+    try {
+      await runSampleSync(payload, { client: deps?.client, now });
+    } catch {
+      // The board is already on sample mode; the next boot or sync retries.
+    }
+    return step(await readConnection(payload), resetMessage(deleted));
+  } finally {
+    await releaseSyncLease(payload, token);
+  }
 }
 
 export async function setShowAttribution(

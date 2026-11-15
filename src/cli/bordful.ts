@@ -2,6 +2,7 @@ import { createInterface } from "node:readline/promises";
 
 import { type Payload, strictObject, z } from "payload";
 import { defineCLICommand } from "payload/cli";
+import { DISCONNECT_BUSY_MESSAGE } from "@/lib/bordfeed/connect/messages";
 import type { ConnectStepResult } from "@/lib/bordfeed/connect/service";
 import {
   pasteKey,
@@ -336,9 +337,11 @@ export const bordfulCommand = defineCLICommand({
     if (args.action === "sample") {
       const result = await resetToSample(payload);
       const record = await readConnection(payload);
+      const refused =
+        result.state === "error" || result.message === DISCONNECT_BUSY_MESSAGE;
       return finish(
         isJSON,
-        result.state === "error" ? 1 : 0,
+        refused ? 1 : 0,
         publicStatus(record, result.message),
         [result.message]
       );
