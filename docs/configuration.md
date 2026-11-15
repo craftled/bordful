@@ -50,7 +50,7 @@ export function Analytics() {
 }
 ```
 
-Check it with `bun run build && bun run start`. Under `next dev` the script may not load.
+In development, open the board at `http://localhost:3000`. Next's dev server blocks its own scripts on other hosts such as `127.0.0.1` unless they are listed in `allowedDevOrigins`, so the script does not run there.
 
 ## Site settings
 
