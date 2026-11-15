@@ -25,7 +25,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Deploy to Vercel button that provisions Neon Postgres and Vercel Blob.
 - Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
 - Restoring an older job version in the admin creates a draft. Publish it to make the restored version live.
-- Company logos from [Logo.dev](https://logo.dev). Set `NEXT_PUBLIC_LOGO_DEV_TOKEN` to a publishable key, and companies with no uploaded logo and no logo URL show their logo by domain. The footer then credits Logo.dev. See [docs/deploy.md](docs/deploy.md#environment-variables).
+- Company logos from [Logo.dev](https://logo.dev). Set `NEXT_PUBLIC_LOGO_DEV_TOKEN` to a publishable key, and companies with no uploaded logo and no logo URL show their logo by domain, or by the company website if no domain is stored. The footer then credits Logo.dev. See [docs/deploy.md](docs/deploy.md#environment-variables).
 - Light and dark themes. The board follows the visitor's system setting, and a header toggle switches between system, light and dark and remembers the choice. See [docs/theming.md](docs/theming.md).
 - Board search also matches location, remote region, summary and skills.
 - On Vercel, alert signup is checked by Vercel BotID. See [docs/alerts.md](docs/alerts.md).
@@ -44,6 +44,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Fixed
 
+- Logo.dev logos also use a company's website when no domain is stored. The job list loads the company domain and website for that fallback.
 - Job descriptions from Bordfeed are parsed with parse5 8.1.1, which fixes crashes and very slow parsing on some malformed HTML.
 - Connecting Bordfeed with an account that uses two-factor sign-in now says an emailed code cannot create an API key and opens the paste-key path. It used to say "Bordfeed rejected the API key." Disabled accounts and closed sign-ups get their own messages too.
 - Board search no longer queries Postgres for each search string. Summary and skills are matched against a cached index that is read at most once every 5 minutes, and the job list reads only the fields its cards show. Bots sending many different searches used to run one database query per request and could use up a hosted database's monthly transfer allowance.

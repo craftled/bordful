@@ -71,7 +71,7 @@ const JOB_LIST_SELECT = {
 } as const;
 
 const JOB_LIST_POPULATE = {
-  companies: { logoUrl: true },
+  companies: { domain: true, logoUrl: true, website: true },
   media: { filename: true, url: true, variants: true },
 } as const;
 

@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 
 import { formatSalary } from "@/lib/board/format";
+import { toJobListItem } from "@/lib/read/mappers";
 import type { JobListItem } from "@/lib/read/types";
 
 import { JobRow } from "./job-row";
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllEnvs();
 });
 
 const NOW = Date.parse("2026-10-23T12:00:00Z");
@@ -45,6 +47,24 @@ function job(overrides: Partial<JobListItem>): JobListItem {
     ...overrides,
   };
 }
+
+test("shows the company initial tile when Logo.dev has no domain", () => {
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
+  const listItem = toJobListItem({
+    company: { domain: null, logoUrl: null, website: null },
+    companyName: "Acme",
+    id: "id",
+    title: "Senior Engineer",
+  });
+  const { container } = render(
+    <ul>
+      <JobRow job={listItem} now={NOW} />
+    </ul>
+  );
+
+  expect(container.querySelector('img[src*="img.logo.dev"]')).toBeNull();
+  expect(container.querySelector("article > span")?.textContent).toBe("A");
+});
 
 test("formats salary for min only, max only, both and none", () => {
   expect(formatSalary({ salaryCurrency: "USD", salaryMin: 45_000 })).toBe(
