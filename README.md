@@ -65,7 +65,6 @@ Open `http://localhost:3000/admin` and create the first admin. That user gets th
 
 - Payload 4 is still a beta upstream. Bordful pins it and bumps it by hand.
 - There are no admin password reset emails. See [Deploy](docs/deploy.md#admin-sign-in).
-- `csp.extraScriptOrigins` and `csp.extraConnectOrigins` are accepted but not applied. See [Configuration](docs/configuration.md).
 - Migrations run on first database connect in production, which can happen during the build. Keep your own migrations backward compatible. See [Deploy](docs/deploy.md).
 - The admin update notice follows GitHub releases, and fixes merged after the v1.0.0 tag have no release yet, so it stays quiet about them. Run `bun run bordful:upgrade` to get them. See [Upgrading](UPGRADING.md).
 - A new board's first sync can bring jobs from the last hour with only the employer name, because Bordfeed links companies after a job arrives. A later sync adds the domain and logo once Bordfeed has linked the company.

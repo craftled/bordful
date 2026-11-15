@@ -495,3 +495,50 @@ test("a 403 without a known code still reads as auth_failed", async () => {
     .catch((caught: unknown) => caught);
   expect((error as BordfeedApiError).code).toBe("auth_failed");
 });
+
+test("a POST that gets a 503 is not retried", async () => {
+  const time = clock();
+  let fetches = 0;
+  const fetchImpl: typeof fetch = () => {
+    fetches += 1;
+    return Promise.resolve(
+      jsonResponse({ error: { code: "server_error" } }, 503)
+    );
+  };
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+  const error = await api
+    .verify({ code: "424242", registration_id: "reg_1" })
+    .catch((caught: unknown) => caught);
+  expect(error).toBeInstanceOf(BordfeedApiError);
+  expect((error as BordfeedApiError).status).toBe(503);
+  expect(fetches).toBe(1);
+  expect(time.sleeps).toEqual([]);
+});
+
+test("a POST that gets a 429 waits and retries", async () => {
+  const time = clock();
+  let fetches = 0;
+  const fetchImpl: typeof fetch = () => {
+    fetches += 1;
+    if (fetches === 1) {
+      return Promise.resolve(
+        jsonResponse({ error: { code: "rate_limited" } }, 429, {
+          "retry-after": "2",
+        })
+      );
+    }
+    return Promise.resolve(
+      jsonResponse({ data: { id: "3f1c2b4a-1d2e-4f3a-8b9c-0a1b2c3d4e5f" } })
+    );
+  };
+  const api = client({ fetch: fetchImpl, now: time.now, sleep: time.sleep });
+
+  await api.createFeed({
+    filters: {},
+    name: "Board",
+    template_id: "fully-remote",
+  });
+  expect(fetches).toBe(2);
+  expect(time.sleeps.at(-1)).toBe(2000);
+});
