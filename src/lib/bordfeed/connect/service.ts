@@ -606,12 +606,23 @@ export async function pasteKey(
 // matched again. Companies stay: one with no jobs already 404s, and keeping
 // it keeps any logo an editor uploaded for the next connect.
 async function deleteFeedJobs(payload: Payload): Promise<number> {
+  const where = { origin: { equals: "bordfeed" } } as const;
   const result = await payload.delete({
     collection: "jobs",
     depth: 0,
     overrideAccess: true,
-    where: { origin: { equals: "bordfeed" } },
+    where,
   });
+  if (result.errors.length > 0) {
+    // A row that failed to delete must not stay live on a sample board.
+    await payload.update({
+      collection: "jobs",
+      data: { _status: "draft" },
+      depth: 0,
+      overrideAccess: true,
+      where: { ...where, _status: { equals: "published" } },
+    });
+  }
   return result.docs.length;
 }
 

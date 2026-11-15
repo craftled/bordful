@@ -5,7 +5,7 @@ import { hasRole } from "@/access/roles";
 import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import { registrationIsExpired } from "@/lib/bordfeed/connection-machine";
 import { readConnection } from "@/lib/bordfeed/connection-store";
-import { readSyncBudget } from "@/lib/bordfeed/sync-budget";
+import { readSyncLimits } from "@/lib/bordfeed/sync-budget";
 import { querySiteSettings } from "@/lib/read/queries";
 
 import { ConnectCardClient, type ConnectCardView } from "./connect-card-client";
@@ -56,20 +56,20 @@ export async function BordfeedConnectCard({
     );
   }
 
-  const [settings, imported, budget] = await Promise.all([
+  const [settings, imported, limits] = await Promise.all([
     querySiteSettings(payload),
     payload.count({
       collection: "jobs",
       overrideAccess: true,
       where: { origin: { equals: "bordfeed" } },
     }),
-    readSyncBudget(payload, record.feedId),
+    readSyncLimits(payload),
   ]);
   const view: ConnectCardView = {
     boardName: settings.name,
     email: emailOf(user),
     importedJobs: imported.totalDocs,
-    jobsPerSync: budget.limits.jobsPerSync,
+    jobsPerSync: limits.jobsPerSync,
     keyHint: record.keyHint,
     lastErrorMessage: record.lastError?.message ?? null,
     lastSyncAt: record.lastSyncAt,
