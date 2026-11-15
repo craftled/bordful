@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 
 import type { Page } from "@playwright/test";
 
-const SCRIPT_TAG = /<script\b(?<attrs>[^>]*)>(?<body>[\s\S]*?)<\/script>/giu;
+const SCRIPT_TAG =
+  /<script\b(?<attrs>[^>]*)>(?<body>[\s\S]*?)<\/script\b[^>]*>/giu;
 const NONCE_VALUE =
   /(?:^|\s)nonce\s*=\s*(?:"(?<double>[^"]*)"|'(?<single>[^']*)'|(?<bare>[^\s"'>]+))/iu;
 const POLICY_NONCE = /'nonce-(?<nonce>[^']+)'/u;
