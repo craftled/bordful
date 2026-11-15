@@ -2,6 +2,8 @@
 
 Two places hold board setup: `bordful.config.ts` in the repo, and Site settings in the admin (`/admin`, global Site settings).
 
+Environment variables are listed in [Deploy](deploy.md#environment-variables).
+
 ## bordful.config.ts
 
 `defineBordfulConfig` in `src/config/define-config.ts` parses this file. Unknown keys are rejected. Defaults below match that schema. The committed file is:
@@ -23,7 +25,7 @@ export default defineBordfulConfig({
 | Option | Default | Rules |
 | --- | --- | --- |
 | `bordfeed.baseUrl` | `https://bordfeed.com` | `https` only. Use the origin only, for example `https://bordfeed.com`. The schema does not reject a trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock. |
-| `bordfeed.syncCron` | `0 6 * * *` | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Editing it does not change `vercel.json`. |
+| `bordfeed.syncCron` | `0 6 * * *` | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Nothing reads it at runtime: the schedule is the cron in `vercel.json`, so change it there. |
 | `bordfeed.sync.jobsPerSync` | `50` | Most jobs one sync fetches, including the first sync. Clamped to 20 to 100. A value set in the Bordfeed Connection global wins over this one. See [Credits per sync](bordfeed.md#credits-per-sync). |
 | `bordfeed.sync.jobsPerDay` | `200` | Most jobs fetched per UTC day across every sync. Clamped to 20 to 5000. A value set in the Bordfeed Connection global wins over this one. |
 | `telemetry.clientHeader` | `true` | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md). |
@@ -34,7 +36,7 @@ export default defineBordfulConfig({
 
 Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
 
-An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the shape `buildCsp` accepts. A path, a quote, a semicolon, a space, or a comma is rejected by `buildCsp`. One leading wildcard label is allowed (`https://*.example.com`). Those checks run only when the lists are passed in. Today they are not: `src/proxy.ts` calls `buildCsp({ isDev, nonce })` and ignores `bordful.config.ts`. An origin you add stays blocked until that call passes `csp.extraScriptOrigins` and `csp.extraConnectOrigins`.
+An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the shape `buildCsp` accepts. A path, a quote, a semicolon, a space, or a comma is rejected by `buildCsp`. One leading wildcard label is allowed (`https://*.example.com`). Those checks run only when the lists are passed in. Today they are not: `src/proxy.ts` calls `buildCsp({ admin, isDev, marketing, nonce })` and ignores `bordful.config.ts`. An origin you add stays blocked until that call passes `csp.extraScriptOrigins` and `csp.extraConnectOrigins`.
 
 ## Site settings
 

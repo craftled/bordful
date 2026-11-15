@@ -20,7 +20,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Email job alerts via Resend, with double opt-in (weekly default, daily option).
 - Theme colors, fonts, radius, and logo in admin settings.
 - Update notice in the admin. Upgrade steps are in [UPGRADING.md](UPGRADING.md).
-- `bun run bordful:upgrade` merges the latest release into a board, including the first upgrade of a Deploy button project. See [UPGRADING.md](UPGRADING.md#upgrade-command).
+- `bun run bordful:upgrade` merges the latest `main` from craftled/bordful into a board, including the first upgrade of a Deploy button project. See [UPGRADING.md](UPGRADING.md#upgrade-command).
 - Nonce-based CSP and security headers.
 - Deploy to Vercel button that provisions Neon Postgres and Vercel Blob.
 - Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
@@ -44,7 +44,6 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Fixed
 
-- Logo.dev logos also use a company's website when no domain is stored. The job list loads the company domain and website for that fallback.
 - Job descriptions from Bordfeed are parsed with parse5 8.1.1, which fixes crashes and very slow parsing on some malformed HTML.
 - Connecting Bordfeed with an account that uses two-factor sign-in now says an emailed code cannot create an API key and opens the paste-key path. It used to say "Bordfeed rejected the API key." Disabled accounts and closed sign-ups get their own messages too.
 - Board search no longer queries Postgres for each search string. Summary and skills are matched against a cached index that is read at most once every 5 minutes, and the job list reads only the fields its cards show. Bots sending many different searches used to run one database query per request and could use up a hosted database's monthly transfer allowance.
@@ -60,7 +59,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Salary sort uses the same converted USD range as the salary filter. The `/jobs/levels` counts match the level archives. `/jobs/search?types=...` redirects only to archives that have jobs.
 - Deleting a company, or changing its slug or domain, updates its jobs, so job pages no longer link to a 404. Changing or deleting a media file refreshes the cached logo.
 - The filter, sort and per-page menus close on Escape, on an outside click and after a choice. A long unbroken word no longer makes a job page wider than a phone screen, and `/post` and the board footer no longer scroll sideways at some widths.
-- Muted text and the featured, new and closing badges meet WCAG AA contrast. Headings are in order on the board, and board pages have a "Skip to content" link.
+- Muted text and the featured, new and closing badges meet WCAG AA contrast. Headings are in order on the board, and board pages have a "Skip to content" link. Board search is a search landmark, the alert form marks the email field invalid only after a failed check, and job title and company links on the board have 24px touch targets.
 
 ### Removed
 

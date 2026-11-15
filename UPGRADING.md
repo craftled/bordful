@@ -41,7 +41,7 @@ The command:
 
 It stops without changing your files or commits if you have uncommitted changes, a merge, rebase, cherry-pick, or revert in progress, a detached HEAD, or if it cannot find the matching upstream base for a Deploy button project. It does not push or deploy.
 
-Untracked files are left alone; if upstream adds a file at the same path, the merge stops and tells you.
+Untracked files are left alone; if upstream adds a file at the same path, the merge stops and tells you. On a first Deploy button upgrade it also stops, before merging, if upstream adds a file that exists locally but is ignored by `.gitignore`, and lists those files.
 
 If both sides edited the same lines, it lists the conflicted files and leaves the merge open. Resolve them, then follow [the finishing steps](#finishing-the-merge). `git merge --abort` puts your files back. On a first Deploy button upgrade, the base record commit stays and changes no files.
 
@@ -114,7 +114,7 @@ If you have not deployed yet and you plan to pull upgrades, fork `craftled/bordf
 
 Then deploy. Migrations run on deploy.
 
-The admin update notice links here. It appears when GitHub has a newer release than the version this board is running.
+The admin update notice links here. It appears when GitHub has a newer release than the `version` in this board's `package.json`. The notice follows release tags, while `bun run bordful:upgrade` always merges `main`, so the command can bring in changes that no release announces yet. Fixes merged after the v1.0.0 tag ship on `main` without a new release, so a 1.0.0 board shows no notice for them.
 
 ## Self-hosting
 

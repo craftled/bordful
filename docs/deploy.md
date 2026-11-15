@@ -38,8 +38,8 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
 | `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
 | `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
-| `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. Must end in `_int`. Do not set this on Vercel. |
-| `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. |
+| `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. The database name must end in `_int` or `_test`. Do not set this on Vercel. |
+| `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. The `S0-a11y` flow needs a fresh database that holds only the sample jobs. |
 
 Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never commit `.env`.
 
@@ -125,7 +125,7 @@ Anyone who has `DATABASE_URL` can reset a password this way, so treat it like an
 
 Run Node.js 26 LTS (see `.nvmrc`).
 
-Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. Without `BLOB_READ_WRITE_TOKEN`, media uploads go to the local `media/` directory, so the host needs a persistent disk. Blob is required on Vercel and on other read-only or serverless hosts. Outside Vercel there is no OIDC, so create a read-write token for the store and set `BLOB_READ_WRITE_TOKEN`. Run migrations once:
+Use any Postgres 17 database and set `DATABASE_URL` yourself. Set `PAYLOAD_SECRET` and `CRON_SECRET` yourself. With neither `BLOB_READ_WRITE_TOKEN` nor `BLOB_STORE_ID` set, media uploads go to the local `media/` directory, so the host needs a persistent disk. Blob is required on Vercel and on other read-only or serverless hosts. Outside Vercel there is no OIDC, so create a read-write token for the store and set `BLOB_READ_WRITE_TOKEN`. Run migrations once:
 
 ```bash
 bun run payload migrate
