@@ -12,6 +12,8 @@ import {
 } from "@/lib/bordfeed/connect/service";
 import type { ConnectionRecord } from "@/lib/bordfeed/connection-machine";
 import { readConnection } from "@/lib/bordfeed/connection-store";
+import { checkDatabaseTarget } from "@/lib/install/database-target";
+import { adminEmails, resetPassword } from "@/lib/install/reset-password";
 
 const REFRESH_LINE = "The board refreshes within 5 minutes.";
 
@@ -45,12 +47,12 @@ function statusLines(record: ConnectionRecord): string[] {
   ];
 }
 
-function finish(
+function finish<T>(
   isJSON: boolean,
   exitCode: number,
-  result: PublicStatus,
+  result: T,
   lines: string[]
-): number | { exitCode: number; result: PublicStatus } {
+): number | { exitCode: number; result: T } {
   if (isJSON) {
     return { exitCode, result };
   }
@@ -267,19 +269,65 @@ async function runConnect(
   );
 }
 
+async function runResetPassword(
+  getPayload: () => Promise<Payload>,
+  args: { databaseHost?: string; email?: string },
+  isJSON: boolean
+): Promise<number | { exitCode: number; result: unknown }> {
+  // Checked before booting: boot seeds the target database (onInit), and
+  // migrates it when NODE_ENV is production.
+  const target = checkDatabaseTarget(
+    process.env.DATABASE_URL,
+    args.databaseHost
+  );
+  if (!target.ok) {
+    return finish(
+      isJSON,
+      1,
+      { databaseTarget: target.target, message: target.message },
+      [target.message]
+    );
+  }
+
+  const payload = await getPayload();
+  const { email } = args;
+  const password = email ? await resetPassword(payload, email) : null;
+  if (!password) {
+    const admins = await adminEmails(payload);
+    const message = email
+      ? `No user has the email ${email}.`
+      : `Email is required. Example: bordful reset-password --email owner@example.com --database-host ${target.target}`;
+    return finish(isJSON, 1, { admins, message }, [
+      message,
+      `Admins: ${admins.join(", ") || "none"}`,
+    ]);
+  }
+
+  return finish(isJSON, 0, { email, password }, [
+    `New password for ${email}: ${password}`,
+    "It is shown only once. Sign in at /admin, then change it in Users.",
+  ]);
+}
+
 export const bordfulCommand = defineCLICommand({
   cli: { action: "argument", json: false },
   description:
-    "Bordfeed commands for this board. Positional [action] is connect, sample, sync, or status. Options from the input schema: --email <email>, --board-name <boardName>, --workspace <workspace>, --code <code>, --key <key>. Prefer BORDFEED_API_KEY over --key so the key stays out of shell history. Payload reserves --json for one JSON response on stdout.",
+    "Bordfeed and admin commands for this board. Positional [action] is connect, sample, sync, status, or reset-password. Options from the input schema: --email <email>, --board-name <boardName>, --workspace <workspace>, --code <code>, --key <key>, --database-host <host:port/database>. reset-password requires --database-host to match the host:port/database target it prints for DATABASE_URL. Prefer BORDFEED_API_KEY over --key so the key stays out of shell history. Payload reserves --json for one JSON response on stdout.",
   examples: [
     'bordful connect --email owner@example.com --board-name "Example Board"',
     "BORDFEED_API_KEY=... bun run bordful connect",
     "bordful sample",
     "bordful sync",
     "bordful status",
+    "bordful reset-password --email owner@example.com --database-host ep-example.neon.tech:5432/neondb",
   ],
   handler: async ({ args, getPayload, isJSON }) => {
+    if (args.action === "reset-password") {
+      return runResetPassword(getPayload, args, isJSON);
+    }
+
     const payload = await getPayload();
+
     if (args.action === "status") {
       const record = await readConnection(payload);
       return finish(isJSON, 0, publicStatus(record), statusLines(record));
@@ -311,9 +359,10 @@ export const bordfulCommand = defineCLICommand({
     return runConnect(payload, args, isJSON);
   },
   input: strictObject({
-    action: z.enum(["connect", "sample", "sync", "status"]),
+    action: z.enum(["connect", "reset-password", "sample", "sync", "status"]),
     boardName: z.optional(z.string()),
     code: z.optional(z.string()),
+    databaseHost: z.optional(z.string()),
     email: z.optional(z.string()),
     json: z.optional(z.boolean()),
     key: z.optional(z.string()),

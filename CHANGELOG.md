@@ -27,6 +27,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Light and dark themes. The board follows the visitor's system setting, and a header toggle switches between system, light and dark and remembers the choice. See [docs/theming.md](docs/theming.md).
 - Board search also matches location, remote region, summary and skills.
 - On Vercel, alert signup is checked by Vercel BotID. See [docs/alerts.md](docs/alerts.md).
+- `bun run bordful reset-password` gets you back into the admin after a lost password, with no email setup. It first shows the database it would change as `host:port/database` and runs only after you confirm it with `--database-host`. The admin's "Forgot password?" page now shows this command instead of a form that never sent an email. See [docs/deploy.md](docs/deploy.md#admin-sign-in).
 
 ### Changed
 

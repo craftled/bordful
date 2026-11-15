@@ -43,6 +43,11 @@ export default buildConfig({
         "/admin/bordfeed-connect/connect-card#BordfeedConnectCard",
         "/admin/components/update-notice#UpdateNotice",
       ],
+      views: {
+        forgot: {
+          Component: "/admin/components/forgot-password#ForgotPassword",
+        },
+      },
     },
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: " | Bordful" },
