@@ -300,6 +300,20 @@ function database(payload: Payload): DrizzleExecutor {
   return (payload.db as unknown as { drizzle: DrizzleExecutor }).drizzle;
 }
 
+// The caps alone, for callers that do not need the sync state.
+export async function readSyncLimits(payload: Payload): Promise<SyncLimits> {
+  const doc = await payload.findGlobal({
+    depth: 0,
+    overrideAccess: true,
+    slug: SLUG,
+  });
+  const settings = doc as unknown as Record<string, unknown>;
+  return resolveLimits({
+    jobsPerDay: settings.jobsPerDay,
+    jobsPerSync: settings.jobsPerSync,
+  });
+}
+
 // Sync state and the lease live in their own one-row table that only this
 // module writes. Payload rewrites every column of the global on each save,
 // so state kept there could be wound back by an admin save mid-sync.

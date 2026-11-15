@@ -5,7 +5,7 @@ import {
   slugifyTaxonomyValue,
   type TaxonomyKind,
 } from "@/lib/board/paths";
-import { countTaxonomy, filterByTaxonomy } from "@/lib/board/taxonomy";
+import { countTaxonomy, isThinArchive } from "@/lib/board/taxonomy";
 import { CAREER_LEVELS } from "@/lib/domain/job-vocab";
 import type { JobListItem } from "@/lib/read/types";
 
@@ -62,9 +62,10 @@ function sectionPaths(
   ];
 }
 
-// The archives a board renders (200) for these jobs: a value counts only when
-// the archive's own filter finds a job for it. Levels also match by mapped
-// seniority, so every level on the ladder is a candidate.
+// The archives a board renders (200) and lets search engines index for these
+// jobs: a value counts only when the archive's own filter finds at least
+// MIN_INDEXED_ARCHIVE_JOBS jobs for it. Levels also match by mapped seniority,
+// so every level on the ladder is a candidate.
 function archivePaths(jobs: JobListItem[]): string[] {
   const counts = countTaxonomy(jobs);
   const slugsOf = (facets: { slug: string }[]) =>
@@ -78,7 +79,7 @@ function archivePaths(jobs: JobListItem[]): string[] {
 
   return candidates.flatMap(([kind, slugs]) =>
     slugs
-      .filter((slug) => (filterByTaxonomy(jobs, kind, slug)?.length ?? 0) > 0)
+      .filter((slug) => !isThinArchive(jobs, kind, slug))
       .sort(bySlug)
       .map((slug) => buildTaxonomyArchivePath(kind, slug))
   );

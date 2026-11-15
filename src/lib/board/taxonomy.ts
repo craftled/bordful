@@ -139,16 +139,35 @@ export function taxonomyTitle(kind: TaxonomyKind, value: string): string {
   return `${taxonomyLabel(kind, slugifyTaxonomyValue(value))} jobs`;
 }
 
+// An archive with fewer indexable jobs than this is a thin page: it renders
+// for visitors but asks search engines not to index it, and the sitemap
+// leaves it out. Sample jobs never count.
+export const MIN_INDEXED_ARCHIVE_JOBS = 3;
+
+export function isThinArchive(
+  jobs: JobListItem[],
+  kind: TaxonomyKind,
+  value: string
+): boolean {
+  const matches = filterByTaxonomy(jobs, kind, value) ?? [];
+  const indexable = matches.filter((job) => job.indexable).length;
+  return indexable < MIN_INDEXED_ARCHIVE_JOBS;
+}
+
 export function taxonomyArchiveMetadata(
   kind: TaxonomyKind,
   value: string,
-  page = 1
+  page: number,
+  jobs: JobListItem[]
 ): Metadata {
   const path = buildTaxonomyArchivePath(kind, value, page);
   return {
     alternates: {
       canonical: `${resolveServerUrl()}${path}`,
     },
+    robots: isThinArchive(jobs, kind, value)
+      ? { follow: true, index: false }
+      : undefined,
     title: taxonomyTitle(kind, value),
   };
 }

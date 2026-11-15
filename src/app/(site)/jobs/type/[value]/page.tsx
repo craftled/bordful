@@ -5,6 +5,7 @@ import {
   redirectTaxonomyAlias,
   TaxonomyArchive,
 } from "@/components/board/taxonomy-archive";
+import { loadBoardPool } from "@/lib/board/pool";
 import type { BoardSearchParams } from "@/lib/board/query";
 import { taxonomyArchiveMetadata } from "@/lib/board/taxonomy";
 
@@ -14,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ value: string }>;
 }): Promise<Metadata> {
   const { value } = await params;
-  return taxonomyArchiveMetadata("type", value);
+  return taxonomyArchiveMetadata("type", value, 1, await loadBoardPool());
 }
 
 export default async function TypeArchivePage({

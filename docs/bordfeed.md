@@ -26,7 +26,7 @@ If your Bordfeed account uses two-factor sign-in, an emailed code cannot create 
 
 Bordfeed allows 5 signups per hour from one IP address. Shared hosts can hit that limit. Paste an API key, or try again in an hour.
 
-The API key is stored encrypted with `PAYLOAD_SECRET`. It is hidden from every API read and it is never shown again. The admin shows a hint (`bf_...` plus the last 4 characters). Rotating `PAYLOAD_SECRET` makes the stored key unreadable, so you reconnect.
+The API key is stored encrypted with `PAYLOAD_SECRET`. It is hidden from every API read and it is never shown again. The admin shows a hint (`bf_...` plus the last 4 characters). Rotating `PAYLOAD_SECRET` makes the stored key unreadable, so you reconnect. Reconnecting after a disconnect starts from the newest jobs; see [Daily sync](#daily-sync).
 
 The feed Bordful creates uses your site name from Site settings. If the site still has the default name "Job Board", the feed takes the template name, for example "Fully Remote". It keeps the template filters.
 
@@ -45,7 +45,7 @@ bun run bordful sync
 bun run bordful status
 ```
 
-`connect` uses the same email, code, and workspace steps as the admin. `utm_medium` is `cli` instead of `admin`. `sample` returns the board to sample jobs. `sync` runs a sync now. `status` prints the state, the key hint, the feed id, and the last sync. It never prints the API key.
+`connect` uses the same email, code, and workspace steps as the admin. `utm_medium` is `cli` instead of `admin`. `sample` disconnects and returns the board to sample jobs, like Disconnect in the admin. `sync` runs a sync now. `status` prints the state, the key hint, the feed id, and the last sync. It never prints the API key.
 
 `BORDFEED_API_KEY` is an optional default for `bun run bordful connect --key`.
 
@@ -89,6 +89,7 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 - An unpublished job stays down unless Bordfeed sends it again, which later syncs rarely do, so the sync guards against a Bordfeed incident. If at least 10 jobs were checked and 80% or more came back gone (or at least 5 and all of them), it unpublishes nothing and the admin shows: "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now." The same slice must come back that way on two later syncs, at least 12 hours apart. The board still keeps those jobs until `BORDFEED_ALLOW_MASS_UNPUBLISH=1`. With that set, one sync unpublishes at most 10 of the held jobs and leaves the rest for a later sync. Normal churn stays well under that line and is unpublished as usual, with no cap from this guard.
 - A job whose lookup keeps failing with an unexpected answer is skipped, so it cannot stop later checks. New jobs are read for at most 210 seconds of the sync, so the board write still fits in the cron's time limit.
 - Sample jobs are replaced when you connect, not unpublished one by one. A sample job you unpublish stays unpublished.
+- Disconnecting deletes every imported Bordfeed job, published or draft, and shows sample jobs again. The confirm step says how many. Companies stay, so a logo you uploaded is still there after you reconnect; a company with no jobs has no public page. Reconnecting makes a new feed and imports its newest `jobsPerSync` jobs. While a sync is running, Disconnect asks you to try again in a minute.
 
 ## Import blocklist
 
