@@ -318,7 +318,8 @@ export function JobRow({
           {job.companySlug ? (
             <Link
               className={cn(
-                "relative z-10 inline-block max-w-full min-w-6 truncate rounded-sm align-top hover:underline",
+                // The line clips outside the link, so the focus ring sits inside it.
+                "relative z-10 inline-block max-w-full min-w-6 truncate rounded-sm align-top hover:underline focus-visible:outline-offset-[-2px]!",
                 GROW_DOWN
               )}
               href={buildCompanyPath(job.companySlug)}
