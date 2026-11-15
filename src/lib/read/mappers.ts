@@ -1,4 +1,5 @@
 import { jobApplyHref } from "@/lib/board/apply";
+import { domainFromWebsite } from "@/lib/bordfeed/map-company";
 import {
   ALERT_FREQUENCIES,
   type AlertFrequency,
@@ -34,6 +35,10 @@ function record(value: unknown): Record<string, unknown> {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function nonEmptyStringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function numberOrNull(value: unknown): number | null {
@@ -120,7 +125,11 @@ function companyLogoFallback(
     return row.logoUrl;
   }
 
-  return logoDevUrl(companyDomain ?? row.domain);
+  return logoDevUrl(
+    nonEmptyStringOrNull(companyDomain) ??
+      nonEmptyStringOrNull(row.domain) ??
+      domainFromWebsite(row.website)
+  );
 }
 
 function dateOrNull(value: unknown): string | null {
@@ -147,7 +156,11 @@ export function toCompanySummary(doc: unknown): CompanySummary {
     linkedinUrl: stringOrNull(row.linkedinUrl),
     location: stringOrNull(row.location),
     logoUrl:
-      mediaUrl(row.logo) || stringOrNull(row.logoUrl) || logoDevUrl(row.domain),
+      mediaUrl(row.logo) ||
+      stringOrNull(row.logoUrl) ||
+      logoDevUrl(
+        nonEmptyStringOrNull(row.domain) ?? domainFromWebsite(row.website)
+      ),
     name: stringOrNull(row.name) ?? "",
     slug: stringOrNull(row.slug) ?? "",
     twitterUrl: stringOrNull(row.twitterUrl),

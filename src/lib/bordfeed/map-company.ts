@@ -2,6 +2,7 @@ import type { BordfeedCompanyEmbed } from "./job-schema";
 
 const HOSTNAME = /^[a-z0-9.-]+\.[a-z]{2,}$/u;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const WWW_PREFIX = /^www\./u;
 
 export interface MappedCompany {
   bordfeedCompanyId: string | null;
@@ -65,6 +66,20 @@ export function normalizeDomain(
     : raw;
   const normalized = host.trim().toLowerCase().replaceAll(/\.$/gu, "");
   return HOSTNAME.test(normalized) ? normalized : null;
+}
+
+export function domainFromWebsite(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const url = httpUrl(value);
+  if (!url) {
+    return null;
+  }
+
+  const hostname = new URL(url).hostname.replace(WWW_PREFIX, "");
+  return normalizeDomain(hostname);
 }
 
 export function companyKey(company: MappedCompany | null): string | null {
