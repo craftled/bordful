@@ -198,7 +198,7 @@ export function JobsLayout({ filteredJobs }: JobsLayoutProps) {
 
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:gap-8">
         {/* Main content */}
-        <div className="order-2 flex-[3] lg:order-1">
+        <div className="order-2 flex-3 lg:order-1">
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-0">
             <div className="w-full space-y-1 sm:w-auto">
               <h1 className="flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight lg:text-2xl">

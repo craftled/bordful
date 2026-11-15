@@ -37,7 +37,7 @@ export function CompactJobCard({ job }: { job: Job }) {
     >
       <div className="flex items-center gap-2">
         {/* Title and badges */}
-        <div className="min-w-0 flex-grow">
+        <div className="min-w-0 grow">
           <div className="flex items-center gap-1.5">
             <h3 className="line-clamp-1 max-w-[calc(100%-70px)] text-sm font-medium">
               {limitedTitle}

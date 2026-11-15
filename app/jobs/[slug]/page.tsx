@@ -228,7 +228,7 @@ export default async function JobPostPage({
 
       <div className="flex flex-col gap-4 md:flex-row lg:gap-8">
         {/* Main content */}
-        <article className="order-1 flex-[3]">
+        <article className="order-1 flex-3">
           <div className="mb-6">
             <ClientBreadcrumb
               dynamicData={{

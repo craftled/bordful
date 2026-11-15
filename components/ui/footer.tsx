@@ -92,7 +92,7 @@ export function Footer() {
   };
 
   const hoverLinkClassName =
-    'transition-colors text-[var(--link-color)] hover:text-[var(--hover-color)] focus-visible:text-[var(--hover-color)]';
+    'transition-colors text-(--link-color) hover:text-(--hover-color) focus-visible:text-(--hover-color)';
 
   const hoverLinkStyle = {
     '--link-color': linkColor,
@@ -591,7 +591,7 @@ export function Footer() {
                   <div className="flex items-center gap-1">
                     {config.footer.builtWith.showLogo && (
                       <svg
-                        className="flex-shrink-0"
+                        className="shrink-0"
                         fill="none"
                         height="14"
                         viewBox="0 0 16 16"

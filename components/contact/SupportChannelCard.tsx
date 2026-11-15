@@ -71,7 +71,7 @@ export function SupportChannelCard({
         </div>
         <h3 className="text-base font-medium text-zinc-900">{title}</h3>
       </div>
-      <div className="flex-grow pb-6">
+      <div className="grow pb-6">
         <p className="text-sm leading-relaxed text-zinc-600">{description}</p>
       </div>
       <div className="mt-auto pt-0">

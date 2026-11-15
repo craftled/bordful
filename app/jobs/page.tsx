@@ -233,7 +233,7 @@ export default async function JobsDirectoryPage() {
 
       <main className="container py-6 sm:py-8">
         <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row">
-          <div className="flex-[3]">
+          <div className="flex-3">
             <div className="max-w-5xl">
               {/* Breadcrumb navigation */}
               <div className="mb-6">

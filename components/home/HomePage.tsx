@@ -475,7 +475,7 @@ function HomePageContent({ initialJobs }: { initialJobs: Job[] }) {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="order-2 flex-[3] md:order-1">
+          <div className="order-2 flex-3 md:order-1">
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-0">
               <div className="w-full space-y-1 sm:w-auto">
                 <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight">

@@ -1012,7 +1012,7 @@ export const config = {
         ],
         cta: {
           label: 'Get Started',
-          link: '/post',
+          link: '/contact', // There is no /post page; point this at your own flow.
           variant: 'outline', // Using button variants
         },
         badge: null,

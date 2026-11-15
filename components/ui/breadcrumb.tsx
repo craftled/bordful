@@ -39,7 +39,7 @@ const BreadcrumbList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ol
     className={cn(
-      'text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5',
+      'text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm wrap-break-word sm:gap-2.5',
       className
     )}
     ref={ref}
@@ -143,7 +143,7 @@ function ServerBreadcrumb({
         type="application/ld+json"
       />
       <nav aria-label="breadcrumb" className={className}>
-        <ol className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs break-words sm:gap-2.5">
+        <ol className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs wrap-break-word sm:gap-2.5">
           {items.map((item, index) => {
             const isLastItem = index === items.length - 1;
 
@@ -172,7 +172,7 @@ function ServerBreadcrumb({
                 {!isLastItem && (
                   <li
                     aria-hidden="true"
-                    className="mx-[-0.25rem] text-gray-300 [&>svg]:h-3.5 [&>svg]:w-3.5"
+                    className="-mx-1 text-gray-300 [&>svg]:h-3.5 [&>svg]:w-3.5"
                     role="presentation"
                   >
                     <ChevronRight />

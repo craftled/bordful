@@ -497,7 +497,7 @@ export function JobFilters({
       </div>
 
       {isExpanded && (
-        <div className="my-4 h-[1px] w-full bg-gray-200 md:hidden" />
+        <div className="my-4 h-px w-full bg-gray-200 md:hidden" />
       )}
 
       <div
