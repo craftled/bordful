@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { bordfulConfig } from "@/config";
 import { isMarketingEnabled } from "@/config/flags";
 import { buildCsp } from "@/lib/csp/build-csp";
 import { createNonce } from "@/lib/csp/nonce";
@@ -98,6 +99,8 @@ export function proxy(request: NextRequest) {
   const isDev = process.env.NODE_ENV !== "production";
   const csp = buildCsp({
     admin: isAdminPath(pathname),
+    extraConnectOrigins: bordfulConfig.csp.extraConnectOrigins,
+    extraScriptOrigins: bordfulConfig.csp.extraScriptOrigins,
     isDev,
     marketing: isMarketingEnabled(),
     nonce,
