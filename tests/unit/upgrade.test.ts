@@ -8,9 +8,14 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, expect, test } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, test } from "vitest";
 
-import { upgrade } from "../../scripts/upgrade";
+import {
+  report,
+  type UpgradeResult,
+  type UpgradeStatus,
+  upgrade,
+} from "../../scripts/upgrade";
 
 const BASE_FILES = {
   "bordful.config.ts": "export default { name: 'Bordful' };\n",
@@ -20,6 +25,30 @@ const BASE_FILES = {
 };
 
 const temporary: string[] = [];
+let globalConfigDir: string;
+const originalGlobalConfig = process.env.GIT_CONFIG_GLOBAL;
+const originalNoSystem = process.env.GIT_CONFIG_NOSYSTEM;
+
+beforeAll(() => {
+  globalConfigDir = mkdtempSync(path.join(tmpdir(), "bordful-git-config-"));
+  process.env.GIT_CONFIG_GLOBAL = path.join(globalConfigDir, "config");
+  process.env.GIT_CONFIG_NOSYSTEM = "1";
+  writeFileSync(process.env.GIT_CONFIG_GLOBAL, "");
+});
+
+afterAll(() => {
+  rmSync(globalConfigDir, { force: true, recursive: true });
+  if (originalGlobalConfig === undefined) {
+    delete process.env.GIT_CONFIG_GLOBAL;
+  } else {
+    process.env.GIT_CONFIG_GLOBAL = originalGlobalConfig;
+  }
+  if (originalNoSystem === undefined) {
+    delete process.env.GIT_CONFIG_NOSYSTEM;
+  } else {
+    process.env.GIT_CONFIG_NOSYSTEM = originalNoSystem;
+  }
+});
 
 afterEach(() => {
   for (const dir of temporary.splice(0)) {
@@ -28,7 +57,11 @@ afterEach(() => {
 });
 
 function git(cwd: string, ...args: string[]): string {
-  return execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
+  return execFileSync("git", args, {
+    cwd,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
 }
 
 function write(cwd: string, files: Record<string, string>): void {
@@ -162,6 +195,35 @@ test("lists the files that conflict and leaves the merge open", () => {
   expect(read(board, "src/core.ts")).toBe("export const core = 'mine';\n");
 });
 
+test("keeps the base record commit after aborting a first-upgrade conflict", () => {
+  const { base, board, upstream } = deployButtonProject();
+  commit(board, "my core", { "src/core.ts": "export const core = 'mine';\n" });
+  const originalHead = git(board, "rev-parse", "HEAD");
+  const originalTree = git(board, "rev-parse", "HEAD^{tree}");
+  const originalFile = read(board, "src/core.ts");
+  commit(upstream, "fix core", { "src/core.ts": "export const core = 2;\n" });
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("conflicts");
+  expect(outcome.recordedBase).toBe(base);
+  expect(git(board, "rev-parse", "HEAD")).not.toBe(originalHead);
+  expect(git(board, "rev-parse", "HEAD^1")).toBe(originalHead);
+  git(board, "merge", "--abort");
+  expect(read(board, "src/core.ts")).toBe(originalFile);
+  expect(git(board, "rev-parse", "HEAD^{tree}")).toBe(originalTree);
+  expect(git(board, "log", "-1", "--format=%s")).toContain(
+    "Record upstream base"
+  );
+  expect(git(board, "rev-parse", "HEAD^1")).toBe(originalHead);
+
+  const next = upgrade({ cwd: board });
+
+  expect(next.status).toBe("conflicts");
+  expect(next.recordedBase).toBeNull();
+  git(board, "merge", "--abort");
+});
+
 test("refuses to run with uncommitted changes", () => {
   const { board, upstream } = deployButtonProject();
   commit(upstream, "fix core", { "src/core.ts": "export const core = 2;\n" });
@@ -173,6 +235,58 @@ test("refuses to run with uncommitted changes", () => {
   expect(outcome.status).toBe("dirty");
   expect(git(board, "rev-parse", "HEAD")).toBe(head);
   expect(git(board, "remote")).toBe("");
+});
+
+test("staged-only changes count as dirty", () => {
+  const { board, upstream } = deployButtonProject();
+  commit(upstream, "fix core", { "src/core.ts": "export const core = 2;\n" });
+  const head = git(board, "rev-parse", "HEAD");
+  write(board, { "src/core.ts": "export const core = 'staged';\n" });
+  git(board, "add", "src/core.ts");
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("dirty");
+  expect(git(board, "rev-parse", "HEAD")).toBe(head);
+  expect(git(board, "remote")).toBe("");
+});
+
+test("refuses a detached HEAD without changing HEAD or adding a remote", () => {
+  const { board, upstream } = deployButtonProject();
+  git(board, "checkout", "--detach", "-q");
+  const head = git(board, "rev-parse", "HEAD");
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("detached");
+  expect(git(board, "rev-parse", "HEAD")).toBe(head);
+  expect(git(board, "remote")).toBe("");
+});
+
+test("refuses a paused rebase without changing HEAD or adding a remote", () => {
+  const board = repo();
+  commit(board, "initial", { "src/core.ts": "export const core = 1;\n" });
+  commit(board, "first", { "src/core.ts": "export const core = 2;\n" });
+  commit(board, "second", { "src/core.ts": "export const core = 3;\n" });
+  const previousEditor = process.env.GIT_SEQUENCE_EDITOR;
+  process.env.GIT_SEQUENCE_EDITOR = "sed -i '1s/^pick /edit /'";
+  try {
+    git(board, "rebase", "-i", "HEAD~2");
+  } finally {
+    if (previousEditor === undefined) {
+      delete process.env.GIT_SEQUENCE_EDITOR;
+    } else {
+      process.env.GIT_SEQUENCE_EDITOR = previousEditor;
+    }
+  }
+  const head = git(board, "rev-parse", "HEAD");
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: "/unused" });
+
+  expect(outcome.status).toBe("operation-in-progress");
+  expect(git(board, "rev-parse", "HEAD")).toBe(head);
+  expect(git(board, "remote")).toBe("");
+  git(board, "rebase", "--abort");
 });
 
 test("changes nothing when no upstream commit matches the starting tree", () => {
@@ -188,6 +302,9 @@ test("changes nothing when no upstream commit matches the starting tree", () => 
 
   expect(outcome.status).toBe("base-not-found");
   expect(git(board, "rev-parse", "HEAD")).toBe(head);
+  expect(read(board, "src/core.ts")).toBe(
+    "export const core = 'edited before first commit';\n"
+  );
 });
 
 test("keeps an existing upstream remote", () => {
@@ -199,6 +316,98 @@ test("keeps an existing upstream remote", () => {
 
   expect(outcome.status).toBe("merged");
   expect(git(board, "remote", "get-url", "upstream")).toBe(upstream);
+});
+
+test("never pushes to origin", () => {
+  const { board, upstream } = deployButtonProject();
+  const originDir = mkdtempSync(path.join(tmpdir(), "bordful-origin-"));
+  temporary.push(originDir);
+  const origin = path.join(originDir, "origin.git");
+  git(originDir, "init", "--bare", "-q", origin);
+  git(board, "remote", "add", "origin", origin);
+  git(board, "push", "-q", "origin", "HEAD:main");
+  commit(upstream, "fix core", { "src/core.ts": "export const core = 2;\n" });
+  const before = git(board, "ls-remote", "origin");
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("merged");
+  expect(git(board, "ls-remote", "origin")).toBe(before);
+});
+
+test("reports an untracked-file collision as a merge failure and keeps the file", () => {
+  const { board, upstream } = deployButtonProject();
+  write(board, { "src/new.ts": "owner's untracked file\n" });
+  commit(upstream, "add new file", { "src/new.ts": "upstream file\n" });
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("merge-failed");
+  expect(outcome.mergeError).toContain("untracked working tree files");
+  expect(read(board, "src/new.ts")).toBe("owner's untracked file\n");
+  expect(() => git(board, "rev-parse", "--verify", "MERGE_HEAD")).toThrow();
+  expect(report(outcome)).toContain(
+    "The merge did not start. Your files are unchanged. Fix the error above and run this again."
+  );
+  expect(report(outcome)).toContain(
+    "The base record commit stays and changes no files."
+  );
+});
+
+test("prints non-ASCII conflict paths without quoting", () => {
+  const { board, upstream } = deployButtonProject();
+  commit(board, "my file", { "src/é.ts": "export const value = 'mine';\n" });
+  commit(upstream, "upstream file", {
+    "src/é.ts": "export const value = 'upstream';\n",
+  });
+
+  const outcome = upgrade({ cwd: board, upstreamUrl: upstream });
+
+  expect(outcome.status).toBe("conflicts");
+  expect(outcome.conflicts).toEqual(["src/é.ts"]);
+  git(board, "merge", "--abort");
+});
+
+test("the bootstrap script imports only node built-ins", () => {
+  const source = readFileSync(
+    path.join(process.cwd(), "scripts/upgrade.ts"),
+    "utf8"
+  );
+  const specifiers = [
+    ...source.matchAll(/\b(?:from\s*|import\s*)["'](?<specifier>[^"']+)["']/gu),
+  ].map((match) => match.groups?.specifier ?? "");
+
+  expect(specifiers.length).toBeGreaterThan(0);
+  expect(specifiers.every((specifier) => specifier.startsWith("node:"))).toBe(
+    true
+  );
+});
+
+test("report has a message for every upgrade status", () => {
+  const statuses: UpgradeStatus[] = [
+    "base-not-found",
+    "conflicts",
+    "detached",
+    "dirty",
+    "merge-in-progress",
+    "merge-failed",
+    "merged",
+    "not-a-repo",
+    "operation-in-progress",
+    "up-to-date",
+  ];
+
+  for (const status of statuses) {
+    const outcome: UpgradeResult = {
+      commits: 1,
+      conflicts: ["src/core.ts"],
+      dependenciesChanged: false,
+      mergeError: "Git rejected the merge.",
+      recordedBase: "abc123",
+      status,
+    };
+    expect(report(outcome).join("\n"), status).not.toBe("");
+  }
 });
 
 test("reports a folder that is not a Git repository", () => {

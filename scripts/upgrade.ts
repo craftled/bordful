@@ -2,6 +2,8 @@
 // Self-contained on purpose (Node built-ins and git only), so a board created
 // before this script existed can run the copy on upstream main. See UPGRADING.md.
 import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 export const UPSTREAM_URL = "https://github.com/craftled/bordful.git";
 
@@ -13,10 +15,13 @@ const DEPENDENCY_FILES = ["package.json", "bun.lock"];
 export type UpgradeStatus =
   | "base-not-found"
   | "conflicts"
+  | "detached"
   | "dirty"
   | "merge-in-progress"
+  | "merge-failed"
   | "merged"
   | "not-a-repo"
+  | "operation-in-progress"
   | "up-to-date";
 
 export interface UpgradeResult {
@@ -26,6 +31,8 @@ export interface UpgradeResult {
   conflicts: string[];
   /** True when the merge changed package.json or bun.lock. */
   dependenciesChanged: boolean;
+  /** Git's error output when a merge could not start. */
+  mergeError?: string;
   /** Upstream commit recorded as the shared base, for a Deploy button project. */
   recordedBase: string | null;
   status: UpgradeStatus;
@@ -93,6 +100,57 @@ export function findUpstreamBase(cwd: string): string | null {
   return null;
 }
 
+function hasOperationInProgress(root: string): boolean {
+  return [
+    "rebase-merge",
+    "rebase-apply",
+    "CHERRY_PICK_HEAD",
+    "REVERT_HEAD",
+  ].some((name) => {
+    const gitPath = tryGit(root, ["rev-parse", "--git-path", name]);
+    return gitPath !== null && existsSync(resolve(root, gitPath));
+  });
+}
+
+function preflightStatus(root: string): UpgradeStatus | null {
+  if (tryGit(root, ["rev-parse", "-q", "--verify", "MERGE_HEAD"]) !== null) {
+    return "merge-in-progress";
+  }
+  if (hasOperationInProgress(root)) {
+    return "operation-in-progress";
+  }
+  if (tryGit(root, ["symbolic-ref", "-q", "HEAD"]) === null) {
+    return "detached";
+  }
+  if (git(root, ["status", "--porcelain", "--untracked-files=no"]) !== "") {
+    return "dirty";
+  }
+  return null;
+}
+
+function recordUpstreamBase(root: string, log: (line: string) => void) {
+  if (tryGit(root, ["merge-base", "HEAD", TARGET]) !== null) {
+    return null;
+  }
+
+  const base = findUpstreamBase(root);
+  if (base === null) {
+    return false;
+  }
+
+  git(root, [
+    "merge",
+    "-s",
+    "ours",
+    "--allow-unrelated-histories",
+    "-m",
+    `Record upstream base ${base.slice(0, 7)}`,
+    base,
+  ]);
+  log(`Recorded upstream commit ${base.slice(0, 7)} as the shared base.`);
+  return base;
+}
+
 export function upgrade(options: UpgradeOptions): UpgradeResult {
   const log = options.log ?? (() => undefined);
   const root = tryGit(options.cwd, ["rev-parse", "--show-toplevel"]);
@@ -100,12 +158,9 @@ export function upgrade(options: UpgradeOptions): UpgradeResult {
     return result("not-a-repo");
   }
 
-  if (tryGit(root, ["rev-parse", "-q", "--verify", "MERGE_HEAD"]) !== null) {
-    return result("merge-in-progress");
-  }
-
-  if (git(root, ["status", "--porcelain", "--untracked-files=no"]) !== "") {
-    return result("dirty");
+  const blocked = preflightStatus(root);
+  if (blocked !== null) {
+    return result(blocked);
   }
 
   if (tryGit(root, ["remote", "get-url", REMOTE]) === null) {
@@ -126,38 +181,42 @@ export function upgrade(options: UpgradeOptions): UpgradeResult {
     return result("up-to-date");
   }
 
-  let recordedBase: string | null = null;
-  if (tryGit(root, ["merge-base", "HEAD", TARGET]) === null) {
-    const base = findUpstreamBase(root);
-    if (base === null) {
-      return result("base-not-found");
-    }
-
-    git(root, [
-      "merge",
-      "-s",
-      "ours",
-      "--allow-unrelated-histories",
-      "-m",
-      `Record upstream base ${base.slice(0, 7)}`,
-      base,
-    ]);
-    recordedBase = base;
-    log(`Recorded upstream commit ${base.slice(0, 7)} as the shared base.`);
+  const recordedBase = recordUpstreamBase(root, log);
+  if (recordedBase === false) {
+    return result("base-not-found");
   }
 
   const commits = Number(git(root, ["rev-list", "--count", `HEAD..${TARGET}`]));
   const before = git(root, ["rev-parse", "HEAD"]);
+  const branch = git(root, ["symbolic-ref", "--short", "-q", "HEAD"]);
+  log(`Merging into ${branch}`);
   log(`Merging ${commits} upstream commit${commits === 1 ? "" : "s"}...`);
 
   try {
-    git(root, ["merge", "--no-edit", TARGET]);
+    git(root, ["merge", "--no-edit", "--no-stat", TARGET]);
   } catch (error) {
     const conflicts = lines(
-      git(root, ["diff", "--name-only", "--diff-filter=U"])
+      git(root, [
+        "-c",
+        "core.quotePath=false",
+        "diff",
+        "--name-only",
+        "--diff-filter=U",
+      ])
     );
     if (conflicts.length === 0) {
-      throw error;
+      const stderr =
+        error instanceof Error &&
+        "stderr" in error &&
+        Buffer.isBuffer(error.stderr)
+          ? error.stderr.toString("utf8").trim()
+          : "";
+      return result("merge-failed", {
+        commits,
+        mergeError:
+          stderr || (error instanceof Error ? error.message : String(error)),
+        recordedBase,
+      });
     }
 
     return result("conflicts", { commits, conflicts, recordedBase });
@@ -183,7 +242,7 @@ const AFTER_MERGE = [
   "  3. git push, then deploy. Migrations run on deploy.",
 ];
 
-function report(outcome: UpgradeResult): string[] {
+export function report(outcome: UpgradeResult): string[] {
   switch (outcome.status) {
     case "not-a-repo":
       return ["This folder is not a Git repository. Run this from your board."];
@@ -192,6 +251,13 @@ function report(outcome: UpgradeResult): string[] {
         "A merge is already in progress.",
         "Finish it with `git commit`, or cancel it with `git merge --abort`, then run this again.",
       ];
+    case "operation-in-progress":
+      return [
+        "A rebase, cherry-pick, or revert is already in progress.",
+        "Finish or cancel it, then run this again.",
+      ];
+    case "detached":
+      return ["HEAD is detached. Switch to a branch, then run this again."];
     case "dirty":
       return [
         "You have uncommitted changes. Commit them first, then run this again.",
@@ -201,7 +267,15 @@ function report(outcome: UpgradeResult): string[] {
     case "base-not-found":
       return [
         "This project does not share history with Bordful, and none of its starting commits match an upstream commit.",
-        "Nothing was changed. Follow the manual steps in UPGRADING.md.",
+        "The command stopped without changing your files or commits. Follow the manual steps in UPGRADING.md.",
+      ];
+    case "merge-failed":
+      return [
+        outcome.mergeError ?? "Git could not start the merge.",
+        "The merge did not start. Your files are unchanged. Fix the error above and run this again.",
+        ...(outcome.recordedBase
+          ? ["The base record commit stays and changes no files."]
+          : []),
       ];
     case "conflicts":
       return [
@@ -214,7 +288,10 @@ function report(outcome: UpgradeResult): string[] {
         "  bun run check",
         "  git commit",
         "",
-        "To go back to where you were: git merge --abort",
+        "To put your files back: git merge --abort",
+        ...(outcome.recordedBase
+          ? ["The base record commit stays and changes no files."]
+          : []),
       ];
     case "merged":
       return [
@@ -241,9 +318,17 @@ function main(): number {
 
   if (outcome.dependenciesChanged) {
     console.log("Dependencies changed. Running bun install...");
-    const install = spawnSync("bun", ["install"], { stdio: "inherit" });
+    const root =
+      tryGit(process.cwd(), ["rev-parse", "--show-toplevel"]) ?? process.cwd();
+    const bun = process.versions.bun ? process.execPath : "bun";
+    const install = spawnSync(bun, ["install"], {
+      cwd: root,
+      stdio: "inherit",
+    });
     if (install.status !== 0) {
-      console.log("bun install failed. Run it yourself before the check.");
+      console.log(
+        `bun install failed${install.error?.message ? `: ${install.error.message}` : ""}. Run it yourself before the check.`
+      );
       return 1;
     }
   }

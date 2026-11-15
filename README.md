@@ -72,7 +72,7 @@ Keep your changes in admin settings, `bordful.config.ts`, and `src/custom/**`. S
 
 ## Upgrading
 
-Run `bun run bordful:upgrade`. It merges the latest release into your board, including the one-time base step a Deploy button project needs. See [Upgrading](UPGRADING.md). The admin update notice links to Upgrading. Breaking notes are in [Changelog](CHANGELOG.md).
+Run `bun run bordful:upgrade`. It merges the latest release into your board, including the one-time base step a Deploy button project needs. A board created before this command needs a one-time step, see [Upgrading](UPGRADING.md). The admin update notice links to Upgrading. Breaking notes are in [Changelog](CHANGELOG.md).
 
 ## Security
 

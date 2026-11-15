@@ -26,6 +26,12 @@ A board created before this command existed does not have the script yet. Run th
 curl -fsSL https://raw.githubusercontent.com/craftled/bordful/main/scripts/upgrade.ts -o "${TMPDIR:-/tmp}/bordful-upgrade.ts" && bun "${TMPDIR:-/tmp}/bordful-upgrade.ts"
 ```
 
+In PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/craftled/bordful/main/scripts/upgrade.ts -OutFile "$env:TEMP\bordful-upgrade.ts"; bun "$env:TEMP\bordful-upgrade.ts"
+```
+
 The command:
 
 1. Adds the `upstream` remote if it is missing, and fetches `upstream/main`.
@@ -33,9 +39,11 @@ The command:
 3. Merges `upstream/main`.
 4. Runs `bun install` if dependencies changed.
 
-It stops without changing anything if you have uncommitted changes, or if it cannot find the upstream commit a Deploy button project started from. It does not push or deploy.
+It stops without changing your files or commits if you have uncommitted changes, a merge, rebase, cherry-pick, or revert in progress, a detached HEAD, or if it cannot find the matching upstream base for a Deploy button project. It does not push or deploy.
 
-If both sides edited the same lines, it lists the conflicted files and leaves the merge open. Resolve them, then finish as in [By hand](#by-hand). `git merge --abort` returns you to where you were.
+Untracked files are left alone; if upstream adds a file at the same path, the merge stops and tells you.
+
+If both sides edited the same lines, it lists the conflicted files and leaves the merge open. Resolve them, then follow [the finishing steps](#finishing-the-merge). `git merge --abort` puts your files back. On a first Deploy button upgrade, the base record commit stays and changes no files.
 
 After a clean run:
 
@@ -47,20 +55,20 @@ Then push and deploy. Migrations run on deploy.
 
 ### By hand
 
-These are the steps the command runs. Add the upstream remote once:
+The command runs these steps. Add the upstream remote once:
 
 ```bash
 git remote add upstream https://github.com/craftled/bordful.git
 git fetch upstream
 ```
 
-### First upgrade of a Deploy button project
+#### First upgrade of a Deploy button project
 
 The Deploy button creates a new Git repository and pushes the source files into it. That repository has its own initial commit. It does not share history with `craftled/bordful`, so a plain `git merge upstream/main` stops with "refusing to merge unrelated histories".
 
 Do not start with `--allow-unrelated-histories`. That merge has no common ancestor. Only files that are identical on both sides merge cleanly. Every other file, including files you never edited, shows up as a whole-file add/add conflict. Keeping your side drops upstream fixes. Taking the upstream side drops your edits.
 
-Record the upstream commit your root tree came from, then merge normally. These steps expect one root commit (the Deploy button commit) with your later commits on top. The first command only records the shared base. It does not change your files. The second command brings in upstream changes. A file only one side changed merges cleanly. Git conflicts only where both sides edited the same lines.
+Record the upstream commit your root tree came from, then merge normally. These steps expect one root commit (the Deploy button commit) with your later commits on top. The first command only records the shared base. It does not change your files. The second command brings in upstream changes. A file changed on only one side merges cleanly. Git conflicts only where both sides edited the same lines.
 
 ```bash
 init=$(git rev-list --max-parents=0 HEAD)
@@ -82,6 +90,8 @@ git add path/to/file
 ```
 
 Use that only for files you did not edit. For a file you did edit, combine the two copies yourself, then `git add` it.
+
+#### Finishing the merge
 
 If Git stops with conflicts, resolve them, run the install and check below, then `git commit`. If the merge already committed, run the same commands and commit again only if they change files:
 
