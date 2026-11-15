@@ -13,6 +13,7 @@ import {
   connectAction,
   resetAction,
   setAttributionAction,
+  syncNowAction,
 } from "@/actions/bordfeed-connect";
 import {
   ATTRIBUTION_CONNECTED_ONLY_MESSAGE,
@@ -120,6 +121,31 @@ test("a saved credit change keeps the checkbox at the click", async () => {
   fireEvent.click(box);
   expect(await screen.findByText(CREDIT_SHOWN_MESSAGE)).toBeTruthy();
   expect(box.checked).toBe(true);
+});
+
+test("a server state newer than the last action replaces its banner", async () => {
+  vi.mocked(syncNowAction).mockResolvedValueOnce({
+    message: "Synced 12 jobs.",
+    state: "connected",
+  });
+
+  const { rerender } = render(<ConnectCardClient view={view({})} />);
+  fireEvent.click(screen.getByTestId("bordfeed-sync-now"));
+  expect(await screen.findByText("Synced 12 jobs.")).toBeTruthy();
+
+  rerender(
+    <ConnectCardClient
+      view={view({
+        lastErrorMessage: "Bordfeed rejected the API key.",
+        previousState: "connected",
+        state: "error",
+      })}
+    />
+  );
+  expect(screen.getByTestId("bordfeed-error").textContent).toBe(
+    "Bordfeed rejected the API key."
+  );
+  expect(screen.queryByText("Synced 12 jobs.")).toBeNull();
 });
 
 test("the disconnect warning names the imported jobs it deletes", () => {

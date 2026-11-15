@@ -467,6 +467,34 @@ function ConnectedTools({
   );
 }
 
+interface PublishedResult {
+  from: ConnectCardView["state"];
+  result: ConnectStepResult;
+}
+
+// An action's message holds while the server view is still in the state the
+// action started from (refresh pending) or the one it ended in. Once the view
+// moves elsewhere, say a later refresh after the key was revoked, the
+// server's state and error win over the old banner.
+function bannerText(
+  view: ConnectCardView,
+  latest: PublishedResult | null
+): { errorText: string; statusText: string } {
+  const current =
+    latest && (view.state === latest.from || view.state === latest.result.state)
+      ? latest.result
+      : null;
+  if (current) {
+    return isProblem(current)
+      ? { errorText: current.message, statusText: "" }
+      : { errorText: "", statusText: current.message };
+  }
+  return {
+    errorText: view.state === "error" ? (view.lastErrorMessage ?? "") : "",
+    statusText: view.registrationExpired ? REGISTRATION_EXPIRED_MESSAGE : "",
+  };
+}
+
 export function ConnectCardClient({ view }: { view: ConnectCardView }) {
   // A save revalidates the board, so Next re-renders the card with the new
   // state. Sub-forms unmount on that render, so the action hooks live here.
@@ -500,18 +528,22 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
   const [workspaces, setWorkspaces] = useState<
     { name: string; slug: string }[] | null
   >(null);
-  const [latest, setLatest] = useState<ConnectStepResult | null>(null);
-  const onResult = useCallback((result: ConnectStepResult) => {
-    setLatest(result);
-    if (result.fallback === "paste_key") {
-      setPasteOpen(true);
-    }
-    setWorkspaces(
-      result.workspaces && result.workspaces.length > 0
-        ? result.workspaces
-        : null
-    );
-  }, []);
+  const [latest, setLatest] = useState<PublishedResult | null>(null);
+  const viewState = view.state;
+  const onResult = useCallback(
+    (result: ConnectStepResult) => {
+      setLatest({ from: viewState, result });
+      if (result.fallback === "paste_key") {
+        setPasteOpen(true);
+      }
+      setWorkspaces(
+        result.workspaces && result.workspaces.length > 0
+          ? result.workspaces
+          : null
+      );
+    },
+    [viewState]
+  );
   usePublish(registerResult, onResult, view.state, false);
   usePublish(verifyResult, onResult, view.state, false);
   usePublish(pasteResult, onResult, view.state, false);
@@ -527,17 +559,7 @@ export function ConnectCardClient({ view }: { view: ConnectCardView }) {
     view.state === "awaiting_code" && !view.registrationExpired && !workspaces;
   const showTools =
     view.state === "connected" || view.previousState === "connected";
-  let statusText = view.registrationExpired ? REGISTRATION_EXPIRED_MESSAGE : "";
-  let errorText = view.state === "error" ? (view.lastErrorMessage ?? "") : "";
-  if (latest) {
-    if (isProblem(latest)) {
-      errorText = latest.message;
-      statusText = "";
-    } else {
-      errorText = "";
-      statusText = latest.message;
-    }
-  }
+  const { errorText, statusText } = bannerText(view, latest);
 
   return (
     <section

@@ -32,5 +32,5 @@ Thank you for helping keep Bordful secure!
 - Set `CRON_SECRET` and send it as `Authorization: Bearer` on `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`. See [Deploy](docs/deploy.md).
 - The Bordfeed API key is encrypted at rest with `PAYLOAD_SECRET` and hidden from every API read. Alert confirm and unsubscribe tokens are stored as hashes.
 - A Bordfeed incident (most checked jobs reported gone) does not unpublish jobs on its own. Leave `BORDFEED_ALLOW_MASS_UNPUBLISH` unset on a normal board. See [Daily sync](docs/bordfeed.md#daily-sync).
-- CSP uses a new nonce on each request. No third-party scripts are allowed by default. The `csp` options in `bordful.config.ts` are not applied yet. See [Configuration](docs/configuration.md).
+- CSP uses a new nonce on each request. No third-party scripts are allowed by default. Load a third-party script with `next/script`; a plain `<script src>` tag is blocked. Extra `connect-src` origins go in the `csp` options in `bordful.config.ts`. See [Configuration](docs/configuration.md).
 - Keep `.env` out of git. `.env.example` holds placeholders only, such as `replace-with-32-plus-random-chars`.

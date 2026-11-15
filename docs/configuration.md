@@ -31,12 +31,26 @@ export default defineBordfulConfig({
 | `telemetry.clientHeader` | `true` | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md). |
 | `board.defaultTemplateId` | `fully-remote` | Template used for sample jobs and for the feed created at connect. Read once, on first boot. An existing board keeps the template stored in its Bordfeed connection, so changing this value later does not move it. |
 | `alerts.provider` | `resend` | Only `resend`. |
-| `csp.extraScriptOrigins` | `[]` | Intended extra `script-src` origins. `https` origins only. Not applied yet. |
-| `csp.extraConnectOrigins` | `[]` | Intended extra `connect-src` origins. `https` origins only. Not applied yet. |
+| `csp.extraScriptOrigins` | `[]` | Extra `script-src` origins. `https` origins only. Current browsers ignore them because of `'strict-dynamic'`; see below. |
+| `csp.extraConnectOrigins` | `[]` | Extra `connect-src` origins: hosts that `fetch`, XHR, WebSocket or beacon calls may reach. `https` origins only. |
 
 Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
 
-An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the shape `buildCsp` accepts. A path, a quote, a semicolon, a space, or a comma is rejected by `buildCsp`. One leading wildcard label is allowed (`https://*.example.com`). Those checks run only when the lists are passed in. Today they are not: `src/proxy.ts` calls `buildCsp({ admin, isDev, marketing, nonce })` and ignores `bordful.config.ts`. An origin you add stays blocked until that call passes `csp.extraScriptOrigins` and `csp.extraConnectOrigins`.
+An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the accepted shape. One leading wildcard label is allowed (`https://*.example.com`). A path, `http`, a quote, a semicolon, a space, or a comma fails config parsing, so the dev server and the build stop with `Invalid bordful.config.ts` and name the bad entry. Every page, `/api` and `/admin` response then sends the origins in its `Content-Security-Policy` header.
+
+The script policy uses a per-request nonce with `'strict-dynamic'`. Browsers that support `'strict-dynamic'` (all current ones) ignore origin lists in `script-src`, so listing a host does not let a plain `<script src>` tag from it run. A script runs when it carries the page nonce or when an already trusted script inserts it. `extraScriptOrigins` only matters for older browsers without `'strict-dynamic'`.
+
+To load a third-party script from a `src/custom/**` slot, use `next/script`. Next inserts it from its own nonced code after the page loads, so it runs with no nonce of yours. Add every host that script calls to `extraConnectOrigins`.
+
+```tsx
+import Script from "next/script";
+
+export function Analytics() {
+  return <Script src="https://cdn.example.com/a.js" strategy="afterInteractive" />;
+}
+```
+
+In development, open the board at `http://localhost:3000`. Next's dev server blocks its own scripts on other hosts such as `127.0.0.1` unless they are listed in `allowedDevOrigins`, so the script does not run there.
 
 ## Site settings
 

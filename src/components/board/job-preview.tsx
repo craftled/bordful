@@ -28,16 +28,23 @@ const EXCERPT_CHARS = 480;
 const SIMILAR_LIMIT = 3;
 const SENTENCE_END = /[.!?]\s/gu;
 
-// The JSON Feed carries each live job's plain-text description. One fetch
-// serves every preview on the page; jobs outside the feed show no excerpt.
+// The JSON Feed carries each live job's plain-text description. One good
+// fetch serves every preview on the page; jobs outside the feed show no
+// excerpt. A failed fetch, network or HTTP, is not kept, so the next preview
+// tries again.
 let feedTexts: Promise<Map<string, string>> | null = null;
 
-function loadFeedTexts(): Promise<Map<string, string>> {
+export function loadFeedTexts(): Promise<Map<string, string>> {
   if (feedTexts) {
     return feedTexts;
   }
   feedTexts = fetch("/feed.json", { headers: { accept: "application/json" } })
-    .then((response) => (response.ok ? response.json() : { items: [] }))
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`feed.json returned ${response.status}`);
+      }
+      return response.json();
+    })
     .then((body: unknown) => {
       const map = new Map<string, string>();
       const items =
