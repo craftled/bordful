@@ -13,6 +13,20 @@
   }
 }
 
+/* The pinned theme differs from the operating system preference. */
+@custom-variant theme-override {
+  @media (prefers-color-scheme: light) {
+    &:where([data-theme="dark"], [data-theme="dark"] *) {
+      @slot;
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where([data-theme="light"], [data-theme="light"] *) {
+      @slot;
+    }
+  }
+}
+
 /* Fallbacks match DEFAULT_THEME_TOKENS (src/theme/tokens.ts); the layout
    overrides the ten theme keys at runtime from Site settings. */
 :root {
