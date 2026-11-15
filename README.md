@@ -28,7 +28,9 @@ Bordful 1.0 includes:
 - Import blocklist for Bordfeed jobs
 - Light and dark themes, with a header toggle
 - Theme colors, fonts, radius, and logo in admin settings
-- An update notice in the admin
+- An update notice in the admin, and `bun run bordful:upgrade` to merge upstream changes
+- Company logos from Logo.dev for companies with no uploaded logo
+- `bun run bordful reset-password` for a lost admin password
 - Nonce-based CSP and security headers
 
 ## Quick start
@@ -65,6 +67,8 @@ Open `http://localhost:3000/admin` and create the first admin. That user gets th
 - There are no admin password reset emails. See [Deploy](docs/deploy.md#admin-sign-in).
 - `csp.extraScriptOrigins` and `csp.extraConnectOrigins` are accepted but not applied. See [Configuration](docs/configuration.md).
 - Migrations run on first database connect in production, which can happen during the build. Keep your own migrations backward compatible. See [Deploy](docs/deploy.md).
+- The admin update notice follows GitHub releases, and fixes merged after the v1.0.0 tag have no release yet, so it stays quiet about them. Run `bun run bordful:upgrade` to get them. See [Upgrading](UPGRADING.md).
+- A new board's first sync can bring jobs from the last hour with only the employer name, because Bordfeed links companies after a job arrives. A later sync adds the domain and logo once Bordfeed has linked the company.
 
 ## Customizing without merge conflicts
 
@@ -72,7 +76,7 @@ Keep your changes in admin settings, `bordful.config.ts`, and `src/custom/**`. S
 
 ## Upgrading
 
-Run `bun run bordful:upgrade`. It merges the latest release into your board, including the one-time base step a Deploy button project needs. A board created before this command existed runs the upstream copy once. See [Upgrading](UPGRADING.md). The admin update notice links to Upgrading. Breaking notes are in [Changelog](CHANGELOG.md).
+Run `bun run bordful:upgrade`. It merges the latest `main` from craftled/bordful into your board, including the one-time base step a Deploy button project needs. A board created before this command existed runs the upstream copy once. See [Upgrading](UPGRADING.md). The admin update notice links to Upgrading. Breaking notes are in [Changelog](CHANGELOG.md).
 
 ## Security
 
