@@ -350,7 +350,12 @@ export function createBordfeedClient(
 
     const failure = failureOf(response, body);
     const wait = failure.retryAfterSeconds;
-    const retryable = response.status === 429 || response.status >= 500;
+    // A 429 was refused before any work, so every method may retry it. A 5xx
+    // may have happened after a POST took effect (a feed created, a code used),
+    // so only reads retry it.
+    const retryable =
+      response.status === 429 ||
+      (response.status >= 500 && (init.method ?? "GET") === "GET");
     if (
       !(retryable && wait !== null && wait <= MAX_WAIT_SECONDS) ||
       attempt >= maxAttempts
