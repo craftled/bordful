@@ -12,7 +12,42 @@ Read [Changelog](CHANGELOG.md) before you merge. Breaking notes are listed there
 
 1.0 requires Node.js 26 LTS. `engines.node` is `^26.13.1` (Payload 4.0.0-beta.9 needs 26.13.1 or later), which overrides the Node.js version in your Vercel project settings, so the next deploy runs on Node 26. Built-in fetch then uses HTTP/2. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
-Add the upstream remote once:
+### Upgrade command
+
+Commit your work, then run:
+
+```bash
+bun run bordful:upgrade
+```
+
+A board created before this command existed does not have the script yet. Run the upstream copy once. The upgrade then adds it to your board:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/craftled/bordful/main/scripts/upgrade.ts -o "${TMPDIR:-/tmp}/bordful-upgrade.ts" && bun "${TMPDIR:-/tmp}/bordful-upgrade.ts"
+```
+
+The command:
+
+1. Adds the `upstream` remote if it is missing, and fetches `upstream/main`.
+2. On the first upgrade of a Deploy button project, records the upstream commit the project was created from. See [below](#first-upgrade-of-a-deploy-button-project).
+3. Merges `upstream/main`.
+4. Runs `bun install` if dependencies changed.
+
+It stops without changing anything if you have uncommitted changes, or if it cannot find the upstream commit a Deploy button project started from. It does not push or deploy.
+
+If both sides edited the same lines, it lists the conflicted files and leaves the merge open. Resolve them, then finish as in [By hand](#by-hand). `git merge --abort` returns you to where you were.
+
+After a clean run:
+
+```bash
+bun run check
+```
+
+Then push and deploy. Migrations run on deploy.
+
+### By hand
+
+These are the steps the command runs. Add the upstream remote once:
 
 ```bash
 git remote add upstream https://github.com/craftled/bordful.git

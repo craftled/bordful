@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "bordful": "payload bordful",
+    "bordful:upgrade": "bun scripts/upgrade.ts",
     "build": "next build",
     "check": "bun run typecheck && bun run lint && bun run test && bun run lint:payload",
     "dev": "next dev",
