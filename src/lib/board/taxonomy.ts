@@ -149,9 +149,9 @@ export function isThinArchive(
   kind: TaxonomyKind,
   value: string
 ): boolean {
-  const indexable = jobs.filter((job) => job.indexable);
-  const matches = filterByTaxonomy(indexable, kind, value)?.length ?? 0;
-  return matches < MIN_INDEXED_ARCHIVE_JOBS;
+  const matches = filterByTaxonomy(jobs, kind, value) ?? [];
+  const indexable = matches.filter((job) => job.indexable).length;
+  return indexable < MIN_INDEXED_ARCHIVE_JOBS;
 }
 
 export function taxonomyArchiveMetadata(

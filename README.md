@@ -20,7 +20,7 @@ Bordful 1.0 includes:
 - A board with search, filters, and taxonomy archives
 - Job and company pages with JobPosting JSON-LD
 - RSS 2.0 and JSON Feed
-- Sitemap and robots
+- Sitemap and robots. A taxonomy archive with fewer than 3 real jobs (sample jobs do not count) is `noindex` and left out of the sitemap, but still opens for visitors
 - Sample jobs from a Bordfeed template on first deploy
 - Connect Bordfeed in the admin, or with `bun run bordful connect`
 - Post a Job through a Stripe payment link, with admin publish and automatic expiry
