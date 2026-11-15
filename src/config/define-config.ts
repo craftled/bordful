@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { assertCspOrigin } from "../lib/csp/build-csp";
+
 const httpsUrl = z.url({ protocol: /^https$/u });
 
 const CRON_FIELD =
@@ -24,6 +26,17 @@ function clamp(min: number, max: number) {
 // Bordfeed bills up to one credit per job fetched. These caps bound every sync.
 export const JOBS_PER_SYNC = { default: 50, max: 100, min: 20 } as const;
 export const JOBS_PER_DAY = { default: 200, max: 5000, min: 20 } as const;
+
+const cspOrigin = z.string().superRefine((origin, ctx) => {
+  try {
+    assertCspOrigin(origin);
+  } catch (error) {
+    ctx.addIssue({
+      code: "custom",
+      message: `${(error as Error).message} (got "${origin}")`,
+    });
+  }
+});
 
 const cronSchema = z.string().refine(isFiveFieldCron, {
   message:
@@ -63,8 +76,8 @@ export const bordfulConfigSchema = z.strictObject({
     .prefault({}),
   csp: z
     .strictObject({
-      extraConnectOrigins: z.array(z.string()).prefault([]),
-      extraScriptOrigins: z.array(z.string()).prefault([]),
+      extraConnectOrigins: z.array(cspOrigin).prefault([]),
+      extraScriptOrigins: z.array(cspOrigin).prefault([]),
     })
     .prefault({}),
   social: z
