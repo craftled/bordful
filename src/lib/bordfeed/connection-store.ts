@@ -5,7 +5,7 @@ import {
   type ConnectionEvent,
   type ConnectionRecord,
 } from "./connection-machine";
-import { IllegalTransitionError } from "./errors";
+import { IllegalTransitionError } from "./illegal-transition-error";
 import type { SafeError } from "./types";
 
 function asString(value: unknown): string | null {

@@ -19,6 +19,7 @@ const LANES = ["L1", "L2", "L3a", "L3b", "L4", "L5", "L6", "L7", "L8"];
 const IDS = [
   "S0-smoke",
   "S0-admin-login",
+  "S0-a11y",
   "E1",
   "E2",
   "E3",

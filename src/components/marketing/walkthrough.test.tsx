@@ -22,11 +22,19 @@ test("walkthrough renders five tabs with one panel visible", () => {
 
   expect(screen.getAllByRole("tab")).toHaveLength(5);
   expect(
-    LABELS.map((label) => screen.getByRole("tab", { name: label }))
-  ).toHaveLength(5);
+    LABELS.filter((label) => label !== "Read a role").map((label) =>
+      screen.getByRole("tab", { name: label })
+    )
+  ).toHaveLength(4);
 
   const selected = screen.getByRole("tab", { selected: true });
-  expect(selected.getAttribute("aria-labelledby")).toBeTruthy();
+  expect(
+    screen.getByRole("tab", {
+      name: "Read a role Each job opens on its own page. On a phone, Apply stays pinned.",
+    })
+  ).toBe(selected);
+  expect(selected.hasAttribute("aria-labelledby")).toBe(false);
+  expect(selected.hasAttribute("aria-describedby")).toBe(false);
   expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
   expect(screen.getByRole("tabpanel").getAttribute("aria-labelledby")).toBe(
     selected.id
@@ -53,7 +61,9 @@ test("arrow keys move selection and focus, wrapping at the ends", () => {
   fireEvent.click(first);
   fireEvent.keyDown(first, { key: "ArrowUp" });
 
-  const last = screen.getByRole("tab", { name: "Make it yours" });
+  const last = screen.getByRole("tab", {
+    name: "Make it yours Name, logo, colors, fonts and radius come from Site settings, in light and dark.",
+  });
   expect(last.getAttribute("aria-selected")).toBe("true");
   expect(document.activeElement).toBe(last);
 

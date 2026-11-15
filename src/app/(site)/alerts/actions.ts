@@ -64,7 +64,11 @@ export async function subscribeAction(
 
   const email = parseEmail(formData.get("email"));
   if (!email) {
-    return { message: "Enter a valid email address.", ok: false };
+    return {
+      field: "email",
+      message: "Enter a valid email address.",
+      ok: false,
+    };
   }
 
   const frequency = parseFrequency(

@@ -12,12 +12,12 @@ import {
   MASS_REMOVAL_PENDING_MESSAGE,
   MAX_INCIDENT_REMOVALS_PER_SYNC,
   massRemovalFloorMessage,
-  SyncGuardError,
 } from "@/lib/bordfeed/errors";
 import type { BordfeedJob } from "@/lib/bordfeed/job-schema";
 import { sealApiKey } from "@/lib/bordfeed/key";
 import { ensureSampleJobs } from "@/lib/bordfeed/sample";
 import { runFeedSync, runSampleSync } from "@/lib/bordfeed/sync";
+import { SyncGuardError } from "@/lib/bordfeed/sync-guard-error";
 import { isEncryptedEnvelope } from "@/lib/crypto/secret-box";
 import { queryPublishedJobs } from "@/lib/read/queries";
 
@@ -676,6 +676,95 @@ describe("bordfeed sync", () => {
     const third = await runFeedSync(payload, { client: feedClient(renamed) });
     expect(third.created).toBe(0);
     expect(third.updated).toBe(0);
+  });
+
+  test("a job linked to its company after the first sync does not duplicate the company", async () => {
+    await connectFeed();
+    const bare = {
+      domain: null,
+      id: null,
+      logo_url: null,
+      name: "Example Co",
+      slug: null,
+    };
+    const unlinked = feedJobs(1).map((job) => ({ ...job, company: bare }));
+    await runFeedSync(payload, { client: feedClient(unlinked) });
+    await runFeedSync(payload, { client: feedClient(unlinked) });
+
+    const before = await payload.find({
+      collection: "companies",
+      depth: 0,
+      overrideAccess: true,
+      where: { name: { equals: "Example Co" } },
+    });
+    expect(before.totalDocs).toBe(1);
+    const firstId = before.docs[0]?.id;
+
+    const linked = feedJobs(1).map((job) => ({
+      ...job,
+      company: {
+        ...exampleCompany,
+        logo_url: "https://cdn.example.com/logo.png",
+      },
+    }));
+    await runFeedSync(payload, { client: feedClient(linked) });
+
+    const after = await payload.find({
+      collection: "companies",
+      depth: 0,
+      overrideAccess: true,
+      where: { name: { equals: exampleCompany.name } },
+    });
+    expect(after.totalDocs).toBe(1);
+    expect(after.docs[0]?.id).toBe(firstId);
+    expect(after.docs[0]?.bordfeedCompanyId).toBe(exampleCompany.id);
+    expect(after.docs[0]?.domain).toBe("example.com");
+    expect(after.docs[0]?.logoUrl).toBe("https://cdn.example.com/logo.png");
+
+    const stored = await payload.find({
+      collection: "jobs",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { origin: { equals: "bordfeed" } },
+    });
+    expect(stored.docs[0]?.company).toBe(firstId);
+    expect(stored.docs[0]?.companyDomain).toBe("example.com");
+  });
+
+  test("a new unlinked job joins the linked company of the same name and keeps its logo", async () => {
+    await connectFeed();
+    const linked = feedJobs(1).map((job) => ({
+      ...job,
+      company: {
+        ...exampleCompany,
+        logo_url: "https://cdn.example.com/logo.png",
+      },
+    }));
+    await runFeedSync(payload, { client: feedClient(linked) });
+
+    const bare = {
+      domain: null,
+      id: null,
+      logo_url: null,
+      name: exampleCompany.name,
+      slug: null,
+    };
+    const both: BordfeedJob[] = [
+      ...linked,
+      { ...feedJobs(3)[2], company: bare } as BordfeedJob,
+    ];
+    await runFeedSync(payload, { client: feedClient(both) });
+
+    const companies = await payload.find({
+      collection: "companies",
+      depth: 0,
+      overrideAccess: true,
+      where: { name: { equals: exampleCompany.name } },
+    });
+    expect(companies.totalDocs).toBe(1);
+    expect(companies.docs[0]?.logoUrl).toBe("https://cdn.example.com/logo.png");
+    expect(companies.docs[0]?.domain).toBe("example.com");
   });
 
   test("renaming a bordfeed company leaves manual and paid jobs alone", async () => {

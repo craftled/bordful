@@ -35,7 +35,7 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `RESEND_BASE_URL` | No | You | Resend API origin. Empty uses the SDK default. |
 | `BORDFEED_BASE_URL` | No | You | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board. |
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
-| `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Two later syncs at least 12 hours apart must see the same slice first, and each sync removes at most 10. Leave unset. |
+| `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
 | `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
 | `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. Must end in `_int`. Do not set this on Vercel. |
 | `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. |
@@ -60,6 +60,36 @@ The Bordfeed cron fetches only jobs new to the feed since the last sync, capped 
 2. In the Vercel project, open Settings, then Domains, and add the domain.
 3. Create the DNS records Vercel shows.
 4. When that domain is the production domain, leave `NEXT_PUBLIC_SERVER_URL` unset so the app uses the production URL. To pin the origin, set `NEXT_PUBLIC_SERVER_URL` to `https://board.example` and redeploy.
+
+## Firewall
+
+Bots can send `/jobs/search` thousands of different queries an hour. Search no longer reads the database for each one, but every request still runs a function, so add one Vercel Firewall rule after you deploy. The rule lives in the Vercel project, not in this repository, so a fork does not get it automatically.
+
+In the Vercel project, open Firewall, then Configure, and add a custom rule:
+
+| Setting | Value |
+| --- | --- |
+| Name | `Challenge search and alerts` |
+| If | Request Path equals `/jobs/search` and Method equals `GET` |
+| Or | Request Path equals `/alerts` and Method equals `GET` |
+| Then | Challenge |
+
+Publish the change. Browsers pass the challenge once. Scripts get HTTP 429 with `x-vercel-mitigated: challenge`. Search engines are unaffected, since `robots.txt` already disallows `/jobs/search`. The alerts form still works, because it posts with `POST`.
+
+The same rule from the Vercel CLI:
+
+```bash
+vercel firewall rules add "Challenge search and alerts" \
+  --condition '{"type":"path","op":"eq","value":"/jobs/search"}' \
+  --condition '{"type":"method","op":"eq","value":"GET"}' \
+  --or \
+  --condition '{"type":"path","op":"eq","value":"/alerts"}' \
+  --condition '{"type":"method","op":"eq","value":"GET"}' \
+  --action challenge
+vercel firewall publish
+```
+
+A per-IP rate limit does not help here. The traffic that prompted this rule came through residential proxies, with no single IP sending more than a few hundred requests a day.
 
 ## Admin sign-in
 

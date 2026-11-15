@@ -138,16 +138,66 @@ export function ThemedBoardShot({
 export function ThemedImage({
   alt,
   className,
-  loading = "lazy",
   name,
+  priority = false,
 }: {
   alt: string;
   className?: string;
-  loading?: "eager" | "lazy";
   name: ThemedShotName;
+  priority?: boolean;
 }) {
   const light = SHOTS[name];
   const dark = SHOTS[DARK_OF[name]];
+
+  if (priority) {
+    return (
+      <>
+        <picture className="theme-override:hidden">
+          {/* The hero is hidden from md up, so desktop needs no screenshot download. */}
+          <source
+            media="(width >= 48rem)"
+            srcSet="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          />
+          <source
+            height={dark.height}
+            media="(prefers-color-scheme: dark)"
+            srcSet={dark.src}
+            width={dark.width}
+          />
+          <MarketingImage
+            alt={alt}
+            className={className}
+            decoding="async"
+            fetchPriority="high"
+            height={light.height}
+            loading="eager"
+            src={light.src}
+            width={light.width}
+          />
+        </picture>
+        <span className="theme-override:contents hidden">
+          <MarketingImage
+            alt={alt}
+            className={cn(className, "dark:hidden")}
+            decoding="async"
+            height={light.height}
+            loading="lazy"
+            src={light.src}
+            width={light.width}
+          />
+          <MarketingImage
+            alt={alt}
+            className={cn(className, "hidden dark:block")}
+            decoding="async"
+            height={dark.height}
+            loading="lazy"
+            src={dark.src}
+            width={dark.width}
+          />
+        </span>
+      </>
+    );
+  }
 
   return (
     <>
@@ -156,7 +206,7 @@ export function ThemedImage({
         className={cn(className, "dark:hidden")}
         decoding="async"
         height={light.height}
-        loading={loading}
+        loading="lazy"
         src={light.src}
         width={light.width}
       />
@@ -165,7 +215,7 @@ export function ThemedImage({
         className={cn(className, "hidden dark:block")}
         decoding="async"
         height={dark.height}
-        loading={loading}
+        loading="lazy"
         src={dark.src}
         width={dark.width}
       />
