@@ -205,6 +205,14 @@ const ROW_STYLES: Record<
   },
 };
 
+// WCAG 2.5.8 wants 24px targets. The title link grows up into the row padding
+// and the company link grows down, each by what its line lacks, and a
+// matching negative margin keeps every line of text where it was. The title
+// box ends where its line ends and the company box starts where its line
+// starts, so the two never overlap.
+const GROW_UP = "pt-[calc(24px-1lh)] -mt-[calc(24px-1lh)]";
+const GROW_DOWN = "pb-[calc(24px-1lh)] -mb-[calc(24px-1lh)]";
+
 // The title link stretches over the whole row. Other links and slot content
 // sit above it (z-10) so they stay clickable; the focus ring sits on the row.
 export function JobRow({
@@ -265,12 +273,15 @@ export function JobRow({
         <CompanyLogo job={job} variant={variant} />
         <h2
           className={cn(
-            "text-foreground min-w-0 truncate text-[15px] [grid-area:title] lg:self-end",
+            "text-foreground min-w-0 text-[15px] [grid-area:title] lg:self-end",
             styles.title
           )}
         >
           <Link
-            className="rounded-sm outline-none after:absolute after:inset-0"
+            className={cn(
+              "block truncate rounded-sm outline-none after:absolute after:inset-0",
+              GROW_UP
+            )}
             data-testid="job-row-link"
             href={buildJobPath(job.slug)}
           >
@@ -299,12 +310,17 @@ export function JobRow({
         <p
           className={cn(
             "text-muted-foreground min-w-0 truncate text-[13px] [grid-area:meta] lg:mt-0 lg:self-start",
+            // The line clips, so it grows with the company link it holds.
+            GROW_DOWN,
             styles.meta
           )}
         >
           {job.companySlug ? (
             <Link
-              className="relative z-10 rounded-sm hover:underline"
+              className={cn(
+                "relative z-10 inline-block max-w-full min-w-6 truncate rounded-sm align-top hover:underline",
+                GROW_DOWN
+              )}
               href={buildCompanyPath(job.companySlug)}
             >
               {job.companyName}
