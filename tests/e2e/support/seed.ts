@@ -103,6 +103,10 @@ export async function deleteWhere(
   collection: string,
   query: string
 ): Promise<void> {
+  // Without a where clause Payload deletes the whole collection.
+  if (!query.startsWith("where[")) {
+    throw new Error(`deleteWhere needs a where clause, got "${query}"`);
+  }
   const response = await request.delete(`/api/${collection}?${query}`);
   await readBody(response);
 }

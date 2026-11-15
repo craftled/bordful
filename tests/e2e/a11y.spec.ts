@@ -235,19 +235,37 @@ test.describe("S0 accessibility", { tag: ["@S0-a11y"] }, () => {
       await page.close();
     });
 
+    // The board home renders the "board" row variant; a taxonomy archive
+    // renders "archive". Every seeded job is full-time, so it lists them all.
+    const seededPages = [
+      { name: "board home", path: "/", scanName: "app home" },
+      {
+        name: "full-time archive",
+        path: "/jobs/type/full-time",
+        scanName: "full-time archive",
+      },
+    ];
+
     for (const viewport of VIEWPORTS) {
       for (const scheme of COLOR_SCHEMES) {
-        test(`board home with company links in ${scheme} mode${viewport.label}`, async ({
-          page,
-        }) => {
-          await open(page, scheme, viewport, "/");
-          await expect(
-            page
-              .locator('[data-testid="job-row"]', { hasText: SEED_MARK })
-              .locator('a[href^="/companies/"]')
-          ).toHaveCount(SEED_JOBS.length);
-          await scan(page, "app home with company links", scheme, viewport);
-        });
+        for (const seededPage of seededPages) {
+          test(`${seededPage.name} with company links in ${scheme} mode${viewport.label}`, async ({
+            page,
+          }) => {
+            await open(page, scheme, viewport, seededPage.path);
+            await expect(
+              page
+                .locator('[data-testid="job-row"]', { hasText: SEED_MARK })
+                .locator('a[href^="/companies/"]')
+            ).toHaveCount(SEED_JOBS.length);
+            await scan(
+              page,
+              `${seededPage.scanName} with company links`,
+              scheme,
+              viewport
+            );
+          });
+        }
       }
     }
   });
