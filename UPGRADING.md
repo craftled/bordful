@@ -114,7 +114,7 @@ If you have not deployed yet and you plan to pull upgrades, fork `craftled/bordf
 
 Then deploy. Migrations run on deploy.
 
-The admin update notice links here. It appears when GitHub has a newer release than the `version` in this board's `package.json`. The notice follows release tags, while `bun run bordful:upgrade` always merges `main`, so the command can bring in changes that no release announces yet. Fixes merged after the v1.0.0 tag ship on `main` without a new release, so a 1.0.0 board shows no notice for them.
+The admin update notice links here. It appears when GitHub has a newer release than the `version` in this board's `package.json`. Drafts and prereleases (such as `v1.1.0-beta.1`) are skipped, unless the board itself runs a prerelease. The notice follows release tags, while `bun run bordful:upgrade` always merges `main`, so the command can bring in changes that no release announces yet. Fixes merged after the v1.0.0 tag ship on `main` without a new release, so a 1.0.0 board shows no notice for them.
 
 ## Self-hosting
 

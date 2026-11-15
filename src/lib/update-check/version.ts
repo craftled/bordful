@@ -164,7 +164,16 @@ function versionFromTag(tag: string): string | null {
   return tag.startsWith("v") ? tag.slice(1) : tag;
 }
 
-export function pickLatestRelease(releases: unknown): string | null {
+export function isPrerelease(version: string): boolean {
+  return (parseVersion(version)?.pre ?? null) !== null;
+}
+
+// A board on a stable version never offers a beta. A board already on a
+// prerelease is offered newer prereleases too.
+export function pickLatestRelease(
+  releases: unknown,
+  { includePrereleases = false }: { includePrereleases?: boolean } = {}
+): string | null {
   if (!Array.isArray(releases)) {
     return null;
   }
@@ -175,6 +184,9 @@ export function pickLatestRelease(releases: unknown): string | null {
     if (record === null || record.draft === true) {
       continue;
     }
+    if (!includePrereleases && record.prerelease === true) {
+      continue;
+    }
 
     const { tag_name: tagName } = record;
     if (typeof tagName !== "string") {
@@ -182,7 +194,7 @@ export function pickLatestRelease(releases: unknown): string | null {
     }
 
     const version = versionFromTag(tagName);
-    if (version === null) {
+    if (version === null || (!includePrereleases && isPrerelease(version))) {
       continue;
     }
 
