@@ -84,6 +84,10 @@ Run `bun run bordful:upgrade`. It merges the latest `main` from craftled/bordful
 
 See [Security](SECURITY.md).
 
+## Code of Conduct
+
+See [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License (MIT)
 
 Bordful is [MIT licensed](LICENSE).
