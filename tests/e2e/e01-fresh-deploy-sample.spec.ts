@@ -44,4 +44,32 @@ test.describe("E1 fresh-deploy-sample", { tag: ["@E1"] }, () => {
     );
     expect(preview?.["x-bordfeed-client"]).toBe("bordful/1.0.0");
   });
+
+  test("the list preview shows a sample job's description", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ height: 900, width: 1440 });
+    await page.goto("/");
+    const row = page
+      .locator('[data-testid="job-row"][data-origin="bordfeed_sample"]')
+      .first();
+    const href = await row.getByTestId("job-row-link").getAttribute("href");
+    await row.getByTestId("job-row-link").click();
+
+    const preview = page.getByTestId("job-preview");
+    await expect(
+      preview.getByRole("heading", { name: "About the role" })
+    ).toBeVisible();
+    const excerpt =
+      (
+        await preview.getByTestId("job-preview-description").textContent()
+      )?.trim() ?? "";
+    expect(excerpt.length).toBeGreaterThan(0);
+
+    await page.goto(href ?? "/");
+    await expect(page.getByTestId("job-description")).toContainText(
+      excerpt.slice(0, 40)
+    );
+  });
 });
