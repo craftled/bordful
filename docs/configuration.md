@@ -32,6 +32,7 @@ export default defineBordfulConfig({
 | `board.defaultTemplateId` | `fully-remote` | Template used for sample jobs and for the feed created at connect. Read once, on first boot. An existing board keeps the template stored in its Bordfeed connection, so changing this value later does not move it. |
 | `alerts.provider` | `resend` | Only `resend`. |
 | `csp.extraScriptOrigins` | `[]` | Extra `script-src` origins. `https` origins only. Current browsers ignore them because of `'strict-dynamic'`; see below. |
+| `social.bluesky`, `social.github`, `social.linkedin`, `social.reddit`, `social.x` | unset | Optional profile links. Each must be an `https` URL. Set ones show as icons in the header, the mobile menu and the footer. The committed file leaves them out. |
 | `csp.extraConnectOrigins` | `[]` | Extra `connect-src` origins: hosts that `fetch`, XHR, WebSocket or beacon calls may reach. `https` origins only. |
 
 Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
@@ -39,6 +40,8 @@ Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `eng
 An extra CSP origin is an origin, not a URL path. `https://cdn.example.com` is the accepted shape. One leading wildcard label is allowed (`https://*.example.com`). A path, `http`, a quote, a semicolon, a space, or a comma fails config parsing, so the dev server and the build stop with `Invalid bordful.config.ts` and name the bad entry. Every page, `/api` and `/admin` response then sends the origins in its `Content-Security-Policy` header.
 
 The script policy uses a per-request nonce with `'strict-dynamic'`. Browsers that support `'strict-dynamic'` (all current ones) ignore origin lists in `script-src`, so listing a host does not let a plain `<script src>` tag from it run. A script runs when it carries the page nonce or when an already trusted script inserts it. `extraScriptOrigins` only matters for older browsers without `'strict-dynamic'`.
+
+The rest of the policy has no option. `img-src` allows only the board itself, `blob:` and `data:` URLs, Vercel Blob (`*.public.blob.vercel-storage.com`), `bordfeed.com` and `*.bordfeed.com`, and `img.logo.dev`, so an image or iframe from another host is blocked. `form-action` allows only the board, `buy.stripe.com` and `checkout.stripe.com`. `frame-src`, `frame-ancestors` and `object-src` are `'none'`. Static files and prefetch requests skip the CSP header.
 
 To load a third-party script from a `src/custom/**` slot, use `next/script`. Next inserts it from its own nonced code after the page loads, so it runs with no nonce of yours. Add every host that script calls to `extraConnectOrigins`.
 
