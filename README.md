@@ -19,6 +19,7 @@ Bordful 1.0 includes:
 
 - A board with search, filters, and taxonomy archives
 - Job and company pages with JobPosting JSON-LD
+- Saved and applied jobs, kept in the visitor's browser (`/saved`, not indexed)
 - RSS 2.0 and JSON Feed
 - Sitemap and robots. A taxonomy archive with fewer than 3 real jobs (sample jobs do not count) is `noindex` and left out of the sitemap, but still opens for visitors
 - Sample jobs from a Bordfeed template on first deploy
@@ -66,8 +67,10 @@ Open `http://localhost:3000/admin` and create the first admin. That user gets th
 - Payload 4 is still a beta upstream. Bordful pins it and bumps it by hand.
 - There are no admin password reset emails. See [Deploy](docs/deploy.md#admin-sign-in).
 - Migrations run on first database connect in production, which can happen during the build. Keep your own migrations backward compatible. See [Deploy](docs/deploy.md).
-- The admin update notice follows GitHub releases, and fixes merged after the v1.0.0 tag have no release yet, so it stays quiet about them. Run `bun run bordful:upgrade` to get them. See [Upgrading](UPGRADING.md).
-- A new board's first sync can bring jobs from the last hour with only the employer name, because Bordfeed links companies after a job arrives. A later sync adds the domain and logo once Bordfeed has linked the company.
+- The admin update notice follows GitHub releases, so it stays quiet about fixes merged after the v1.0.0 tag. Run `bun run bordful:upgrade` to get them. See [Upgrading](UPGRADING.md#upgrade-command).
+- A new board's first sync can bring jobs from the last hour with only the employer name, because Bordfeed links companies after a job arrives. The sync joins a later job from the same employer to that company, but it does not fetch a job that is already on the board again, so a name-only company keeps its bare record until Bordfeed sends one of that employer's jobs again.
+- A third-party script needs `next/script`: current browsers ignore `csp.extraScriptOrigins` because of `'strict-dynamic'`. There is no option to allow images or iframes from other hosts. See [Configuration](docs/configuration.md#bordfulconfigts).
+- Disconnecting Bordfeed deletes imported jobs one at a time. It is tested with 63 jobs, not with thousands.
 
 ## Customizing without merge conflicts
 

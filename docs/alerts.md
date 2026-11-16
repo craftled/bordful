@@ -20,7 +20,7 @@ On `/alerts` they enter an email, pick filters, and choose weekly (the default) 
 
 Bordful always answers "Check your inbox to confirm your job alerts." It does not say whether that address was already subscribed.
 
-On Vercel, BotID checks each `/alerts` signup before any subscriber write or email. Deep Analysis can be enabled under Firewall, then Rules (Pro or Enterprise). Off Vercel the check is skipped, and the short per-IP window plus the per-email confirmation cooldown still apply. BotID turns on when `NEXT_PUBLIC_VERCEL_ENV` is set, so do not set it by hand off Vercel: the check would fail and every signup would be dropped.
+On Vercel, BotID checks each `/alerts` signup before any subscriber write or email. Deep Analysis can be enabled under Firewall, then Rules (Pro or Enterprise). Off Vercel the check is skipped, and the per-IP window (5 signups per 10 minutes, kept in memory on each server instance) and the per-email confirmation cooldown still apply. BotID turns on when `NEXT_PUBLIC_VERCEL_ENV` is set, so do not set it by hand off Vercel: the check would fail and every signup would be dropped.
 
 The confirmation email links to `/alerts/confirm`. The visitor must submit the confirm button. Opening the link does not confirm, so a mail scanner that prefetches the URL does not subscribe them.
 
@@ -31,7 +31,9 @@ A signup nobody confirms is deleted after 7 days by the daily `/api/cron/expire`
 `/api/cron/alerts` runs daily at 08:00 UTC. A subscriber receives a digest only when both are true:
 
 - Their period has passed since the last digest, or since they confirmed (7 days for weekly, 1 day for daily).
-- At least one new published job matches their filters.
+- At least one new published job matches their filters. A digest lists the 20 newest matching jobs.
+
+A subscriber counts as due one hour before the period ends, so a daily subscriber is not skipped when the cron runs a few minutes earlier than the day before.
 
 Sample jobs are never emailed. Jobs already covered by an earlier digest are not sent again. A second run in the same period does not send another copy.
 

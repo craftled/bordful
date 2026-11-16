@@ -40,12 +40,13 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Alert confirmation and digest emails use the board's name, logo, button color and radius from Site settings, and the confirm email has a button.
 - A Bordfeed incident, where most checked jobs are reported gone, now needs two later syncs at least 12 hours apart to see the same jobs, and unpublishes at most 10 of them per sync, and only with `BORDFEED_ALLOW_MASS_UNPUBLISH=1`. See [docs/bordfeed.md](docs/bordfeed.md#daily-sync).
 - The admin sign-in cookie is `Secure` with `SameSite=Lax`.
-- The sitemap lists `/post` and `/alerts` when they are enabled, and the taxonomy archives that have indexable jobs. `/jobs` has a description, Open Graph and Twitter tags, and links to the RSS and JSON feeds.
+- The sitemap lists `/post` and `/alerts` when they are enabled, and the taxonomy archives with at least 3 indexable jobs. `/jobs` has a description, Open Graph and Twitter tags, and links to the RSS and JSON feeds.
 - Rebuilt on Payload 4 (4.0.0-beta.9, with Lexical 0.53) and Postgres. beta.7 and later include Payload security fixes.
 - Requires Node.js 26.13.1 or later (26 LTS). `engines.node` is `^26.13.1`, which overrides the Vercel project Node.js setting. Built-in fetch on Vercel uses HTTP/2 on Node 26. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
 ### Fixed
 
+- Docs now match the code on the Bordfeed board name rule, `NEXT_PUBLIC_SERVER_URL` fallbacks, the CLI options and exit codes, connect and alert limits, the digest size, and the sitemap rule.
 - `csp.extraConnectOrigins` and `csp.extraScriptOrigins` in `bordful.config.ts` are now sent in the `Content-Security-Policy` header. They were validated but never applied. A bad origin now stops the build with `Invalid bordful.config.ts` instead of failing later. A plain `<script src>` tag is still blocked in current browsers, so load third-party scripts with `next/script`; see [docs/configuration.md](docs/configuration.md).
 - The Bordfeed connect card no longer keeps an old success message over a newer server state. If the board moved on after an action, for example to an error after the API key was revoked, the card now shows that error.
 - Board previews retry the job description after `/feed.json` returns an error. A single failed response used to leave every preview without an excerpt until the page was reloaded.
