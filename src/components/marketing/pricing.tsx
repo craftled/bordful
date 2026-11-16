@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 import { Container } from "./container";
 import { KBD_ON_PRIMARY, Kbd } from "./kbd";
-import { DEPLOY_URL } from "./links";
+import { CUSTOM_SETUP_URL, DEPLOY_URL } from "./links";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
 import { GITHUB_URL } from "./site";
@@ -32,8 +32,6 @@ interface Plan {
   name: string;
   price: string;
 }
-
-const SETUP_URL = "https://buy.stripe.com/14A5kE3sN6D34HL6X2dnW0r";
 
 const plans: readonly Plan[] = [
   {
@@ -91,10 +89,10 @@ const plans: readonly Plan[] = [
         "Custom domain setup",
         "1-hour consultation",
       ],
-      href: SETUP_URL,
+      href: CUSTOM_SETUP_URL,
       unit: "once",
     },
-    href: SETUP_URL,
+    href: CUSTOM_SETUP_URL,
     name: "Custom Setup",
     price: "$999",
   },

@@ -1,3 +1,4 @@
+import { ALTERNATIVE_SLUGS } from "@/components/marketing/alternatives/registry";
 import { DOCS_SLUGS } from "@/components/marketing/docs-content";
 import { getNav } from "@/config/nav";
 import {
@@ -41,7 +42,9 @@ function sectionPaths(
   marketing: boolean,
   features: { alerts: boolean; postJob: boolean }
 ): string[] {
-  const linked = linkedPaths(marketing, features);
+  const linked = linkedPaths(marketing, features).filter(
+    (path) => path !== "/alternatives"
+  );
   const extras = featurePaths(features);
 
   if (!marketing) {
@@ -54,6 +57,8 @@ function sectionPaths(
     "/faq",
     "/docs",
     ...DOCS_SLUGS.map((slug) => `/docs/${slug}`),
+    "/alternatives",
+    ...ALTERNATIVE_SLUGS.map((slug) => `/alternatives/${slug}`),
   ];
 
   // First occurrence wins, so a later nav item cannot repeat a section URL.
