@@ -26,6 +26,8 @@ If your Bordfeed account uses two-factor sign-in, an emailed code cannot create 
 
 Bordfeed allows 5 signups per hour from one IP address. Shared hosts can hit that limit. Paste an API key, or try again in an hour.
 
+Only admins can connect Bordfeed. Bordful also limits each admin to 5 sign-up attempts per 10 minutes, and each signup to 10 code attempts per 15 minutes. These counts are kept in memory on each server instance, so they are a first layer only. A pasted key must be 10 to 200 characters.
+
 The API key is stored encrypted with `PAYLOAD_SECRET`. It is hidden from every API read and it is never shown again. The admin shows a hint (`bf_...` plus the last 4 characters). Rotating `PAYLOAD_SECRET` makes the stored key unreadable, so you reconnect. Reconnecting after a disconnect starts from the newest jobs; see [Daily sync](#daily-sync).
 
 The feed Bordful creates uses your site name from Site settings. If the site still has the default name "Job Board", the feed takes the template name, for example "Fully Remote". It keeps the template filters.
@@ -47,6 +49,8 @@ bun run bordful status
 
 `connect` uses the same email, code, and workspace steps as the admin. `utm_medium` is `cli` instead of `admin`. `sample` disconnects and returns the board to sample jobs, like Disconnect in the admin. `sync` runs a sync now. `status` prints the state, the key hint, the feed id, and the last sync. It never prints the API key.
 
+Other options: `--code <code>` (without it, `connect` asks for the code, or reads it from stdin when stdin is not a terminal), `--workspace <slug>` (needed when the email belongs to several workspaces and there is no terminal; the command prints the slugs and exits 1), `--key <key>`, and `--json` for one JSON result on stdout. `connect` exits 0 when connected, 1 when it fails, and 2 when it is waiting for a code. `sample` exits 1 when it cannot disconnect, for example while a sync is running. `BORDFEED_API_KEY` is used only when `--key` and `--email` are both absent, so passing `--email` always starts the email-code flow. `--database-host` belongs to `reset-password`.
+
 `BORDFEED_API_KEY` is an optional default for `bun run bordful connect --key`.
 
 The CLI process cannot refresh the Next.js cache. The board updates within 5 minutes.
@@ -59,7 +63,7 @@ Register (`POST /api/agent/register`) sends:
 | --- | --- |
 | `email` | The address you entered |
 | `agent_name` | `bordful` |
-| `board_name` | Site name, or the CLI board name, trimmed to 100 characters |
+| `board_name` | Site name, or the CLI board name. Sent only when it is 1 to 80 characters, has no control character, and is not a URL or domain. Otherwise it is left out and Bordfeed names the workspace from the email. |
 | `ref` | `bordful` |
 | `utm_source` | `bordful` |
 | `utm_medium` | `admin` or `cli` |
@@ -85,11 +89,12 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 - A job already on the board is not fetched again when Bordfeed edits it. Bordfeed touches `updated_at` on routine scrapes, so asking for every updated job would refetch most of the feed each day.
 - If more new jobs appeared than `jobsPerSync`, the next sync continues from where this one stopped. The `since` point moves forward only after all of them are read, so no new job is skipped. A sync adds at most `jobsPerSync` jobs, so on a busy feed raise `jobsPerSync` or run the sync more often (the `/api/cron/bordfeed` schedule in `vercel.json`, which some Vercel plans limit to once a day).
 - A job that closes and later reopens keeps its first-appeared time, so it does not come back as a new job. It stays unpublished.
+- Requests to Bordfeed are paced about 500 ms apart. A read that gets a 5xx or 429 is retried up to 3 attempts in all, waiting for `Retry-After` up to 10 seconds, and a dropped connection gets one retry. A POST (register, verify, create feed) is retried only on a 429, because a 5xx can arrive after Bordfeed already created the feed or used the code.
 - Checks run one request at a time, about two a second, to stay inside Bordfeed's rate limit. A sync with 200 checks takes about 100 seconds, and checks stop after 120 seconds so the rest of the sync fits in the cron's time limit. A failed check never holds back new jobs.
 - An unpublished job stays down unless Bordfeed sends it again, which later syncs rarely do, so the sync guards against a Bordfeed incident. If at least 10 jobs were checked and 80% or more came back gone (or at least 5 and all of them), it unpublishes nothing and the admin shows: "Bordfeed reported most of the checked jobs as gone, so the board kept them published for now." The same slice must come back that way on two later syncs, at least 12 hours apart. The board still keeps those jobs until `BORDFEED_ALLOW_MASS_UNPUBLISH=1`. With that set, one sync unpublishes at most 10 of the held jobs and leaves the rest for a later sync. Normal churn stays well under that line and is unpublished as usual, with no cap from this guard.
 - A job whose lookup keeps failing with an unexpected answer is skipped, so it cannot stop later checks. New jobs are read for at most 210 seconds of the sync, so the board write still fits in the cron's time limit.
 - Sample jobs are replaced when you connect, not unpublished one by one. A sample job you unpublish stays unpublished.
-- Disconnecting deletes every imported Bordfeed job, published or draft, and shows sample jobs again. The confirm step says how many. Companies stay, so a logo you uploaded is still there after you reconnect; a company with no jobs has no public page. Reconnecting makes a new feed and imports its newest `jobsPerSync` jobs. While a sync is running, Disconnect asks you to try again in a minute.
+- Disconnecting deletes every imported Bordfeed job, published or draft, and shows sample jobs again. The confirm step says how many. Companies stay, so a logo you uploaded is still there after you reconnect; a company with no jobs has no public page. Reconnecting makes a new feed and imports its newest `jobsPerSync` jobs. Disconnect takes the same lock as a sync. While a sync is running it asks you to try again in a minute, and a cron sync that starts during a Disconnect reports that another sync is running. If a job cannot be deleted, it is turned into a draft so it does not stay live. If fetching the sample jobs fails afterwards, the board is on sample mode with no jobs until the next sync, which runs daily.
 
 ## Import blocklist
 

@@ -14,20 +14,20 @@ It then asks you to enter:
 - `PAYLOAD_SECRET`: 32+ random characters. After the project exists, mark this variable Sensitive and limit it to Production. Create a different value for Preview. Do not reuse the production secret on Preview.
 - `CRON_SECRET`: a random string. Cron routes reject requests that do not send it as a bearer token.
 
-`NEXT_PUBLIC_SERVER_URL` is optional on Vercel. When it is unset, the app uses the production URL. Set it only when you need to pin an origin, then redeploy, because Next inlines it at build time.
+`NEXT_PUBLIC_SERVER_URL` is optional on Vercel. When it is unset, a Production deployment uses its production domain, a Preview deployment uses its own deployment URL, and any other host falls back to `http://localhost:3000`, so set it on every host other than Vercel. Set it only when you need to pin an origin, then redeploy, because Next inlines it at build time.
 
 Migrations run automatically. With `NODE_ENV=production`, Payload applies `prodMigrations` the first time it connects to the database. That can be during `next build` as well as when the server starts, so a new deployment can migrate the production database before it is promoted. You do not run a migrate command yourself. Keep migrations backward compatible (add first, remove in a later release), so an instant rollback to the previous deployment still works against the newer schema.
 
 ## Environment variables
 
-E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETING_PORT`, `PLAYWRIGHT_BASE_URL`, `E2E_MARKETING_BASE_URL`) are omitted here. Do not set them on a deployed board.
+E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETING_PORT`, `PLAYWRIGHT_BASE_URL`, `E2E_MARKETING_BASE_URL`) are omitted here, except `DATABASE_URL_TEST` and `E2E_FLOWS`, which the table lists. Do not set any of them on a deployed board.
 
 | Variable | Required | Who sets it | Notes |
 | --- | --- | --- | --- |
 | `DATABASE_URL` | Yes | Neon integration on Vercel. You, on any other host. | Postgres connection string. |
 | `PAYLOAD_SECRET` | Yes | You | 32+ random characters. Mark Sensitive. Production uses one value. Preview uses a different value and its own Neon branch. |
 | `CRON_SECRET` | Yes | You | Bearer secret for `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`. |
-| `NEXT_PUBLIC_SERVER_URL` | No | You | Public origin, no trailing slash. Optional on Vercel (falls back to the production URL). Inlined at build time. |
+| `NEXT_PUBLIC_SERVER_URL` | No | You | Public origin, no trailing slash. Optional on Vercel (Production uses the production domain, Preview its deployment URL). Off Vercel it falls back to `http://localhost:3000`, so set it. Inlined at build time. |
 | `BLOB_STORE_ID` | No locally | Blob integration on Vercel | On Vercel, uploads need Blob (the Deploy button provisions it). Bordful authenticates to the store with Vercel OIDC. Without Blob, Payload stores uploads in the local `media/` directory, which needs a persistent disk. Serverless and other read-only hosts cannot use that directory. |
 | `BLOB_READ_WRITE_TOKEN` | No | You, optionally | A static Blob token. Older stores set it, and you need it to use Blob from a host other than Vercel. When it is set, it is used instead of OIDC. |
 | `BORDFUL_MARKETING` | No | You, only on bordful.com | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`. |
@@ -37,7 +37,7 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `BORDFEED_BASE_URL` | No | You | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board. |
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
 | `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
-| `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
+| `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. The check runs at most once every 24 hours. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
 | `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. The database name must end in `_int` or `_test`. Do not set this on Vercel. |
 | `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. The `S0-a11y` flow needs a fresh database that holds only the sample jobs. |
 
@@ -60,7 +60,7 @@ The Bordfeed cron fetches only jobs new to the feed since the last sync, capped 
 1. Deploy with the button.
 2. In the Vercel project, open Settings, then Domains, and add the domain.
 3. Create the DNS records Vercel shows.
-4. When that domain is the production domain, leave `NEXT_PUBLIC_SERVER_URL` unset so the app uses the production URL. To pin the origin, set `NEXT_PUBLIC_SERVER_URL` to `https://board.example` and redeploy.
+4. When that domain is the production domain, leave `NEXT_PUBLIC_SERVER_URL` unset so the app uses the production domain. To pin the origin, set `NEXT_PUBLIC_SERVER_URL` to `https://board.example` and redeploy.
 
 ## Firewall
 

@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { Container } from "./container";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
-import { GITHUB_URL } from "./site";
 
 // "short" is the tighter wording the home section uses.
 export const questions: {
@@ -41,16 +40,8 @@ export const questions: {
   {
     answer: (
       <>
-        Pull the latest code from{" "}
-        <a
-          className="text-primary underline-offset-4 hover:underline"
-          href={GITHUB_URL}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          GitHub
-        </a>{" "}
-        and run the database migrations. Your jobs stay in Postgres. Read the{" "}
+        Run <code>bun run bordful:upgrade</code> in your fork. Migrations run on
+        deploy and your jobs stay in Postgres. Read the{" "}
         <Link
           className="text-primary underline-offset-4 hover:underline"
           href="/changelog"
@@ -62,7 +53,7 @@ export const questions: {
     ),
     question: "How do I update a fork?",
     short: "How do I update my fork?",
-    text: "Pull the latest code from GitHub and run the database migrations. Your jobs stay in Postgres. Read the changelog before you deploy.",
+    text: "Run bun run bordful:upgrade in your fork. Migrations run on deploy and your jobs stay in Postgres. Read the changelog before you deploy.",
   },
 ];
 
