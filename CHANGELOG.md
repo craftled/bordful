@@ -47,6 +47,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 ### Fixed
 
 - Docs now match the code on the Bordfeed board name rule, `NEXT_PUBLIC_SERVER_URL` fallbacks, the CLI options and exit codes, connect and alert limits, the digest size, and the sitemap rule.
+- The FAQ answer "How do I update a fork?" told readers to pull code and run migrations by hand. It now points at `bun run bordful:upgrade` and says migrations run on deploy.
 - `csp.extraConnectOrigins` and `csp.extraScriptOrigins` in `bordful.config.ts` are now sent in the `Content-Security-Policy` header. They were validated but never applied. A bad origin now stops the build with `Invalid bordful.config.ts` instead of failing later. A plain `<script src>` tag is still blocked in current browsers, so load third-party scripts with `next/script`; see [docs/configuration.md](docs/configuration.md).
 - The Bordfeed connect card no longer keeps an old success message over a newer server state. If the board moved on after an action, for example to an error after the API key was revoked, the card now shows that error.
 - Board previews retry the job description after `/feed.json` returns an error. A single failed response used to leave every preview without an excerpt until the page was reloaded.
