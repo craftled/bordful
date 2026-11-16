@@ -1,3 +1,4 @@
+import { ALTERNATIVES_HUB } from "@/components/marketing/alternatives/registry";
 import type {
   Alternative,
   FaqItem,
@@ -126,9 +127,8 @@ export function alternativesHubJsonLd(siteUrl: string) {
     "@graph": [
       {
         "@type": "CollectionPage",
-        description:
-          "Fair, sourced comparisons between Bordful and other job board software, starting with WP Job Manager.",
-        name: "Bordful Alternatives and Comparisons",
+        description: ALTERNATIVES_HUB.metaDescription,
+        name: ALTERNATIVES_HUB.metaTitle,
         url: `${origin}/alternatives`,
       },
       {

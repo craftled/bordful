@@ -42,9 +42,7 @@ function sectionPaths(
   marketing: boolean,
   features: { alerts: boolean; postJob: boolean }
 ): string[] {
-  const linked = linkedPaths(marketing, features).filter(
-    (path) => path !== "/alternatives"
-  );
+  const linked = linkedPaths(marketing, features);
   const extras = featurePaths(features);
 
   if (!marketing) {

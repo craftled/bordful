@@ -9,7 +9,7 @@ import { SectionHeader } from "@/components/marketing/section-header";
 import { Button } from "@/components/ui/button";
 
 import { Breadcrumb } from "./breadcrumb";
-import { ALTERNATIVES, ALTERNATIVES_HUB } from "./registry";
+import { ALTERNATIVES, ALTERNATIVES_HUB, formatCheckedOn } from "./registry";
 
 export function AlternativesHub() {
   return (
@@ -41,6 +41,25 @@ export function AlternativesHub() {
               <p className="text-muted-foreground text-[14px] leading-[21px]">
                 {page.hub.summary.text}
               </p>
+              {page.sources
+                .filter((source) => source.id === page.hub.summary.sources[0])
+                .map((source) => (
+                  <p
+                    className="text-subtle text-[12px] leading-[18px]"
+                    key={source.id}
+                  >
+                    Source:{" "}
+                    <a
+                      className="hover:text-foreground underline underline-offset-2"
+                      href={source.url}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {source.title}
+                    </a>
+                    , checked {formatCheckedOn(source.checkedOn)}.
+                  </p>
+                ))}
               <Button
                 asChild
                 className="h-10 px-3.5 text-[14px]"

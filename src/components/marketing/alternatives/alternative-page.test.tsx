@@ -74,13 +74,52 @@ test("renders the sourced WP Job Manager comparison page", () => {
   ).toBeNull();
 
   for (const table of screen.getAllByRole("table")) {
-    const region = table.parentElement;
-    expect(region?.tagName).toBe("SECTION");
-    expect(region?.getAttribute("tabindex")).toBe("0");
-    expect(region?.getAttribute("aria-label")).toBeTruthy();
+    expect(table.querySelector("thead")?.className).toContain("max-md:sr-only");
+    for (const row of table.querySelectorAll("tbody tr")) {
+      expect(row.getAttribute("role")).toBe("row");
+      expect(row.querySelector('[role="rowheader"]')).toBeTruthy();
+      expect(row.querySelectorAll('[role="cell"]')).toHaveLength(2);
+      expect(row.querySelector('[role="cell"]')?.textContent).toContain(
+        "WP Job Manager"
+      );
+      expect(row.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
+    }
+    for (const cell of table.querySelectorAll("th, td")) {
+      expect(["columnheader", "rowheader", "cell"]).toContain(
+        cell.getAttribute("role")
+      );
+    }
+
+    for (const cell of table.querySelectorAll("tbody td")) {
+      const markerNumbers = [...cell.querySelectorAll('a[href^="#source-"]')]
+        .map((link) => Number(link.textContent?.replace(/\D/gu, "")))
+        .filter(Number.isFinite);
+      expect(markerNumbers).toEqual([...markerNumbers].sort((a, b) => a - b));
+    }
   }
 
   expect(
     document.querySelectorAll('a[href^="#source-"]').length
   ).toBeGreaterThan(0);
+});
+
+test("the shared template derives competitor labels from the page", () => {
+  render(
+    <AlternativeView page={{ ...wpJobManager, name: "Example Plugin" }} />
+  );
+
+  expect(
+    screen.getByRole("heading", { name: "Stay on Example Plugin when" })
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("table", { name: "Example Plugin and Bordful compared" })
+  ).toBeTruthy();
+  expect(
+    screen.getAllByRole("columnheader", { name: "Example Plugin" })
+  ).toHaveLength(2);
+  expect(
+    screen.getByRole("heading", {
+      name: "Moving from Example Plugintakes a little work.",
+    })
+  ).toBeTruthy();
 });

@@ -8,7 +8,7 @@ export const ALTERNATIVES = [
 export const ALTERNATIVE_SLUGS = ALTERNATIVES.map((page) => page.slug);
 
 export const ALTERNATIVES_HUB = {
-  metaTitle: "Bordful Alternatives and Comparisons",
+  metaTitle: "Alternatives and Comparisons",
   metaDescription:
     "Fair, sourced comparisons between Bordful and other job board software, starting with WP Job Manager.",
   heading: {

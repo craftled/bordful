@@ -61,9 +61,9 @@ test.describe("E15 alternatives", { tag: ["@E15"] }, () => {
     ).toHaveCount(2);
 
     const canonical = page.locator('link[rel="canonical"]');
-    await expect(canonical).toHaveAttribute(
-      "href",
-      "http://127.0.0.1:3310/alternatives/wp-job-manager"
+    const canonicalHref = await canonical.getAttribute("href");
+    expect(new URL(canonicalHref ?? "", origin).pathname).toBe(
+      "/alternatives/wp-job-manager"
     );
     const graph = await page
       .locator('script[type="application/ld+json"]')
@@ -74,6 +74,24 @@ test.describe("E15 alternatives", { tag: ["@E15"] }, () => {
     expect(graph["@graph"][2].mainEntity).toHaveLength(
       await faqDetails.count()
     );
+
+    await page.setViewportSize({ height: 812, width: 375 });
+    const dataRows = await page.locator("table tbody tr").all();
+    await Promise.all(
+      dataRows.map(async (row) => {
+        const productLabels = row.locator('[aria-hidden="true"]');
+        await expect(productLabels).toHaveCount(2);
+        await Promise.all([
+          expect(productLabels.nth(0)).toHaveText("WP Job Manager"),
+          expect(productLabels.nth(0)).toBeVisible(),
+          expect(productLabels.nth(1)).toHaveText("Bordful"),
+          expect(productLabels.nth(1)).toBeVisible(),
+        ]);
+      })
+    );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth)
+    ).toBeLessThanOrEqual(375);
 
     const missing = await page.request.get(
       new URL("/alternatives/niceboard", origin).href

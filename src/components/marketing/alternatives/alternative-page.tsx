@@ -13,31 +13,38 @@ import { factsCheckedOn, formatCheckedOn } from "./registry";
 import type { Alternative, Claim, Source } from "./types";
 
 function ClaimText({ claim, page }: { claim: Claim; page: Alternative }) {
+  const sortedSources = [...claim.sources].sort(
+    (left, right) =>
+      page.sources.findIndex((source) => source.id === left) -
+      page.sources.findIndex((source) => source.id === right)
+  );
+
   return (
     <>
       {claim.text}
-      {claim.sources.map((id) => {
-        const sourceIndex = page.sources.findIndex(
-          (candidate) => candidate.id === id
-        );
-        const sourceRecord = page.sources[sourceIndex];
-        if (!sourceRecord) {
-          return null;
-        }
+      <span className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline">
+        {sortedSources.map((id) => {
+          const sourceIndex = page.sources.findIndex(
+            (candidate) => candidate.id === id
+          );
+          const sourceRecord = page.sources[sourceIndex];
+          if (!sourceRecord) {
+            return null;
+          }
 
-        const number = sourceIndex + 1;
-        return (
-          <sup className="align-super" key={id}>
+          const number = sourceIndex + 1;
+          return (
             <a
               aria-label={`Source ${number}: ${sourceRecord.title}`}
-              className="text-primary hover:text-foreground inline-flex min-h-6 min-w-6 items-center justify-center rounded-sm text-[11px] leading-4 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="text-primary hover:text-foreground inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-[11px] leading-4 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
               href={`#source-${sourceRecord.id}`}
+              key={id}
             >
               [{number}]
             </a>
-          </sup>
-        );
-      })}
+          );
+        })}
+      </span>
     </>
   );
 }
@@ -93,15 +100,10 @@ function ClaimList({
   page: Alternative;
 }) {
   return (
-    <ul className="text-muted-foreground flex flex-col gap-3 text-[14px] leading-[21px]">
+    <ul className="text-muted-foreground marker:text-subtle flex list-disc flex-col gap-3 pl-5 text-[14px] leading-[21px]">
       {claims.map((claim) => (
-        <li className="flex gap-2.5" key={claim.text}>
-          <span aria-hidden="true" className="text-subtle">
-            •
-          </span>
-          <span>
-            <ClaimText claim={claim} page={page} />
-          </span>
+        <li key={claim.text}>
+          <ClaimText claim={claim} page={page} />
         </li>
       ))}
     </ul>
@@ -121,7 +123,7 @@ function Verdict({ page }: { page: Alternative }) {
               className="text-foreground text-[20px] leading-7 font-medium tracking-[-0.02em]"
               id="stay-heading"
             >
-              Stay on WP Job Manager when
+              Stay on {page.name} when
             </h2>
             <ClaimList claims={page.stay} page={page} />
           </section>
@@ -165,49 +167,92 @@ function ComparisonTable({
   rows: Alternative["comparison"];
 }) {
   return (
-    <section
-      aria-label={caption}
-      className="border-line max-w-full overflow-x-auto rounded-lg border"
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need to scroll the table region.
-      tabIndex={0}
-    >
-      <table className="w-full min-w-[760px] border-collapse text-left text-[13px] leading-5">
+    <section className="border-line max-w-full rounded-lg border">
+      <table
+        aria-label={caption}
+        className="w-full border-collapse text-left text-[13px] leading-5"
+        // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+        role="table"
+      >
         <caption className="sr-only">{caption}</caption>
-        <thead className="bg-secondary">
-          <tr>
+        <thead
+          className="bg-secondary max-md:sr-only"
+          // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+          role="rowgroup"
+        >
+          <tr
+            // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+            role="row"
+          >
             <th
               className="border-line w-[160px] border-b px-4 py-3 font-medium"
+              // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+              role="columnheader"
               scope="col"
             >
               <span className="sr-only">Category</span>
             </th>
             <th
               className="text-foreground border-line w-[300px] border-b px-4 py-3 font-medium"
+              // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+              role="columnheader"
               scope="col"
             >
-              WP Job Manager
+              {page.name}
             </th>
             <th
               className="text-foreground border-line w-[300px] border-b px-4 py-3 font-medium"
+              // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+              role="columnheader"
               scope="col"
             >
               Bordful
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody
+          // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+          role="rowgroup"
+        >
           {rows.map((row) => (
-            <tr className="align-top" key={row.label}>
+            <tr
+              className="max-md:border-line align-top max-md:grid max-md:grid-cols-2 max-md:border-b md:table-row"
+              key={row.label}
+              // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+              role="row"
+            >
               <th
-                className="text-foreground border-line border-b px-4 py-3 font-medium"
+                className="text-foreground border-line col-span-2 border-b px-4 py-3 font-medium max-md:border-b-0 max-md:px-3 max-md:pb-1 md:border-b"
+                // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+                role="rowheader"
                 scope="row"
               >
                 {row.label}
               </th>
-              <td className="text-muted-foreground border-line border-b px-4 py-3 last:border-b-0">
+              <td
+                className="text-muted-foreground border-line border-b px-4 py-3 last:border-b-0 max-md:flex max-md:flex-col max-md:gap-1 max-md:border-r max-md:border-b-0 max-md:px-3 max-md:py-2 md:table-cell"
+                // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+                role="cell"
+              >
+                <span
+                  aria-hidden="true"
+                  className="text-foreground text-[11px] font-medium md:hidden"
+                >
+                  {page.name}
+                </span>
                 <ClaimText claim={row.competitor} page={page} />
               </td>
-              <td className="text-muted-foreground border-line border-b px-4 py-3 last:border-b-0">
+              <td
+                className="text-muted-foreground border-line border-b px-4 py-3 last:border-b-0 max-md:flex max-md:flex-col max-md:gap-1 max-md:border-b-0 max-md:px-3 max-md:py-2 md:table-cell"
+                // biome-ignore lint/a11y/noRedundantRoles: Explicit roles preserve table semantics when CSS changes native table displays.
+                role="cell"
+              >
+                <span
+                  aria-hidden="true"
+                  className="text-foreground text-[11px] font-medium md:hidden"
+                >
+                  Bordful
+                </span>
                 <ClaimText claim={row.bordful} page={page} />
               </td>
             </tr>
@@ -224,7 +269,7 @@ function Migration({ page }: { page: Alternative }) {
       <Container className="flex flex-col gap-8">
         <SectionHeader
           description={page.migration.intro}
-          title="Moving from WP Job Manager"
+          title={`Moving from ${page.name}`}
           titleMuted="takes a little work."
         />
         <div className="grid gap-8 md:grid-cols-2 md:gap-12">
@@ -331,11 +376,11 @@ export function AlternativeView({ page }: { page: Alternative }) {
       <Section>
         <Container className="flex flex-col gap-5">
           <SectionHeader
-            title="WP Job Manager and Bordful"
+            title={`${page.name} and Bordful`}
             titleMuted="compared."
           />
           <ComparisonTable
-            caption="WP Job Manager and Bordful compared"
+            caption={`${page.name} and Bordful compared`}
             page={page}
             rows={page.comparison}
           />

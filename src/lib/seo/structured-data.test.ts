@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { ALTERNATIVES_HUB } from "@/components/marketing/alternatives/registry";
 import { wpJobManager } from "@/components/marketing/alternatives/wp-job-manager";
 import { faqPlainAnswers } from "@/components/marketing/faq";
 
@@ -106,6 +107,10 @@ test("alternatives hub JSON-LD has a collection page and breadcrumb", () => {
     "CollectionPage",
     "BreadcrumbList",
   ]);
+  expect(data["@graph"][0]).toMatchObject({
+    description: ALTERNATIVES_HUB.metaDescription,
+    name: "Alternatives and Comparisons",
+  });
   expect(
     breadcrumbListJsonLd("https://bordful.com", [
       { name: "Home", path: "/" },
