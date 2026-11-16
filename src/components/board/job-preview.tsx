@@ -28,52 +28,40 @@ const EXCERPT_CHARS = 480;
 const SIMILAR_LIMIT = 3;
 const SENTENCE_END = /[.!?]\s/gu;
 
-// The JSON Feed carries each live job's plain-text description. One good
-// fetch serves every preview on the page; jobs outside the feed show no
-// excerpt. A failed fetch, network or HTTP, is not kept, so the next preview
-// tries again.
-let feedTexts: Promise<Map<string, string>> | null = null;
+// Not /feed.json: the feeds leave out Bordfeed samples and stop at 50 jobs,
+// so a board of samples had no descriptions at all. A good response is kept
+// for the page's lifetime; a failed one, network or HTTP, is dropped so the
+// next preview of that job tries again.
+const descriptions = new Map<string, Promise<string>>();
 
-export function loadFeedTexts(): Promise<Map<string, string>> {
-  if (feedTexts) {
-    return feedTexts;
+export function loadDescription(slug: string): Promise<string> {
+  const cached = descriptions.get(slug);
+  if (cached) {
+    return cached;
   }
-  feedTexts = fetch("/feed.json", { headers: { accept: "application/json" } })
+  const request = fetch(`/api/job-preview/${encodeURIComponent(slug)}`, {
+    headers: { accept: "application/json" },
+  })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`feed.json returned ${response.status}`);
+        throw new Error(`job preview returned ${response.status}`);
       }
       return response.json();
     })
-    .then((body: unknown) => {
-      const map = new Map<string, string>();
-      const items =
-        typeof body === "object" && body !== null && "items" in body
-          ? (body as { items: unknown }).items
-          : [];
-      if (!Array.isArray(items)) {
-        return map;
-      }
-      for (const item of items) {
-        const { content_text: text, url } = item as {
-          content_text?: unknown;
-          url?: unknown;
-        };
-        if (typeof url !== "string" || typeof text !== "string") {
-          continue;
-        }
-        const slug = url.split("/jobs/").pop();
-        if (slug) {
-          map.set(slug, text);
-        }
-      }
-      return map;
-    })
+    .then((body: unknown) =>
+      typeof body === "object" &&
+      body !== null &&
+      "text" in body &&
+      typeof body.text === "string"
+        ? body.text
+        : ""
+    )
     .catch(() => {
-      feedTexts = null;
-      return new Map<string, string>();
+      descriptions.delete(slug);
+      return "";
     });
-  return feedTexts;
+  descriptions.set(slug, request);
+  return request;
 }
 
 // The start of the description, cut at a sentence (or word) boundary.
@@ -100,9 +88,9 @@ function useDescription(slug: string): string | null {
   );
   useEffect(() => {
     let live = true;
-    loadFeedTexts().then((map) => {
+    loadDescription(slug).then((value) => {
       if (live) {
-        setText({ slug, value: map.get(slug) ?? "" });
+        setText({ slug, value });
       }
     });
     return () => {
@@ -447,7 +435,10 @@ export function JobPreview({
                 <h3 className="text-foreground text-[15px] leading-5 font-medium">
                   About the role
                 </h3>
-                <p className="text-muted-foreground text-[14px] leading-[22px]">
+                <p
+                  className="text-muted-foreground text-[14px] leading-[22px]"
+                  data-testid="job-preview-description"
+                >
                   {description}
                 </p>
                 <Link
