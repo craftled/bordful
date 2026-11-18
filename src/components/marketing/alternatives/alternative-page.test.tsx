@@ -44,7 +44,11 @@ test("renders the sourced WP Job Manager comparison page", () => {
   expect(screen.getByRole("table", { name: "Pricing compared" })).toBeTruthy();
 
   for (const item of wpJobManager.faq) {
-    expect(screen.getByText(item.answer)).toBeTruthy();
+    const answer = screen.getByText(item.answer, { exact: false });
+    expect(answer.textContent?.startsWith(item.answer)).toBe(true);
+    expect(answer.querySelectorAll('a[href^="#source-"]')).toHaveLength(
+      item.sources.length
+    );
   }
 
   expect(

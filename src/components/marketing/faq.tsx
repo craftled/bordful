@@ -124,6 +124,7 @@ export function QuestionList({
   compact?: boolean;
   items?: readonly {
     answer: ReactNode;
+    after?: ReactNode;
     question: string;
     short?: string;
   }[];
@@ -164,6 +165,7 @@ export function QuestionList({
             )}
           >
             {item.answer}
+            {item.after}
           </p>
         </details>
       ))}

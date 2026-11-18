@@ -12,39 +12,51 @@ import { Breadcrumb } from "./breadcrumb";
 import { factsCheckedOn, formatCheckedOn } from "./registry";
 import type { Alternative, Claim, Source } from "./types";
 
-function ClaimText({ claim, page }: { claim: Claim; page: Alternative }) {
-  const sortedSources = [...claim.sources].sort(
+function SourceMarkers({
+  page,
+  sources,
+}: {
+  page: Alternative;
+  sources: readonly string[];
+}) {
+  const sortedSources = [...sources].sort(
     (left, right) =>
       page.sources.findIndex((source) => source.id === left) -
       page.sources.findIndex((source) => source.id === right)
   );
 
   return (
+    <span className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline">
+      {sortedSources.map((id) => {
+        const sourceIndex = page.sources.findIndex(
+          (candidate) => candidate.id === id
+        );
+        const sourceRecord = page.sources[sourceIndex];
+        if (!sourceRecord) {
+          return null;
+        }
+
+        const number = sourceIndex + 1;
+        return (
+          <a
+            aria-label={`Source ${number}: ${sourceRecord.title}`}
+            className="text-primary hover:text-foreground inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-[11px] leading-4 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+            href={`#source-${sourceRecord.id}`}
+            key={id}
+          >
+            [{number}]
+          </a>
+        );
+      })}
+    </span>
+  );
+}
+
+function ClaimText({ claim, page }: { claim: Claim; page: Alternative }) {
+  return (
     <>
       {claim.text}
-      <span className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline">
-        {sortedSources.map((id) => {
-          const sourceIndex = page.sources.findIndex(
-            (candidate) => candidate.id === id
-          );
-          const sourceRecord = page.sources[sourceIndex];
-          if (!sourceRecord) {
-            return null;
-          }
-
-          const number = sourceIndex + 1;
-          return (
-            <a
-              aria-label={`Source ${number}: ${sourceRecord.title}`}
-              className="text-primary hover:text-foreground inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-[11px] leading-4 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
-              href={`#source-${sourceRecord.id}`}
-              key={id}
-            >
-              [{number}]
-            </a>
-          );
-        })}
-      </span>
+      <SourceMarkers page={page} sources={claim.sources} />
     </>
   );
 }
@@ -359,6 +371,13 @@ function Sources({
   );
 }
 
+function faqItemsWithMarkers(page: Alternative) {
+  return page.faq.map((item) => ({
+    ...item,
+    after: <SourceMarkers page={page} sources={item.sources} />,
+  }));
+}
+
 export function AlternativeView({ page }: { page: Alternative }) {
   const checkedOn = formatCheckedOn(factsCheckedOn(page));
 
@@ -411,7 +430,10 @@ export function AlternativeView({ page }: { page: Alternative }) {
             title="Frequently asked"
             titleMuted="questions."
           />
-          <QuestionList className="md:max-w-[900px]" items={page.faq} />
+          <QuestionList
+            className="md:max-w-[900px]"
+            items={faqItemsWithMarkers(page)}
+          />
         </Container>
       </Section>
       <Section>

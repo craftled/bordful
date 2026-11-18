@@ -31,8 +31,8 @@ export const wpJobManager = defineAlternative({
       sources: ["wpjm-github"],
     },
     {
-      text: "You want built-in paid listings: a price per listing through Stripe or PayPal, or job packages sold through WooCommerce.",
-      sources: ["wpjm-spl", "wpjm-wcpl"],
+      text: "You want paid listings with checkout on your site, through the Simple Paid Listings add-on (Stripe or PayPal, per listing) or the WC Paid Listings add-on (packages through WooCommerce). Both come in the Job Manager Pro Bundle, not the free core.",
+      sources: ["wpjm-spl", "wpjm-wcpl", "wpjm-bundle"],
     },
     {
       text: "You need add-ons Bordful does not have, such as applications, resumes and bookmarks.",
@@ -160,11 +160,11 @@ export const wpJobManager = defineAlternative({
     {
       label: "Who owns the data",
       competitor: {
-        text: "You do. Listings live in your WordPress database as a post type with custom fields.",
-        sources: ["wpjm-post-types"],
+        text: "On your own WordPress host. Listings are stored in your WordPress database as a post type with custom fields.",
+        sources: ["wpjm-post-types", "wporg"],
       },
       bordful: {
-        text: "You do. Jobs and companies live in your own Postgres database.",
+        text: "On your own accounts. Jobs and companies are stored in your own Postgres database.",
         sources: ["bordful-readme", "bordful-faq"],
       },
     },
@@ -266,32 +266,38 @@ export const wpJobManager = defineAlternative({
       question: "Is Bordful a good WP Job Manager alternative?",
       answer:
         "It is if your team prefers Next.js, TypeScript and Postgres to WordPress and PHP, and you are happy to host the app yourself. If you rely on employers posting jobs themselves, WooCommerce packages or resume add-ons, WP Job Manager is the better fit today.",
+      sources: ["bordful-readme", "wpjm-github", "wpjm-wcpl", "wpjm-bundle"],
     },
     {
       question: "Bordful vs WP Job Manager: which costs less?",
       answer:
         "Both are free at the core. WP Job Manager's Pro Bundle of add-ons starts at $159 per year. Bordful has no paid add-ons, and Custom Setup is an optional $999 one-time fee. With either, you pay for your own hosting.",
+      sources: ["wpjm-home", "wpjm-bundle", "bordful-pricing", "bordful-faq"],
     },
     {
       question: "Can I import my WP Job Manager listings into Bordful?",
       answer:
         "There is no one-click importer. Export your listings with the WordPress export tool, map the fields, and add the jobs in the Payload admin or with a script against Payload's REST API. User accounts and add-on data do not carry over.",
+      sources: ["wp-export", "payload-rest", "bordful-post-a-job"],
     },
     {
       question:
         "Can Bordful charge for job posts like WP Job Manager's paid listing add-ons?",
       answer:
         "Partly. Post a Job sends employers to a Stripe payment link you create, and you publish the job in the admin. There is no built-in checkout, webhook or listing package.",
+      sources: ["bordful-post-a-job", "wpjm-spl", "wpjm-wcpl"],
     },
     {
       question: "Do both add JobPosting structured data for Google?",
       answer:
         "Yes. WP Job Manager adds JobPosting structured data to job listing pages, and Bordful adds JobPosting JSON-LD to its job pages and lists them in a sitemap. Neither submits jobs to Google for you.",
+      sources: ["wpjm-schema", "bordful-readme"],
     },
     {
       question: "Do I need to code to run Bordful?",
       answer:
         "Some. The Deploy button sets up Vercel, Neon Postgres and Vercel Blob for you, but updates and changes happen in a Git repository. If you would rather not, Custom Setup installs it for you for $999 once.",
+      sources: ["bordful-deploy", "bordful-pricing"],
     },
   ],
   sources: [

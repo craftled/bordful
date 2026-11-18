@@ -26,6 +26,10 @@ function allClaims(page: Alternative): Claim[] {
     ...page.migration.steps.filter(
       (step): step is Claim => typeof step !== "string"
     ),
+    ...page.faq.map((item) => ({
+      text: item.answer,
+      sources: item.sources,
+    })),
   ];
 }
 

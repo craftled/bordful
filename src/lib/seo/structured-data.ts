@@ -1,8 +1,5 @@
 import { ALTERNATIVES_HUB } from "@/components/marketing/alternatives/registry";
-import type {
-  Alternative,
-  FaqItem,
-} from "@/components/marketing/alternatives/types";
+import type { Alternative } from "@/components/marketing/alternatives/types";
 import {
   MARKETING_DESCRIPTION,
   SOCIAL_LINKS,
@@ -46,7 +43,10 @@ export function marketingHomeJsonLd(siteUrl: string) {
 
 export function faqPageJsonLd(
   siteUrl: string,
-  input: { path: string; items: readonly FaqItem[] }
+  input: {
+    path: string;
+    items: readonly { answer: string; question: string }[];
+  }
 ) {
   const origin = originOf(siteUrl);
 

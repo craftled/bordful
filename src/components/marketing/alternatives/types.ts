@@ -19,14 +19,15 @@ export interface ComparisonRow<Id extends string = string> {
   label: string;
 }
 
-export interface FaqItem {
+export interface FaqItem<Id extends string = string> {
   answer: string;
   question: string;
+  sources: readonly [Id, ...Id[]];
 }
 
 export interface Alternative<Id extends string = string> {
   comparison: readonly ComparisonRow<Id>[];
-  faq: readonly FaqItem[];
+  faq: readonly FaqItem<Id>[];
   heading: { title: string; titleMuted: string };
   hub: { summary: Claim<Id>; linkLabel: string };
   lede: Claim<Id>;
@@ -51,6 +52,10 @@ type SourcedClaim<Id extends string> = Omit<Claim<Id>, "sources"> & {
   sources: readonly [NoInfer<Id>, ...NoInfer<Id>[]];
 };
 
+type SourcedFaqItem<Id extends string> = Omit<FaqItem<Id>, "sources"> & {
+  sources: readonly [NoInfer<Id>, ...NoInfer<Id>[]];
+};
+
 type AlternativeInput<Id extends string> = Omit<
   Alternative<Id>,
   | "lede"
@@ -61,6 +66,7 @@ type AlternativeInput<Id extends string> = Omit<
   | "comparison"
   | "pricing"
   | "migration"
+  | "faq"
   | "sources"
 > & {
   lede: SourcedClaim<Id>;
@@ -84,6 +90,7 @@ type AlternativeInput<Id extends string> = Omit<
     staysBehind: readonly SourcedClaim<Id>[];
     steps: readonly (string | SourcedClaim<Id>)[];
   };
+  faq: readonly SourcedFaqItem<Id>[];
   sources: readonly Source<Id>[];
 };
 
