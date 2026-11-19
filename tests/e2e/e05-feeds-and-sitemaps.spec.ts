@@ -3,6 +3,14 @@ import { expect, type Page, test } from "@playwright/test";
 import { ensureAdmin } from "./support/admin";
 import { createJob, docId, docString } from "./support/seed";
 
+function marketingBase(): string {
+  if (process.env.E2E_MARKETING_BASE_URL) {
+    return process.env.E2E_MARKETING_BASE_URL;
+  }
+  const port = process.env.APP_MARKETING_PORT ?? "3001";
+  return `http://127.0.0.1:${port}`;
+}
+
 interface RssSummary {
   channel: boolean;
   links: string[];
@@ -37,6 +45,23 @@ function rssSummary(page: Page, xml: string): Promise<RssSummary> {
 }
 
 test.describe("E5 feeds-and-sitemaps", { tag: ["@E5"] }, () => {
+  test("alternatives are in the marketing sitemap only", async ({
+    request,
+  }) => {
+    const fork = await request.get("/sitemap.xml");
+    const forkText = await fork.text();
+    expect(fork.ok()).toBe(true);
+    expect(forkText).not.toContain("/alternatives");
+
+    const marketing = await request.get(
+      new URL("/sitemap.xml", marketingBase()).href
+    );
+    const marketingText = await marketing.text();
+    expect(marketing.ok()).toBe(true);
+    expect(marketingText).toContain("/alternatives");
+    expect(marketingText).toContain("/alternatives/wp-job-manager");
+  });
+
   test("lists a live job and drops it after validThrough passes", async ({
     page,
     request,

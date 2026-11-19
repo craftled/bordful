@@ -7,6 +7,8 @@ const MARKETING_PAGES = [
   "/about",
   "/privacy",
   "/terms",
+  "/alternatives",
+  "/alternatives/wp-job-manager",
 ];
 
 const DEPLOY_PREFIX =
@@ -70,5 +72,10 @@ test.describe("E10 marketing-flag", { tag: ["@E10"] }, () => {
     await expectOneHeading(page, new URL("/about", marketing).href);
     await expectOneHeading(page, new URL("/privacy", marketing).href);
     await expectOneHeading(page, new URL("/terms", marketing).href);
+    await expectOneHeading(page, new URL("/alternatives", marketing).href);
+    await expectOneHeading(
+      page,
+      new URL("/alternatives/wp-job-manager", marketing).href
+    );
   });
 });

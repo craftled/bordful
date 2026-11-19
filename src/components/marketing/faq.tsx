@@ -115,16 +115,23 @@ function PlusMinus() {
   );
 }
 
-function QuestionList({
+export function QuestionList({
   className,
   compact = false,
+  items = questions,
 }: {
   className?: string;
   compact?: boolean;
+  items?: readonly {
+    answer: ReactNode;
+    after?: ReactNode;
+    question: string;
+    short?: string;
+  }[];
 }) {
   return (
     <div className={cn("border-line w-full border-b", className)}>
-      {questions.map((item, index) => (
+      {items.map((item, index) => (
         <details
           className={cn(
             "group border-line border-t",
@@ -158,6 +165,7 @@ function QuestionList({
             )}
           >
             {item.answer}
+            {item.after}
           </p>
         </details>
       ))}

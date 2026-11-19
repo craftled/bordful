@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-
+import { faqPlainAnswers } from "@/components/marketing/faq";
 import { FaqPageTabs } from "@/components/marketing/faq-page-tabs";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
@@ -26,7 +26,13 @@ export default async function FaqPage() {
 
   return (
     <>
-      <JsonLd data={faqPageJsonLd(resolveServerUrl())} nonce={nonce} />
+      <JsonLd
+        data={faqPageJsonLd(resolveServerUrl(), {
+          path: "/faq",
+          items: faqPlainAnswers(),
+        })}
+        nonce={nonce}
+      />
       <FaqPageTabs />
       <MarketingCta
         actions={[

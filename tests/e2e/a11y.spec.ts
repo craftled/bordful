@@ -26,6 +26,13 @@ const APP_PAGES = [
   { name: "alerts", path: "/alerts" },
   { name: "post", path: "/post" },
 ];
+const MARKETING_PAGES = [
+  { name: "alternatives hub", path: "/alternatives" },
+  {
+    name: "alternatives wp-job-manager",
+    path: "/alternatives/wp-job-manager",
+  },
+];
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 // Every row this spec creates carries the marker, so cleanup finds them all.
@@ -185,6 +192,20 @@ test.describe("S0 accessibility", { tag: ["@S0-a11y"] }, () => {
         await open(page, scheme, viewport, new URL("/", marketingBase()).href);
         await scan(page, "marketing home", scheme, viewport);
       });
+
+      for (const marketingPage of MARKETING_PAGES) {
+        test(`${marketingPage.name} in ${scheme} mode${viewport.label}`, async ({
+          page,
+        }) => {
+          await open(
+            page,
+            scheme,
+            viewport,
+            new URL(marketingPage.path, marketingBase()).href
+          );
+          await scan(page, marketingPage.name, scheme, viewport);
+        });
+      }
     }
   }
 

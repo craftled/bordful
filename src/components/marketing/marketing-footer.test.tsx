@@ -48,3 +48,11 @@ test("marketing slim footer does not show the Top Boilerplates badge", () => {
     screen.queryByRole("link", { name: "Listed on Top Boilerplates" })
   ).toBeNull();
 });
+
+test("marketing footer links to the alternatives hub", () => {
+  render(<MarketingFooter />);
+
+  expect(
+    screen.getByRole("link", { name: "Alternatives" }).getAttribute("href")
+  ).toBe("/alternatives");
+});

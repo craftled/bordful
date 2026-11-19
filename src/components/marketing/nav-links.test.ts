@@ -14,6 +14,7 @@ const ROOT = process.cwd();
 // Route files for every in-app target. A link to a page that is not here 404s.
 const ROUTE_FILES: Record<string, string> = {
   "/about": "src/app/(marketing)/about/page.tsx",
+  "/alternatives": "src/app/(marketing)/alternatives/page.tsx",
   "/changelog": "src/app/(marketing)/changelog/page.tsx",
   "/docs": "src/app/(marketing)/docs/page.tsx",
   "/faq": "src/app/(marketing)/faq/page.tsx",
@@ -53,4 +54,20 @@ test("header and footer links have no dead anchors", () => {
   const hrefs = allLinks().map((link) => link.href);
   expect(hrefs).toContain("/features");
   expect(hrefs.filter((href) => href.startsWith("#"))).toEqual([]);
+});
+
+test("Alternatives is in the Company footer column and not in the header", () => {
+  const company = MARKETING_FOOTER_COLUMNS.find(
+    (column) => column.title === "Company"
+  );
+
+  expect(company?.items.map((item) => item.label)).toEqual([
+    "About",
+    "Alternatives",
+    "Privacy",
+    "Terms",
+  ]);
+  expect(
+    MARKETING_HEADER_LINKS.some((item) => item.href === "/alternatives")
+  ).toBe(false);
 });

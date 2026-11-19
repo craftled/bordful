@@ -336,9 +336,12 @@ test("marketing sitemap lists the docs, FAQ and features pages", () => {
     "https://board.example/docs/bordfeed",
     "https://board.example/docs/post-a-job",
     "https://board.example/docs/alerts",
+    "https://board.example/alternatives",
+    "https://board.example/alternatives/wp-job-manager",
   ]);
 
   const fork = buildSitemapEntries({ jobs: [], marketing: false, siteUrl });
+  expect(fork.some((entry) => entry.url.includes("/alternatives"))).toBe(false);
   expect(fork.some((entry) => entry.url.includes("/docs"))).toBe(false);
   expect(fork.some((entry) => entry.url.endsWith("/faq"))).toBe(false);
   expect(fork.some((entry) => entry.url.endsWith("/features"))).toBe(false);
