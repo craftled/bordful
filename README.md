@@ -95,3 +95,5 @@ Bordful is [MIT licensed](LICENSE).
 ## Built by Craftled
 
 Built by [Craftled](https://craftled.com).
+
+Error monitoring sponsored by [Sentry](https://sentry.io).

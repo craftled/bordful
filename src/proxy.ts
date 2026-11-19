@@ -4,6 +4,7 @@ import { bordfulConfig } from "@/config";
 import { isMarketingEnabled } from "@/config/flags";
 import { buildCsp } from "@/lib/csp/build-csp";
 import { createNonce } from "@/lib/csp/nonce";
+import { sentryConnectOrigins, sentryWorkerSources } from "@/lib/sentry/config";
 import { BORDFUL_ICON } from "@/lib/seo/icons";
 
 // No route serves this path, so a rewrite here renders the regular 404 page.
@@ -99,11 +100,18 @@ export function proxy(request: NextRequest) {
   const isDev = process.env.NODE_ENV !== "production";
   const csp = buildCsp({
     admin: isAdminPath(pathname),
-    extraConnectOrigins: bordfulConfig.csp.extraConnectOrigins,
+    extraConnectOrigins: [
+      ...bordfulConfig.csp.extraConnectOrigins,
+      ...sentryConnectOrigins(process.env.NEXT_PUBLIC_SENTRY_DSN),
+    ],
     extraScriptOrigins: bordfulConfig.csp.extraScriptOrigins,
     isDev,
     marketing: isMarketingEnabled(),
     nonce,
+    workerSrc: sentryWorkerSources({
+      NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+      NEXT_PUBLIC_SENTRY_REPLAY: process.env.NEXT_PUBLIC_SENTRY_REPLAY,
+    }),
   });
 
   const requestHeaders = new Headers(request.headers);

@@ -2,8 +2,12 @@ import { execFileSync } from "node:child_process";
 import { readdirSync } from "node:fs";
 
 import { withPayload } from "@payloadcms/next/withPayload";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
-
+import {
+  isSentryConfigured,
+  sentryBuildOptions,
+} from "./src/lib/sentry/config";
 import { legacyRedirectsFor } from "./src/lib/seo/legacy-redirects";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
@@ -110,4 +114,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPayload(nextConfig, { devBundleServerPackages: false });
+// withSentryConfig must be the outermost wrapper. With no DSN configured it
+// is never called, so no Sentry plugin runs, no upload is attempted, and the
+// build prints no Sentry output.
+const config = withPayload(nextConfig, { devBundleServerPackages: false });
+
+export default isSentryConfigured()
+  ? withSentryConfig(config, sentryBuildOptions())
+  : config;
