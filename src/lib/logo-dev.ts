@@ -1,7 +1,8 @@
 import { normalizeDomain } from "@/lib/bordfeed/map-company";
+import { isCspAllowedImageUrl } from "@/lib/csp/build-csp";
 
-// Logo.dev serves company marks by domain. Bordful falls back to it when a
-// company has no uploaded logo and no logo URL, and only when a publishable
+// Logo.dev serves company marks by domain. Bordful uses it for a company
+// with no uploaded logo, ahead of any logo URL, and only when a publishable
 // key (pk_...) is set. The key ends up in public HTML, so a secret key
 // (sk_...) is ignored rather than leaked.
 
@@ -49,4 +50,25 @@ export function logoDevUrl(
     token,
   });
   return `${LOGO_DEV_IMAGE_ORIGIN}/${host}?${params.toString()}`;
+}
+
+// The company mark for a company with no uploaded logo, or null for the
+// letter tile. Logo.dev by domain comes first, then a logo URL only when
+// CSP img-src allows its host. An ATS logo URL (myworkdayjobs.com and the
+// like) would render as a broken image, so it falls through to the tile.
+export function pickCompanyLogoUrl(
+  input: { domain: string | null; logoUrl: unknown },
+  env: LogoDevEnv = processEnv()
+): string | null {
+  const fromDomain = logoDevUrl(input.domain, env);
+  if (fromDomain) {
+    return fromDomain;
+  }
+
+  const { logoUrl } = input;
+  if (typeof logoUrl === "string" && isCspAllowedImageUrl(logoUrl)) {
+    return logoUrl;
+  }
+
+  return null;
 }

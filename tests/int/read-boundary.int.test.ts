@@ -168,7 +168,8 @@ test("the narrowed list read maps to the same cards as a full read", async () =>
   if (companyId) {
     await payload.update({
       collection: "companies",
-      data: { logoUrl: "https://example.com/backend-logo.png" },
+      // A Bordfeed host, so CSP img-src allows it and the read layer keeps it.
+      data: { logoUrl: "https://bordfeed.com/backend-logo.png" },
       depth: 0,
       id: companyId,
       overrideAccess: true,
@@ -189,7 +190,7 @@ test("the narrowed list read maps to the same cards as a full read", async () =>
   expect(bySlug.get("example-product-designer")?.companyLogoUrl).toBeTruthy();
   if (companyId) {
     expect(bySlug.get("example-senior-backend-engineer")?.companyLogoUrl).toBe(
-      "https://example.com/backend-logo.png"
+      "https://bordfeed.com/backend-logo.png"
     );
   }
 });
