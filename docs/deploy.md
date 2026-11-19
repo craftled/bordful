@@ -33,7 +33,7 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `BORDFUL_MARKETING` | No | You, only on bordful.com | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`. |
 | `RESEND_API_KEY` | No | You | Job alerts stay off without it. See [Job alerts](alerts.md). |
 | `RESEND_BASE_URL` | No | You | Resend API origin. Empty uses the SDK default. |
-| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | You | A [Logo.dev](https://logo.dev) publishable key (`pk_...`). Companies with no uploaded logo and no logo URL then show their Logo.dev logo by domain, or by the company website if no domain is stored, and the footer credits Logo.dev. A secret key (`sk_...`) is ignored, because the key is visible in page HTML. Inlined at build time, so redeploy after changing it. |
+| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | You | A [Logo.dev](https://logo.dev) publishable key (`pk_...`). Companies with no uploaded logo then show their Logo.dev logo by domain, or by the company website if no domain is stored, ahead of any logo URL. The footer credits Logo.dev. A secret key (`sk_...`) is ignored, because the key is visible in page HTML. Inlined at build time, so redeploy after changing it. |
 | `BORDFEED_BASE_URL` | No | You | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board. |
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
 | `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
@@ -42,6 +42,8 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. The `S0-a11y` flow needs a fresh database that holds only the sample jobs. |
 
 Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never commit `.env`.
+
+Company logos on the board use the first of these that applies: the uploaded logo, Logo.dev by domain (when `NEXT_PUBLIC_LOGO_DEV_TOKEN` is set), the company's logo URL only if its host is already in the CSP `img-src` list, and otherwise a letter tile. Sample or imported `logo_url` values can point at employer ATS hosts such as `myworkdayjobs.com`. Those hosts are not added to CSP `img-src`, so their logos show the letter tile. A logo that fails to load in the browser also falls back to the letter tile.
 
 ## Crons
 

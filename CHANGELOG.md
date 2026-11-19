@@ -69,6 +69,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Deleting a company, or changing its slug or domain, updates its jobs, so job pages no longer link to a 404. Changing or deleting a media file refreshes the cached logo.
 - The filter, sort and per-page menus close on Escape, on an outside click and after a choice. A long unbroken word no longer makes a job page wider than a phone screen, and `/post` and the board footer no longer scroll sideways at some widths.
 - Muted text and the featured, new and closing badges meet WCAG AA contrast. Headings are in order on the board, and board pages have a "Skip to content" link. Board search is a search landmark, the alert form marks the email field invalid only after a failed check, and job title and company links on the board have 24px touch targets.
+- Job rows no longer show a broken image when a company logo URL is on a host that the CSP `img-src` list blocks. The board uses an uploaded logo first, then Logo.dev by domain when a publishable key is set, then the logo URL only if its host is already allowed, and otherwise a letter tile. The CSP list is unchanged.
 
 ### Removed
 
