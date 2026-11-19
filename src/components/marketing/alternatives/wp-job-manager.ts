@@ -75,8 +75,8 @@ export const wpJobManager = defineAlternative({
       sources: ["bordful-readme", "bordful-post-a-job"],
     },
     {
-      text: "Bordful 1.0 is a recent rebuild, so it has a smaller public footprint and fewer reviews than a long-running WordPress plugin.",
-      sources: ["bordful-readme"],
+      text: "Bordful 1.0 is a recent rebuild, so it has a smaller public footprint and fewer reviews than WP Job Manager, which has 70,000+ active installations and 238 reviews on WordPress.org.",
+      sources: ["bordful-readme", "wporg"],
     },
   ],
   comparison: [
@@ -340,8 +340,8 @@ export const wpJobManager = defineAlternative({
       id: "wporg",
       title: "WP Job Manager on WordPress.org",
       url: "https://wordpress.org/plugins/wp-job-manager/",
-      fact: "Free core plugin. Requires WordPress 6.4 or higher and PHP 7.4 or higher.",
-      checkedOn: "2026-11-16",
+      fact: "Free core plugin. Requires WordPress 6.4 or higher and PHP 7.4 or higher. Active installations: 70,000+. Reviews: 238.",
+      checkedOn: "2026-11-20",
     },
     {
       id: "wpjm-github",
