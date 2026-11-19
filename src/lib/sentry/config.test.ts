@@ -218,6 +218,22 @@ test("sentryConnectOrigins returns the https ingest origin only", () => {
   expect(sentryConnectOrigins("http://key@o0.ingest.sentry.io/0")).toEqual([]);
 });
 
+test("sentryConnectOrigins keeps a port and an IPv6 host", () => {
+  expect(sentryConnectOrigins("https://k@sentry.example.com:9000/1")).toEqual([
+    "https://sentry.example.com:9000",
+  ]);
+  expect(sentryConnectOrigins("https://k@[::1]:9000/1")).toEqual([
+    "https://[::1]:9000",
+  ]);
+});
+
+test("sentryConnectOrigins never throws on hosts that fail CSP validation", () => {
+  // Each parses as a URL, but the origin would be rejected by assertCspOrigin.
+  expect(sentryConnectOrigins("https://k@o0.ingest.sentry.io;x/0")).toEqual([]);
+  expect(sentryConnectOrigins("https://k@a,b.io/0")).toEqual([]);
+  expect(sentryConnectOrigins("https://k@a'b.io/0")).toEqual([]);
+});
+
 test("sentryWorkerSources only allow blob workers with replay and a DSN", () => {
   expect(sentryWorkerSources({})).toEqual([]);
   expect(sentryWorkerSources({ NEXT_PUBLIC_SENTRY_REPLAY: "true" })).toEqual(

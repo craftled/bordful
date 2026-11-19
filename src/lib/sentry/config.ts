@@ -1,3 +1,6 @@
+// Relative, not "@/": next.config.ts loads this module without path aliases.
+import { assertCspOrigin } from "../csp/build-csp";
+
 // Pure Sentry configuration helpers. Nothing here imports @sentry/nextjs, so
 // unit tests run without the SDK and callers that only read options stay SDK
 // free. The browser call sites must read process.env.NEXT_PUBLIC_* by literal
@@ -141,19 +144,24 @@ export function shouldUploadSourceMaps(env: EnvRecord = process.env): boolean {
 }
 
 // The ingest origin of a browser DSN, for the CSP connect-src. Never throws:
-// an unparsable DSN must not break the proxy, so it is simply dropped.
+// an unparsable DSN must not break the proxy, so it is simply dropped. WHATWG
+// URL parsing keeps characters such as ";" and "," in hosts, so the origin is
+// also run through assertCspOrigin, which rejects them.
 export function sentryConnectOrigins(dsn: string | undefined): string[] {
   const parsed = readDsn(dsn);
   if (!parsed) {
     return [];
   }
-  let url: URL;
   try {
-    url = new URL(parsed);
+    const url = new URL(parsed);
+    if (url.protocol !== "https:") {
+      return [];
+    }
+    assertCspOrigin(url.origin);
+    return [url.origin];
   } catch {
     return [];
   }
-  return url.protocol === "https:" ? [url.origin] : [];
 }
 
 // Replay compresses recordings in a worker created from a blob URL, so

@@ -56,9 +56,11 @@ Sentry is off by default. Set `SENTRY_DSN` to capture server and edge errors, an
 
 `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` sets the trace sample rate, a number from `0` to `1`, with `0.1` the default. `NEXT_PUBLIC_SENTRY_REPLAY` turns on Session Replay in the browser, and only the exact value `true` after trimming turns it on: `1` and `TRUE` mean off. Replay masks all text and all inputs and blocks all media. Its compression worker runs from a blob URL, so the CSP gains `worker-src 'self' blob:`, and its events go to the ingest origin from `NEXT_PUBLIC_SENTRY_DSN`, which the CSP `connect-src` allows.
 
-Readable stack traces need source maps. Set all three of `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` to upload them during the build. With any of the three unset the build skips the upload and prints no Sentry output. The Craftled deployment uses org `craftled-se` and project `bordful`. A self-hosted fork needs its own Sentry account, org, and project.
+Readable stack traces need source maps. Set all three of `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` to upload them during the build. With any of the three unset the build skips the source map upload. The Craftled deployment uses org `craftled-se` and project `bordful`. A self-hosted fork needs its own Sentry account, org, and project.
 
-`NEXT_PUBLIC_*` values are inlined at build time, so redeploy after changing them. See the [Sentry Next.js manual setup](https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/).
+Set the DSNs in the build environment too, not only at runtime. `NEXT_PUBLIC_*` values are inlined at build time, and whether `withSentryConfig` wraps the build is decided at build time, so a DSN that exists only at `docker run` leaves that build wiring off. Redeploy after changing any of them.
+
+Browser capture starts only after the Sentry module loads asynchronously, so an error thrown before that, such as during first hydration, is not captured, and the page-load trace starts late. See the [Sentry Next.js manual setup](https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/).
 
 ## Crons
 

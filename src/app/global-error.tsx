@@ -1,36 +1,30 @@
 "use client";
 
-import NextError from "next/error";
+import DefaultGlobalError from "next/dist/client/components/builtin/global-error";
 import { useEffect } from "react";
 
 import { readDsn } from "@/lib/sentry/config";
 
-// global-error replaces the root layout, so it renders its own html and body.
-// Without a browser DSN the effect reports nothing and the page users see is
-// Next's default, with no extra copy or styling.
+// global-error replaces the root layout. Next's built-in page renders its own
+// html and body, so this file does not need them. Without a browser DSN the
+// effect reports nothing and users see Next's default error page unchanged.
 export default function GlobalError({
   error,
 }: {
   error: Error & { digest?: string };
 }) {
   useEffect(() => {
-    const dsn = readDsn(process.env.NEXT_PUBLIC_SENTRY_DSN);
-    if (!dsn) {
-      return;
+    // The literal check stops the SDK import at run time when the DSN is
+    // unset. readDsn also rejects a whitespace-only value.
+    if (
+      process.env.NEXT_PUBLIC_SENTRY_DSN &&
+      readDsn(process.env.NEXT_PUBLIC_SENTRY_DSN)
+    ) {
+      void import("@sentry/nextjs").then((Sentry) => {
+        Sentry.captureException(error);
+      });
     }
-    void import("@sentry/nextjs").then((Sentry) => {
-      Sentry.captureException(error);
-    });
   }, [error]);
 
-  return (
-    <html lang="en">
-      <body>
-        {/* NextError is the default Next.js error page component. Its type
-        wants a statusCode prop, but the App Router exposes no status code
-        here, so 0 renders the generic error message. */}
-        <NextError statusCode={0} />
-      </body>
-    </html>
-  );
+  return <DefaultGlobalError error={error} />;
 }

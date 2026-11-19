@@ -14,10 +14,10 @@ if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
   });
 }
 
-// Sentry browser SDK, as optional as the server side. Each NEXT_PUBLIC_*
-// value below is read by literal name in this module, so Next inlines it at
-// build time, and with no DSN inlined the branch below is dead code and the
-// SDK never loads in the browser.
+// Sentry browser SDK, as optional as the server side. With no DSN at build
+// the literal check in the if below is falsy, so the SDK never loads on a
+// running page. The build may still emit the lazy @sentry chunk: Next does not
+// inline an unset NEXT_PUBLIC_* value, so the check stays a runtime read.
 const sentryEnv: EnvRecord = {
   NODE_ENV: process.env.NODE_ENV,
   NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -33,7 +33,7 @@ const sentryOptions = clientInitOptions(sentryEnv);
 // then is dropped, which only costs one navigation span.
 let sentryClient: typeof import("@sentry/nextjs") | null = null;
 
-if (sentryOptions) {
+if (process.env.NEXT_PUBLIC_SENTRY_DSN && sentryOptions) {
   const options = sentryOptions;
   void import("@sentry/nextjs").then((Sentry) => {
     sentryClient = Sentry;
