@@ -76,13 +76,14 @@ async function readBody(
 
 export async function createCompany(
   request: APIRequestContext,
-  input: { domain?: string; name: string; website?: string }
+  input: { domain?: string; logoUrl?: string; name: string; website?: string }
 ): Promise<Record<string, unknown>> {
   const response = await request.post("/api/companies", {
     data: {
       name: input.name,
       origin: "manual",
       ...(input.domain === undefined ? {} : { domain: input.domain }),
+      ...(input.logoUrl === undefined ? {} : { logoUrl: input.logoUrl }),
       ...(input.website === undefined ? {} : { website: input.website }),
     },
   });

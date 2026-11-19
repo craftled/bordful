@@ -14,6 +14,47 @@ export const TOP_BOILERPLATES_ORIGIN = "https://topboilerplates.com";
 const FORBIDDEN_ORIGIN_CHARS = /['";\s,]/u;
 const LEADING_WILDCARD_ORIGIN = /^https:\/\/\*\.[^*.]+\.[^*]+$/u;
 
+// The remote image hosts every site page allows. Logos from anywhere else
+// (an employer's ATS, say) are blocked, so the read layer checks a logo URL
+// against this list with isCspAllowedImageUrl before it reaches an <img>.
+export const IMG_SRC_REMOTE_ORIGINS = [
+  "https://*.public.blob.vercel-storage.com",
+  "https://bordfeed.com",
+  "https://*.bordfeed.com",
+  "https://img.logo.dev",
+] as const;
+
+function hostMatchesOrigin(host: string, origin: string): boolean {
+  const pattern = origin.slice("https://".length);
+  if (pattern.startsWith("*.")) {
+    const suffix = pattern.slice(1);
+    return host.endsWith(suffix) && host.length > suffix.length;
+  }
+  return host === pattern;
+}
+
+// True for a root-relative path ('self') or an https URL on one of the
+// remote img-src origins. Anything else would be blocked by the policy.
+export function isCspAllowedImageUrl(value: string): boolean {
+  if (value.startsWith("/")) {
+    return !(value.startsWith("//") || value.startsWith("/\\"));
+  }
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+
+  if (url.protocol !== "https:" || url.port !== "") {
+    return false;
+  }
+  return IMG_SRC_REMOTE_ORIGINS.some((origin) =>
+    hostMatchesOrigin(url.hostname, origin)
+  );
+}
+
 export function buildCsp({
   nonce,
   isDev,
@@ -63,10 +104,7 @@ export function buildCsp({
     "'self'",
     "blob:",
     "data:",
-    "https://*.public.blob.vercel-storage.com",
-    "https://bordfeed.com",
-    "https://*.bordfeed.com",
-    "https://img.logo.dev",
+    ...IMG_SRC_REMOTE_ORIGINS,
     ...(marketing ? [TOP_BOILERPLATES_ORIGIN] : []),
   ].join(" ");
 
