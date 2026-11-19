@@ -38,12 +38,31 @@ E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETIN
 | `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
 | `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
 | `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. The check runs at most once every 24 hours. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
+| `SENTRY_DSN` | No | You | Server and edge error capture. Unset means Sentry is off. |
+| `NEXT_PUBLIC_SENTRY_DSN` | No | You | Browser error capture. The ingest origin is also added to the CSP `connect-src`. Inlined at build, so redeploy after changing it. |
+| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | No | You | Trace sample rate, `0` to `1`. Empty uses `0.1`. |
+| `NEXT_PUBLIC_SENTRY_REPLAY` | No | You | Session Replay in the browser. Only the exact value `true` turns it on. |
+| `SENTRY_AUTH_TOKEN` | No | You, for source maps | Source map upload token. Mark Sensitive. Upload needs this plus `SENTRY_ORG` and `SENTRY_PROJECT`. |
+| `SENTRY_ORG` | No | You, for source maps | Sentry org slug. Craftled uses `craftled-se`. |
+| `SENTRY_PROJECT` | No | You, for source maps | Sentry project slug. Craftled uses `bordful`. |
 | `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. The database name must end in `_int` or `_test`. Do not set this on Vercel. |
 | `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. The `S0-a11y` flow needs a fresh database that holds only the sample jobs. |
 
 Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never commit `.env`.
 
 Company logos on the board use the first of these that applies: the uploaded logo, Logo.dev by domain (when `NEXT_PUBLIC_LOGO_DEV_TOKEN` is set), the company's logo URL only if its host is already in the CSP `img-src` list, and otherwise a letter tile. Sample or imported `logo_url` values can point at employer ATS hosts such as `myworkdayjobs.com`. Those hosts are not added to CSP `img-src`, so their logos show the letter tile. A logo that fails to load in the browser also falls back to the letter tile.
+
+## Error monitoring (optional)
+
+Sentry is off by default. Set `SENTRY_DSN` to capture server and edge errors, and `NEXT_PUBLIC_SENTRY_DSN` to capture browser errors. The environment tag on every event is `VERCEL_ENV` on the server, `NEXT_PUBLIC_VERCEL_ENV` in the browser, and `NODE_ENV` anywhere else.
+
+`NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` sets the trace sample rate, a number from `0` to `1`, with `0.1` the default. `NEXT_PUBLIC_SENTRY_REPLAY` turns on Session Replay in the browser, and only the exact value `true` after trimming turns it on: `1` and `TRUE` mean off. Replay masks all text and all inputs and blocks all media. Its compression worker runs from a blob URL, so the CSP gains `worker-src 'self' blob:`, and its events go to the ingest origin from `NEXT_PUBLIC_SENTRY_DSN`, which the CSP `connect-src` allows.
+
+Readable stack traces need source maps. Set all three of `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` to upload them during the build. With any of the three unset the build skips the source map upload. The Craftled deployment uses org `craftled-se` and project `bordful`. A self-hosted fork needs its own Sentry account, org, and project.
+
+Set the DSNs in the build environment too, not only at runtime. `NEXT_PUBLIC_*` values are inlined at build time, and whether `withSentryConfig` wraps the build is decided at build time, so a DSN that exists only at `docker run` leaves that build wiring off. Redeploy after changing any of them.
+
+Browser capture starts only after the Sentry module loads asynchronously, so an error thrown before that, such as during first hydration, is not captured, and the page-load trace starts late. See the [Sentry Next.js manual setup](https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/).
 
 ## Crons
 

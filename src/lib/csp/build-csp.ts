@@ -62,6 +62,7 @@ export function buildCsp({
   marketing = false,
   extraScriptOrigins = [],
   extraConnectOrigins = [],
+  workerSrc = [],
 }: {
   nonce: string;
   isDev: boolean;
@@ -70,6 +71,9 @@ export function buildCsp({
   marketing?: boolean;
   extraScriptOrigins?: readonly string[];
   extraConnectOrigins?: readonly string[];
+  // CSP source expressions, not URLs, so they are not run through
+  // assertCspOrigin. Emitted only when non-empty.
+  workerSrc?: readonly string[];
 }): string {
   if (nonce.length === 0 || !BASE64_NONCE.test(nonce)) {
     throw new Error("CSP nonce must be base64");
@@ -115,6 +119,7 @@ export function buildCsp({
     `img-src ${imgSrc}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
+    ...(workerSrc.length > 0 ? [`worker-src ${workerSrc.join(" ")}`] : []),
     "frame-src 'none'",
     "frame-ancestors 'none'",
     "object-src 'none'",

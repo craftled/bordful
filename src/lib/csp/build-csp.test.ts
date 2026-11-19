@@ -58,6 +58,40 @@ test("appends extra https origins", () => {
   ).toBe(devWithExtras);
 });
 
+test("worker sources add a worker-src directive after connect-src", () => {
+  expect(
+    buildCsp({
+      isDev: false,
+      nonce,
+      workerSrc: ["'self'", "blob:"],
+    })
+  ).toBe(
+    prod.replace(
+      "connect-src 'self'; frame-src",
+      "connect-src 'self'; worker-src 'self' blob:; frame-src"
+    )
+  );
+
+  expect(buildCsp({ isDev: false, nonce, workerSrc: [] })).toBe(prod);
+  expect(buildCsp({ isDev: false, nonce })).toBe(prod);
+});
+
+test("worker-src composes with an extra connect origin", () => {
+  expect(
+    buildCsp({
+      extraConnectOrigins: ["https://o0.ingest.sentry.io"],
+      isDev: false,
+      nonce,
+      workerSrc: ["'self'", "blob:"],
+    })
+  ).toBe(
+    prod.replace(
+      "connect-src 'self'; frame-src",
+      "connect-src 'self' https://o0.ingest.sentry.io; worker-src 'self' blob:; frame-src"
+    )
+  );
+});
+
 test("rejects a nonce that is not base64", () => {
   expect(() => buildCsp({ isDev: false, nonce: "not a nonce" })).toThrow(
     base64Error
