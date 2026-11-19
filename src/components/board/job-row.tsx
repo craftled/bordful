@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CompanyLogoImage } from "@/components/board/company-logo-image";
 import { RowSaveButton } from "@/components/board/job-row-save";
 import { HINT_CLASS } from "@/components/board/rail-styles";
 import { RelativeTime } from "@/components/board/relative-time";
@@ -127,16 +128,15 @@ function CompanyLogo({
           ? "size-10 rounded-[8px] text-[13px] leading-4 font-semibold lg:size-9"
           : "size-9 rounded-[9px] text-[14px] font-medium lg:size-7 lg:rounded-[7px] lg:text-[12px]"
       )}
+      data-testid="job-row-logo"
     >
       {job.companyLogoUrl ? (
-        // biome-ignore lint/performance/noImgElement: a 28px company mark, served as-is
-        <img
-          alt=""
+        <CompanyLogoImage
           className="size-full object-cover"
-          height={36}
+          fallback={initial}
           loading="lazy"
+          size={36}
           src={job.companyLogoUrl}
-          width={36}
         />
       ) : (
         initial

@@ -14,7 +14,7 @@ function marketingBase(): string {
   return `http://127.0.0.1:${port}`;
 }
 
-test.describe("E15 alternatives", { tag: ["@E15"] }, () => {
+test.describe("E16 alternatives", { tag: ["@E16"] }, () => {
   test("hub, comparison, footer, schema and route behavior", async ({
     page,
   }) => {

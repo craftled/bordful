@@ -10,7 +10,7 @@ import {
   type JobOrigin,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
-import { logoDevUrl } from "@/lib/logo-dev";
+import { pickCompanyLogoUrl } from "@/lib/logo-dev";
 import { resolveThemeTokens } from "@/theme/tokens";
 
 import { isIndexable } from "./indexable";
@@ -110,22 +110,20 @@ function mediaUrl(value: unknown): string | null {
   return typeof media.url === "string" ? media.url : null;
 }
 
-// A job's company mark when the job has no copied logo upload: the company's
-// logo URL, else Logo.dev by domain (when configured), else none.
+// A job's company mark when the job has no copied logo upload. See
+// pickCompanyLogoUrl for the order; null renders the letter tile.
 function companyLogoFallback(
   company: unknown,
   companyDomain: unknown
 ): string | null {
   const row = record(company);
-  if (typeof row.logoUrl === "string" && row.logoUrl.length > 0) {
-    return row.logoUrl;
-  }
-
-  return logoDevUrl(
-    normalizeDomain(stringOrNull(companyDomain)) ??
+  return pickCompanyLogoUrl({
+    domain:
+      normalizeDomain(stringOrNull(companyDomain)) ??
       normalizeDomain(stringOrNull(row.domain)) ??
-      domainFromWebsite(row.website)
-  );
+      domainFromWebsite(row.website),
+    logoUrl: row.logoUrl,
+  });
 }
 
 function dateOrNull(value: unknown): string | null {
@@ -153,11 +151,12 @@ export function toCompanySummary(doc: unknown): CompanySummary {
     location: stringOrNull(row.location),
     logoUrl:
       mediaUrl(row.logo) ||
-      stringOrNull(row.logoUrl) ||
-      logoDevUrl(
-        normalizeDomain(stringOrNull(row.domain)) ??
-          domainFromWebsite(row.website)
-      ),
+      pickCompanyLogoUrl({
+        domain:
+          normalizeDomain(stringOrNull(row.domain)) ??
+          domainFromWebsite(row.website),
+        logoUrl: row.logoUrl,
+      }),
     name: stringOrNull(row.name) ?? "",
     slug: stringOrNull(row.slug) ?? "",
     twitterUrl: stringOrNull(row.twitterUrl),

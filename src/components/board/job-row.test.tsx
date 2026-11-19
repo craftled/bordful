@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 
 import { formatSalary } from "@/lib/board/format";
@@ -64,6 +64,47 @@ test("shows the company initial tile when Logo.dev has no domain", () => {
 
   expect(container.querySelector('img[src*="img.logo.dev"]')).toBeNull();
   expect(container.querySelector("article > span")?.textContent).toBe("A");
+});
+
+test("a logo URL on a host CSP blocks renders the letter tile, not the URL", () => {
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test_not_a_real_token");
+  const listItem = toJobListItem({
+    company: {
+      domain: null,
+      logoUrl: "https://example.myworkdayjobs.com/logo.png",
+      website: null,
+    },
+    companyName: "Elevance Health",
+    id: "id",
+    title: "Senior Engineer",
+  });
+  const { container } = render(
+    <ul>
+      <JobRow job={listItem} now={NOW} />
+    </ul>
+  );
+
+  expect(container.querySelector("img")).toBeNull();
+  expect(container.innerHTML).not.toContain("myworkdayjobs.com");
+  expect(screen.getByTestId("job-row-logo").textContent).toBe("E");
+});
+
+test("a logo image that fails to load falls back to the letter tile", () => {
+  const { container } = render(
+    <ul>
+      <JobRow
+        job={job({ companyLogoUrl: "https://bordfeed.com/missing.png" })}
+        now={NOW}
+      />
+    </ul>
+  );
+
+  const img = container.querySelector("img") as HTMLImageElement;
+  expect(img.getAttribute("src")).toBe("https://bordfeed.com/missing.png");
+  fireEvent.error(img);
+
+  expect(container.querySelector("img")).toBeNull();
+  expect(screen.getByTestId("job-row-logo").textContent).toBe("A");
 });
 
 test("formats salary for min only, max only, both and none", () => {

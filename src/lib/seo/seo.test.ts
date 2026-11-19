@@ -166,16 +166,21 @@ test("a relative company logo becomes an absolute URL", () => {
 });
 
 test("a protocol-relative company logo keeps its host", () => {
-  const job = toJobDetail({
-    ...exampleSeniorBackendJob,
-    company: {
-      logoUrl: "//cdn.example/logo.png",
-      name: "Example Co",
-      slug: "example-co",
-      website: "https://example.com",
-    },
-    companySlug: "example-co",
-  });
+  // The read layer drops protocol-relative logo URLs (CSP img-src cannot
+  // promise their scheme), so set one on the read model directly to cover
+  // the JSON-LD URL join on its own.
+  const job = {
+    ...toJobDetail({
+      ...exampleSeniorBackendJob,
+      company: {
+        name: "Example Co",
+        slug: "example-co",
+        website: "https://example.com",
+      },
+      companySlug: "example-co",
+    }),
+    companyLogoUrl: "//cdn.example/logo.png",
+  };
   const result = buildJobPostingJsonLd(job, ctx);
   expect(result?.hiringOrganization).toMatchObject({
     logo: "https://cdn.example/logo.png",
