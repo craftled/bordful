@@ -34,9 +34,11 @@ const IDS = [
   "E12",
   "E13",
   "E14",
+  "E15",
+  "E16",
 ];
 
-test("flow ids are the S0 pair followed by E1 through E14", () => {
+test("flow ids are the S0 pair followed by E1 through E16", () => {
   expect(registry.flows.map((flow) => flow.id)).toEqual(IDS);
 });
 

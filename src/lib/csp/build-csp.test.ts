@@ -1,6 +1,10 @@
 import { expect, test } from "vitest";
 
-import { buildCsp } from "./build-csp";
+import {
+  buildCsp,
+  IMG_SRC_REMOTE_ORIGINS,
+  isCspAllowedImageUrl,
+} from "./build-csp";
 import { createNonce } from "./nonce";
 
 const nonce = "dGVzdG5vbmNlMTIzNDU2Nw==";
@@ -214,4 +218,46 @@ test("admin pages also allow the code editor stylesheet folder", () => {
     )
   );
   expect(buildCsp({ admin: false, isDev: false, nonce })).toBe(prod);
+});
+
+test("image URLs pass only when img-src allows their host", () => {
+  for (const url of [
+    "/api/media/file/logo.png",
+    "https://bordfeed.com/logo.png",
+    "https://cdn.bordfeed.com/logos/acme.png",
+    "https://img.logo.dev/acme.com?token=pk_test_not_a_real_token",
+    "https://store.public.blob.vercel-storage.com/logo.png",
+    "https://BORDFEED.com/logo.png",
+  ]) {
+    expect(isCspAllowedImageUrl(url), url).toBe(true);
+  }
+
+  for (const url of [
+    "https://example.myworkdayjobs.com/logo.png",
+    "https://cdn.example/acme.png",
+    "http://bordfeed.com/logo.png",
+    "https://bordfeed.com:8443/logo.png",
+    "https://evilbordfeed.com/logo.png",
+    "https://bordfeed.com.evil.example/logo.png",
+    "https://public.blob.vercel-storage.com/logo.png",
+    "https://topboilerplates.com/logo.png",
+    "//example.myworkdayjobs.com/logo.png",
+    "/\\example.myworkdayjobs.com/logo.png",
+    "data:image/png;base64,AAAA",
+    "javascript:alert(1)",
+    "not a url",
+    "",
+  ]) {
+    expect(isCspAllowedImageUrl(url), url).toBe(false);
+  }
+});
+
+test("every remote origin the image check allows is in the site img-src", () => {
+  const imgSrc =
+    buildCsp({ isDev: false, nonce })
+      .split("; ")
+      .find((directive) => directive.startsWith("img-src ")) ?? "";
+  for (const origin of IMG_SRC_REMOTE_ORIGINS) {
+    expect(imgSrc.split(" ")).toContain(origin);
+  }
 });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 
+import { CompanyLogoImage } from "@/components/board/company-logo-image";
 import { jobStatuses, StatusPill } from "@/components/board/job-row";
 import { HINT_CLASS } from "@/components/board/rail-styles";
 import { useJobList } from "@/components/board/saved-jobs";
@@ -217,13 +218,11 @@ function Logo({ job }: { job: JobListItem }) {
       className="bg-foreground text-background flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-lg text-[20px] font-medium"
     >
       {job.companyLogoUrl ? (
-        // biome-ignore lint/performance/noImgElement: a 52px company mark, served as-is
-        <img
-          alt=""
+        <CompanyLogoImage
           className="bg-card size-full object-cover"
-          height={52}
+          fallback={initial}
+          size={52}
           src={job.companyLogoUrl}
-          width={52}
         />
       ) : (
         initial

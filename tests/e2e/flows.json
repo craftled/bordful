@@ -101,6 +101,18 @@
       "file": "e14-import-blocklist.spec.ts",
       "requires": ["L3a"],
       "enabled": true
+    },
+    {
+      "id": "E15",
+      "file": "e15-logo-fallback.spec.ts",
+      "requires": ["L1"],
+      "enabled": true
+    },
+    {
+      "id": "E16",
+      "file": "e16-alternatives.spec.ts",
+      "requires": ["L6"],
+      "enabled": true
     }
   ]
 }

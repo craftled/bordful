@@ -135,19 +135,25 @@ test("job logos fall back to Logo.dev by company domain only when a key is set",
   expect(toJobListItem({ company: 7, id: 1 }).companyLogoUrl).toBeNull();
 });
 
-test("an uploaded logo or a logo URL wins over Logo.dev and the website", () => {
+const BORDFEED_LOGO = "https://cdn.bordfeed.com/logos/acme.png";
+const WORKDAY_LOGO = "https://example.myworkdayjobs.com/logo.png";
+
+test("an uploaded logo wins, then Logo.dev by domain, then a logo URL", () => {
   vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "pk_test");
 
   expect(
     toJobListItem({
       company: {
-        logoUrl: "https://cdn.example/acme.png",
+        logoUrl: BORDFEED_LOGO,
         website: "https://other.example",
       },
       companyDomain: "acme.com",
       id: 1,
     }).companyLogoUrl
-  ).toBe("https://cdn.example/acme.png");
+  ).toBe(LOGO_DEV);
+  expect(
+    toJobListItem({ company: { logoUrl: BORDFEED_LOGO }, id: 1 }).companyLogoUrl
+  ).toBe(BORDFEED_LOGO);
   expect(
     toJobListItem({
       companyDomain: "acme.com",
@@ -169,10 +175,35 @@ test("an uploaded logo or a logo URL wins over Logo.dev and the website", () => 
     toCompanySummary({
       domain: "acme.com",
       id: 1,
-      logoUrl: "https://cdn.example/acme.png",
+      logoUrl: BORDFEED_LOGO,
       website: "https://other.example",
     }).logoUrl
-  ).toBe("https://cdn.example/acme.png");
+  ).toBe(LOGO_DEV);
+  expect(toCompanySummary({ id: 1, logoUrl: BORDFEED_LOGO }).logoUrl).toBe(
+    BORDFEED_LOGO
+  );
+});
+
+test("logo URLs on hosts CSP img-src blocks never reach the read model", () => {
+  for (const token of ["pk_test", ""]) {
+    vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", token);
+    expect(
+      toJobListItem({ company: { logoUrl: WORKDAY_LOGO }, id: 1 })
+        .companyLogoUrl
+    ).toBeNull();
+    expect(toCompanySummary({ id: 1, logoUrl: WORKDAY_LOGO }).logoUrl).toBe(
+      null
+    );
+  }
+
+  vi.stubEnv("NEXT_PUBLIC_LOGO_DEV_TOKEN", "");
+  expect(
+    toJobListItem({
+      company: { logoUrl: WORKDAY_LOGO },
+      companyDomain: "acme.com",
+      id: 1,
+    }).companyLogoUrl
+  ).toBeNull();
 });
 
 test("empty logo URLs fall through to a valid company website", () => {
