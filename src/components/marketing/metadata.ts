@@ -47,8 +47,12 @@ export function marketingLayoutMetadata(enabled: boolean): Metadata {
 }
 
 // Per-page canonical and og:url. The layout does not know the path.
+// markdownPath, when set, also advertises the page's markdown version via
+// <link rel="alternate" type="text/markdown">; it resolves against
+// metadataBase, not against the canonical path.
 export function marketingPageMetadata(input: {
   description: string;
+  markdownPath?: string;
   path: string;
   title: string;
 }): Metadata {
@@ -56,7 +60,13 @@ export function marketingPageMetadata(input: {
 
   return {
     ...base,
-    alternates: { canonical: input.path },
+    alternates:
+      input.markdownPath === undefined
+        ? { canonical: input.path }
+        : {
+            canonical: input.path,
+            types: { "text/markdown": input.markdownPath },
+          },
     description: input.description,
     openGraph: {
       ...base.openGraph,

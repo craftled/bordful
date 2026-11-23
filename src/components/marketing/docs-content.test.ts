@@ -5,7 +5,19 @@ import { join } from "node:path";
 
 import { expect, test } from "vitest";
 
-import { DOCS_SLUGS, firstSentence, readDoc } from "./docs-content";
+import {
+  DOCS_OVERVIEW,
+  DOCS_SLUGS,
+  firstSentence,
+  readDoc,
+} from "./docs-content";
+
+test("DOCS_OVERVIEW strings are non-empty and contain no em dash", () => {
+  for (const value of Object.values(DOCS_OVERVIEW)) {
+    expect(value.length).toBeGreaterThan(0);
+    expect(value).not.toContain("\u2014");
+  }
+});
 
 test("every file in /docs is in the sidebar", () => {
   const files = readdirSync(join(process.cwd(), "docs"))

@@ -345,6 +345,7 @@ export function DocsMarkdown({
                       <span
                         aria-hidden="true"
                         className="bg-tag text-foreground mt-px flex size-[22px] shrink-0 items-center justify-center rounded-full text-[12px] leading-[17px] font-medium"
+                        data-markdown-ignore=""
                       >
                         {itemIndex + 1}
                       </span>
@@ -365,7 +366,10 @@ export function DocsMarkdown({
           case "table":
             return (
               <div key={key}>
-                <p className="text-subtle mb-2 text-[12px] leading-4 md:sr-only">
+                <p
+                  className="text-subtle mb-2 text-[12px] leading-4 md:sr-only"
+                  data-markdown-ignore=""
+                >
                   Scroll sideways for all columns
                 </p>
                 <div className="border-line overflow-x-auto rounded-lg border">

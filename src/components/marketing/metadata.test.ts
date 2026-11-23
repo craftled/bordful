@@ -76,3 +76,23 @@ test("a marketing page sets its own canonical and og:url", () => {
     title: "Pricing",
   });
 });
+
+test("markdownPath advertises the markdown alternate without it", () => {
+  const without = marketingPageMetadata({
+    description: "Guides.",
+    path: "/docs/deploy",
+    title: "Deploy | Docs",
+  });
+  expect(without.alternates).toEqual({ canonical: "/docs/deploy" });
+
+  const withMarkdown = marketingPageMetadata({
+    description: "Guides.",
+    markdownPath: "/docs/deploy.md",
+    path: "/docs/deploy",
+    title: "Deploy | Docs",
+  });
+  expect(withMarkdown.alternates).toEqual({
+    canonical: "/docs/deploy",
+    types: { "text/markdown": "/docs/deploy.md" },
+  });
+});

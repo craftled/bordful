@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-
+import { docsMarkdownPath, LLMS_TXT_PATH } from "@/lib/docs/agent-docs-paths";
 import { cn } from "@/lib/utils";
 
 import type { DocsEntry } from "./docs-content";
@@ -22,6 +22,25 @@ function GroupLabel({ children }: { children: ReactNode }) {
     <p className="text-subtle px-2 pt-3.5 pb-1 text-[11px] leading-4 font-medium">
       {children}
     </p>
+  );
+}
+
+// The agent links shared by the sidebar and the mobile nav. Plain <a>: these
+// are not App Router pages.
+function AgentLinks({ active }: { active: string }) {
+  return (
+    <>
+      <GroupLabel>For agents</GroupLabel>
+      <a className={itemClass(false)} href={LLMS_TXT_PATH}>
+        llms.txt
+      </a>
+      <a
+        className={itemClass(false)}
+        href={docsMarkdownPath(active === "" ? null : active)}
+      >
+        View as Markdown
+      </a>
+    </>
   );
 }
 
@@ -63,6 +82,7 @@ export function DocsSidebar({
           ))}
         </div>
       ))}
+      <AgentLinks active={active} />
     </nav>
   );
 }
@@ -129,6 +149,7 @@ export function DocsMobileNav({
               {byslug.get(slug)?.title ?? slug}
             </Link>
           ))}
+          <AgentLinks active={active} />
         </div>
       </details>
       {toc.length > 0 ? (
@@ -230,7 +251,10 @@ export function DocsPager({
     "ring-line-strong hover:bg-card flex w-full flex-col gap-0.5 rounded-[10px] px-3.5 py-3 ring-1 ring-inset sm:w-[300px]";
 
   return (
-    <div className="flex flex-col justify-between gap-3 pt-4 sm:flex-row">
+    <div
+      className="flex flex-col justify-between gap-3 pt-4 sm:flex-row"
+      data-markdown-ignore=""
+    >
       {previous ? (
         <Link className={card} href={previous.href}>
           <span className="text-subtle text-[11px] leading-4">Previous</span>

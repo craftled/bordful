@@ -30,6 +30,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Board search also matches location, remote region, summary and skills.
 - On Vercel, alert signup is checked by Vercel BotID. See [docs/alerts.md](docs/alerts.md).
 - `bun run bordful reset-password` gets you back into the admin after a lost password, with no email setup. It first shows the database it would change as `host:port/database` and runs only after you confirm it with `--database-host`. The admin's "Forgot password?" page now shows this command instead of a form that never sent an email. See [docs/deploy.md](docs/deploy.md#admin-sign-in).
+- bordful.com docs for AI agents. `/llms.txt` lists every docs page, each docs page has a markdown version at its URL plus `.md` (`/docs.md` for the overview), and docs URLs return markdown when a request sends `Accept: text/markdown`. Every page links to `/llms.txt`. A board with marketing off is unchanged.
 
 ### Changed
 

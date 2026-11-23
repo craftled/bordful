@@ -21,6 +21,13 @@ test("relative doc links become /docs routes", () => {
   expect(resolveDocHref("https://a.test", BASE)).toBe("https://a.test");
 });
 
+// The contract agent-docs.ts relies on for fragment links.
+test("fragment doc links keep their fragment in the /docs route", () => {
+  expect(resolveDocHref("deploy.md#environment-variables", BASE)).toBe(
+    "/docs/deploy#environment-variables"
+  );
+});
+
 test("renders headings, lists, tables, code and escapes markup", () => {
   const source = [
     "# Title",
@@ -57,6 +64,36 @@ test("renders headings, lists, tables, code and escapes markup", () => {
   expect(container.querySelector("script")).toBeNull();
   expect(container.textContent).toContain("<script>alert(1)</script>");
   expect(extractHeadings(source).map((h) => h.text)).toEqual(["Step one"]);
+});
+
+test("the ordered-list badges and the table hint are human-only", () => {
+  const source = [
+    "1. First",
+    "2. Second",
+    "",
+    "| A | B |",
+    "| --- | --- |",
+    "| `x` | y |",
+  ].join("\n");
+  const { container } = render(
+    <DocsMarkdown repoBase={BASE} source={source} />
+  );
+
+  // The number badge is ignored, the item text itself is not.
+  const badges = container.querySelectorAll(
+    "ol li > span[data-markdown-ignore]"
+  );
+  expect([...badges].map((badge) => badge.textContent)).toEqual(["1", "2"]);
+  expect(
+    screen.getByText("First").closest("[data-markdown-ignore]")
+  ).toBeNull();
+
+  // The sideways-scroll hint is ignored, the table itself is not.
+  const hint = screen.getByText("Scroll sideways for all columns");
+  expect(hint.hasAttribute("data-markdown-ignore")).toBe(true);
+  const table = screen.getByRole("table");
+  expect(table.hasAttribute("data-markdown-ignore")).toBe(false);
+  expect(table.closest("[data-markdown-ignore]")).toBeNull();
 });
 
 test("every repo doc is listed and renders", () => {

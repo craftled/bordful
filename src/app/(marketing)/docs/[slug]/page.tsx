@@ -22,6 +22,7 @@ import {
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { docsMarkdownPath } from "@/lib/docs/agent-docs-paths";
 
 export const dynamicParams = false;
 
@@ -41,6 +42,7 @@ export async function generateMetadata({
   }
   return marketingPageMetadata({
     description: docSummary(source),
+    markdownPath: docsMarkdownPath(slug),
     path: `/docs/${slug}`,
     title: `${docTitle(source, slug)} | Docs`,
   });
