@@ -43,6 +43,7 @@
         "@types/react-dom": "19.3.0",
         "@vitejs/plugin-react": "6.3.0",
         "jsdom": "31.0.1",
+        "path-to-regexp": "6.3.0",
         "tailwindcss": "4.3.5",
         "tsx": "4.23.15",
         "typescript": "7.0.2",

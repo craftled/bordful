@@ -43,6 +43,27 @@ test("the overview markdown link points at /docs.md", async () => {
   expect(markdown?.getAttribute("href")).toBe("/docs.md");
 });
 
+test("the docs pager root is human-only", async () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  const { DocsPager } = await import("./docs-layout");
+  const { container } = render(
+    <DocsPager
+      next={{ href: "/docs/deploy", label: "Deploy" }}
+      previous={{ href: "/docs", label: "Overview" }}
+    />
+  );
+
+  const pager = container.firstElementChild;
+  expect(pager?.hasAttribute("data-markdown-ignore")).toBe(true);
+  // Only the pager root carries the marker. Nothing else in the document
+  // body is ignored, so the surrounding content stays agent-readable.
+  expect(document.body.querySelectorAll("[data-markdown-ignore]")).toHaveLength(
+    1
+  );
+  expect(container.textContent).toContain("Overview");
+  expect(container.textContent).toContain("Deploy");
+});
+
 test("every doc still links its HTML page in sidebar order", async () => {
   const container = await renderSidebar("");
   const hrefs = [...container.querySelectorAll("a")]

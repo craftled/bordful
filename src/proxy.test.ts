@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
+import { match } from "path-to-regexp";
 import { expect, test } from "vitest";
 
 import { PAYLOAD_MONACO_CDN } from "@/lib/csp/build-csp";
 
 import {
   acceptsMarkdown,
+  config,
   docsMarkdownRewrite,
   hasMalformedEncoding,
   hostnameFromHostHeader,
@@ -217,6 +219,13 @@ test("acceptsMarkdown parses media ranges and q values", () => {
   expect(acceptsMarkdown("text/markdown;q=0.5")).toBe(true);
   expect(acceptsMarkdown("text/html, text/markdown;q=0")).toBe(false);
   expect(acceptsMarkdown("text/plain;q=1, text/markdown;q=0.001")).toBe(true);
+  // Media types and the q parameter name are case-insensitive per HTTP.
+  expect(acceptsMarkdown("Text/Markdown")).toBe(true);
+  expect(acceptsMarkdown("TEXT/MARKDOWN")).toBe(true);
+  expect(acceptsMarkdown("Text/Markdown; Q=0.5")).toBe(true);
+  expect(acceptsMarkdown("Text/HTML, TEXT/MARKDOWN")).toBe(true);
+  expect(acceptsMarkdown("Text/Markdown; Q=0")).toBe(false);
+  expect(acceptsMarkdown("Text/Plain, TEXT/MARKDOWN;q=0")).toBe(false);
 });
 
 test("docsMarkdownRewrite maps public docs URLs to the internal route", () => {
@@ -286,17 +295,50 @@ test("rsc-bearing client navigations are never rewritten", () => {
   });
 });
 
-test("blocks direct hits on the internal route", () => {
+test("blocks direct hits on the internal route, prefetch or not", () => {
   for (const value of ["true", "false"] as const) {
     withMarketing(value, () => {
       for (const path of ["/docs-md", "/docs-md/deploy"]) {
-        const response = run(path);
-        expect(rewritePath(response)).toBe(MALFORMED_PATH_REWRITE);
-        expect(response.headers.get("Content-Security-Policy")).toContain(
-          "default-src 'self'"
-        );
+        for (const headers of [{}, { "next-router-prefetch": "1" }]) {
+          const response = run(path, "localhost:3100", headers);
+          expect(rewritePath(response)).toBe(MALFORMED_PATH_REWRITE);
+          expect(response.headers.get("Content-Security-Policy")).toContain(
+            "default-src 'self'"
+          );
+        }
       }
     });
+  }
+});
+
+test("the matcher always covers /docs-md, other routes keep the prefetch skip", () => {
+  const prefetchSkip = (entry: (typeof config)["matcher"][number]) =>
+    typeof entry !== "string" &&
+    entry.missing?.some(
+      (condition) => condition.key === "next-router-prefetch"
+    ) === true;
+  const matches = (entry: (typeof config)["matcher"][number], path: string) =>
+    match(typeof entry === "string" ? entry : entry.source)(path) !== false;
+
+  // Direct /docs-md hits must match an entry that does not require the
+  // prefetch header to be missing.
+  for (const path of ["/docs-md", "/docs-md/deploy"]) {
+    const entries = config.matcher.filter((entry) => matches(entry, path));
+    expect(entries.length, path).toBeGreaterThan(0);
+    expect(
+      entries.some((entry) => !prefetchSkip(entry)),
+      path
+    ).toBe(true);
+  }
+
+  // Other routes still rely only on the prefetch-skip entry.
+  for (const path of ["/docs", "/jobs", "/docs/deploy.md"]) {
+    const entries = config.matcher.filter((entry) => matches(entry, path));
+    expect(entries.length, path).toBeGreaterThan(0);
+    expect(
+      entries.every((entry) => prefetchSkip(entry)),
+      path
+    ).toBe(true);
   }
 });
 

@@ -74,7 +74,7 @@ function isApiPath(pathname: string): boolean {
 
 const DOCS_MARKDOWN_URL = /^\/docs(?:\/(?<slug>[a-z0-9-]+))?\.md$/u;
 const DOCS_HTML_URL = /^\/docs(?:\/(?<slug>[a-z0-9-]+))?\/?$/u;
-const Q_PARAM = /^q\s*=\s*(?<q>\S+)$/u;
+const Q_PARAM = /^q\s*=\s*(?<q>\S+)$/iu;
 
 // True when any media range is text/markdown with q > 0. Browsers never send
 // text/markdown, so no text/html comparison is needed.
@@ -84,7 +84,8 @@ export function acceptsMarkdown(accept: string | null): boolean {
   }
   for (const part of accept.split(",")) {
     const [mediaType, ...params] = part.trim().split(";");
-    if ((mediaType ?? "").trim() !== "text/markdown") {
+    // Media types and parameter names are case-insensitive per HTTP.
+    if ((mediaType ?? "").trim().toLowerCase() !== "text/markdown") {
       continue;
     }
     let q = 1;
@@ -197,6 +198,11 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Direct hits on /docs-md must always run the proxy, prefetch or not, so
+    // they are rewritten to the 404 page and get the CSP instead of serving
+    // 200 markdown without it.
+    "/docs-md",
+    "/docs-md/:path*",
     {
       missing: [{ key: "next-router-prefetch", type: "header" }],
       // Static files and prefetches skip the nonce. /api and /admin stay covered.
