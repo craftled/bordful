@@ -251,7 +251,10 @@ export function DocsPager({
     "ring-line-strong hover:bg-card flex w-full flex-col gap-0.5 rounded-[10px] px-3.5 py-3 ring-1 ring-inset sm:w-[300px]";
 
   return (
-    <div className="flex flex-col justify-between gap-3 pt-4 sm:flex-row">
+    <div
+      className="flex flex-col justify-between gap-3 pt-4 sm:flex-row"
+      data-markdown-ignore=""
+    >
       {previous ? (
         <Link className={card} href={previous.href}>
           <span className="text-subtle text-[11px] leading-4">Previous</span>
