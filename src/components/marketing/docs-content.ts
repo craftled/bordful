@@ -6,6 +6,14 @@ import { join } from "node:path";
 
 export const DOCS_REPO_BASE = "https://github.com/craftled/bordful/blob/main";
 
+// Shared by the React overview and /docs.md so the two cannot drift.
+export const DOCS_OVERVIEW = {
+  description:
+    "Guides for deploying, configuring, theming and extending a Bordful job board.",
+  lede: "Everything you need to deploy a Bordful board, connect Bordfeed, and make it yours.",
+  title: "Documentation",
+} as const;
+
 export interface DocsGroup {
   slugs: string[];
   title: string;

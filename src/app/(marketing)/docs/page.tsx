@@ -12,15 +12,18 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { firstSentence, listDocs } from "@/components/marketing/docs-content";
+import {
+  DOCS_OVERVIEW,
+  firstSentence,
+  listDocs,
+} from "@/components/marketing/docs-content";
 import { DocsFrame } from "@/components/marketing/docs-layout";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 
 export const metadata: Metadata = marketingPageMetadata({
-  description:
-    "Guides for deploying, configuring, theming and extending a Bordful job board.",
+  description: DOCS_OVERVIEW.description,
   path: "/docs",
   title: "Docs",
 });
@@ -50,11 +53,10 @@ export default function DocsHomePage() {
           Docs
         </p>
         <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.03em] md:text-[34px] md:leading-10">
-          Documentation
+          {DOCS_OVERVIEW.title}
         </h1>
         <p className="text-muted-foreground text-[16px] leading-6 md:leading-[25px]">
-          Everything you need to deploy a Bordful board, connect Bordfeed, and
-          make it yours.
+          {DOCS_OVERVIEW.lede}
         </p>
       </div>
       <ul className="bg-card ring-line flex flex-col overflow-hidden rounded-[14px] ring-1 md:hidden">
