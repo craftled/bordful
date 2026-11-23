@@ -4,6 +4,7 @@ import { bordfulConfig } from "@/config";
 import { isMarketingEnabled } from "@/config/flags";
 import { buildCsp } from "@/lib/csp/build-csp";
 import { createNonce } from "@/lib/csp/nonce";
+import { DOCS_MARKDOWN_ROUTE } from "@/lib/docs/agent-docs-paths";
 import { sentryConnectOrigins, sentryWorkerSources } from "@/lib/sentry/config";
 import { BORDFUL_ICON } from "@/lib/seo/icons";
 
@@ -71,6 +72,59 @@ function isApiPath(pathname: string): boolean {
   return pathname === "/api" || pathname.startsWith("/api/");
 }
 
+const DOCS_MARKDOWN_URL = /^\/docs(?:\/(?<slug>[a-z0-9-]+))?\.md$/u;
+const DOCS_HTML_URL = /^\/docs(?:\/(?<slug>[a-z0-9-]+))?\/?$/u;
+const Q_PARAM = /^q\s*=\s*(?<q>\S+)$/u;
+
+// True when any media range is text/markdown with q > 0. Browsers never send
+// text/markdown, so no text/html comparison is needed.
+export function acceptsMarkdown(accept: string | null): boolean {
+  if (accept === null) {
+    return false;
+  }
+  for (const part of accept.split(",")) {
+    const [mediaType, ...params] = part.trim().split(";");
+    if ((mediaType ?? "").trim() !== "text/markdown") {
+      continue;
+    }
+    let q = 1;
+    for (const param of params) {
+      const match = Q_PARAM.exec(param.trim());
+      const value = match?.groups?.q;
+      if (value !== undefined) {
+        q = Number.parseFloat(value);
+      }
+    }
+    if (q > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// "/docs-md" or "/docs-md/<slug>" for /docs.md, /docs/<slug>.md and for
+// /docs, /docs/<slug> when acceptsMarkdown(accept). Otherwise null.
+export function docsMarkdownRewrite(
+  pathname: string,
+  accept: string | null
+): string | null {
+  const markdown = DOCS_MARKDOWN_URL.exec(pathname);
+  const html = markdown ? null : DOCS_HTML_URL.exec(pathname);
+  const slug = (markdown ?? html)?.groups?.slug;
+  if (!markdown && (html === null || !acceptsMarkdown(accept))) {
+    return null;
+  }
+  return slug ? `${DOCS_MARKDOWN_ROUTE}/${slug}` : DOCS_MARKDOWN_ROUTE;
+}
+
+// Direct hits on the internal route never reach the handler.
+export function isInternalDocsMarkdownPath(pathname: string): boolean {
+  return (
+    pathname === DOCS_MARKDOWN_ROUTE ||
+    pathname.startsWith(`${DOCS_MARKDOWN_ROUTE}/`)
+  );
+}
+
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
@@ -96,6 +150,19 @@ export function proxy(request: NextRequest) {
       : NextResponse.next();
   }
 
+  // Markdown requests are rewritten to the internal route; the handler is
+  // unit tested in src/app/docs-md. rsc-bearing client navigations stay with
+  // the App Router so it never receives markdown.
+  if (isMarketingEnabled() && request.headers.get("rsc") === null) {
+    const markdown = docsMarkdownRewrite(
+      pathname,
+      request.headers.get("accept")
+    );
+    if (markdown) {
+      return NextResponse.rewrite(new URL(markdown, request.url));
+    }
+  }
+
   const nonce = createNonce();
   const isDev = process.env.NODE_ENV !== "production";
   const csp = buildCsp({
@@ -119,9 +186,10 @@ export function proxy(request: NextRequest) {
   requestHeaders.set("content-security-policy", csp);
 
   const init = { request: { headers: requestHeaders } };
-  const response = hasMalformedEncoding(pathname)
-    ? NextResponse.rewrite(new URL(MALFORMED_PATH_REWRITE, request.url), init)
-    : NextResponse.next(init);
+  const response =
+    hasMalformedEncoding(pathname) || isInternalDocsMarkdownPath(pathname)
+      ? NextResponse.rewrite(new URL(MALFORMED_PATH_REWRITE, request.url), init)
+      : NextResponse.next(init);
   response.headers.set("Content-Security-Policy", csp);
 
   return response;

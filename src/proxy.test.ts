@@ -4,8 +4,11 @@ import { expect, test } from "vitest";
 import { PAYLOAD_MONACO_CDN } from "@/lib/csp/build-csp";
 
 import {
+  acceptsMarkdown,
+  docsMarkdownRewrite,
   hasMalformedEncoding,
   hostnameFromHostHeader,
+  isInternalDocsMarkdownPath,
   MALFORMED_PATH_REWRITE,
   proxy,
   shouldRedirectVercelAppHost,
@@ -20,10 +23,20 @@ const MALFORMED = [
   "/jobs/type/%E0%A4%A",
 ];
 
-function run(path: string, host = "localhost:3100") {
+const BROWSER_ACCEPT =
+  "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+
+function run(path: string, host = "localhost:3100", headers = {}) {
   return proxy(
-    new NextRequest(`http://localhost:3100${path}`, { headers: { host } })
+    new NextRequest(`http://localhost:3100${path}`, {
+      headers: { host, ...headers },
+    })
   );
+}
+
+function rewritePath(response: Response): string | null {
+  const rewrite = response.headers.get("x-middleware-rewrite");
+  return rewrite === null ? null : new URL(rewrite).pathname;
 }
 
 function styleSrc(csp: string | null): string {
@@ -191,6 +204,112 @@ test("a fork leaves /favicon.ico alone", () => {
   withMarketing("false", () => {
     const response = run("/favicon.ico");
     expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+});
+
+test("acceptsMarkdown parses media ranges and q values", () => {
+  expect(acceptsMarkdown(null)).toBe(false);
+  expect(acceptsMarkdown(BROWSER_ACCEPT)).toBe(false);
+  expect(acceptsMarkdown("*/*")).toBe(false);
+  expect(acceptsMarkdown("text/markdown")).toBe(true);
+  expect(acceptsMarkdown("text/markdown, text/html;q=0.9")).toBe(true);
+  expect(acceptsMarkdown("text/markdown;q=0.5")).toBe(true);
+  expect(acceptsMarkdown("text/html, text/markdown;q=0")).toBe(false);
+  expect(acceptsMarkdown("text/plain;q=1, text/markdown;q=0.001")).toBe(true);
+});
+
+test("docsMarkdownRewrite maps public docs URLs to the internal route", () => {
+  expect(docsMarkdownRewrite("/docs.md", null)).toBe("/docs-md");
+  expect(docsMarkdownRewrite("/docs/deploy.md", null)).toBe("/docs-md/deploy");
+  expect(docsMarkdownRewrite("/docs/nope.md", null)).toBe("/docs-md/nope");
+  expect(docsMarkdownRewrite("/docs", "text/markdown")).toBe("/docs-md");
+  expect(docsMarkdownRewrite("/docs/deploy", "text/markdown")).toBe(
+    "/docs-md/deploy"
+  );
+  expect(docsMarkdownRewrite("/docs", BROWSER_ACCEPT)).toBeNull();
+  expect(docsMarkdownRewrite("/docs/deploy", BROWSER_ACCEPT)).toBeNull();
+  expect(docsMarkdownRewrite("/docs/Deploy.md", null)).toBeNull();
+  expect(docsMarkdownRewrite("/docs/a/b.md", null)).toBeNull();
+  expect(docsMarkdownRewrite("/docs-md/deploy", "text/markdown")).toBeNull();
+});
+
+test("isInternalDocsMarkdownPath matches only the internal route", () => {
+  expect(isInternalDocsMarkdownPath("/docs-md")).toBe(true);
+  expect(isInternalDocsMarkdownPath("/docs-md/deploy")).toBe(true);
+  expect(isInternalDocsMarkdownPath("/docs-md/")).toBe(true);
+  expect(isInternalDocsMarkdownPath("/docs")).toBe(false);
+  expect(isInternalDocsMarkdownPath("/docs/deploy.md")).toBe(false);
+  expect(isInternalDocsMarkdownPath("/docsmd")).toBe(false);
+});
+
+test("rewrites markdown URLs to the internal route when marketing is on", () => {
+  withMarketing("true", () => {
+    for (const [path, expected] of [
+      ["/docs.md", "/docs-md"],
+      ["/docs/deploy.md", "/docs-md/deploy"],
+      ["/docs/nope.md", "/docs-md/nope"],
+    ] as const) {
+      expect(rewritePath(run(path))).toBe(expected);
+    }
+    for (const path of ["/docs", "/docs/deploy"]) {
+      expect(
+        rewritePath(run(path, "localhost:3100", { accept: "text/markdown" }))
+      ).toBe(path === "/docs" ? "/docs-md" : "/docs-md/deploy");
+    }
+  });
+});
+
+test("browser Accept on docs pages passes through with the CSP", () => {
+  withMarketing("true", () => {
+    for (const path of ["/docs", "/docs/deploy"]) {
+      const response = run(path, "localhost:3100", {
+        accept: BROWSER_ACCEPT,
+      });
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+      expect(response.headers.get("Content-Security-Policy")).toContain(
+        "default-src 'self'"
+      );
+    }
+  });
+});
+
+test("rsc-bearing client navigations are never rewritten", () => {
+  withMarketing("true", () => {
+    const response = run("/docs", "localhost:3100", {
+      accept: "text/markdown",
+      rsc: "1",
+    });
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+});
+
+test("blocks direct hits on the internal route", () => {
+  for (const value of ["true", "false"] as const) {
+    withMarketing(value, () => {
+      for (const path of ["/docs-md", "/docs-md/deploy"]) {
+        const response = run(path);
+        expect(rewritePath(response)).toBe(MALFORMED_PATH_REWRITE);
+        expect(response.headers.get("Content-Security-Policy")).toContain(
+          "default-src 'self'"
+        );
+      }
+    });
+  }
+});
+
+test("a fork never rewrites markdown URLs", () => {
+  withMarketing("false", () => {
+    for (const path of ["/docs/deploy.md", "/docs.md"]) {
+      expect(rewritePath(run(path))).toBeNull();
+      expect(run(path).headers.get("x-middleware-next")).toBe("1");
+    }
+    const response = run("/docs", "localhost:3100", {
+      accept: "text/markdown",
+    });
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 });
