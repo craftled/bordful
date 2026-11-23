@@ -21,9 +21,11 @@ import { DocsFrame } from "@/components/marketing/docs-layout";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { docsMarkdownPath } from "@/lib/docs/agent-docs-paths";
 
 export const metadata: Metadata = marketingPageMetadata({
   description: DOCS_OVERVIEW.description,
+  markdownPath: docsMarkdownPath(null),
   path: "/docs",
   title: "Docs",
 });

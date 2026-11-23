@@ -21,6 +21,13 @@ test("relative doc links become /docs routes", () => {
   expect(resolveDocHref("https://a.test", BASE)).toBe("https://a.test");
 });
 
+// The contract agent-docs.ts relies on for fragment links.
+test("fragment doc links keep their fragment in the /docs route", () => {
+  expect(resolveDocHref("deploy.md#environment-variables", BASE)).toBe(
+    "/docs/deploy#environment-variables"
+  );
+});
+
 test("renders headings, lists, tables, code and escapes markup", () => {
   const source = [
     "# Title",

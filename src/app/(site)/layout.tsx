@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
-
+import { LlmsTxtPointer } from "@/components/llms-txt-pointer";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { isMarketingEnabled } from "@/config/flags";
 import { getSiteSettings } from "@/lib/read";
@@ -39,7 +39,10 @@ export default async function SiteLayout({
         <ThemeScript nonce={nonce} />
         <style nonce={nonce}>{`:root{${css}}`}</style>
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <LlmsTxtPointer />
+        {children}
+      </body>
     </html>
   );
 }
