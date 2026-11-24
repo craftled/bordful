@@ -15,20 +15,20 @@ import {
 import { companiesFromPool } from "@/lib/board/companies";
 import { filterBoard } from "@/lib/board/filter";
 import { formatLocation, formatSalary } from "@/lib/board/format";
+import type { TaxonomyKind } from "@/lib/board/paths";
 import {
   buildBoardPagePath,
   buildCompanyPath,
   buildJobPath,
-  type TaxonomyKind,
 } from "@/lib/board/paths";
 import { loadBoardPool } from "@/lib/board/pool";
 import { parseBoardQuery } from "@/lib/board/query";
 import { countTaxonomy, filterByTaxonomy } from "@/lib/board/taxonomy";
 import { buildBoardView } from "@/lib/board/view";
+import type { JobEmploymentType } from "@/lib/domain/job-vocab";
 import {
   JOB_EMPLOYMENT_LABELS,
   JOB_WORKPLACE_LABELS,
-  type JobEmploymentType,
 } from "@/lib/domain/job-vocab";
 import { getSiteSettings } from "@/lib/read";
 import { companyStatsFromPool } from "@/lib/read/company-stats";

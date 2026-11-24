@@ -8,12 +8,12 @@ import { MarketingCta } from "./marketing-cta";
 import { MarketingImage } from "./marketing-image";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
-import type { ShowcaseEntry } from "./showcase-entries";
 import {
   SHOWCASE_GROUPS,
   SHOWCASE_PAGE_CTA,
   SHOWCASE_SECTION_HEADER,
 } from "./showcase-content";
+import type { ShowcaseEntry } from "./showcase-entries";
 import {
   SHOWCASE_COMMUNITY,
   SHOWCASE_DEMO,

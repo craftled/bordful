@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Container } from "@/components/marketing/container";
-import {
-  ABOUT_CONTENT,
-  type LegalPart,
-} from "@/components/marketing/legal-content";
+import type { LegalPart } from "@/components/marketing/legal-content";
+import { ABOUT_CONTENT } from "@/components/marketing/legal-content";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";

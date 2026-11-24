@@ -172,14 +172,17 @@ test("404s in plain text when marketing is off", async () => {
   expect(await response.text()).toBe("Not found\n");
 });
 
-test("generateStaticParams lists the static pages only", async () => {
-  vi.stubEnv("BORDFUL_MARKETING", "true");
-  const { generateStaticParams } = await import("./route");
-  const params = generateStaticParams();
-  const paths = params.map((entry) => entry.path.join("/"));
-  expect(paths).toContain("index");
-  expect(paths).toContain("pricing");
-  expect(paths).toContain("alternatives/wp-job-manager");
-  expect(paths).not.toContain("jobs");
-  expect(paths).not.toContain("companies");
+test("every agent markdown route renders per request", async () => {
+  // A build-time render froze the marketing gate to the build's env, so one
+  // build served to a marketing and a fork server answered both the same way.
+  const routes = await Promise.all([
+    import("./route"),
+    import("@/app/docs-md/[[...slug]]/route"),
+    import("@/app/llms.txt/route"),
+    import("@/app/llms-full.txt/route"),
+  ]);
+  for (const route of routes) {
+    expect(route.dynamic).toBe("force-dynamic");
+    expect("generateStaticParams" in route).toBe(false);
+  }
 });

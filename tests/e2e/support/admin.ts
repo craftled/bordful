@@ -43,12 +43,16 @@ async function adminToken(request: APIRequestContext): Promise<string> {
   return token;
 }
 
+// baseURL picks the server the returned context writes through. Each server
+// process keeps its own read cache and a write only revalidates the process
+// that served it, so seed through the server the test then reads from.
 export async function ensureAdmin(
-  request: APIRequestContext
+  request: APIRequestContext,
+  baseURL: string = appBaseUrl()
 ): Promise<APIRequestContext> {
   const token = await adminToken(request);
   return playwrightRequest.newContext({
-    baseURL: appBaseUrl(),
+    baseURL,
     extraHTTPHeaders: { authorization: `JWT ${token}` },
   });
 }

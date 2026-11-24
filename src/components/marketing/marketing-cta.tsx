@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Fragment } from "react";
 
 import { Button } from "@/components/ui/button";
 

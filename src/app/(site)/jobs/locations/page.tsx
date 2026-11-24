@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 
 import { BoardShell } from "@/components/board/board-shell";
 import { TaxonomyIndex } from "@/components/board/taxonomy-index";
-import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { boardMarkdownAlternate } from "@/lib/docs/markdown-alternate";
 
-export const metadata: Metadata = {
-  alternates: {
-    canonical: "/jobs/locations",
-    types: { "text/markdown": markdownPathFor("/jobs/locations") },
-  },
-  title: "Jobs by location",
-};
+export function generateMetadata(): Metadata {
+  return {
+    alternates: {
+      canonical: "/jobs/locations",
+      types: boardMarkdownAlternate("/jobs/locations"),
+    },
+    title: "Jobs by location",
+  };
+}
 
 export default function LocationIndexPage() {
   return (

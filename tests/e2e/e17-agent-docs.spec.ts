@@ -1,4 +1,5 @@
-import { type APIResponse, expect, test } from "@playwright/test";
+import type { APIResponse } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { ensureAdmin } from "./support/admin";
 import { createJob, deleteWhere, readGlobal } from "./support/seed";
@@ -271,8 +272,10 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
 
     // Local isolated test database: seed past the board's jobs-per-page
     // setting (read from the settings global, never hard-coded, never
-    // lowered), so the first markdown page must overflow.
-    const admin = await ensureAdmin(request);
+    // lowered), so the first markdown page must overflow. Seed through the
+    // marketing server: /jobs.md is read there, and a write through the fork
+    // server would only revalidate the fork server's cached job list.
+    const admin = await ensureAdmin(request, marketingBase());
     try {
       const settings = await readGlobal(admin, "site-settings");
       const { board } = settings;
@@ -328,7 +331,12 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
       ).toBeGreaterThanOrEqual(2);
 
       // Follow the emitted affordance itself, never a hard-coded page URL.
-      const page = await request.get(moreUrl, {
+      // It is absolute on the configured site origin, which the e2e config
+      // gives both servers. Locally that origin is the fork server, whose
+      // cached job list never saw the jobs seeded through the marketing
+      // server, so follow the path on the server that emitted it.
+      expect(moreUrl.startsWith(`${siteOrigin()}/`), moreUrl).toBe(true);
+      const page = await request.get(marketingUrl(new URL(moreUrl).pathname), {
         headers: { Accept: MARKDOWN_TYPE },
       });
       expect(page.status(), "the overflow link is never a 404").toBe(200);

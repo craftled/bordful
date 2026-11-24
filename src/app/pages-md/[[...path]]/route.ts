@@ -5,25 +5,16 @@ import {
   boardPageMarkdown,
 } from "@/lib/docs/agent-board-pages";
 import { AGENT_DOCS_CACHE_CONTROL, notFoundText } from "@/lib/docs/agent-docs";
-import {
-  BOARD_AGENT_PAGE_PATHS,
-  STATIC_AGENT_PAGE_PATHS,
-} from "@/lib/docs/agent-docs-paths";
+import { BOARD_AGENT_PAGE_PATHS } from "@/lib/docs/agent-docs-paths";
 import { pageMarkdown } from "@/lib/docs/agent-pages";
 
 // Internal route the proxy rewrites markdown requests to. Public URLs never
-// point here. generateStaticParams covers the static marketing pages only:
-// the board pages stay dynamic so a static build never opens the database
-// (see the comment in src/app/sitemap.ts). dynamicParams stays at its default
-// (true) so an unknown path reaches this handler and gets a plain-text 404,
-// not the HTML 404 page.
-const LEADING_SLASH = /^\//u;
-
-export function generateStaticParams() {
-  return STATIC_AGENT_PAGE_PATHS.map((path) => ({
-    path: path === "/" ? ["index"] : path.replace(LEADING_SLASH, "").split("/"),
-  }));
-}
+// point here. Rendered per request, with no generateStaticParams: the
+// marketing gate then reads the runtime env, a static build never opens the
+// database for the board pages (see src/app/sitemap.ts), board markdown is
+// never frozen in a cache, and an unknown path reaches this handler for a
+// plain-text 404, not the HTML 404 page.
+export const dynamic = "force-dynamic";
 
 function notFoundResponse(): Response {
   return new Response(notFoundText(), {

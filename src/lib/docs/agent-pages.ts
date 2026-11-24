@@ -55,10 +55,12 @@ import {
   HOME_TIMELINE,
   HOME_WALKTHROUGH,
 } from "@/components/marketing/home-content";
+import type {
+  LegalPageContent,
+  LegalPart,
+} from "@/components/marketing/legal-content";
 import {
   ABOUT_CONTENT,
-  type LegalPageContent,
-  type LegalPart,
   PRIVACY_CONTENT,
   TERMS_CONTENT,
 } from "@/components/marketing/legal-content";
@@ -75,11 +77,11 @@ import {
   SHOWCASE_PAGE_CTA,
   SHOWCASE_PAGE_HEADER,
 } from "@/components/marketing/showcase-content";
+import type { ShowcaseEntry } from "@/components/marketing/showcase-entries";
 import {
   SHOWCASE_COMMUNITY,
   SHOWCASE_DEMO,
   SHOWCASE_TEAM,
-  type ShowcaseEntry,
 } from "@/components/marketing/showcase-entries";
 import {
   GITHUB_URL,

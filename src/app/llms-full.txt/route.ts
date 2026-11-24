@@ -6,10 +6,9 @@ import {
   notFoundText,
 } from "@/lib/docs/agent-docs";
 
-// Static on the CDN; a deploy refreshes it. The marketing gate is fixed at
-// build time, the same as llms.txt: the build must see BORDFUL_MARKETING=true
-// and the right NEXT_PUBLIC_SERVER_URL.
-export const dynamic = "force-static";
+// Rendered per request so the marketing gate reads the runtime env, the same
+// as llms.txt.
+export const dynamic = "force-dynamic";
 
 function notFoundResponse(): Response {
   return new Response(notFoundText(), {
