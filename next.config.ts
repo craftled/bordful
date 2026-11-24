@@ -76,15 +76,13 @@ const nextConfig: NextConfig = {
     globalNotFound: true,
   },
   async headers() {
-    // The app router owns the Vary header on HTML pages (rsc, router state)
-    // and replaces anything the proxy sets there, so the Accept token for
-    // content negotiation rides in a headers() entry as well. Generated
-    // from agent-docs-paths.ts, never hand listed, so a new negotiated page
-    // cannot be forgotten: locally these entries merge into the markdown
-    // routes' own Vary. On Vercel the edge is expected to apply them to the
-    // final HTML responses after the function, but that is not yet verified
-    // against a deployment: nothing has been deployed from this branch, and
-    // the PR keeps a post-deploy curl -sI check as a release gate for it.
+    // Vary: Accept for every negotiated path, generated from
+    // agent-docs-paths.ts so a new page cannot be forgotten. It reaches the
+    // markdown responses, which set it themselves too. It does not reach
+    // the HTML pages, locally or on Vercel: Next's app-page handler calls
+    // res.setHeader("Vary", ...) with its router tokens after routing
+    // headers apply (vercel/next.js#85999, checked on bordful.com). The HTML
+    // is private, no-store, so no shared cache can mix the two variants.
     const negotiated = [
       ...DOCS_HTML_URL_PATTERNS,
       ...AGENT_PAGE_PATHS.map((path) => path.replaceAll(".", "\\.")),
