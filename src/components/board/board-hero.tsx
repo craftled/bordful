@@ -2,7 +2,7 @@ import { companiesFromPool } from "@/lib/board/companies";
 import { formatRelativePosted } from "@/lib/board/format";
 import type { JobListItem } from "@/lib/read/types";
 
-const DEFAULT_TITLE = "Latest jobs";
+export const DEFAULT_BOARD_TITLE = "Latest jobs";
 const TRENDING_LIMIT = 3;
 
 export interface HeroStats {
@@ -64,7 +64,7 @@ export function BoardHero({
   return (
     <header className="space-y-1 px-3 pt-2 pb-1" data-testid={testId}>
       <Heading className="text-foreground text-[15px] leading-5 font-medium">
-        {title || DEFAULT_TITLE}
+        {title || DEFAULT_BOARD_TITLE}
       </Heading>
       {intro ? (
         <p className="text-subtle max-w-2xl text-[12px] leading-4">{intro}</p>

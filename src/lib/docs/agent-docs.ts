@@ -128,12 +128,18 @@ export function docMarkdown(slug: string, siteUrl: string): string | null {
   if (h1 === -1) {
     return `${llmsTxtDirective(siteUrl)}\n\n${body}`;
   }
+  // The doc's own blank line after the H1 is dropped so the directive is
+  // framed by exactly one blank line on each side.
+  let rest = h1 + 1;
+  while (rest < lines.length && (lines[rest] ?? "").trim() === "") {
+    rest += 1;
+  }
   return [
     ...lines.slice(0, h1 + 1),
     "",
     llmsTxtDirective(siteUrl),
     "",
-    ...lines.slice(h1 + 1),
+    ...lines.slice(rest),
   ].join("\n");
 }
 
