@@ -158,11 +158,11 @@ export function mergeVary(vary: string | null, token: string): string {
   return [...tokens].join(", ");
 }
 
-// "/pages-md/<path>" for the ".md` URL of a marketing or board index page
-// ("/pricing.md", "/index.md", "/alternatives/wp-job-manager.md"), and for
-// its HTML URL ("/pricing", "/", "/alternatives/wp-job-manager") when
-// acceptsMarkdown(accept). Docs paths go through docsMarkdownRewrite first.
-// Otherwise null.
+// "/pages-md/<path>" for every ".md" URL (known pages serve markdown, the
+// rest get the route's plain-text 404) and for the HTML URL of a page with a
+// markdown version ("/pricing", "/", "/alternatives/wp-job-manager") when
+// acceptsMarkdown(accept). Docs paths go through docsMarkdownRewrite
+// first. Otherwise null.
 export function markdownRewrite(
   pathname: string,
   accept: string | null
@@ -172,7 +172,7 @@ export function markdownRewrite(
     return docs;
   }
   const htmlOfMd = htmlPathFor(pathname);
-  if (htmlOfMd !== null && isAgentPagePath(htmlOfMd)) {
+  if (htmlOfMd !== null) {
     return pagesMarkdownRoutePath(htmlOfMd);
   }
   if (isAgentPagePath(pathname) && acceptsMarkdown(accept)) {

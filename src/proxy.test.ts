@@ -380,11 +380,24 @@ test("markdownRewrite maps agent page URLs to the internal route", () => {
   expect(markdownRewrite("/jobs", "text/markdown")).toBe("/pages-md/jobs");
   expect(markdownRewrite("/pricing", BROWSER_ACCEPT)).toBeNull();
   expect(markdownRewrite("/jobs/types", BROWSER_ACCEPT)).toBeNull();
-  // Not a page with a markdown version.
-  expect(markdownRewrite("/nonexistent.md", null)).toBeNull();
-  expect(markdownRewrite("/jobs/some-role.md", null)).toBeNull();
-  expect(markdownRewrite("/companies/acme.md", null)).toBeNull();
-  expect(markdownRewrite("/jobs/type/full-time.md", null)).toBeNull();
+  // Unknown .md URLs still route to the pages handler, which 404s them in
+  // plain text; only URLs that are not markdown requests at all pass through.
+  expect(markdownRewrite("/nonexistent.md", null)).toBe(
+    "/pages-md/nonexistent"
+  );
+  expect(markdownRewrite("/jobs/some-role.md", null)).toBe(
+    "/pages-md/jobs/some-role"
+  );
+  expect(markdownRewrite("/companies/acme.md", null)).toBe(
+    "/pages-md/companies/acme"
+  );
+  expect(markdownRewrite("/jobs/type/full-time.md", null)).toBe(
+    "/pages-md/jobs/type/full-time"
+  );
+  expect(markdownRewrite("/nonexistent", null)).toBeNull();
+  expect(markdownRewrite("/pricing", BROWSER_ACCEPT)).toBeNull();
+  expect(markdownRewrite("/.md", null)).toBeNull();
+  expect(markdownRewrite("/pricing.html", null)).toBeNull();
   // Docs still go through docsMarkdownRewrite.
   expect(markdownRewrite("/docs.md", null)).toBe("/docs-md");
   expect(markdownRewrite("/docs/deploy", "text/markdown")).toBe(
