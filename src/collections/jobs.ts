@@ -1,8 +1,5 @@
-import {
-  type CollectionBeforeChangeHook,
-  type CollectionConfig,
-  ValidationError,
-} from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import { ValidationError } from "payload";
 import { jobsRead } from "@/access/jobs";
 import {
   denyAuthenticated,

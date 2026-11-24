@@ -1,9 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import type { ChangeEvent, SyntheticEvent } from "react";
 import {
-  type ChangeEvent,
-  type SyntheticEvent,
   useActionState,
   useCallback,
   useEffect,

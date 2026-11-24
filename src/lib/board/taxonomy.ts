@@ -1,26 +1,21 @@
 import type { Metadata } from "next";
 
 import { resolveServerUrl } from "@/config/server-url";
+import type {
+  JobCareerLevel,
+  JobEmploymentType,
+  JobSeniority,
+} from "@/lib/domain/job-vocab";
 import {
   CAREER_LEVELS,
   JOB_EMPLOYMENT_LABELS,
   JOB_EMPLOYMENT_TYPES,
-  type JobCareerLevel,
-  type JobEmploymentType,
-  type JobSeniority,
 } from "@/lib/domain/job-vocab";
 import type { JobListItem } from "@/lib/read/types";
-
-import {
-  buildTaxonomyArchivePath,
-  slugifyTaxonomyValue,
-  type TaxonomyKind,
-} from "./paths";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  parseBoardQuery,
-} from "./query";
+import type { TaxonomyKind } from "./paths";
+import { buildTaxonomyArchivePath, slugifyTaxonomyValue } from "./paths";
+import type { BoardQuery, BoardQueryOptions } from "./query";
+import { parseBoardQuery } from "./query";
 
 export type { TaxonomyKind } from "./paths";
 

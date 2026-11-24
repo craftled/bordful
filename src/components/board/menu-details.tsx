@@ -1,6 +1,7 @@
 "use client";
 
-import { type ComponentProps, useEffect, useRef } from "react";
+import type { ComponentProps } from "react";
+import { useEffect, useRef } from "react";
 
 const OPEN_MENUS = "details[data-menu][open]";
 

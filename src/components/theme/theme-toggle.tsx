@@ -3,12 +3,11 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
-
+import type { ThemePreference } from "./theme-preference";
 import {
   nextThemePreference,
   parseThemePreference,
   THEME_STORAGE_KEY,
-  type ThemePreference,
 } from "./theme-preference";
 
 const listeners = new Set<() => void>();

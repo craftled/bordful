@@ -5,7 +5,8 @@ import { READ_TAGS } from "@/lib/read/tags";
 
 import type { ConnectionRecord } from "./connection-machine";
 import { dispatchConnectionEvent, readConnection } from "./connection-store";
-import { runSampleSync, type SyncSummary } from "./sync";
+import type { SyncSummary } from "./sync";
+import { runSampleSync } from "./sync";
 import { acquireSyncLease, releaseSyncLease } from "./sync-budget";
 
 // The first boot has not landed a sample sync yet. A failed cron after a

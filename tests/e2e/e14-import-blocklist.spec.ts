@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
-
-import { expect, type Page, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { ensureAdmin, loginInBrowser } from "./support/admin";
 import { mockOrigin } from "./support/mock";

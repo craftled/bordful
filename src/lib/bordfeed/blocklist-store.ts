@@ -1,10 +1,8 @@
 import type { Payload, PayloadRequest } from "payload";
 
 import type { Job } from "@/payload-types";
-
+import type { BlockableJob, Blocklist } from "./blocklist";
 import {
-  type BlockableJob,
-  type Blocklist,
   EMPTY_BLOCKLIST,
   isBlocked,
   isEmptyBlocklist,

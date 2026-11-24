@@ -2,7 +2,8 @@ import type { Payload } from "payload";
 import { bordfulConfig } from "@/config";
 
 import { resolveBordfeedBaseUrl } from "./base-url";
-import { type BordfeedClient, createBordfeedClient } from "./client";
+import type { BordfeedClient } from "./client";
+import { createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
 import type { ConnectionRecord } from "./connection-machine";
 import { readConnection } from "./connection-store";

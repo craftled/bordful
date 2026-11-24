@@ -1,6 +1,6 @@
 import { initBotId } from "botid/client/core";
-
-import { clientInitOptions, type EnvRecord } from "@/lib/sentry/config";
+import type { EnvRecord } from "@/lib/sentry/config";
+import { clientInitOptions } from "@/lib/sentry/config";
 
 // BotID only works on Vercel: off Vercel its challenge script 404s and the
 // protected fetch rejects, which would break signup on self-hosted forks.

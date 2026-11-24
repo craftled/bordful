@@ -8,7 +8,8 @@ import {
   useFormFields,
 } from "@payloadcms/ui";
 import type { TextFieldClientProps } from "payload";
-import { type ChangeEvent, useCallback } from "react";
+import type { ChangeEvent } from "react";
+import { useCallback } from "react";
 
 import { pairedColorKey } from "@/theme/contrast";
 

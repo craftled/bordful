@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 
 import { BoardShell } from "@/components/board/board-shell";
-import {
-  CompanyDirectory,
-  type CompanyDirectoryRow,
-} from "@/components/board/company-directory";
+import type { CompanyDirectoryRow } from "@/components/board/company-directory";
+import { CompanyDirectory } from "@/components/board/company-directory";
 import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import { companiesFromPool } from "@/lib/board/companies";
 import { loadBoardPool } from "@/lib/board/pool";

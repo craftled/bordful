@@ -2,7 +2,8 @@
 
 import config from "@payload-config";
 import { headers } from "next/headers";
-import { getPayload, type Payload } from "payload";
+import type { Payload } from "payload";
+import { getPayload } from "payload";
 import { z } from "zod";
 import { connectAdminDenial } from "@/lib/bordfeed/connect/admin";
 import {
@@ -18,8 +19,8 @@ import {
   VERIFY_LIMIT_MESSAGE,
   WRONG_CODE_MESSAGE,
 } from "@/lib/bordfeed/connect/messages";
+import type { ConnectStepResult } from "@/lib/bordfeed/connect/service";
 import {
-  type ConnectStepResult,
   pasteKey,
   resetToSample,
   setShowAttribution,

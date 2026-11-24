@@ -25,7 +25,10 @@ export function TokenActionForm({
   submitLabel: string;
   token: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, null);
+  const [state, formAction, pending] = useActionState<
+    AlertsActionState | null,
+    FormData
+  >(action, null);
 
   if (state?.ok) {
     return (

@@ -7,8 +7,8 @@ import { registrationIsExpired } from "@/lib/bordfeed/connection-machine";
 import { readConnection } from "@/lib/bordfeed/connection-store";
 import { readSyncLimits } from "@/lib/bordfeed/sync-budget";
 import { querySiteSettings } from "@/lib/read/queries";
-
-import { ConnectCardClient, type ConnectCardView } from "./connect-card-client";
+import type { ConnectCardView } from "./connect-card-client";
+import { ConnectCardClient } from "./connect-card-client";
 
 function emailOf(user: NonNullable<ServerProps["user"]>): string {
   if ("email" in user && typeof user.email === "string") {

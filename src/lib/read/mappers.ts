@@ -1,29 +1,28 @@
 import { jobApplyHref } from "@/lib/board/apply";
 import { domainFromWebsite, normalizeDomain } from "@/lib/bordfeed/map-company";
+import type { AlertFrequency, JobOrigin } from "@/lib/domain/job-vocab";
 import {
   ALERT_FREQUENCIES,
-  type AlertFrequency,
   CAREER_LEVELS,
   JOB_EMPLOYMENT_TYPES,
   JOB_ORIGINS,
   JOB_WORKPLACE_TYPES,
-  type JobOrigin,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
 import { pickCompanyLogoUrl } from "@/lib/logo-dev";
 import { resolveThemeTokens } from "@/theme/tokens";
 
 import { isIndexable } from "./indexable";
-import {
-  type BordfeedConnectionPublic,
-  type CompanyDetail,
-  type CompanySummary,
-  type JobDetail,
-  type JobListItem,
-  PUBLIC_DETAIL_FIELDS,
-  type PublicDetailField,
-  type SiteSettingsView,
+import type {
+  BordfeedConnectionPublic,
+  CompanyDetail,
+  CompanySummary,
+  JobDetail,
+  JobListItem,
+  PublicDetailField,
+  SiteSettingsView,
 } from "./types";
+import { PUBLIC_DETAIL_FIELDS } from "./types";
 
 function record(value: unknown): Record<string, unknown> {
   if (value !== null && typeof value === "object") {

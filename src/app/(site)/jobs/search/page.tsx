@@ -6,11 +6,8 @@ import { BoardShell } from "@/components/board/board-shell";
 import { isMarketingEnabled } from "@/config/flags";
 import { canonicalSearchRedirect } from "@/lib/board/canonical";
 import { loadBoardPool } from "@/lib/board/pool";
-import {
-  type BoardSearchParams,
-  parseBoardQuery,
-  urlSearchParamsFromRecord,
-} from "@/lib/board/query";
+import type { BoardSearchParams } from "@/lib/board/query";
+import { parseBoardQuery, urlSearchParamsFromRecord } from "@/lib/board/query";
 import { withTextMatches } from "@/lib/board/text-search";
 import { buildBoardView } from "@/lib/board/view";
 import { getSiteSettings } from "@/lib/read";

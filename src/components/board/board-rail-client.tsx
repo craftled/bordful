@@ -11,10 +11,8 @@ import {
   railLinkClass,
 } from "@/components/board/rail-styles";
 import { useJobList } from "@/components/board/saved-jobs";
-import {
-  type SavedSearch,
-  useSavedSearches,
-} from "@/components/board/saved-searches";
+import type { SavedSearch } from "@/components/board/saved-searches";
+import { useSavedSearches } from "@/components/board/saved-searches";
 import { cn } from "@/lib/utils";
 
 export const SAVED_JOBS_PATH = "/saved";

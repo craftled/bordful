@@ -1,10 +1,6 @@
 import { BOARD_SEARCH_PATH, buildBoardPagePath } from "./paths";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  boardQueryHasFilters,
-  serializeBoardQuery,
-} from "./query";
+import type { BoardQuery, BoardQueryOptions } from "./query";
+import { boardQueryHasFilters, serializeBoardQuery } from "./query";
 
 export function boardStateHref(
   query: BoardQuery,

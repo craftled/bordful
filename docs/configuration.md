@@ -22,18 +22,18 @@ export default defineBordfulConfig({
 });
 ```
 
-| Option | Default | Rules |
-| --- | --- | --- |
-| `bordfeed.baseUrl` | `https://bordfeed.com` | `https` only. Use the origin only, for example `https://bordfeed.com`. The schema does not reject a trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock. |
-| `bordfeed.syncCron` | `0 6 * * *` | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Nothing reads it at runtime: the schedule is the cron in `vercel.json`, so change it there. |
-| `bordfeed.sync.jobsPerSync` | `50` | Most jobs one sync fetches, including the first sync. Clamped to 20 to 100. A value set in the Bordfeed Connection global wins over this one. See [Credits per sync](bordfeed.md#credits-per-sync). |
-| `bordfeed.sync.jobsPerDay` | `200` | Most jobs fetched per UTC day across every sync. Clamped to 20 to 5000. A value set in the Bordfeed Connection global wins over this one. |
-| `telemetry.clientHeader` | `true` | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md). |
-| `board.defaultTemplateId` | `fully-remote` | Template used for sample jobs and for the feed created at connect. Read once, on first boot. An existing board keeps the template stored in its Bordfeed connection, so changing this value later does not move it. |
-| `alerts.provider` | `resend` | Only `resend`. |
-| `csp.extraScriptOrigins` | `[]` | Extra `script-src` origins. `https` origins only. Current browsers ignore them because of `'strict-dynamic'`; see below. |
-| `social.bluesky`, `social.github`, `social.linkedin`, `social.reddit`, `social.x` | unset | Optional profile links. Each must be an `https` URL. Set ones show as icons in the header, the mobile menu and the footer. The committed file leaves them out. |
-| `csp.extraConnectOrigins` | `[]` | Extra `connect-src` origins: hosts that `fetch`, XHR, WebSocket or beacon calls may reach. `https` origins only. |
+| Option                                                                            | Default                | Rules                                                                                                                                                                                                               |
+| --------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bordfeed.baseUrl`                                                                | `https://bordfeed.com` | `https` only. Use the origin only, for example `https://bordfeed.com`. The schema does not reject a trailing path. `BORDFEED_BASE_URL` overrides this at runtime and may be `http` for a local mock.                |
+| `bordfeed.syncCron`                                                               | `0 6 * * *`            | Five cron fields. Step values must use `*/N` or `a-b/N`. This matches the Vercel cron for `/api/cron/bordfeed`. Nothing reads it at runtime: the schedule is the cron in `vercel.json`, so change it there.         |
+| `bordfeed.sync.jobsPerSync`                                                       | `50`                   | Most jobs one sync fetches, including the first sync. Clamped to 20 to 100. A value set in the Bordfeed Connection global wins over this one. See [Credits per sync](bordfeed.md#credits-per-sync).                 |
+| `bordfeed.sync.jobsPerDay`                                                        | `200`                  | Most jobs fetched per UTC day across every sync. Clamped to 20 to 5000. A value set in the Bordfeed Connection global wins over this one.                                                                           |
+| `telemetry.clientHeader`                                                          | `true`                 | `false` drops the `X-Bordfeed-Client` header and `install_id`. `ref` and `utm_*` still go out. See [Bordfeed](bordfeed.md).                                                                                         |
+| `board.defaultTemplateId`                                                         | `fully-remote`         | Template used for sample jobs and for the feed created at connect. Read once, on first boot. An existing board keeps the template stored in its Bordfeed connection, so changing this value later does not move it. |
+| `alerts.provider`                                                                 | `resend`               | Only `resend`.                                                                                                                                                                                                      |
+| `csp.extraScriptOrigins`                                                          | `[]`                   | Extra `script-src` origins. `https` origins only. Current browsers ignore them because of `'strict-dynamic'`; see below.                                                                                            |
+| `social.bluesky`, `social.github`, `social.linkedin`, `social.reddit`, `social.x` | unset                  | Optional profile links. Each must be an `https` URL. Set ones show as icons in the header, the mobile menu and the footer. The committed file leaves them out.                                                      |
+| `csp.extraConnectOrigins`                                                         | `[]`                   | Extra `connect-src` origins: hosts that `fetch`, XHR, WebSocket or beacon calls may reach. `https` origins only.                                                                                                    |
 
 Live Bordfeed template ids (15 Nov 2026): `fully-remote`, `remote-writing`, `engineering-it`, `growth-marketing-eu`, `customer-support`, `remote-design`, `senior-tech-remote-us`.
 
@@ -49,7 +49,9 @@ To load a third-party script from a `src/custom/**` slot, use `next/script`. Nex
 import Script from "next/script";
 
 export function Analytics() {
-  return <Script src="https://cdn.example.com/a.js" strategy="afterInteractive" />;
+  return (
+    <Script src="https://cdn.example.com/a.js" strategy="afterInteractive" />
+  );
 }
 ```
 
@@ -59,14 +61,14 @@ In development, open the board at `http://localhost:3000`. Next's dev server blo
 
 Admins edit the Site settings global. Editors do not.
 
-| Group | Fields |
-| --- | --- |
-| (top) | Name (default `Job Board`), tagline, logo (media upload). |
-| Theme | Ten color overrides, heading font, body font, radius. See [Theming](theming.md). |
-| Board | Title, description, jobs per page (5 to 100, default 20), public detail fields. |
+| Group      | Fields                                                                                                                                          |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| (top)      | Name (default `Job Board`), tagline, logo (media upload).                                                                                       |
+| Theme      | Ten color overrides, heading font, body font, radius. See [Theming](theming.md).                                                                |
+| Board      | Title, description, jobs per page (5 to 100, default 20), public detail fields.                                                                 |
 | Post a Job | Enabled (default off), payment link URL, price label (default empty), duration in days (default 30, 1 to 365). See [Post a Job](post-a-job.md). |
-| Alerts | Enabled (default off), default frequency (`weekly` or `daily`, default `weekly`), sender name, sender email. See [Job alerts](alerts.md). |
-| Showcase | List my board (default off). |
+| Alerts     | Enabled (default off), default frequency (`weekly` or `daily`, default `weekly`), sender name, sender email. See [Job alerts](alerts.md).       |
+| Showcase   | List my board (default off).                                                                                                                    |
 
 Public detail fields, all on by default: `salary`, `location`, `employmentType`, `workplaceType`, `careerLevel`, `languages`, `categories`, `validThrough`.
 

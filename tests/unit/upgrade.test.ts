@@ -10,13 +10,8 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, expect, test } from "vitest";
-
-import {
-  report,
-  type UpgradeResult,
-  type UpgradeStatus,
-  upgrade,
-} from "../../scripts/upgrade";
+import type { UpgradeResult, UpgradeStatus } from "../../scripts/upgrade";
+import { report, upgrade } from "../../scripts/upgrade";
 
 const BASE_FILES = {
   "bordful.config.ts": "export default { name: 'Bordful' };\n",

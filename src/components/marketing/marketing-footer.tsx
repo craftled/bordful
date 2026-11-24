@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { Container } from "./container";
 import { MarketingLogo } from "./marketing-header";
-import { MARKETING_FOOTER_COLUMNS, type MarketingLink } from "./nav-links";
+import type { MarketingLink } from "./nav-links";
+import { MARKETING_FOOTER_COLUMNS } from "./nav-links";
 import { SOCIAL_LINKS, TOP_BOILERPLATES_BADGE } from "./site";
 
 const linkClass = "text-muted-foreground hover:text-foreground rounded-sm";

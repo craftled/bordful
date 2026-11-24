@@ -15,12 +15,8 @@ import { HINT_CLASS } from "@/components/board/rail-styles";
 import { filterBoard, usdBounds } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
 import type { TaxonomyKind } from "@/lib/board/paths";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  boardQueryHasFilters,
-  clearBoardFilters,
-} from "@/lib/board/query";
+import type { BoardQuery, BoardQueryOptions } from "@/lib/board/query";
+import { boardQueryHasFilters, clearBoardFilters } from "@/lib/board/query";
 import { buildBoardView } from "@/lib/board/view";
 import type { JobListItem } from "@/lib/read/types";
 import { cn } from "@/lib/utils";

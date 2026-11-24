@@ -7,11 +7,8 @@ import {
 } from "@/components/board/taxonomy-tabs";
 import type { TaxonomyKind } from "@/lib/board/paths";
 import { loadBoardPool } from "@/lib/board/pool";
-import {
-  countTaxonomy,
-  filterByTaxonomy,
-  type TaxonomyFacet,
-} from "@/lib/board/taxonomy";
+import type { TaxonomyFacet } from "@/lib/board/taxonomy";
+import { countTaxonomy, filterByTaxonomy } from "@/lib/board/taxonomy";
 import type { JobEmploymentType } from "@/lib/domain/job-vocab";
 import { getSiteSettings } from "@/lib/read";
 import {

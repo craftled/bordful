@@ -5,10 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { isActiveItem } from "@/components/board/nav-active";
-import {
-  SocialLinks,
-  type SocialProfiles,
-} from "@/components/board/social-links";
+import type { SocialProfiles } from "@/components/board/social-links";
+import { SocialLinks } from "@/components/board/social-links";
 import type { NavItem } from "@/config/nav";
 
 // Tailwind's md breakpoint.

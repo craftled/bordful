@@ -1,5 +1,6 @@
 import { createBordfeedMock } from "./bordfeed";
-import { createGithubMock, type GithubRelease } from "./github";
+import type { GithubRelease } from "./github";
+import { createGithubMock } from "./github";
 import { createResendMock } from "./resend";
 
 // bun-types is not installed. This process runs under bun.

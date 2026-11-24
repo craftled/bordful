@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  type KeyboardEvent,
-  type MouseEvent,
-  type ReactNode,
-  useCallback,
-  useId,
-  useState,
-} from "react";
+import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
+import { useCallback, useId, useState } from "react";
 
 import { cn } from "@/lib/utils";
 

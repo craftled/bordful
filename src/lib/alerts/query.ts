@@ -1,9 +1,8 @@
+import type { JobAlertQuery, JobSeniority } from "@/lib/domain/job-vocab";
 import {
   EMPTY_JOB_ALERT_QUERY,
   JOB_EMPLOYMENT_LABELS,
   JOB_EMPLOYMENT_TYPES,
-  type JobAlertQuery,
-  type JobSeniority,
   SALARY_BAND_IDS,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";

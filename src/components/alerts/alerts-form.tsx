@@ -1,23 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import {
-  type ChangeEvent,
-  type ReactNode,
-  useActionState,
-  useCallback,
-  useState,
-} from "react";
+import type { ChangeEvent, ReactNode } from "react";
+import { useActionState, useCallback, useState } from "react";
 
 import { subscribeAction } from "@/app/(site)/alerts/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { AlertFrequency } from "@/lib/domain/job-vocab";
+import type { AlertsActionState } from "@/lib/alerts/action-state";
+import type { AlertFrequency, JobAlertQuery } from "@/lib/domain/job-vocab";
 import {
   JOB_EMPLOYMENT_LABELS,
   JOB_EMPLOYMENT_TYPES,
-  type JobAlertQuery,
   SALARY_BAND_IDS,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
@@ -72,7 +67,10 @@ export function AlertsForm({
   jobsHref: string;
   query: JobAlertQuery;
 }) {
-  const [state, formAction, pending] = useActionState(subscribeAction, null);
+  const [state, formAction, pending] = useActionState<
+    AlertsActionState | null,
+    FormData
+  >(subscribeAction, null);
   const [frequency, setFrequency] = useState(defaultFrequency);
   const failed = state !== null && !state.ok;
   const onFrequencyChange = useCallback(

@@ -7,10 +7,12 @@ import { MenuDetails } from "@/components/board/menu-details";
 import { SaveSearchButton } from "@/components/board/save-search-button";
 import type { BoardFacets } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
+import type {
+  BoardQuery,
+  BoardQueryOptions,
+  BoardSort,
+} from "@/lib/board/query";
 import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  type BoardSort,
   boardQueryHasFilters,
   clearBoardFilters,
   PER_PAGE_OPTIONS,

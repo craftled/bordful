@@ -10,7 +10,8 @@ import {
   templatesResponseSchema,
   verifyResponseSchema,
 } from "./job-schema";
-import { buildPreviewSearchParams, type PreviewQuery } from "./preview-query";
+import type { PreviewQuery } from "./preview-query";
+import { buildPreviewSearchParams } from "./preview-query";
 import type {
   BordfeedWorkspace,
   CreateFeedRequest,

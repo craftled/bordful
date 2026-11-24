@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type JSX, useEffect, useState } from "react";
+import type { JSX } from "react";
+import { useEffect, useState } from "react";
 
 import { isActiveItem } from "@/components/board/nav-active";
 import { useJobList } from "@/components/board/saved-jobs";

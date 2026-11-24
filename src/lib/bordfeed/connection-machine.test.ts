@@ -1,10 +1,6 @@
 import { expect, test } from "vitest";
-
-import {
-  applyConnectionEvent,
-  type ConnectionEvent,
-  type ConnectionRecord,
-} from "./connection-machine";
+import type { ConnectionEvent, ConnectionRecord } from "./connection-machine";
+import { applyConnectionEvent } from "./connection-machine";
 import type { SafeError } from "./types";
 
 const now = new Date("2026-10-23T12:00:00.000Z");

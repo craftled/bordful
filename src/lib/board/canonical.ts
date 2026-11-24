@@ -1,16 +1,8 @@
 import type { JobListItem } from "@/lib/read/types";
-
-import {
-  BOARD_SEARCH_PATH,
-  buildTaxonomyArchivePath,
-  type TaxonomyKind,
-} from "./paths";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  parseBoardQuery,
-  serializeBoardQuery,
-} from "./query";
+import type { TaxonomyKind } from "./paths";
+import { BOARD_SEARCH_PATH, buildTaxonomyArchivePath } from "./paths";
+import type { BoardQuery, BoardQueryOptions } from "./query";
+import { parseBoardQuery, serializeBoardQuery } from "./query";
 import { filterByTaxonomy, SENIORITY_LEVEL } from "./taxonomy";
 
 interface FacetTarget {

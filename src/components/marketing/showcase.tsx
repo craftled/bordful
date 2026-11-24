@@ -8,11 +8,11 @@ import { MarketingCta } from "./marketing-cta";
 import { MarketingImage } from "./marketing-image";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
+import type { ShowcaseEntry } from "./showcase-entries";
 import {
   SHOWCASE_COMMUNITY,
   SHOWCASE_DEMO,
   SHOWCASE_TEAM,
-  type ShowcaseEntry,
 } from "./showcase-entries";
 import { SHOWCASE_ISSUE_URL } from "./site";
 

@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  type ChangeEvent,
-  type MouseEvent,
-  useCallback,
-  useId,
-  useMemo,
-  useState,
-} from "react";
+import type { ChangeEvent, MouseEvent } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 
 import { CompanyCard } from "@/components/board/company-card";
 import { PageTitle } from "@/components/board/taxonomy-hub";

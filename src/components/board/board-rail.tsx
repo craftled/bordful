@@ -13,12 +13,8 @@ import {
 import { buildBoardFacets, filterBoard } from "@/lib/board/filter";
 import { boardStateHref } from "@/lib/board/links";
 import { loadBoardPool } from "@/lib/board/pool";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  boardQueryHasFilters,
-  clearBoardFilters,
-} from "@/lib/board/query";
+import type { BoardQuery, BoardQueryOptions } from "@/lib/board/query";
+import { boardQueryHasFilters, clearBoardFilters } from "@/lib/board/query";
 import { getSiteSettings } from "@/lib/read";
 import { cn } from "@/lib/utils";
 

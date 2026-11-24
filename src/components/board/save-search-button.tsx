@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  type FormEvent,
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import type { FormEvent, KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { useSavedSearches } from "@/components/board/saved-searches";
 import { cn } from "@/lib/utils";
