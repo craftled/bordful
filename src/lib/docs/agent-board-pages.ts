@@ -40,9 +40,10 @@ import {
   TYPE_DESCRIPTION,
 } from "@/lib/read/taxonomy-stats";
 import type { JobListItem } from "@/lib/read/types";
-
-import { llmsTxtDirective } from "./agent-docs";
-import { AGENT_TAXONOMY_INDEX_PATHS } from "./agent-docs-paths";
+import {
+  AGENT_TAXONOMY_INDEX_PATHS,
+  llmsTxtDirective,
+} from "./agent-docs-paths";
 
 // The same cache policy the HTML board index pages serve: never cached by a
 // shared proxy, always revalidated.

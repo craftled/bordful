@@ -6,6 +6,9 @@ import { ALTERNATIVE_SLUGS } from "@/components/marketing/alternatives/registry"
 
 export const LLMS_TXT_PATH = "/llms.txt";
 
+// The complete docs index, linked from every markdown page.
+export const LLMS_FULL_TXT_PATH = "/llms-full.txt";
+
 // Internal route prefix the proxy rewrites markdown requests to. Never linked.
 export const DOCS_MARKDOWN_ROUTE = "/docs-md";
 
@@ -94,4 +97,11 @@ export function htmlPathFor(mdPath: string): string | null {
 // through after the route prefix.
 export function pagesMarkdownRoutePath(htmlPath: string): string {
   return `${PAGES_MARKDOWN_ROUTE}${htmlPath === "/" ? "/index" : htmlPath}`;
+}
+
+// The agent-readable llms.txt directive, inserted after the H1 of every
+// markdown page. Kept here so both agent-docs.ts and agent-pages.ts can use
+// it without an import cycle.
+export function llmsTxtDirective(siteUrl: string): string {
+  return `> For the complete documentation index, see [llms.txt](${siteUrl}/llms.txt).`;
 }

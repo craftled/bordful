@@ -85,7 +85,7 @@ import {
   SHOWCASE_ISSUE_URL,
 } from "@/components/marketing/site";
 
-import { llmsTxtDirective } from "./agent-docs";
+import { llmsTxtDirective } from "./agent-docs-paths";
 
 export interface AgentPage {
   description: string;
