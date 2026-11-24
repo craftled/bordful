@@ -191,6 +191,7 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
           htmlContentType: htmlResponse.headers()["content-type"],
           htmlStatus: htmlResponse.status(),
           csp: htmlResponse.headers()["content-security-policy"],
+          htmlCacheControl: htmlResponse.headers()["cache-control"],
           htmlVary: htmlResponse.headers().vary,
           md: await mdResponse.text(),
           mdContentType: mdResponse.headers()["content-type"],
@@ -208,22 +209,12 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
       expect(check.htmlContentType, path).toContain("text/html");
       // The CSP block travels with the HTML page.
       expect(check.csp, path).toContain("default-src 'self'");
-      // Locally the app router owns Vary on HTML responses and overwrites
-      // the Vary the proxy set (documented in the PR body), so only its
-      // router state tokens can be asserted: the Accept token for final HTML
-      // comes from the next.config.ts headers entry, which the local server
-      // does not apply after the router either. On a deployed target
-      // (isDeployedTarget: a post-deploy run passing the deployment URL
-      // through E2E_MARKETING_BASE_URL) the edge is expected to apply that
-      // entry to the final HTML, so the Accept token is asserted there.
-      // Nothing has been deployed from this branch, so that mode never ran
-      // in this round, and the post-deploy curl -sI release gate in the PR
-      // body stays regardless of it.
-      if (isDeployedTarget()) {
-        expect(check.htmlVary, path).toContain("Accept");
-      } else {
-        expect(check.htmlVary, path).toContain("rsc");
-      }
+      // Next's app-page handler replaces Vary on HTML with its router
+      // tokens, locally and on Vercel (vercel/next.js#85999), so the HTML
+      // cannot declare Accept. It must then never be shared-cacheable, or a
+      // CDN could hand the markdown variant's URL HTML or the reverse.
+      expect(check.htmlVary, path).toContain("rsc");
+      expect(check.htmlCacheControl, path).toContain("no-store");
     }
   });
 

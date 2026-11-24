@@ -132,8 +132,11 @@ export function isAgentPagePath(pathname: string): boolean {
 
 // True for every path whose response depends on the Accept header: the docs
 // pages and the pages with a markdown version, in both their .md and HTML
-// forms. The proxy sets Vary: Accept on the HTML responses that reach the
-// app; the markdown routes set it themselves.
+// forms. The markdown routes set Vary: Accept themselves. The proxy sets it
+// on the HTML responses too, but Next's app-page handler then replaces Vary
+// with its own router tokens (vercel/next.js#85999), so HTML pages ship
+// without Accept. That is safe while they are private, no-store: no shared
+// cache keeps them. Keep this in case Next starts merging Vary.
 export function isNegotiatedPath(pathname: string): boolean {
   if (DOCS_HTML_URL.test(pathname) || DOCS_MARKDOWN_URL.test(pathname)) {
     return true;
@@ -269,8 +272,9 @@ export function proxy(request: NextRequest) {
       : NextResponse.next(init);
   response.headers.set("Content-Security-Policy", csp);
 
-  // A CDN must not serve the markdown body to a browser that asked for HTML:
-  // every negotiated HTML response declares what varied it.
+  // A CDN must not serve the markdown body to a browser that asked for HTML.
+  // The markdown responses carry Vary: Accept. On HTML pages Next currently
+  // overwrites this (see isNegotiatedPath).
   if (isNegotiatedPath(pathname)) {
     response.headers.set(
       "Vary",
