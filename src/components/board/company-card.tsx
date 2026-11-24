@@ -26,6 +26,7 @@ export function CompanyCard({
         <span
           aria-hidden="true"
           className="bg-logo-tile text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-[13px] leading-4 font-semibold"
+          data-markdown-ignore
         >
           {logoUrl ? (
             // biome-ignore lint/performance/noImgElement: a 40px company mark, served as-is
@@ -47,9 +48,9 @@ export function CompanyCard({
         >
           {name}
         </span>
-      </span>
+      </span>{" "}
       <span className="flex items-center justify-between gap-3 pt-1 text-[13px] leading-4">
-        <span className="text-subtle min-w-0 truncate">{location ?? ""}</span>
+        <span className="text-subtle min-w-0 truncate">{location ?? ""}</span>{" "}
         <span className="text-foreground shrink-0 font-medium tabular-nums">
           {count === 1 ? "1 open role" : `${count} open roles`}
         </span>

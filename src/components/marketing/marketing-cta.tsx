@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -43,20 +43,27 @@ export function MarketingCta({
         </p>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           {actions.map((action, index) => (
-            <Button
-              asChild
-              className="h-11 px-4 text-[15px] leading-[18px] sm:h-9 sm:text-[13px] sm:leading-[1.5]"
-              key={action.href}
-              variant={index === 0 ? "default" : "outline"}
-            >
-              {action.external ? (
-                <a href={action.href} rel="noopener noreferrer" target="_blank">
-                  {action.label}
-                </a>
-              ) : (
-                <Link href={action.href}>{action.label}</Link>
-              )}
-            </Button>
+            <Fragment key={action.href}>
+              {/* A space between the buttons in the text layer; the flex
+                  row collapses it visually. */}{" "}
+              <Button
+                asChild
+                className="h-11 px-4 text-[15px] leading-[18px] sm:h-9 sm:text-[13px] sm:leading-[1.5]"
+                variant={index === 0 ? "default" : "outline"}
+              >
+                {action.external ? (
+                  <a
+                    href={action.href}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {action.label}
+                  </a>
+                ) : (
+                  <Link href={action.href}>{action.label}</Link>
+                )}
+              </Button>
+            </Fragment>
           ))}
         </div>
       </Container>

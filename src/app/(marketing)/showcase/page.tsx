@@ -8,10 +8,12 @@ import { SectionHeader } from "@/components/marketing/section-header";
 import { Showcase } from "@/components/marketing/showcase";
 import { SHOWCASE_PAGE_HEADER } from "@/components/marketing/showcase-content";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 export const metadata: Metadata = marketingPageMetadata({
-  description:
-    "The live Bordful demo, and room for community boards that choose to be listed.",
+  description: agentPageDescription("/showcase"),
+  markdownPath: markdownPathFor("/showcase"),
   path: "/showcase",
   title: "Showcase",
 });

@@ -72,7 +72,7 @@ export function FeaturesPageGrid() {
           <h2 className="flex flex-col text-[26px] leading-8 font-medium tracking-[-0.03em] md:text-[28px] md:leading-[34px]">
             <span className="text-foreground">
               {FEATURES_GRID_HEADER.heading[0]}
-            </span>
+            </span>{" "}
             <span className="text-subtle">
               {FEATURES_GRID_HEADER.heading[1]}
             </span>

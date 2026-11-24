@@ -6,6 +6,8 @@ import { TERMS_CONTENT } from "@/components/marketing/legal-content";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 import {
   LegalBreadcrumb,
@@ -16,7 +18,8 @@ import { LegalParts } from "../_components/legal-parts";
 const { blocks, heading, lastUpdated, lede } = TERMS_CONTENT;
 
 export const metadata: Metadata = marketingPageMetadata({
-  description: lede,
+  description: agentPageDescription("/terms"),
+  markdownPath: markdownPathFor("/terms"),
   path: "/terms",
   title: heading,
 });
@@ -94,7 +97,9 @@ export default function TermsPage() {
                               )
                               .join("")}
                           >
-                            <span className="text-subtle">•</span>
+                            <span className="text-subtle" data-markdown-ignore>
+                              •
+                            </span>
                             <span>
                               <LegalParts
                                 linkClassName="text-foreground underline underline-offset-4"

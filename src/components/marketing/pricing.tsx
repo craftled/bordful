@@ -45,13 +45,18 @@ export const PRICING_SECTION_HEADER = {
 export const PRICING_PAYMENT_NOTE =
   "Payments by Stripe. Prices in USD, VAT may apply. Bordfeed Pro is included with Custom Setup for 12 months.";
 
-// The standalone pricing page header. The page and the agent markdown
-// version render the same strings.
+// The standalone pricing page header and closing CTA. The page and the
+// agent markdown version render the same strings.
 export const PRICING_PAGE_HEADER = {
   description: "Self-host for free, or let us set everything up for you.",
   eyebrow: "Pricing",
   title: "Simple pricing,",
   titleMuted: "pay once or not at all.",
+} as const;
+
+export const PRICING_PAGE_CTA = {
+  description: "Start free, upgrade only if you want us to do the setup.",
+  heading: ["Ready to launch your", "job board?"],
 } as const;
 
 export const plans: readonly PricingPlan[] = [
@@ -236,7 +241,11 @@ function HomePlanBody({
             <span className="md:hidden">
               <CheckIcon />
             </span>
-            <span aria-hidden="true" className="text-subtle hidden md:inline">
+            <span
+              aria-hidden="true"
+              className="text-subtle hidden md:inline"
+              data-markdown-ignore
+            >
               ✓
             </span>
             <FeatureText feature={feature} />

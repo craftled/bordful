@@ -9,9 +9,12 @@ import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 export const metadata: Metadata = marketingPageMetadata({
-  description: "What changed in Bordful.",
+  description: agentPageDescription("/changelog"),
+  markdownPath: markdownPathFor("/changelog"),
   path: "/changelog",
   title: "Changelog",
 });
@@ -70,7 +73,11 @@ export default function ChangelogPage() {
                       className="text-muted-foreground flex gap-2.5 text-[14px] leading-[18px]"
                       key={bullet}
                     >
-                      <span aria-hidden="true" className="text-subtle">
+                      <span
+                        aria-hidden="true"
+                        className="text-subtle"
+                        data-markdown-ignore
+                      >
                         •
                       </span>
                       <span>{bullet}</span>

@@ -5,19 +5,8 @@ import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 
 import { Container } from "./container";
-import { questions } from "./faq";
+import { FAQ_CATEGORIES, FAQ_PAGE_TABS_HEADER, questions } from "./faq";
 import { Section } from "./section";
-
-// The category tabs. Exported so the agent markdown version of /faq renders
-// the same grouping.
-export const FAQ_CATEGORIES = [
-  { label: "General", questions: ["What is Bordful?", "Is it free?"] },
-  { label: "Setup", questions: ["What is Bordfeed and do I need it?"] },
-  { label: "Customizing", questions: ["Can I post my own jobs?"] },
-  { label: "Deploying", questions: ["How do I update a fork?"] },
-] as const;
-
-const CATEGORIES = FAQ_CATEGORIES;
 
 function Chevron() {
   return (
@@ -86,7 +75,7 @@ function TabList({
       )}
       role="tablist"
     >
-      {CATEGORIES.map((entry) => (
+      {FAQ_CATEGORIES.map((entry) => (
         <TabButton
           active={entry.label === active}
           key={entry.label}
@@ -99,9 +88,9 @@ function TabList({
 }
 
 export function FaqPageTabs() {
-  const [active, setActive] = useState<string>(CATEGORIES[0].label);
+  const [active, setActive] = useState<string>(FAQ_CATEGORIES[0].label);
   const category =
-    CATEGORIES.find((entry) => entry.label === active) ?? CATEGORIES[0];
+    FAQ_CATEGORIES.find((entry) => entry.label === active) ?? FAQ_CATEGORIES[0];
   const items = questions.filter((item) =>
     (category.questions as readonly string[]).includes(item.question)
   );
@@ -114,12 +103,15 @@ export function FaqPageTabs() {
             FAQ
           </p>
           <h1 className="flex flex-col text-[32px] leading-10 font-medium tracking-[-0.035em] text-balance md:text-[48px] md:leading-[54px]">
-            <span className="text-foreground">Frequently asked</span>
-            <span className="text-subtle">questions.</span>
+            <span className="text-foreground">
+              {FAQ_PAGE_TABS_HEADER.heading[0]}
+            </span>{" "}
+            <span className="text-subtle">
+              {FAQ_PAGE_TABS_HEADER.heading[1]}
+            </span>
           </h1>
           <p className="text-muted-foreground max-w-[560px] text-[16px] leading-6 md:leading-[25px] md:text-balance">
-            Short answers about the template, Bordfeed, and posting your own
-            jobs.
+            {FAQ_PAGE_TABS_HEADER.lede}
           </p>
           <TabList
             active={active}

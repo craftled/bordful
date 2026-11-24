@@ -10,14 +10,16 @@ import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 import { LegalParts } from "../_components/legal-parts";
 
 const { cards, eyebrow, heading, paragraphs } = ABOUT_CONTENT;
 
 export const metadata: Metadata = marketingPageMetadata({
-  description:
-    "Bordful is an open-source job board template built by Craftled. Bordfeed powers the jobs.",
+  description: agentPageDescription("/about"),
+  markdownPath: markdownPathFor("/about"),
   path: "/about",
   title: "About",
 });

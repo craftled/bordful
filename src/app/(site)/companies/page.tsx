@@ -6,9 +6,14 @@ import { CompanyDirectory } from "@/components/board/company-directory";
 import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import { companiesFromPool } from "@/lib/board/companies";
 import { loadBoardPool } from "@/lib/board/pool";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
 import { companyStatsFromPool } from "@/lib/read/company-stats";
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: "/companies",
+    types: { "text/markdown": markdownPathFor("/companies") },
+  },
   title: "Companies",
 };
 

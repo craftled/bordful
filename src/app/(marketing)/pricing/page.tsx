@@ -5,15 +5,21 @@ import { Faq } from "@/components/marketing/faq";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
-import { PRICING_PAGE_HEADER, Pricing } from "@/components/marketing/pricing";
+import {
+  PRICING_PAGE_CTA,
+  PRICING_PAGE_HEADER,
+  Pricing,
+} from "@/components/marketing/pricing";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 export const metadata: Metadata = marketingPageMetadata({
-  description:
-    "Simple pricing for your job board. Bordful is open source and free to use commercially. Custom setup is a one-time fee and includes 1 year of Bordfeed Pro.",
+  description: agentPageDescription("/pricing"),
+  markdownPath: markdownPathFor("/pricing"),
   path: "/pricing",
   title: "Pricing",
 });
@@ -46,9 +52,9 @@ export default function PricingPage() {
           { external: true, href: GITHUB_URL, label: "Clone now" },
           { href: "/jobs", label: "Live demo" },
         ]}
-        description="Start free, upgrade only if you want us to do the setup."
-        title="Ready to launch your"
-        titleMuted="job board?"
+        description={PRICING_PAGE_CTA.description}
+        title={PRICING_PAGE_CTA.heading[0]}
+        titleMuted={PRICING_PAGE_CTA.heading[1]}
       />
       <MarketingSlimFooter />
     </>

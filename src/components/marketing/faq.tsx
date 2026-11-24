@@ -71,6 +71,36 @@ export const questions: {
   },
 ];
 
+// The category tabs. Exported so the agent markdown version of /faq renders
+// the same grouping.
+export const FAQ_CATEGORIES = [
+  { label: "General", questions: ["What is Bordful?", "Is it free?"] },
+  { label: "Setup", questions: ["What is Bordfeed and do I need it?"] },
+  { label: "Customizing", questions: ["Can I post my own jobs?"] },
+  { label: "Deploying", questions: ["How do I update a fork?"] },
+] as const;
+
+// The /faq page heading and lede, and its closing CTA. Exported so the page
+// and the agent markdown version (src/lib/docs/agent-pages.ts) render the
+// same strings.
+export const FAQ_PAGE_TABS_HEADER = {
+  heading: ["Frequently asked", "questions."],
+  lede: "Short answers about the template, Bordfeed, and posting your own jobs.",
+} as const;
+
+export const FAQ_PAGE_CTA = {
+  actions: [
+    {
+      external: true,
+      href: "https://github.com/craftled/bordful/issues",
+      label: "Open an issue",
+    },
+    { href: "/docs", label: "Read the docs" },
+  ],
+  description: "Still stuck? Read the docs or open an issue on GitHub.",
+  heading: ["Still have", "a question?"],
+} as const;
+
 export function faqPlainAnswers(): { answer: string; question: string }[] {
   return questions.map((item) => ({
     answer: item.text ?? (typeof item.answer === "string" ? item.answer : ""),
@@ -122,6 +152,7 @@ function PlusMinus() {
     <span
       aria-hidden="true"
       className="text-subtle hidden text-[15px] leading-[18px] md:inline"
+      data-markdown-ignore
     >
       <span className="group-open:hidden">+</span>
       <span className="hidden group-open:inline">−</span>

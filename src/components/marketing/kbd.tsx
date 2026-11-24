@@ -17,6 +17,7 @@ export function Kbd({
         "hidden rounded-[4px] px-1 font-mono text-[10px] leading-[15px] font-normal lg:inline-block",
         className
       )}
+      data-markdown-ignore
     >
       {children}
     </span>

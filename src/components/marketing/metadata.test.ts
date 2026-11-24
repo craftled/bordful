@@ -51,7 +51,11 @@ test("the marketing home takes the same card with its own title", () => {
   expect(home.icons).toEqual(layout.icons);
   expect(home.openGraph).toEqual({ ...layout.openGraph, url: "/" });
   expect(home.twitter).toEqual(layout.twitter);
-  expect(home.alternates).toEqual({ canonical: "/" });
+  expect(home.alternates).toEqual({
+    canonical: "/",
+    // The home page's markdown URL is /index.md, not /.md.
+    types: { "text/markdown": "/index.md" },
+  });
   expect(home.metadataBase).toBeInstanceOf(URL);
 });
 

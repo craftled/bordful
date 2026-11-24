@@ -5,7 +5,13 @@ import { bordfulConfig } from "@/config";
 import { isMarketingEnabled } from "@/config/flags";
 import { buildCsp } from "@/lib/csp/build-csp";
 import { createNonce } from "@/lib/csp/nonce";
-import { DOCS_MARKDOWN_ROUTE } from "@/lib/docs/agent-docs-paths";
+import {
+  AGENT_PAGE_PATHS,
+  DOCS_MARKDOWN_ROUTE,
+  htmlPathFor,
+  PAGES_MARKDOWN_ROUTE,
+  pagesMarkdownRoutePath,
+} from "@/lib/docs/agent-docs-paths";
 import { sentryConnectOrigins, sentryWorkerSources } from "@/lib/sentry/config";
 import { BORDFUL_ICON } from "@/lib/seo/icons";
 
@@ -119,11 +125,46 @@ export function docsMarkdownRewrite(
   return slug ? `${DOCS_MARKDOWN_ROUTE}/${slug}` : DOCS_MARKDOWN_ROUTE;
 }
 
-// Direct hits on the internal route never reach the handler.
+// True for the HTML path of a page that serves a markdown version.
+export function isAgentPagePath(pathname: string): boolean {
+  return (AGENT_PAGE_PATHS as readonly string[]).includes(pathname);
+}
+
+// "/pages-md/<path>" for the ".md` URL of a marketing or board index page
+// ("/pricing.md", "/index.md", "/alternatives/wp-job-manager.md"), and for
+// its HTML URL ("/pricing", "/", "/alternatives/wp-job-manager") when
+// acceptsMarkdown(accept). Docs paths go through docsMarkdownRewrite first.
+// Otherwise null.
+export function markdownRewrite(
+  pathname: string,
+  accept: string | null
+): string | null {
+  const docs = docsMarkdownRewrite(pathname, accept);
+  if (docs !== null) {
+    return docs;
+  }
+  const htmlOfMd = htmlPathFor(pathname);
+  if (htmlOfMd !== null && isAgentPagePath(htmlOfMd)) {
+    return pagesMarkdownRoutePath(htmlOfMd);
+  }
+  if (isAgentPagePath(pathname) && acceptsMarkdown(accept)) {
+    return pagesMarkdownRoutePath(pathname);
+  }
+  return null;
+}
+
+// Direct hits on the internal routes never reach the handler.
 export function isInternalDocsMarkdownPath(pathname: string): boolean {
   return (
     pathname === DOCS_MARKDOWN_ROUTE ||
     pathname.startsWith(`${DOCS_MARKDOWN_ROUTE}/`)
+  );
+}
+
+export function isInternalPagesMarkdownPath(pathname: string): boolean {
+  return (
+    pathname === PAGES_MARKDOWN_ROUTE ||
+    pathname.startsWith(`${PAGES_MARKDOWN_ROUTE}/`)
   );
 }
 
@@ -152,14 +193,11 @@ export function proxy(request: NextRequest) {
       : NextResponse.next();
   }
 
-  // Markdown requests are rewritten to the internal route; the handler is
-  // unit tested in src/app/docs-md. rsc-bearing client navigations stay with
-  // the App Router so it never receives markdown.
+  // Markdown requests are rewritten to the internal routes; the handlers are
+  // unit tested in src/app/docs-md and src/app/pages-md. rsc-bearing client
+  // navigations stay with the App Router so it never receives markdown.
   if (isMarketingEnabled() && request.headers.get("rsc") === null) {
-    const markdown = docsMarkdownRewrite(
-      pathname,
-      request.headers.get("accept")
-    );
+    const markdown = markdownRewrite(pathname, request.headers.get("accept"));
     if (markdown) {
       return NextResponse.rewrite(new URL(markdown, request.url));
     }
@@ -189,7 +227,9 @@ export function proxy(request: NextRequest) {
 
   const init = { request: { headers: requestHeaders } };
   const response =
-    hasMalformedEncoding(pathname) || isInternalDocsMarkdownPath(pathname)
+    hasMalformedEncoding(pathname) ||
+    isInternalDocsMarkdownPath(pathname) ||
+    isInternalPagesMarkdownPath(pathname)
       ? NextResponse.rewrite(new URL(MALFORMED_PATH_REWRITE, request.url), init)
       : NextResponse.next(init);
   response.headers.set("Content-Security-Policy", csp);
@@ -199,11 +239,13 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Direct hits on /docs-md must always run the proxy, prefetch or not, so
-    // they are rewritten to the 404 page and get the CSP instead of serving
-    // 200 markdown without it.
+    // Direct hits on /docs-md and /pages-md must always run the proxy,
+    // prefetch or not, so they are rewritten to the 404 page and get the CSP
+    // instead of serving 200 markdown without it.
     "/docs-md",
     "/docs-md/:path*",
+    "/pages-md",
+    "/pages-md/:path*",
     {
       missing: [{ key: "next-router-prefetch", type: "header" }],
       // Static files and prefetches skip the nonce. /api and /admin stay covered.

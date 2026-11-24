@@ -40,7 +40,7 @@ function PhoneCta() {
           <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
             {HOME_FINAL_CTA.links.clone}
           </a>
-        </Button>
+        </Button>{" "}
         <Button
           asChild
           className="h-11 px-3.5 text-[15px] leading-[18px] shadow-xs"
@@ -81,7 +81,7 @@ function DesktopCta() {
                 D
               </Kbd>
             </a>
-          </Button>
+          </Button>{" "}
           <Button
             asChild
             className="text-foreground ring-foreground/15 hover:bg-tag h-9 gap-[7px] border-0 bg-transparent px-3.5 text-[13px] shadow-none ring-1 ring-inset"

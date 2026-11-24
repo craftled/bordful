@@ -23,6 +23,7 @@ export function jobsIndexMetadata(input: {
       types: {
         "application/feed+json": `${siteUrl}/feed.json`,
         "application/rss+xml": `${siteUrl}/feed.xml`,
+        "text/markdown": `${siteUrl}/jobs.md`,
       },
     },
     description: input.description,

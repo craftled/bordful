@@ -15,10 +15,12 @@ import { Section } from "@/components/marketing/section";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { Button } from "@/components/ui/button";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 export const metadata: Metadata = marketingPageMetadata({
-  description:
-    "The board, filters, email alerts, Post a Job, theming, feeds and SEO, the Bordfeed sync, and the admin. Everything Bordful does today.",
+  description: agentPageDescription("/features"),
+  markdownPath: markdownPathFor("/features"),
   path: "/features",
   title: "Features",
 });
@@ -63,7 +65,7 @@ export default function FeaturesPage() {
           <h1 className="flex flex-col text-[32px] leading-10 font-medium tracking-[-0.035em] text-balance md:text-[48px] md:leading-[54px]">
             <span className="text-foreground">
               {FEATURES_PAGE_HERO.heading[0]}
-            </span>
+            </span>{" "}
             <span className="text-subtle">{FEATURES_PAGE_HERO.heading[1]}</span>
           </h1>
           <p className="text-muted-foreground max-w-[560px] text-[16px] leading-6 md:leading-[25px] md:text-balance">

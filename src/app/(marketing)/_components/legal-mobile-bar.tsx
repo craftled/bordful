@@ -65,6 +65,7 @@ export function LegalMobileBar({
   return (
     <div
       className="bg-background border-line sticky top-14 z-40 flex gap-2 border-b px-4 py-2.5 md:top-[52px] lg:hidden"
+      data-markdown-ignore
       data-testid="legal-mobile-bar"
     >
       <details className="relative min-w-0 flex-1">

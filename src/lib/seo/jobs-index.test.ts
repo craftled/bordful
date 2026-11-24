@@ -17,6 +17,7 @@ test("the jobs index advertises the feeds and a description", () => {
     types: {
       "application/feed+json": "https://bordful.com/feed.json",
       "application/rss+xml": "https://bordful.com/feed.xml",
+      "text/markdown": "https://bordful.com/jobs.md",
     },
   });
   expect(marketing.openGraph).toMatchObject({

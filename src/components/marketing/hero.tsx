@@ -17,6 +17,7 @@ export function Hero() {
           <div className="flex max-w-[720px] flex-col gap-5">
             <Link
               className="bg-card ring-line-strong inline-flex h-[21px] items-center gap-2 self-start rounded-full px-2.5 ring-1 ring-inset md:h-6 md:pr-[9px] md:pl-[3px]"
+              data-markdown-ignore
               href="/changelog"
             >
               <span className="bg-primary text-primary-foreground hidden rounded-full px-[7px] py-px text-[10px] leading-[14px] font-medium md:inline">
@@ -54,7 +55,7 @@ export function Hero() {
                   {HOME_HERO.links.deploy}
                   <Kbd className={KBD_ON_PRIMARY}>D</Kbd>
                 </a>
-              </Button>
+              </Button>{" "}
               <Button
                 asChild
                 className="h-11 px-3.5 text-[15px] shadow-xs sm:h-9 sm:text-[13px]"

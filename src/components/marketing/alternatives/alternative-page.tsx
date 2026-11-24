@@ -32,7 +32,10 @@ function SourceMarkers({
   );
 
   return (
-    <span className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline">
+    <span
+      className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline"
+      data-markdown-ignore
+    >
       {sortedSources.map((id) => {
         const sourceIndex = page.sources.findIndex(
           (candidate) => candidate.id === id
@@ -86,7 +89,7 @@ function Hero({ page }: { page: Alternative }) {
             <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
               Deploy to Vercel
             </a>
-          </Button>
+          </Button>{" "}
           <Button
             asChild
             className="h-11 px-4 text-[15px] md:h-9 md:text-[13px]"
@@ -255,6 +258,7 @@ function ComparisonTable({
                 <span
                   aria-hidden="true"
                   className="text-foreground text-[11px] font-medium md:hidden"
+                  data-markdown-ignore
                 >
                   {page.name}
                 </span>
@@ -268,6 +272,7 @@ function ComparisonTable({
                 <span
                   aria-hidden="true"
                   className="text-foreground text-[11px] font-medium md:hidden"
+                  data-markdown-ignore
                 >
                   Bordful
                 </span>
