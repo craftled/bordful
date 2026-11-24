@@ -19,6 +19,12 @@
   },
   "overrides": [
     {
+      // docs/*.md is served as-is to agents (/docs/*.md, llms-full.txt), so
+      // padding its tables would only add bytes to every response.
+      "includes": ["docs/**/*.md"],
+      "formatter": { "enabled": false }
+    },
+    {
       "includes": ["**/*.css"],
       "linter": {
         "rules": {

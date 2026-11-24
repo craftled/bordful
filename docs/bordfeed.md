@@ -59,18 +59,18 @@ The CLI process cannot refresh the Next.js cache. The board updates within 5 min
 
 Register (`POST /api/agent/register`) sends:
 
-| Field          | Value                                                                                                                                                                                                      |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `email`        | The address you entered                                                                                                                                                                                    |
-| `agent_name`   | `bordful`                                                                                                                                                                                                  |
-| `board_name`   | Site name, or the CLI board name. Sent only when it is 1 to 80 characters, has no control character, and is not a URL or domain. Otherwise it is left out and Bordfeed names the workspace from the email. |
-| `ref`          | `bordful`                                                                                                                                                                                                  |
-| `utm_source`   | `bordful`                                                                                                                                                                                                  |
-| `utm_medium`   | `admin` or `cli`                                                                                                                                                                                           |
-| `utm_campaign` | `connect`                                                                                                                                                                                                  |
-| `install_id`   | SHA-256 hex of the random install id stored for this board                                                                                                                                                 |
-| `template_id`  | The connection template id                                                                                                                                                                                 |
-| `workspace`    | Only when you picked a workspace                                                                                                                                                                           |
+| Field | Value |
+| --- | --- |
+| `email` | The address you entered |
+| `agent_name` | `bordful` |
+| `board_name` | Site name, or the CLI board name. Sent only when it is 1 to 80 characters, has no control character, and is not a URL or domain. Otherwise it is left out and Bordfeed names the workspace from the email. |
+| `ref` | `bordful` |
+| `utm_source` | `bordful` |
+| `utm_medium` | `admin` or `cli` |
+| `utm_campaign` | `connect` |
+| `install_id` | SHA-256 hex of the random install id stored for this board |
+| `template_id` | The connection template id |
+| `workspace` | Only when you picked a workspace |
 
 Every Bordfeed call also sends `X-Bordfeed-Client: bordful/<version>` (this release: `bordful/1.0.0`).
 
@@ -100,11 +100,11 @@ The footer credit URL is `https://bordfeed.com/?ref=bordful&utm_source=bordful&u
 
 **Globals → Import blocklist** in the admin keeps Bordfeed jobs you don't want off the board. It has three lists, one entry per line. None of them are case-sensitive.
 
-| List      | Matches                                                                                                       |
-| --------- | ------------------------------------------------------------------------------------------------------------- |
-| Companies | The exact company name.                                                                                       |
-| Domains   | The company domain, the apply link and the source listing link. `example.com` also covers `jobs.example.com`. |
-| Keywords  | Whole words or phrases in the job title and summary. `java` does not match `JavaScript`.                      |
+| List | Matches |
+| --- | --- |
+| Companies | The exact company name. |
+| Domains | The company domain, the apply link and the source listing link. `example.com` also covers `jobs.example.com`. |
+| Keywords | Whole words or phrases in the job title and summary. `java` does not match `JavaScript`. |
 
 - A sync drops matching jobs before it creates their companies, so a blocked company gets no page. They count as skipped in the sync summary.
 - Saving the blocklist unpublishes imported jobs on the board that match it. Jobs are unpublished, not deleted.
@@ -119,10 +119,10 @@ Bordfeed charges one credit for each job your workspace receives for the first t
 
 Two caps bound what a sync can fetch, so a schedule can never drain the balance:
 
-| Setting       | Default | Range      | What it caps                                                                                                           |
-| ------------- | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `jobsPerSync` | 50      | 20 to 100  | Jobs one sync fetches. The first sync is one page of this size; later syncs fetch at most this many new jobs.          |
-| `jobsPerDay`  | 200     | 20 to 5000 | Jobs fetched per UTC day across every sync, cron and manual. At the cap a sync makes no request and the admin says so. |
+| Setting | Default | Range | What it caps |
+| --- | --- | --- | --- |
+| `jobsPerSync` | 50 | 20 to 100 | Jobs one sync fetches. The first sync is one page of this size; later syncs fetch at most this many new jobs. |
+| `jobsPerDay` | 200 | 20 to 5000 | Jobs fetched per UTC day across every sync, cron and manual. At the cap a sync makes no request and the admin says so. |
 
 Set the defaults in `bordful.config.ts` under `bordfeed.sync`. Config values outside the range are clamped. Admins can set either one for this board in the Bordfeed Connection global, which rejects values outside the range. A value there wins. Leave it empty to use the config value.
 
