@@ -3,48 +3,18 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 import { Container } from "./container";
+import {
+  HOME_BENTO,
+  HOME_BENTO_EXAMPLE,
+  HOME_JOB_POSTING_CODE,
+} from "./home-content";
 import { SectionHeader } from "./section-header";
 import { PhoneShot, Shot } from "./shots";
 
-// A trimmed JobPosting in the shape lib/seo/job-posting.ts emits for a remote
-// job with a salary, cut to the keys (and salary bounds) that fit the card. The values are an
-// example listing.
-const JOB_POSTING_CODE = [
-  "{",
-  '  "@type": "JobPosting",',
-  '  "title": "Senior Product Designer",',
-  '  "hiringOrganization": { "name": "Example Co" },',
-  '  "jobLocationType": "TELECOMMUTE",',
-  '  "baseSalary": { "minValue": 150000, "maxValue": 190000 }',
-  "}",
-].join("\n");
-
-// Post a Job values: the price label is display text the owner types (the
-// docs use $99), and durationDays defaults to 30 in Site settings.
-const EXAMPLE_PRICE_LABEL = "$99";
-const DEFAULT_DURATION_DAYS = 30;
-
-// The four cards' copy, shared by the phone list and the desktop bento.
-const CARDS = {
-  alerts: {
-    description: "Visitors sign up for a daily or weekly email of new jobs.",
-    title: "Visitors come back on their own",
-  },
-  brand: {
-    description: "Neutral by default, so every board looks like its owner.",
-    title: "Your colors, not ours",
-  },
-  paid: {
-    description: "Your Stripe payment link. Listings expire on their own.",
-    title: "Employers pay to post",
-  },
-  seo: {
-    description: "JobPosting data, sitemaps and a clean URL per job.",
-    title: "Found on Google from day one",
-  },
-} as const;
-
-const PHONE_ORDER = ["alerts", "brand", "seo", "paid"] as const;
+const CARDS = HOME_BENTO.cards;
+const PHONE_ORDER = HOME_BENTO.phoneOrder;
+const JOB_POSTING_CODE = HOME_JOB_POSTING_CODE;
+const EXAMPLE = HOME_BENTO_EXAMPLE;
 
 function Card({
   children,
@@ -85,11 +55,11 @@ export function Bento() {
     >
       <Container className="md:border-line pt-10 pb-5 md:border-b md:pt-16 md:pb-10">
         <SectionHeader
-          eyebrow="Features"
+          eyebrow={HOME_BENTO.eyebrow}
           id="marketing-bento-heading"
           phone="mono"
-          title="Everything a board needs."
-          titleMuted="Nothing it does not."
+          title={HOME_BENTO.heading[0]}
+          titleMuted={HOME_BENTO.heading[1]}
         />
       </Container>
       {/* Paper's phone home keeps the copy and drops the pictures. */}
@@ -143,28 +113,31 @@ export function Bento() {
           </pre>
         </Card>
         <Card className="min-h-[300px]" inverse {...CARDS.paid}>
-          <div className="mt-[31px] flex flex-col">
+          {/* Decorative mock of a Stripe checkout for the paid card. The
+              honest summary is the card copy; the mock itself is for human
+              readers only. */}
+          <div className="mt-[31px] flex flex-col" data-markdown-ignore>
             <dl className="flex gap-2.5">
               <div className="flex flex-1 flex-col gap-1 rounded-[10px] p-3.5 ring-1 ring-(--kbd-on-outline) ring-inset">
                 <dt className="text-muted-foreground text-[12px] leading-4">
-                  Price
+                  {EXAMPLE.priceName}
                 </dt>
                 <dd className="text-[22px] leading-[26px] font-medium">
-                  {EXAMPLE_PRICE_LABEL}
+                  {EXAMPLE.priceLabel}
                 </dd>
                 <dd className="text-subtle text-[11px] leading-[14px]">
-                  Paid through Stripe
+                  {EXAMPLE.paidThrough}
                 </dd>
               </div>
               <div className="bg-primary text-primary-foreground flex flex-1 flex-col gap-1 rounded-[10px] p-3.5">
                 <dt className="text-primary-foreground/65 text-[12px] leading-4">
-                  Listed for
+                  {EXAMPLE.listedFor}
                 </dt>
                 <dd className="text-[22px] leading-[26px] font-medium">
-                  {DEFAULT_DURATION_DAYS} days
+                  {EXAMPLE.durationDays} days
                 </dd>
                 <dd className="text-primary-foreground/65 text-[11px] leading-[14px]">
-                  Then it expires
+                  {EXAMPLE.thenExpires}
                 </dd>
               </div>
             </dl>
@@ -172,10 +145,10 @@ export function Bento() {
               aria-hidden="true"
               className="bg-primary text-primary-foreground mt-[18px] flex h-9 items-center justify-center rounded-lg text-[13px] leading-4 font-medium"
             >
-              Continue to Stripe &#8599;
+              {EXAMPLE.continue} &#8599;
             </p>
             <p className="text-subtle mt-3.5 font-mono text-[10px] leading-3">
-              Example price. You set your own.
+              {EXAMPLE.note}
             </p>
           </div>
         </Card>

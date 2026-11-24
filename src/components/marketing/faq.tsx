@@ -7,6 +7,20 @@ import { Container } from "./container";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
 
+// The headings of the two Faq layouts. Exported so the pages and the agent
+// markdown version (src/lib/docs/agent-pages.ts) render the same strings.
+export const FAQ_PAGE_HEADER = {
+  description: "Everything you need to know before you start.",
+  title: "Frequently asked",
+  titleMuted: "questions.",
+} as const;
+
+export const FAQ_SECTION_HEADER = {
+  eyebrow: "FAQ",
+  title: "Questions.",
+  titleMuted: "Short answers.",
+} as const;
+
 // "short" is the tighter wording the home section uses.
 export const questions: {
   answer: ReactNode;
@@ -182,9 +196,9 @@ export function Faq({ variant = "section" }: { variant?: "section" | "page" }) {
         <Container className="flex flex-col gap-6 md:items-center md:gap-8">
           <SectionHeader
             className="gap-2.5 md:items-center md:text-center md:[&>h2]:text-[28px] md:[&>h2]:leading-[34px] md:[&>h2]:tracking-[-0.03em] [&>p]:hidden md:[&>p]:block md:[&>p]:text-[15px] md:[&>p]:leading-[23px]"
-            description="Everything you need to know before you start."
-            title="Frequently asked"
-            titleMuted="questions."
+            description={FAQ_PAGE_HEADER.description}
+            title={FAQ_PAGE_HEADER.title}
+            titleMuted={FAQ_PAGE_HEADER.titleMuted}
           />
           <QuestionList className="md:max-w-[720px]" />
         </Container>
@@ -197,10 +211,10 @@ export function Faq({ variant = "section" }: { variant?: "section" | "page" }) {
       <Container className="flex flex-col gap-6 md:flex-row md:justify-between md:gap-12">
         <SectionHeader
           className="md:w-[320px]"
-          eyebrow="FAQ"
+          eyebrow={FAQ_SECTION_HEADER.eyebrow}
           phone="mono"
-          title="Questions."
-          titleMuted="Short answers."
+          title={FAQ_SECTION_HEADER.title}
+          titleMuted={FAQ_SECTION_HEADER.titleMuted}
         />
         <QuestionList className="md:max-w-[620px]" compact />
       </Container>

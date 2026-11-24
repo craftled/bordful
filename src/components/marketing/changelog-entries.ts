@@ -14,6 +14,14 @@ export function changelogDateLabel(entry: ChangelogEntry): string {
   return "Legacy";
 }
 
+// The /changelog page header. Shared with the agent markdown version of the
+// page (src/lib/docs/agent-pages.ts).
+export const CHANGELOG_PAGE_HEADER = {
+  description: "Releases of the open-source template.",
+  eyebrow: "Changelog",
+  heading: ["What changed", "in Bordful."],
+} as const;
+
 export const changelogEntries: readonly ChangelogEntry[] = [
   {
     bullets: [

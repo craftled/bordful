@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import {
+  CHANGELOG_PAGE_HEADER,
   changelogDateLabel,
   changelogEntries,
 } from "@/components/marketing/changelog-entries";
@@ -23,11 +24,11 @@ export default function ChangelogPage() {
       <Section className="md:py-14">
         <Container>
           <SectionHeader
-            description="Releases of the open-source template."
-            eyebrow="Changelog"
+            description={CHANGELOG_PAGE_HEADER.description}
+            eyebrow={CHANGELOG_PAGE_HEADER.eyebrow}
             headingLevel="h1"
-            title="What changed"
-            titleMuted="in Bordful."
+            title={CHANGELOG_PAGE_HEADER.heading[0]}
+            titleMuted={CHANGELOG_PAGE_HEADER.heading[1]}
           />
         </Container>
       </Section>

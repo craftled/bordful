@@ -10,6 +10,11 @@ import { Section } from "./section";
 import { SectionHeader } from "./section-header";
 import type { ShowcaseEntry } from "./showcase-entries";
 import {
+  SHOWCASE_GROUPS,
+  SHOWCASE_PAGE_CTA,
+  SHOWCASE_SECTION_HEADER,
+} from "./showcase-content";
+import {
   SHOWCASE_COMMUNITY,
   SHOWCASE_DEMO,
   SHOWCASE_TEAM,
@@ -117,13 +122,13 @@ export function Showcase({
         <Container className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-12">
           <div className="flex flex-col gap-6">
             <SectionHeader
-              description="Community installs that opt in will join this list."
-              eyebrow="Showcase"
-              title="Built with Bordful."
-              titleMuted="The live demo board."
+              description={SHOWCASE_SECTION_HEADER.description}
+              eyebrow={SHOWCASE_SECTION_HEADER.eyebrow}
+              title={SHOWCASE_SECTION_HEADER.heading[0]}
+              titleMuted={SHOWCASE_SECTION_HEADER.heading[1]}
             />
             <Button asChild className="self-start shadow-xs" variant="outline">
-              <Link href="/showcase">View the showcase</Link>
+              <Link href="/showcase">{SHOWCASE_SECTION_HEADER.link}</Link>
             </Button>
           </div>
           <div className="w-full md:max-w-[520px]">
@@ -142,12 +147,12 @@ export function Showcase({
             <ShowcaseCard entry={SHOWCASE_DEMO} headingLevel="h2" />
           </div>
           <div className="flex flex-col gap-4">
-            <GroupHeading>Community boards</GroupHeading>
+            <GroupHeading>{SHOWCASE_GROUPS.community}</GroupHeading>
             {SHOWCASE_COMMUNITY.length > 0 ? (
               <EntryGrid entries={SHOWCASE_COMMUNITY} headingLevel="h3" />
             ) : (
               <p className="text-muted-foreground bg-surface-sub ring-line rounded-xl px-5 py-8 text-center text-[13px] leading-[19px] ring-1">
-                No community boards are listed yet.
+                {SHOWCASE_GROUPS.empty}
               </p>
             )}
           </div>
@@ -163,15 +168,10 @@ export function Showcase({
         actions={[
           { external: true, href: SHOWCASE_ISSUE_URL, label: "Open an issue" },
         ]}
-        description={
-          <>
-            Turn on &quot;List my board&quot; in Site settings, Showcase, and
-            open an issue at GitHub.
-          </>
-        }
+        description={SHOWCASE_PAGE_CTA.description}
         headingLevel="h2"
-        title="Built a board"
-        titleMuted="with Bordful?"
+        title={SHOWCASE_PAGE_CTA.heading[0]}
+        titleMuted={SHOWCASE_PAGE_CTA.heading[1]}
       />
     </>
   );

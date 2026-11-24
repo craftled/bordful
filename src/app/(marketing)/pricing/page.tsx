@@ -5,7 +5,7 @@ import { Faq } from "@/components/marketing/faq";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
-import { Pricing } from "@/components/marketing/pricing";
+import { PRICING_PAGE_HEADER, Pricing } from "@/components/marketing/pricing";
 import { Section } from "@/components/marketing/section";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { GITHUB_URL } from "@/components/marketing/site";
@@ -27,11 +27,11 @@ export default function PricingPage() {
         <Container>
           <SectionHeader
             className="md:gap-[18px]"
-            description="Self-host for free, or let us set everything up for you."
-            eyebrow="Pricing"
+            description={PRICING_PAGE_HEADER.description}
+            eyebrow={PRICING_PAGE_HEADER.eyebrow}
             headingLevel="h1"
-            title="Simple pricing,"
-            titleMuted="pay once or not at all."
+            title={PRICING_PAGE_HEADER.title}
+            titleMuted={PRICING_PAGE_HEADER.titleMuted}
           />
         </Container>
       </Section>

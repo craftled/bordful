@@ -1,44 +1,20 @@
 import { cn } from "@/lib/utils";
-
 import { Container } from "./container";
+import { HOME_TIMELINE } from "./home-content";
 import { Section } from "./section";
 import { SectionHeader } from "./section-header";
 
-// The real path from the deploy button to a paying board: the Vercel clone
-// provisions Postgres, a fresh install shows the Bordfeed sample feed, Site
-// settings carry the brand, and Post a Job is a Stripe payment link.
-const STEPS = [
-  {
-    body: "One click to Vercel. Postgres and the admin come with it.",
-    title: "Deploy",
-    when: "Minute 0",
-  },
-  {
-    body: "Sample jobs from Bordfeed fill it, so it never looks empty.",
-    title: "Board is live",
-    when: "Minute 2",
-  },
-  {
-    body: "Logo, colors and fonts in Site settings. Turn on alerts with Resend.",
-    title: "Make it yours",
-    when: "Day 1",
-  },
-  {
-    body: "Connect your Bordfeed feed, or add a Stripe link and take paid posts.",
-    title: "Open for business",
-    when: "Week 1",
-  },
-] as const;
+const STEPS = HOME_TIMELINE.steps;
 
 export function Timeline() {
   return (
     <Section>
       <Container className="flex flex-col gap-5 md:gap-9">
         <SectionHeader
-          eyebrow="How it works"
+          eyebrow={HOME_TIMELINE.eyebrow}
           phone="mono"
-          title="From zero to a live board."
-          titleMuted="Before your coffee cools."
+          title={HOME_TIMELINE.heading[0]}
+          titleMuted={HOME_TIMELINE.heading[1]}
         />
         {/* Phones get Paper's numbered rows; from md up, the four-column
             timeline with a progress rule over each step. */}

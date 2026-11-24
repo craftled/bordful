@@ -3,12 +3,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 import { Container } from "./container";
+import { HOME_HERO, HOME_STACK_TAGS } from "./home-content";
 import { KBD_ON_PRIMARY, Kbd } from "./kbd";
 import { DEPLOY_URL } from "./links";
 import { Section } from "./section";
 import { PhoneShot, ThemedBoardShot, ThemedImage } from "./shots";
-
-const STACK_TAGS = ["MIT", "Next.js", "Payload", "Postgres"] as const;
 
 export function Hero() {
   return (
@@ -21,24 +20,25 @@ export function Hero() {
               href="/changelog"
             >
               <span className="bg-primary text-primary-foreground hidden rounded-full px-[7px] py-px text-[10px] leading-[14px] font-medium md:inline">
-                1.0
+                {HOME_HERO.release}
               </span>
               {/* Paper's phone hero is a plain pill, without the chip or arrow. */}
               <span className="text-muted-foreground text-[12px] leading-4 font-medium md:hidden">
-                New · Payload and Postgres
+                {HOME_HERO.badge.phone}
               </span>
               <span className="text-muted-foreground hidden text-[12px] leading-4 font-medium md:inline">
-                Now on Payload and Postgres <span aria-hidden="true">→</span>
+                {HOME_HERO.badge.desktop} <span aria-hidden="true">→</span>
               </span>
             </Link>
             <h1 className="flex flex-col text-[34px] leading-[42px] font-medium tracking-[-0.035em] text-balance md:text-[52px] md:leading-[56px] md:tracking-[-0.04em]">
-              <span className="text-foreground">The job board you own.</span>
-              <span className="text-(--text-faint)"> Live in two minutes.</span>
+              <span className="text-foreground">{HOME_HERO.heading[0]}</span>
+              <span className="text-(--text-faint)">
+                {" "}
+                {HOME_HERO.heading[1]}
+              </span>
             </h1>
             <p className="text-muted-foreground max-w-[520px] text-[16px] leading-6 md:leading-[25px]">
-              An open-source template that deploys with real jobs already
-              listed. Brand it, take paid posts and send alerts on your own
-              domain.
+              {HOME_HERO.lede}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:gap-1.5">
               <Button
@@ -51,7 +51,7 @@ export function Hero() {
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  Deploy to Vercel
+                  {HOME_HERO.links.deploy}
                   <Kbd className={KBD_ON_PRIMARY}>D</Kbd>
                 </a>
               </Button>
@@ -62,7 +62,8 @@ export function Hero() {
               >
                 <a data-testid="marketing-demo-link" href="/jobs">
                   <span>
-                    Live demo <span aria-hidden="true">&#8599;</span>
+                    {HOME_HERO.links.demo}{" "}
+                    <span aria-hidden="true">&#8599;</span>
                   </span>
                 </a>
               </Button>
@@ -83,7 +84,7 @@ export function Hero() {
             />
           </a>
           <ul className="text-subtle hidden gap-3 font-mono text-[11px] leading-[14px] md:flex">
-            {STACK_TAGS.map((tag) => (
+            {HOME_STACK_TAGS.map((tag) => (
               <li key={tag}>{tag}</li>
             ))}
           </ul>

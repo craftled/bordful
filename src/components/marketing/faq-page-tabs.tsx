@@ -8,12 +8,16 @@ import { Container } from "./container";
 import { questions } from "./faq";
 import { Section } from "./section";
 
-const CATEGORIES = [
+// The category tabs. Exported so the agent markdown version of /faq renders
+// the same grouping.
+export const FAQ_CATEGORIES = [
   { label: "General", questions: ["What is Bordful?", "Is it free?"] },
   { label: "Setup", questions: ["What is Bordfeed and do I need it?"] },
   { label: "Customizing", questions: ["Can I post my own jobs?"] },
   { label: "Deploying", questions: ["How do I update a fork?"] },
 ] as const;
+
+const CATEGORIES = FAQ_CATEGORIES;
 
 function Chevron() {
   return (
