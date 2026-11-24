@@ -51,6 +51,7 @@ test("unknown, nested and traversal slugs 404 in plain text", async () => {
         body: await response.text(),
         contentType: response.headers.get("content-type"),
         status: response.status,
+        vary: response.headers.get("vary"),
       };
     })
   );
@@ -58,6 +59,9 @@ test("unknown, nested and traversal slugs 404 in plain text", async () => {
   for (const response of responses) {
     expect(response.status).toBe(404);
     expect(response.contentType).toBe("text/plain; charset=utf-8");
+    // The 404 is a negotiated response too (the .md URL reached this route
+    // through the Accept-aware rewrite), so it declares Vary: Accept.
+    expect(response.vary).toContain("Accept");
     expect(response.body).toBe("Not found\n");
   }
 });
@@ -72,5 +76,6 @@ test("404s in plain text when marketing is off", async () => {
   expect(response.headers.get("content-type")).toBe(
     "text/plain; charset=utf-8"
   );
+  expect(response.headers.get("vary")).toContain("Accept");
   expect(await response.text()).toBe("Not found\n");
 });

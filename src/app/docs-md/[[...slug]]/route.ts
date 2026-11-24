@@ -20,7 +20,12 @@ export function generateStaticParams() {
 function notFoundResponse(): Response {
   return new Response(notFoundText(), {
     status: 404,
-    headers: { "content-type": "text/plain; charset=utf-8" },
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      // The 404 is itself a negotiated response (the .md URL reached this
+      // route through the Accept-aware proxy rewrite), so it varies too.
+      vary: "Accept",
+    },
   });
 }
 

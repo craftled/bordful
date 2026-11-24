@@ -5,11 +5,19 @@ import { afterEach, expect, test, vi } from "vitest";
 
 import { TAXONOMY_INDEX_PATH } from "@/components/board/taxonomy-tabs";
 import { LlmsTxtPointer } from "@/components/llms-txt-pointer";
+import { AlternativeView } from "@/components/marketing/alternatives/alternative-page";
+import { AlternativesHub } from "@/components/marketing/alternatives/alternatives-hub";
+import {
+  ALTERNATIVE_SLUGS,
+  getAlternative,
+} from "@/components/marketing/alternatives/registry";
 import { Bento } from "@/components/marketing/bento";
 import { DOCS_SLUGS } from "@/components/marketing/docs-content";
-import { FAQ_PAGE_HEADER, Faq } from "@/components/marketing/faq";
+import { FAQ_PAGE_CTA, FAQ_PAGE_HEADER, Faq } from "@/components/marketing/faq";
+import { FaqPageTabs } from "@/components/marketing/faq-page-tabs";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { Hero } from "@/components/marketing/hero";
+import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { PRICING_PAGE_HEADER, Pricing } from "@/components/marketing/pricing";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { Statement } from "@/components/marketing/statement";
@@ -207,15 +215,22 @@ function pageHeadings(html: string): string[] {
 // (the Vercel clone link does). Links reduce to their labels.
 const MD_LINK = /\[(?<label>[^\]]+)\]\((?<url>[^()]*(?:\([^)]*\)[^()]*)*)\)/gu;
 
+const MD_H1 = /^# (?<title>.+)$/u;
+const MD_SECTION_HEADING = /^#{2,6} (?<title>.+)$/gu;
+
 function markdownPlain(markdown: string): string {
   return normalize(
     markdown
       .replace(/```[\s\S]*?```/gu, " ")
       .replace(MD_LINK, "$<label>")
-      .replace(/^#+\s+/gimu, "")
+      // The ordered-list prefix is stripped before the heading prefix: a
+      // legal heading like "## 3. Your Responsibilities" must keep its
+      // "3. " (the rendered h2 carries the same number), and a numbered
+      // list line like "1. Step" is not a heading, so it strips earlier.
       .replace(/^>\s+/gimu, "")
-      .replace(/^[-*]\s+/gimu, "")
       .replace(/^\d+\.\s+/gimu, "")
+      .replace(/^[-*]\s+/gimu, "")
+      .replace(/^#+\s+/gimu, "")
   );
 }
 
@@ -298,6 +313,99 @@ test("the features markdown matches the rendered page", async () => {
   );
   const html = [render(<FeaturesPage />).container.innerHTML].join("\n");
   expectParity("/features", html);
+});
+
+test("the faq markdown matches the rendered page", () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  // The page is an async server component (it reads headers() for the JSON-LD
+  // nonce), so its visible pieces render directly. The tabs show one category
+  // at a time; every category's answers are in the markdown.
+  const html = [
+    render(<FaqPageTabs />).container.innerHTML,
+    render(
+      <MarketingCta
+        actions={FAQ_PAGE_CTA.actions.map((action) => ({ ...action }))}
+        description={FAQ_PAGE_CTA.description}
+        title={FAQ_PAGE_CTA.heading[0]}
+        titleMuted={FAQ_PAGE_CTA.heading[1]}
+      />
+    ).container.innerHTML,
+  ].join("\n");
+  expectParity("/faq", html);
+});
+
+test("the showcase markdown matches the rendered page", async () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  const { default: ShowcasePage } = await import(
+    "@/app/(marketing)/showcase/page"
+  );
+  const html = render(<ShowcasePage />).container.innerHTML;
+  expectParity("/showcase", html);
+});
+
+test("the changelog markdown matches the rendered page", async () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  const { default: ChangelogPage } = await import(
+    "@/app/(marketing)/changelog/page"
+  );
+  const html = render(<ChangelogPage />).container.innerHTML;
+  expectParity("/changelog", html);
+});
+
+test("the about markdown matches the rendered page", async () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  const { default: AboutPage } = await import("@/app/(marketing)/about/page");
+  const html = render(<AboutPage />).container.innerHTML;
+  expectParity("/about", html);
+});
+
+test("the privacy and terms markdown match the rendered pages", async () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  const { default: PrivacyPage } = await import(
+    "@/app/(marketing)/privacy/page"
+  );
+  expectParity("/privacy", render(<PrivacyPage />).container.innerHTML);
+  const { default: TermsPage } = await import("@/app/(marketing)/terms/page");
+  expectParity("/terms", render(<TermsPage />).container.innerHTML);
+});
+
+test("the alternatives hub markdown matches the rendered page", () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  // The page is an async server component (headers() for the JSON-LD nonce);
+  // the hub view is the whole page body.
+  const html = render(<AlternativesHub />).container.innerHTML;
+  expectParity("/alternatives", html);
+});
+
+test("every alternatives page markdown matches the rendered page", () => {
+  vi.stubEnv("BORDFUL_MARKETING", "true");
+  for (const slug of ALTERNATIVE_SLUGS) {
+    const page = getAlternative(slug);
+    expect(page, slug).toBeDefined();
+    if (!page) {
+      continue;
+    }
+    expectParity(
+      `/alternatives/${slug}`,
+      render(<AlternativeView page={page} />).container.innerHTML
+    );
+  }
+});
+
+test("no markdown heading repeats the page title", () => {
+  // The parity tests above are one-directional (every rendered segment and
+  // heading appears in the markdown). This catches the reverse drift the
+  // review found: the showcase markdown used to render "Job boards built
+  // with Bordful." twice, as the H1 and again as a section heading the HTML
+  // page never shows.
+  for (const path of STATIC_AGENT_PAGE_PATHS) {
+    const markdown = pageMarkdown(path, siteUrl) ?? "";
+    const title = normalize(MD_H1.exec(markdown)?.groups?.title ?? "");
+    const repeats = [...markdown.matchAll(MD_SECTION_HEADING)]
+      .map((match) => normalize(match.groups?.title ?? ""))
+      .filter((heading) => heading.length > 0 && heading === title);
+    expect(repeats, path).toEqual([]);
+  }
 });
 
 test("unknown paths return null", () => {

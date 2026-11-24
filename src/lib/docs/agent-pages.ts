@@ -100,8 +100,14 @@ function link(label: string, href: string): string {
   return `[${label}](${href})`;
 }
 
-// An internal link to a page that serves its own markdown version.
-function mdLink(label: string, htmlPath: string, siteUrl: string): string {
+// An internal link to the page's HTML URL. The page also serves its markdown
+// at the same path plus ".md" (markdownPathFor), but the markdown links to
+// the HTML URL: agents that follow it send their own Accept header.
+function internalLink(
+  label: string,
+  htmlPath: string,
+  siteUrl: string
+): string {
   return link(label, `${siteUrl}${htmlPath}`);
 }
 
@@ -134,7 +140,7 @@ function homeMarkdown(siteUrl: string): string {
     HOME_HERO.lede,
     "",
     `- ${link(HOME_HERO.links.deploy, DEPLOY_URL)}`,
-    `- ${mdLink(`${HOME_HERO.links.demo} ↗`, "/jobs", siteUrl)}`,
+    `- ${internalLink(`${HOME_HERO.links.demo} ↗`, "/jobs", siteUrl)}`,
     "",
     `## ${HOME_TECH_STACK.heading}`,
     "",
@@ -208,7 +214,7 @@ function homeMarkdown(siteUrl: string): string {
     `- ${link(HOME_FINAL_CTA.links.deploy, DEPLOY_URL)}`,
     `- ${link(HOME_FINAL_CTA.links.github, GITHUB_URL)}`,
     `- ${link(HOME_FINAL_CTA.links.clone, DEPLOY_URL)}`,
-    `- ${mdLink(`${HOME_FINAL_CTA.links.demo} ↗`, "/jobs", siteUrl)}`
+    `- ${internalLink(`${HOME_FINAL_CTA.links.demo} ↗`, "/jobs", siteUrl)}`
   );
 
   return shell(HOME_HERO.heading.join(" "), siteUrl, lines);
@@ -221,7 +227,7 @@ function pricingMarkdown(siteUrl: string): string {
     PRICING_PAGE_HEADER.description,
     "",
     `- ${link("Clone now", GITHUB_URL)}`,
-    `- ${mdLink("Live demo", "/jobs", siteUrl)}`,
+    `- ${internalLink("Live demo", "/jobs", siteUrl)}`,
     "",
   ];
 
@@ -258,7 +264,7 @@ function pricingMarkdown(siteUrl: string): string {
     PRICING_PAGE_CTA.description,
     "",
     `- ${link("Clone now", GITHUB_URL)}`,
-    `- ${mdLink("Live demo", "/jobs", siteUrl)}`
+    `- ${internalLink("Live demo", "/jobs", siteUrl)}`
   );
 
   return shell(
@@ -275,7 +281,7 @@ function featuresMarkdown(siteUrl: string): string {
     FEATURES_PAGE_HERO.lede,
     "",
     `- ${link(FEATURES_PAGE_HERO.links.clone, GITHUB_URL)}`,
-    `- ${mdLink(FEATURES_PAGE_HERO.links.demo, "/jobs", siteUrl)}`,
+    `- ${internalLink(FEATURES_PAGE_HERO.links.demo, "/jobs", siteUrl)}`,
     "",
     "Bordful at a glance:",
     "",
@@ -297,7 +303,7 @@ function featuresMarkdown(siteUrl: string): string {
     FEATURES_PAGE_CTA.description,
     "",
     `- ${link(FEATURES_PAGE_HERO.links.clone, GITHUB_URL)}`,
-    `- ${mdLink(FEATURES_PAGE_HERO.links.demo, "/jobs", siteUrl)}`
+    `- ${internalLink(FEATURES_PAGE_HERO.links.demo, "/jobs", siteUrl)}`
   );
 
   return shell(FEATURES_PAGE_HERO.heading.join(" "), siteUrl, lines);
@@ -328,7 +334,7 @@ function faqMarkdown(siteUrl: string): string {
     ...FAQ_PAGE_CTA.actions.map((action) =>
       "external" in action && action.external
         ? `- ${link(action.label, action.href)}`
-        : `- ${mdLink(action.label, action.href, siteUrl)}`
+        : `- ${internalLink(action.label, action.href, siteUrl)}`
     )
   );
 
@@ -347,10 +353,11 @@ function showcaseEntryLines(entries: readonly ShowcaseEntry[]): string[] {
 }
 
 function showcaseMarkdown(siteUrl: string): string {
+  // The shell already carries SHOWCASE_PAGE_HEADER.heading as the H1 (the
+  // HTML page renders it as its h1 too); do not repeat it as a section
+  // heading the page does not render.
   const lines: string[] = [
     SHOWCASE_PAGE_HEADER.description,
-    "",
-    `## ${SHOWCASE_PAGE_HEADER.heading.join(" ")}`,
     "",
     ...showcaseEntryLines([SHOWCASE_DEMO]),
     `## ${SHOWCASE_GROUPS.community}`,
@@ -574,7 +581,7 @@ function alternativeMarkdown(page: Alternative): (siteUrl: string) => string {
           )}`
       ),
       "",
-      `All alternatives: ${mdLink("Alternatives and Comparisons", "/alternatives", siteUrl)}`,
+      `All alternatives: ${internalLink("Alternatives and Comparisons", "/alternatives", siteUrl)}`,
       "",
       `## ${ALTERNATIVES_PAGE_CTA.title} ${ALTERNATIVES_PAGE_CTA.titleMuted}`,
       "",
@@ -610,7 +617,7 @@ function alternativesHubMarkdown(siteUrl: string): string {
           : ""
       }`,
       "",
-      `- ${mdLink(page.hub.linkLabel, `/alternatives/${page.slug}`, siteUrl)}`,
+      `- ${internalLink(page.hub.linkLabel, `/alternatives/${page.slug}`, siteUrl)}`,
       ""
     );
   }

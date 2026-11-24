@@ -52,6 +52,17 @@ export const BOARD_PAGE_CACHE_CONTROL =
 
 const TRAILING_NEWLINES = /\n+$/u;
 
+// Feed-originated text (job titles, company names, locations, taxonomy
+// labels, settings copy) must not carry markdown structure into the page:
+// escape the inline specials in both link labels and free text, and flatten
+// newlines and tabs so a title can never start a new line, list item or
+// heading of its own.
+function escapeInline(value: string): string {
+  return value
+    .replace(/[\r\n\t]+/gu, " ")
+    .replace(/[\\`*_[\]]/gu, (char) => `\\${char}`);
+}
+
 function shell(
   title: string,
   siteUrl: string,
@@ -73,6 +84,7 @@ function shell(
 
 // The detail line under a job title, in the shape the job row renders:
 // company, then location, workplace and type separated by a middot.
+// Every part is feed or settings text, so all of it is escaped.
 function jobMetaLine(job: JobListItem): string {
   const location = formatLocation(job);
   const workplace = job.workplaceType
@@ -85,22 +97,24 @@ function jobMetaLine(job: JobListItem): string {
     !location.startsWith(`${workplace},`);
   const details: string[] = [];
   if (location) {
-    details.push(location);
+    details.push(escapeInline(location));
   }
   if (showWorkplace && workplace) {
-    details.push(workplace);
+    details.push(escapeInline(workplace));
   }
   if (job.employmentType) {
-    details.push(JOB_EMPLOYMENT_LABELS[job.employmentType]);
+    details.push(escapeInline(JOB_EMPLOYMENT_LABELS[job.employmentType]));
   }
-  return [job.companyName, ...details].join("·");
+  return [escapeInline(job.companyName), ...details].join("·");
 }
 
 function jobBullets(jobs: readonly JobListItem[], siteUrl: string): string[] {
   return jobs.map((job) => {
     const salary = formatSalary(job);
     const meta = jobMetaLine(job);
-    return `- [${job.title}](${siteUrl}${buildJobPath(job.slug)})${meta ? ` ${meta}` : ""}${salary ? ` · ${salary}` : ""}`;
+    return `- [${escapeInline(job.title)}](${siteUrl}${buildJobPath(
+      job.slug
+    )})${meta ? ` ${meta}` : ""}${salary ? ` · ${escapeInline(salary)}` : ""}`;
   });
 }
 
@@ -119,7 +133,7 @@ async function jobsPageMarkdown(siteUrl: string): Promise<string> {
   const updated = heroStats(cards, now).lastUpdated;
 
   const lines: string[] = [
-    settings.board.description,
+    escapeInline(settings.board.description),
     "",
     resultsLabel(view.matchCount, updated),
     "",
@@ -136,9 +150,9 @@ async function jobsPageMarkdown(siteUrl: string): Promise<string> {
 
   if (settings.postJob.enabled) {
     lines.push(
-      `- Hiring? Post your job. Reach candidates browsing this board. Post a job (${
+      `- Hiring? Post your job. Reach candidates browsing this board. Post a job (${escapeInline(
         settings.postJob.priceLabel
-      }), ${settings.postJob.durationDays}-day listing at ${siteUrl}/post`,
+      )}), ${settings.postJob.durationDays}-day listing at ${siteUrl}/post`,
       ""
     );
   }
@@ -151,11 +165,16 @@ async function jobsPageMarkdown(siteUrl: string): Promise<string> {
       "",
       ...jobBullets(view.docs, siteUrl)
     );
+    // Only the first page fits here; query strings are not part of .md URLs,
+    // so point at the HTML page for the rest instead of a ?page= link.
+    if (view.totalPages > 1) {
+      lines.push("", `More jobs: ${siteUrl}/jobs`);
+    }
   } else {
     lines.push("No matching jobs");
   }
 
-  return shell(settings.board.title, siteUrl, lines);
+  return shell(escapeInline(settings.board.title), siteUrl, lines);
 }
 
 // -- /companies --------------------------------------------------------------------
@@ -176,14 +195,32 @@ async function companiesPageMarkdown(siteUrl: string): Promise<string> {
     all.length === 1 ? "company" : "companies"
   }, ${pool.length} open ${pool.length === 1 ? "role" : "roles"}.`;
 
+  // The HTML directory serves the first COMPANY_PAGE_SIZE cards and folds
+  // the rest behind "Show all". The markdown lists the same first page and,
+  // when rows were cut, points at the HTML page for the rest (query strings
+  // are not part of .md URLs, so there is no ?page= markdown link to give).
+  if (all.length === 0) {
+    return shell(
+      "Companies hiring",
+      siteUrl,
+      ["No companies with open jobs."],
+      subtitle
+    );
+  }
+
   const lines: string[] = [
     ...rows.map(
       (row) =>
-        `- [${row.name}](${siteUrl}${buildCompanyPath(row.slug)}) ${
-          row.location ?? ""
-        } ${row.count === 1 ? "1 open role" : `${row.count} open roles`}`
+        `- [${escapeInline(row.name)}](${siteUrl}${buildCompanyPath(
+          row.slug
+        )}) ${escapeInline(row.location ?? "")} ${
+          row.count === 1 ? "1 open role" : `${row.count} open roles`
+        }`
     ),
   ];
+  if (all.length > rows.length) {
+    lines.push("", `More companies: ${siteUrl}/companies`);
+  }
 
   return shell("Companies hiring", siteUrl, lines, subtitle);
 }
@@ -234,7 +271,9 @@ function popularCardLine(
   if (card.detail !== null) {
     detail = inlineDetail ? ` · ${card.detail}` : ` ${card.detail}`;
   }
-  return `- [${card.facet.label}](${siteUrl}${card.facet.href}) ${count}${detail}`;
+  return `- [${escapeInline(card.facet.label)}](${
+    siteUrl
+  }${card.facet.href}) ${count}${detail}`;
 }
 
 function workplaceLine(
@@ -242,7 +281,9 @@ function workplaceLine(
   siteUrl: string
 ): string {
   const href = row.type === "remote" ? `${siteUrl}/jobs/location/remote` : null;
-  return `- ${href ? `[${row.label}](${href})` : row.label} ${row.count}`;
+  return `- ${
+    href ? `[${escapeInline(row.label)}](${href})` : escapeInline(row.label)
+  } ${row.count}`;
 }
 
 async function taxonomyPageMarkdown(
@@ -279,7 +320,9 @@ async function taxonomyPageMarkdown(
   }
 
   for (const facet of rest) {
-    lines.push(`- [${facet.label}](${siteUrl}${facet.href}) ${facet.count}`);
+    lines.push(
+      `- [${escapeInline(facet.label)}](${siteUrl}${facet.href}) ${facet.count}`
+    );
   }
 
   if (workplaces.length > 0) {

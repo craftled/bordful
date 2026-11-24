@@ -162,11 +162,18 @@ export function mergeVary(vary: string | null, token: string): string {
 // rest get the route's plain-text 404) and for the HTML URL of a page with a
 // markdown version ("/pricing", "/", "/alternatives/wp-job-manager") when
 // acceptsMarkdown(accept). Docs paths go through docsMarkdownRewrite
-// first. Otherwise null.
+// first. A path with a broken percent escape returns null before any rewrite
+// (see the comment inside). Otherwise null.
 export function markdownRewrite(
   pathname: string,
   accept: string | null
 ): string | null {
+  // A broken percent escape never reaches a markdown route: null here falls
+  // through to the malformed-path rewrite, so /jobs/%ZZ.md gets the regular
+  // 404 page instead of a 500 from a dynamic route.
+  if (hasMalformedEncoding(pathname)) {
+    return null;
+  }
   const docs = docsMarkdownRewrite(pathname, accept);
   if (docs !== null) {
     return docs;

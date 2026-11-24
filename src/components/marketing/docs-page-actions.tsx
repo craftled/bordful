@@ -145,9 +145,10 @@ export function DocsPageActions({
         <span className="sr-only">(opens in a new tab)</span>
       </a>
       {failed ? (
+        // Same-origin .md URL: it opens in this tab, so no new-tab
+        // announcement and no target="_blank" here.
         <a className={LINK_CLASS} href={mdPath}>
-          Open the Markdown page{" "}
-          <span className="sr-only">(opens in a new tab)</span>
+          Open the Markdown page
         </a>
       ) : null}
     </aside>

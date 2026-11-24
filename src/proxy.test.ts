@@ -27,6 +27,11 @@ const MALFORMED = [
   "/docs/%E0%A4%A",
   "/jobs/page/%E0",
   "/jobs/type/%E0%A4%A",
+  // Malformed .md URLs must not be rewritten into a markdown route either.
+  "/jobs/%ZZ.md",
+  "/companies/%E0%A4%A.md",
+  "/pricing/%ZZ.md",
+  "/alternatives/%ZZ.md",
 ];
 
 const BROWSER_ACCEPT =
@@ -254,6 +259,40 @@ test("isInternalDocsMarkdownPath matches only the internal route", () => {
   expect(isInternalDocsMarkdownPath("/docs")).toBe(false);
   expect(isInternalDocsMarkdownPath("/docs/deploy.md")).toBe(false);
   expect(isInternalDocsMarkdownPath("/docsmd")).toBe(false);
+});
+
+test("a malformed .md URL is never rewritten to a markdown route", () => {
+  // htmlPathFor() accepts every path that ends in .md, so without the guard
+  // a URL like /jobs/%ZZ.md would land in the /pages-md dynamic route and
+  // surface Next's plain-text 500 instead of the intended 404.
+  for (const path of [
+    "/jobs/%ZZ.md",
+    "/companies/%E0%A4%A.md",
+    "/pricing/%ZZ.md",
+    "/alternatives/%ZZ.md",
+    "/docs/%ZZ.md",
+  ]) {
+    expect(markdownRewrite(path, null), path).toBeNull();
+    expect(markdownRewrite(path, "text/markdown"), path).toBeNull();
+  }
+
+  // Well-formed .md URLs keep rewriting as before.
+  expect(markdownRewrite("/pricing.md", null)).toBe("/pages-md/pricing");
+  expect(markdownRewrite("/jobs/types.md", null)).toBe("/pages-md/jobs/types");
+
+  // Through the whole proxy (marketing on): the malformed .md URL reaches
+  // the malformed-path rewrite and its 404 page with the CSP, whatever the
+  // Accept header, and never a markdown rewrite or a pass-through.
+  for (const accept of [null, "text/markdown", BROWSER_ACCEPT]) {
+    withMarketing("true", () => {
+      const headers = accept === null ? {} : { accept };
+      const response = run("/jobs/%ZZ.md", "localhost:3100", headers);
+      expect(rewritePath(response)).toBe(MALFORMED_PATH_REWRITE);
+      expect(response.headers.get("Content-Security-Policy")).toContain(
+        "default-src 'self'"
+      );
+    });
+  }
 });
 
 test("rewrites markdown URLs to the internal route when marketing is on", () => {

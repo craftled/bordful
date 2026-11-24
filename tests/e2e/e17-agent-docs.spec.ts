@@ -172,12 +172,32 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
         expect(response.headers()["content-type"], path).toContain(
           "text/plain"
         );
+        // The markdown routes' 404s are negotiated responses too, so the
+        // final response still declares Vary: Accept (see route tests).
+        expect(response.headers().vary, path).toContain("Accept");
         return [path, await response.text()] as const;
       })
     );
     for (const [path, body] of bodies) {
       expect(body, path).toBe("Not found\n");
     }
+  });
+
+  test("malformed .md URLs get the HTML 404, never a markdown rewrite", async ({
+    request,
+  }) => {
+    // A broken percent escape before .md used to be rewritten into
+    // /pages-md/<path>, where the dynamic segment 500s. The malformed-path
+    // rewrite must win: the regular 404 page, with the CSP block.
+    const response = await request.get(marketingUrl("/jobs/%ZZ.md"));
+    expect(response.status()).toBe(404);
+    expect(response.headers()["content-type"]).toContain("text/html");
+    expect(response.headers()["content-security-policy"]).toContain(
+      "default-src 'self'"
+    );
+    const body = await response.text();
+    expect(body).not.toContain("Not found\n");
+    expect(body).not.toContain("pages-md");
   });
 
   test("docs pages offer the markdown and AI actions", async ({ page }) => {

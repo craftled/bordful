@@ -129,7 +129,7 @@ test("copy succeeds through ClipboardItem and announces it politely", async () =
   // No fallback link when the copy worked.
   expect(
     screen.queryByRole("link", {
-      name: "Open the Markdown page (opens in a new tab)",
+      name: "Open the Markdown page",
     })
   ).toBeNull();
 });
@@ -173,7 +173,7 @@ test("copy failure announces the alternative and links the markdown page", async
     )
   );
   const fallback = screen.getByRole("link", {
-    name: "Open the Markdown page (opens in a new tab)",
+    name: "Open the Markdown page",
   }) as HTMLAnchorElement;
   expect(fallback.getAttribute("href")).toBe(mdPath);
 });
@@ -196,7 +196,7 @@ test("copy failure on the fetch shows the same fallback", async () => {
   );
   expect(
     screen.getByRole("link", {
-      name: "Open the Markdown page (opens in a new tab)",
+      name: "Open the Markdown page",
     })
   ).toBeTruthy();
 });
