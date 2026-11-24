@@ -5,7 +5,7 @@ import { resultsLabel } from "@/components/board/board-toolbar";
 import { COMPANY_PAGE_SIZE } from "@/lib/board/constants";
 import { filterBoard } from "@/lib/board/filter";
 import { formatLocation, formatSalary } from "@/lib/board/format";
-import { buildJobPath } from "@/lib/board/paths";
+import { buildBoardPagePath, buildJobPath } from "@/lib/board/paths";
 import { parseBoardQuery } from "@/lib/board/query";
 import { buildBoardView } from "@/lib/board/view";
 import type { JobListItem } from "@/lib/read/types";
@@ -14,6 +14,7 @@ import {
   BOARD_PAGE_CACHE_CONTROL,
   boardPageMarkdown,
 } from "./agent-board-pages";
+import { AGENT_PAGE_PATHS } from "./agent-docs-paths";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -264,22 +265,45 @@ test("the jobs markdown lists one page and links the HTML for the rest", async (
   stubBoard({ jobsPerPage: 1 });
   vi.setSystemTime(now);
   const markdown = (await boardPageMarkdown("/jobs", siteUrl)) ?? "";
-  const view = buildBoardView(
-    FIXTURE_JOBS,
-    parseBoardQuery(new URLSearchParams(""), { defaultPerPage: 1 }),
-    now
-  );
+  const query = parseBoardQuery(new URLSearchParams(""), {
+    defaultPerPage: 1,
+  });
+  const view = buildBoardView(FIXTURE_JOBS, query, now);
   expect(view.totalPages).toBe(3);
   const first = view.docs[0] as JobListItem;
   expect(markdown).toContain(
     `[${first.title}](${siteUrl}${buildJobPath(first.slug)})`
   );
-  for (const jobItem of view.docs.slice(1)) {
+  // The jobs the first page omits are exactly the fixtures the view cut:
+  // slice(1) on a one-job page would be empty and prove nothing.
+  const omitted = FIXTURE_JOBS.filter(
+    (jobItem) => !view.docs.includes(jobItem)
+  );
+  expect(omitted.length).toBe(2);
+  for (const jobItem of omitted) {
     expect(markdown).not.toContain(`[${jobItem.title}]`);
   }
-  // Query strings are not part of .md URLs, so the rest is an honest link to
-  // the HTML page, not a ?page= link.
-  expect(markdown).toContain(`More jobs: ${siteUrl}/jobs`);
+  // The more link targets the next HTML page, never /jobs itself: an agent
+  // re-requesting /jobs with Accept: text/markdown would get this same
+  // truncated page again. /jobs/page/2 is not a negotiated path, so it is
+  // served as HTML even for markdown Accept (e17 checks this over HTTP).
+  const moreUrl = `${siteUrl}${buildBoardPagePath(true, 2)}`;
+  expect(moreUrl).toBe(`${siteUrl}/jobs/page/2`);
+  expect(AGENT_PAGE_PATHS).not.toContain("/jobs/page/2");
+  expect(markdown).toContain(`More jobs: ${moreUrl}`);
+  expect(markdown).not.toContain(`More jobs: ${siteUrl}/jobs\n`);
+  // Following the affordance reaches the omitted rows: the HTML route for
+  // /jobs/page/2 (and on) renders the same view code with the later pages
+  // of the same query, and those pages hold exactly the omitted fixtures.
+  const following: JobListItem[] = [];
+  for (let page = 2; page <= view.totalPages; page += 1) {
+    following.push(
+      ...buildBoardView(FIXTURE_JOBS, { ...query, page }, now).docs
+    );
+  }
+  expect(following.map((jobItem) => jobItem.title).sort()).toEqual(
+    omitted.map((jobItem) => jobItem.title).sort()
+  );
 });
 
 test("the companies markdown keeps the empty state honest", async () => {
@@ -293,10 +317,13 @@ test("the companies markdown keeps the empty state honest", async () => {
   expect(markdown).not.toContain("More companies");
 });
 
-test("the companies markdown lists one page and links the HTML for the rest", async () => {
+test("the companies markdown lists every company, past the HTML page size", async () => {
   stubBoard();
-  // One more company than COMPANY_PAGE_SIZE, so the directory folds the
-  // last card behind "Show all" in the browser.
+  // One more company than COMPANY_PAGE_SIZE: the HTML directory folds the
+  // last card behind a client-side "Show all" button a non-JavaScript agent
+  // cannot press, so the markdown must list it (and every other row)
+  // instead of linking back to /companies, which would only serve the same
+  // truncated markdown again.
   const many = Array.from({ length: COMPANY_PAGE_SIZE + 1 }, (_, index) =>
     job({
       id: String(index),
@@ -311,13 +338,22 @@ test("the companies markdown lists one page and links the HTML for the rest", as
   expect(markdown).toContain(
     `${COMPANY_PAGE_SIZE + 1} companies, ${COMPANY_PAGE_SIZE + 1} open roles.`
   );
-  // The directory orders companies by name, so the cut card is the last.
+  // The directory orders companies by name, so the row the HTML folds away
+  // is the last one. It is right here in the markdown, linked like the rest.
   const cut = many[COMPANY_PAGE_SIZE] as JobListItem;
   expect(markdown).toContain(
     `[Company A](${siteUrl}/companies/company-0) New York, NY 1 open role`
   );
-  expect(markdown).not.toContain(`[${cut.companyName}]`);
-  expect(markdown).toContain(`More companies: ${siteUrl}/companies`);
+  expect(markdown).toContain(
+    `[${cut.companyName}](${siteUrl}/companies/${cut.companySlug}) New York, NY 1 open role`
+  );
+  // Every company, not just the first COMPANY_PAGE_SIZE.
+  for (const row of many) {
+    expect(markdown).toContain(
+      `[${row.companyName}](${siteUrl}/companies/${row.companySlug})`
+    );
+  }
+  expect(markdown).not.toContain("More companies");
 });
 
 test("feed text cannot inject markdown structure", async () => {
@@ -360,4 +396,61 @@ test("feed text cannot inject markdown structure", async () => {
       `${siteUrl}/companies/evil-co) New York \\*1\\* 1 open role`
   );
   expect(directory).not.toContain("[Evil *Co* [x]](");
+});
+
+test("feed text cannot inject autolinks, raw HTML or strikethrough", async () => {
+  stubBoard();
+  vi.setSystemTime(now);
+  // Backslash escaping alone leaves <, > and & intact, so feed text could
+  // still open a GFM autolink (<https://...>) or emit raw HTML for
+  // downstream renderers, and ~~text~~ strikethrough still worked. The
+  // title covers the link-label position, the meta line the free-text one.
+  const hostile = job({
+    id: "9",
+    slug: "hostile-markup",
+    title: "See <https://evil.example> ~~now~~ <img src=x onerror=alert(1)>",
+    companyName: "Acme <https://evil.example>",
+    companySlug: "acme-evil",
+    locationDisplay: "R&D ~~hq~~ & <b>unit</b>",
+    workplaceType: null,
+    employmentType: null,
+    salaryMin: null,
+    salaryMax: null,
+    salaryCurrency: null,
+    salaryMinUsd: null,
+    salaryMaxUsd: null,
+  });
+  setPool([hostile]);
+
+  const markdown = (await boardPageMarkdown("/jobs", siteUrl)) ?? "";
+  // Label position: no autolink, no strikethrough, no raw <img>, and the
+  // real link target is still the job's own page.
+  expect(markdown).toContain(
+    "- [See &lt;https://evil.example&gt; \\~\\~now\\~\\~ " +
+      "&lt;img src=x onerror=alert(1)&gt;](" +
+      `${siteUrl}/jobs/hostile-markup)`
+  );
+  // Free-text position on the same line: entity-encoded HTML contexts, no
+  // autolink, no strikethrough.
+  expect(markdown).toContain(
+    "Acme &lt;https://evil.example&gt;·" +
+      "R&amp;D \\~\\~hq\\~\\~ &amp; &lt;b&gt;unit&lt;/b&gt;"
+  );
+  expect(markdown).not.toContain("<https://");
+  expect(markdown).not.toContain("<img");
+  expect(markdown).not.toContain("<b>");
+  expect(markdown).not.toContain("~~now~~");
+  expect(markdown).not.toContain("~~hq~~");
+
+  const directory = (await boardPageMarkdown("/companies", siteUrl)) ?? "";
+  // The company name is the link label here, the location free text.
+  expect(directory).toContain(
+    "[Acme &lt;https://evil.example&gt;](" +
+      `${siteUrl}/companies/acme-evil) ` +
+      "R&amp;D \\~\\~hq\\~\\~ &amp; &lt;b&gt;unit&lt;/b&gt; 1 open role"
+  );
+  expect(directory).not.toContain("<https://");
+  expect(directory).not.toContain("<img");
+  expect(directory).not.toContain("<b>");
+  expect(directory).not.toContain("~~hq~~");
 });

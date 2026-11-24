@@ -108,7 +108,9 @@ export function DocsPageActions({
       data-markdown-ignore
     >
       <Button
-        aria-label="Copy page as Markdown"
+        // No aria-label: the visible "Copy as Markdown" text is the
+        // accessible name (voice control speaks what is on screen), and it
+        // flips to "Copied" with the status announcement below.
         className={cn(LINK_CLASS, "gap-[7px] px-3.5")}
         onClick={onCopy}
         type="button"

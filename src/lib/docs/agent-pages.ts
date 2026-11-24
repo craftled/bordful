@@ -1,6 +1,8 @@
-// Markdown builders for the static marketing pages. Pure functions over the
-// same exported data modules the React pages render, so the HTML and the
-// markdown cannot drift. Server only.
+// Markdown builders for the static marketing pages. Pure functions over
+// the same exported data modules the React pages render, so the markdown
+// and the pages have one source. The parity tests are one-directional
+// (every rendered segment and heading appears in the markdown); a separate
+// test fails when a markdown heading repeats the page title. Server only.
 //
 // Every page body starts with `# Title`, then the llms.txt directive, then
 // the page content with absolute links: internal pages that serve markdown

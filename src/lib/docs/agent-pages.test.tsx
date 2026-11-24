@@ -215,8 +215,13 @@ function pageHeadings(html: string): string[] {
 // (the Vercel clone link does). Links reduce to their labels.
 const MD_LINK = /\[(?<label>[^\]]+)\]\((?<url>[^()]*(?:\([^)]*\)[^()]*)*)\)/gu;
 
-const MD_H1 = /^# (?<title>.+)$/u;
-const MD_SECTION_HEADING = /^#{2,6} (?<title>.+)$/gu;
+// Both patterns need the m flag: ^ and $ must match each line, not just
+// the start and end of the whole document. Without it MD_SECTION_HEADING
+// found no section headings at all (the document starts with its H1) and
+// the duplicate check below passed vacuously; MD_H1 never matched either,
+// so the title it compared against was always the empty string.
+const MD_H1 = /^# (?<title>.+)$/mu;
+const MD_SECTION_HEADING = /^#{2,6} (?<title>.+)$/gimu;
 
 function markdownPlain(markdown: string): string {
   return normalize(
@@ -406,6 +411,28 @@ test("no markdown heading repeats the page title", () => {
       .filter((heading) => heading.length > 0 && heading === title);
     expect(repeats, path).toEqual([]);
   }
+});
+
+test("the duplicate-heading check catches a real duplicate", () => {
+  // Proof that the check above is not vacuous: this fixture repeats its H1
+  // title as a section heading (the exact shape the showcase regression
+  // had). It fails the same assertion the real pages are held to, so a
+  // broken MD_SECTION_HEADING (missing the m flag again) cannot pass.
+  const doc = [
+    "# Job boards built with Bordful",
+    "",
+    "Some intro copy.",
+    "",
+    "## Job boards built with Bordful",
+    "",
+    "- A section body.",
+    "",
+  ].join("\n");
+  const title = normalize(MD_H1.exec(doc)?.groups?.title ?? "");
+  const repeats = [...doc.matchAll(MD_SECTION_HEADING)]
+    .map((match) => normalize(match.groups?.title ?? ""))
+    .filter((heading) => heading.length > 0 && heading === title);
+  expect(repeats).toEqual([title]);
 });
 
 test("unknown paths return null", () => {

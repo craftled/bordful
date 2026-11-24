@@ -38,7 +38,7 @@ test("renders the three controls with names, hrefs and safety attributes", () =>
   expect(wrapper.hasAttribute("data-markdown-ignore")).toBe(true);
 
   const copy = screen.getByRole("button", {
-    name: "Copy page as Markdown",
+    name: "Copy as Markdown",
   }) as HTMLButtonElement;
   expect(copy.type).toBe("button");
 
@@ -111,16 +111,18 @@ test("copy succeeds through ClipboardItem and announces it politely", async () =
 
   render(<DocsPageActions mdPath={mdPath} mdUrl={mdUrl} />);
   const button = screen.getByRole("button", {
-    name: "Copy page as Markdown",
+    name: "Copy as Markdown",
   });
 
   fireEvent.click(button);
 
   expect(fetch).toHaveBeenCalledWith(mdPath);
   await waitFor(() => expect(write).toHaveBeenCalled());
+  // The accessible name follows the visible text, so it flips to "Copied"
+  // with the announcement (no fixed aria-label anymore).
   await waitFor(() =>
     expect(
-      screen.getByRole("button", { name: "Copy page as Markdown" }).textContent
+      screen.getByRole("button", { name: "Copied" }).textContent
     ).toContain("Copied")
   );
   expect(screen.getByRole("status").textContent).toBe(
@@ -146,9 +148,7 @@ test("copy falls back to writeText when ClipboardItem is missing", async () => {
   vi.stubGlobal("fetch", fetch);
 
   render(<DocsPageActions mdPath={mdPath} mdUrl={mdUrl} />);
-  fireEvent.click(
-    screen.getByRole("button", { name: "Copy page as Markdown" })
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Copy as Markdown" }));
 
   expect(write).not.toHaveBeenCalled();
   await waitFor(() => expect(writeText).toHaveBeenCalled());
@@ -163,9 +163,7 @@ test("copy failure announces the alternative and links the markdown page", async
   vi.stubGlobal("fetch", fetch);
 
   render(<DocsPageActions mdPath={mdPath} mdUrl={mdUrl} />);
-  fireEvent.click(
-    screen.getByRole("button", { name: "Copy page as Markdown" })
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Copy as Markdown" }));
 
   await waitFor(() =>
     expect(screen.getByRole("status").textContent).toBe(
@@ -185,9 +183,7 @@ test("copy failure on the fetch shows the same fallback", async () => {
   vi.stubGlobal("fetch", fetch);
 
   render(<DocsPageActions mdPath={mdPath} mdUrl={mdUrl} />);
-  fireEvent.click(
-    screen.getByRole("button", { name: "Copy page as Markdown" })
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Copy as Markdown" }));
 
   await waitFor(() =>
     expect(screen.getByRole("status").textContent).toBe(

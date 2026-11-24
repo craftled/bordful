@@ -13,10 +13,10 @@ import {
   taxonomySubtitle,
 } from "@/components/board/taxonomy-index";
 import { companiesFromPool } from "@/lib/board/companies";
-import { COMPANY_PAGE_SIZE } from "@/lib/board/constants";
 import { filterBoard } from "@/lib/board/filter";
 import { formatLocation, formatSalary } from "@/lib/board/format";
 import {
+  buildBoardPagePath,
   buildCompanyPath,
   buildJobPath,
   type TaxonomyKind,
@@ -54,13 +54,18 @@ const TRAILING_NEWLINES = /\n+$/u;
 
 // Feed-originated text (job titles, company names, locations, taxonomy
 // labels, settings copy) must not carry markdown structure into the page:
-// escape the inline specials in both link labels and free text, and flatten
+// escape the inline specials in both link labels and free text, flatten
 // newlines and tabs so a title can never start a new line, list item or
-// heading of its own.
+// heading of its own, and entity-encode &, < and > so no raw HTML or
+// autolink (<https://...>) survives either position. ~ is escaped too, so
+// GFM strikethrough (~~text~~) cannot be injected.
 function escapeInline(value: string): string {
   return value
     .replace(/[\r\n\t]+/gu, " ")
-    .replace(/[\\`*_[\]]/gu, (char) => `\\${char}`);
+    .replace(/[\\`*_[\]~]/gu, (char) => `\\${char}`)
+    .replace(/&/gu, "&amp;")
+    .replace(/</gu, "&lt;")
+    .replace(/>/gu, "&gt;");
 }
 
 function shell(
@@ -165,10 +170,17 @@ async function jobsPageMarkdown(siteUrl: string): Promise<string> {
       "",
       ...jobBullets(view.docs, siteUrl)
     );
-    // Only the first page fits here; query strings are not part of .md URLs,
-    // so point at the HTML page for the rest instead of a ?page= link.
-    if (view.totalPages > 1) {
-      lines.push("", `More jobs: ${siteUrl}/jobs`);
+    // Only the first page fits here, and query strings are not part of .md
+    // URLs, so the rest points at the next HTML page (/jobs/page/2). That
+    // path is not a negotiated page, so an agent following it with
+    // Accept: text/markdown gets the real second HTML page, not this same
+    // truncated markdown again (buildBoardPagePath returns /jobs/page/N
+    // for N > 1 in both marketing and site modes).
+    if (view.totalPages > view.page) {
+      lines.push(
+        "",
+        `More jobs: ${siteUrl}${buildBoardPagePath(true, view.page + 1)}`
+      );
     }
   } else {
     lines.push("No matching jobs");
@@ -183,7 +195,7 @@ async function companiesPageMarkdown(siteUrl: string): Promise<string> {
   const pool = await loadBoardPool();
   const stats = companyStatsFromPool(pool, Date.now());
   const all = companiesFromPool(pool);
-  const rows = all.slice(0, COMPANY_PAGE_SIZE).map((row) => {
+  const rows = all.map((row) => {
     const facts = stats.get(row.slug);
     return {
       ...row,
@@ -196,9 +208,10 @@ async function companiesPageMarkdown(siteUrl: string): Promise<string> {
   }, ${pool.length} open ${pool.length === 1 ? "role" : "roles"}.`;
 
   // The HTML directory serves the first COMPANY_PAGE_SIZE cards and folds
-  // the rest behind "Show all". The markdown lists the same first page and,
-  // when rows were cut, points at the HTML page for the rest (query strings
-  // are not part of .md URLs, so there is no ?page= markdown link to give).
+  // the rest behind a client-side "Show all" button a non-JavaScript agent
+  // cannot press, so the markdown lists every company: the honest complete
+  // list, not a link back to /companies that would only loop the same
+  // truncated markdown again.
   if (all.length === 0) {
     return shell(
       "Companies hiring",
@@ -218,9 +231,6 @@ async function companiesPageMarkdown(siteUrl: string): Promise<string> {
         }`
     ),
   ];
-  if (all.length > rows.length) {
-    lines.push("", `More companies: ${siteUrl}/companies`);
-  }
 
   return shell("Companies hiring", siteUrl, lines, subtitle);
 }

@@ -154,11 +154,32 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
       expect(check.htmlContentType, path).toContain("text/html");
       // The CSP block travels with the HTML page.
       expect(check.csp, path).toContain("default-src 'self'");
-      // The app router owns Vary on HTML responses; it is present and
-      // carries the router state tokens (the Accept token rides in the
-      // next.config.ts header entry, applied on the Vercel edge).
+      // The app router owns Vary on HTML responses, so only its router
+      // state tokens can be asserted here: locally the final HTML response
+      // overwrites the Vary the proxy set (documented in the PR body). The
+      // Accept token for final HTML is expected from the next.config.ts
+      // headers entry applied on the Vercel edge, but that is not yet
+      // verified against a deployment, so it stays a post-deploy
+      // curl -sI release gate in the PR body instead of an assertion here.
       expect(check.htmlVary, path).toContain("rsc");
     }
+  });
+
+  test("the board markdown more-jobs link leads to HTML, not the same markdown", async ({
+    request,
+  }) => {
+    // The /jobs markdown lists only the first page and links the next HTML
+    // page (/jobs/page/2) for the rest. That path is not a negotiated page,
+    // so an agent following the link with Accept: text/markdown gets the
+    // real second HTML page (or its HTML 404), never the same truncated
+    // markdown again. The omitted rows themselves are covered by the
+    // agent-board-pages unit fixtures.
+    const response = await request.get(marketingUrl("/jobs/page/2"), {
+      headers: { Accept: "text/markdown" },
+    });
+    expect(response.headers()["content-type"]).toContain("text/html");
+    const pageTwo = await response.text();
+    expect(pageTwo.startsWith("# "), "page 2 stays HTML").toBe(false);
   });
 
   test("unknown .md URLs 404 in plain text", async ({ request }) => {
@@ -212,7 +233,7 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
     await page.goto(marketingUrl("/docs/deploy"));
 
     const copy = page.getByRole("button", {
-      name: "Copy page as Markdown",
+      name: "Copy as Markdown",
     });
     const chatgpt = page.getByRole("link", {
       name: "Open in ChatGPT (opens in a new tab)",
@@ -264,9 +285,14 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
     ]);
 
     // Copy works against the real route: the button flips to Copied and
-    // the live region announces it.
+    // the live region announces it. The copy locator cannot be reused for
+    // the flip: the accessible name follows the visible text now, so it is
+    // "Copied" while the check mark shows (the original locator would stop
+    // matching) and flips back after the reset.
     await copy.click();
-    await expect(copy).toContainText("Copied");
+    await expect(
+      page.getByRole("button", { name: "Copied", exact: true })
+    ).toBeVisible();
     await expect(page.getByRole("status")).toHaveText(
       "Copied page as Markdown."
     );
