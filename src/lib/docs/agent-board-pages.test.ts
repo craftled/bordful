@@ -111,6 +111,8 @@ function stubBoard(
     alertsEnabled: boolean;
     jobsPerPage: number;
     postJobEnabled: boolean;
+    title: string;
+    description: string;
   }>
 ) {
   settingsMock.mockImplementation(async () => ({
@@ -121,8 +123,8 @@ function stubBoard(
       fromEmail: null,
     },
     board: {
-      title: "Test board",
-      description: "A board for tests.",
+      title: settings?.title ?? "Test board",
+      description: settings?.description ?? "A board for tests.",
       jobsPerPage: settings?.jobsPerPage ?? 20,
       publicDetailFields: [],
     },
@@ -192,7 +194,7 @@ test("the jobs markdown lists the same page the HTML does", async () => {
     expect(markdown).toContain(
       `[${jobItem.title}](${siteUrl}${buildJobPath(jobItem.slug)}) ${
         jobItem.companyName
-      }·${formatLocation(jobItem)}`
+      } · ${formatLocation(jobItem)}`
     );
     expect(markdown.indexOf(`[${jobItem.title}]`)).toBeGreaterThan(-1);
     expect(index).toBeLessThan(20);
@@ -245,6 +247,16 @@ test("unknown paths return null", async () => {
   expect(await boardPageMarkdown("/companies/acme", siteUrl)).toBeNull();
   // /jobs/some-role.md has a salary format only in the fixture shape.
   expect(formatSalary(FIXTURE_JOBS[0] as JobListItem)).toContain("$");
+});
+
+test("the jobs markdown falls back to the default title like the HTML", async () => {
+  stubBoard({ title: "", description: "" });
+  setPool([]);
+  vi.setSystemTime(now);
+  const markdown = (await boardPageMarkdown("/jobs", siteUrl)) ?? "";
+  expect(markdown.startsWith("# Latest jobs\n")).toBe(true);
+  // No empty description paragraph between the directive and the stats.
+  expect(markdown).not.toContain("\n\n\n");
 });
 
 test("the jobs markdown keeps the empty state honest", async () => {
@@ -382,7 +394,7 @@ test("feed text cannot inject markdown structure", async () => {
   // the job row renders.
   expect(markdown).toContain(
     "- [Title \\[with\\] \\*stars\\* \\`bt\\` and a \\[link\\](https://evil.example)](" +
-      `${siteUrl}/jobs/hostile-title) Evil \\*Co\\* \\[x\\]·New York \\*1\\*`
+      `${siteUrl}/jobs/hostile-title) Evil \\*Co\\* \\[x\\] · New York \\*1\\*`
   );
   expect(markdown).not.toContain("[link](https://evil.example)");
   // Newlines in feed text are flattened, so a title can never start a new
@@ -433,7 +445,7 @@ test("feed text cannot inject autolinks, raw HTML or strikethrough", async () =>
   // Free-text position on the same line: entity-encoded HTML contexts, no
   // autolink, no strikethrough.
   expect(markdown).toContain(
-    "Acme &lt;https://evil.example&gt;·" +
+    "Acme &lt;https://evil.example&gt; · " +
       "R&amp;D \\~\\~hq\\~\\~ &amp; &lt;b&gt;unit&lt;/b&gt;"
   );
   expect(markdown).not.toContain("<https://");

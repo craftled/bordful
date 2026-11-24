@@ -4,7 +4,7 @@
 // same rows. Server only. Never called at build time: the routes render these
 // on demand so `next build` never opens the database.
 
-import { heroStats } from "@/components/board/board-hero";
+import { DEFAULT_BOARD_TITLE, heroStats } from "@/components/board/board-hero";
 import { listStats } from "@/components/board/board-listing";
 import { resultsLabel } from "@/components/board/board-toolbar";
 import {
@@ -110,7 +110,7 @@ function jobMetaLine(job: JobListItem): string {
   if (job.employmentType) {
     details.push(escapeInline(JOB_EMPLOYMENT_LABELS[job.employmentType]));
   }
-  return [escapeInline(job.companyName), ...details].join("·");
+  return [escapeInline(job.companyName), ...details].join(" · ");
 }
 
 function jobBullets(jobs: readonly JobListItem[], siteUrl: string): string[] {
@@ -137,9 +137,12 @@ async function jobsPageMarkdown(siteUrl: string): Promise<string> {
   const stats = listStats(filterBoard(cards, query), now);
   const updated = heroStats(cards, now).lastUpdated;
 
+  // An empty description renders nothing in the HTML header, so it adds no
+  // blank paragraph here either.
   const lines: string[] = [
-    escapeInline(settings.board.description),
-    "",
+    ...(settings.board.description
+      ? [escapeInline(settings.board.description), ""]
+      : []),
     resultsLabel(view.matchCount, updated),
     "",
   ];
@@ -186,7 +189,12 @@ async function jobsPageMarkdown(siteUrl: string): Promise<string> {
     lines.push("No matching jobs");
   }
 
-  return shell(escapeInline(settings.board.title), siteUrl, lines);
+  // The HTML header falls back to the default title when none is set.
+  return shell(
+    escapeInline(settings.board.title || DEFAULT_BOARD_TITLE),
+    siteUrl,
+    lines
+  );
 }
 
 // -- /companies --------------------------------------------------------------------

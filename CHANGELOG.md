@@ -48,6 +48,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Fixed
 
+- The `/jobs.md` markdown had an empty heading when the board title was blank. It now uses "Latest jobs", like the page. It also no longer leaves a blank paragraph for an empty description, and the company, location and type in job rows are spaced. Docs markdown no longer has a double blank line after the llms.txt note.
 - Docs now match the code on the Bordfeed board name rule, `NEXT_PUBLIC_SERVER_URL` fallbacks, the CLI options and exit codes, connect and alert limits, the digest size, and the sitemap rule.
 - The FAQ answer "How do I update a fork?" told readers to pull code and run migrations by hand. It now points at `bun run bordful:upgrade` and says migrations run on deploy.
 - `csp.extraConnectOrigins` and `csp.extraScriptOrigins` in `bordful.config.ts` are now sent in the `Content-Security-Policy` header. They were validated but never applied. A bad origin now stops the build with `Invalid bordful.config.ts` instead of failing later. A plain `<script src>` tag is still blocked in current browsers, so load third-party scripts with `next/script`; see [docs/configuration.md](docs/configuration.md).

@@ -117,6 +117,7 @@ test("every doc renders markdown with the H1, directive and absolute links", () 
     expect(lines[1]).toBe("");
     expect(lines[2]).toBe(llmsTxtDirective(siteUrl));
     expect(lines[3]).toBe("");
+    expect(lines[4]).not.toBe("");
     // Fences stay balanced.
     const fences = lines.filter((line) => line.startsWith("```"));
     expect(fences.length % 2).toBe(0);
