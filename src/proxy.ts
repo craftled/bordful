@@ -130,6 +130,34 @@ export function isAgentPagePath(pathname: string): boolean {
   return (AGENT_PAGE_PATHS as readonly string[]).includes(pathname);
 }
 
+// True for every path whose response depends on the Accept header: the docs
+// pages and the pages with a markdown version, in both their .md and HTML
+// forms. The proxy sets Vary: Accept on the HTML responses that reach the
+// app; the markdown routes set it themselves.
+export function isNegotiatedPath(pathname: string): boolean {
+  if (DOCS_HTML_URL.test(pathname) || DOCS_MARKDOWN_URL.test(pathname)) {
+    return true;
+  }
+  if (isAgentPagePath(pathname)) {
+    return true;
+  }
+  const htmlOfMd = htmlPathFor(pathname);
+  return htmlOfMd !== null && isAgentPagePath(htmlOfMd);
+}
+
+// Appends a token to a Vary header without dropping the tokens Next added
+// itself (rsc, next-router-state-tree, ...). Merge, never replace.
+export function mergeVary(vary: string | null, token: string): string {
+  const tokens = new Set(
+    (vary ?? "")
+      .split(",")
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0)
+  );
+  tokens.add(token);
+  return [...tokens].join(", ");
+}
+
 // "/pages-md/<path>" for the ".md` URL of a marketing or board index page
 // ("/pricing.md", "/index.md", "/alternatives/wp-job-manager.md"), and for
 // its HTML URL ("/pricing", "/", "/alternatives/wp-job-manager") when
@@ -233,6 +261,15 @@ export function proxy(request: NextRequest) {
       ? NextResponse.rewrite(new URL(MALFORMED_PATH_REWRITE, request.url), init)
       : NextResponse.next(init);
   response.headers.set("Content-Security-Policy", csp);
+
+  // A CDN must not serve the markdown body to a browser that asked for HTML:
+  // every negotiated HTML response declares what varied it.
+  if (isNegotiatedPath(pathname)) {
+    response.headers.set(
+      "Vary",
+      mergeVary(response.headers.get("vary"), "Accept")
+    );
+  }
 
   return response;
 }

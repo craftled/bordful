@@ -2,7 +2,9 @@
 // the pointer component. Keep this module free of node:fs imports so client
 // components (and the proxy) can use it.
 
-import { ALTERNATIVE_SLUGS } from "@/components/marketing/alternatives/registry";
+// Relative import: next.config.ts loads this module without tsconfig path
+// aliases, so the chain has to stay alias-free all the way down.
+import { ALTERNATIVE_SLUGS } from "../../components/marketing/alternatives/registry";
 
 export const LLMS_TXT_PATH = "/llms.txt";
 
@@ -105,3 +107,7 @@ export function pagesMarkdownRoutePath(htmlPath: string): string {
 export function llmsTxtDirective(siteUrl: string): string {
   return `> For the complete documentation index, see [llms.txt](${siteUrl}/llms.txt).`;
 }
+
+// next.config.ts header sources for the docs HTML paths. path-to-regexp
+// syntax, not the regexes the proxy uses.
+export const DOCS_HTML_URL_PATTERNS = ["/docs/:path*"] as const;
