@@ -1,5 +1,6 @@
 import config from "@payload-config";
-import { getPayload, type Payload } from "payload";
+import type { Payload } from "payload";
+import { getPayload } from "payload";
 
 import { countDuePublishedJobs } from "@/jobs/expire-job";
 import { isAuthorizedCronRequest } from "@/lib/cron/authorize";

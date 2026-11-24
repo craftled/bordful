@@ -6,12 +6,13 @@ import { ensureInstallId } from "@/lib/install/install-id";
 import { querySiteSettings } from "@/lib/read/queries";
 
 import { resolveBordfeedBaseUrl } from "../base-url";
-import { type BordfeedClient, createBordfeedClient } from "../client";
+import type { BordfeedClient } from "../client";
+import { createBordfeedClient } from "../client";
 import { bordfeedClientFor } from "../client-factory";
 import { bordfeedClientHeaders } from "../client-header";
+import type { ConnectionRecord } from "../connection-machine";
 import {
   applyConnectionEvent,
-  type ConnectionRecord,
   canStartConnect,
   hasStoredKey,
   holdsConnection,
@@ -20,12 +21,8 @@ import {
 import { dispatchConnectionEvent, readConnection } from "../connection-store";
 import { BordfeedApiError, toSafeError } from "../errors";
 import { sealApiKey } from "../key";
-import {
-  runBordfeedSync,
-  runFeedSync,
-  runSampleSync,
-  type SyncSummary,
-} from "../sync";
+import type { SyncSummary } from "../sync";
+import { runBordfeedSync, runFeedSync, runSampleSync } from "../sync";
 import { acquireSyncLease, releaseSyncLease } from "../sync-budget";
 import type {
   BordfeedConnectionState,

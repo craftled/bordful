@@ -1,10 +1,5 @@
-import {
-  type APIRequestContext,
-  type APIResponse,
-  expect,
-  type Page,
-  request as playwrightRequest,
-} from "@playwright/test";
+import type { APIRequestContext, APIResponse, Page } from "@playwright/test";
+import { expect, request as playwrightRequest } from "@playwright/test";
 
 export const ADMIN_EMAIL = "admin@example.com";
 export const ADMIN_PASSWORD = "Example-Passw0rd-123";

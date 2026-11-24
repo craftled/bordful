@@ -4,9 +4,11 @@ import type { Company, Job } from "@/payload-types";
 import { resolveBordfeedBaseUrl } from "./base-url";
 import { isBlocked } from "./blocklist";
 import { blockableFromMapped, readBlocklist } from "./blocklist-store";
-import { type BordfeedClient, createBordfeedClient } from "./client";
+import type { BordfeedClient } from "./client";
+import { createBordfeedClient } from "./client";
 import { bordfeedClientHeaders } from "./client-header";
-import { type ConnectionRecord, holdsConnection } from "./connection-machine";
+import type { ConnectionRecord } from "./connection-machine";
+import { holdsConnection } from "./connection-machine";
 import { dispatchConnectionEvent, readConnection } from "./connection-store";
 import { eachDoc, eachSerial } from "./each";
 import {
@@ -19,29 +21,27 @@ import {
 } from "./errors";
 import type { BordfeedJob } from "./job-schema";
 import { openApiKey } from "./key";
-import { companyKey, type MappedCompany } from "./map-company";
-import { type MappedJob, mapBordfeedJob } from "./map-job";
-import {
-  type ComparableFields,
-  companyRelationKey,
-  type ExistingRow,
-  orderFields,
-  planSync,
-  type SyncPlan,
-} from "./planner";
+import type { MappedCompany } from "./map-company";
+import { companyKey } from "./map-company";
+import type { MappedJob } from "./map-job";
+import { mapBordfeedJob } from "./map-job";
+import type { ComparableFields, ExistingRow, SyncPlan } from "./planner";
+import { companyRelationKey, orderFields, planSync } from "./planner";
 import { previewQuerySchema } from "./preview-query";
+import type {
+  FetchPlan,
+  RemovalHold,
+  SeriesPosition,
+  SyncState,
+} from "./sync-budget";
 import {
   acquireSyncLease,
   afterAdditions,
   afterFirst,
-  type FetchPlan,
   planFetch,
-  type RemovalHold,
   readSyncBudget,
   recordSpend,
   releaseSyncLease,
-  type SeriesPosition,
-  type SyncState,
   writeSyncState,
 } from "./sync-budget";
 import { SyncGuardError } from "./sync-guard-error";

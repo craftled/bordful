@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { boardStateHref } from "@/lib/board/links";
 import { pageSlots } from "@/lib/board/pagination";
-import { buildTaxonomyArchivePath, type TaxonomyKind } from "@/lib/board/paths";
+import type { TaxonomyKind } from "@/lib/board/paths";
+import { buildTaxonomyArchivePath } from "@/lib/board/paths";
 import type { BoardQuery, BoardQueryOptions } from "@/lib/board/query";
 import { cn } from "@/lib/utils";
 

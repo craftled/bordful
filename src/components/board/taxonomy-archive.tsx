@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { BoardList } from "@/components/board/board-list";
-import {
-  alertsHref,
-  type ListStats,
-  listStats,
-} from "@/components/board/board-listing";
+import type { ListStats } from "@/components/board/board-listing";
+import { alertsHref, listStats } from "@/components/board/board-listing";
 import { BoardPagination } from "@/components/board/board-pagination";
 import { MenuDetails } from "@/components/board/menu-details";
 import { Crumbs, PageTitle } from "@/components/board/taxonomy-hub";
@@ -21,32 +18,35 @@ import {
   slugifyTaxonomyValue,
 } from "@/lib/board/paths";
 import { loadBoardPool } from "@/lib/board/pool";
+import type {
+  BoardQuery,
+  BoardQueryOptions,
+  BoardSearchParams,
+} from "@/lib/board/query";
 import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  type BoardSearchParams,
   parseBoardQuery,
   serializeBoardQuery,
   urlSearchParamsFromRecord,
 } from "@/lib/board/query";
+import type { TaxonomyKind } from "@/lib/board/taxonomy";
 import {
   filterByTaxonomy,
   SENIORITY_LEVEL,
-  type TaxonomyKind,
   taxonomyLabel,
   taxonomySearchQuery,
   taxonomyTitle,
 } from "@/lib/board/taxonomy";
 import { buildBoardView } from "@/lib/board/view";
-import {
-  type AlertFrequency,
-  JOB_EMPLOYMENT_LABELS,
-  type JobEmploymentType,
-  type JobSeniority,
-  type SalaryBandId,
+import type {
+  AlertFrequency,
+  JobEmploymentType,
+  JobSeniority,
+  SalaryBandId,
 } from "@/lib/domain/job-vocab";
+import { JOB_EMPLOYMENT_LABELS } from "@/lib/domain/job-vocab";
 import { getSiteSettings } from "@/lib/read";
-import { type RelatedValue, relatedTaxonomy } from "@/lib/read/taxonomy-stats";
+import type { RelatedValue } from "@/lib/read/taxonomy-stats";
+import { relatedTaxonomy } from "@/lib/read/taxonomy-stats";
 import { cn } from "@/lib/utils";
 
 export function redirectTaxonomyAlias(

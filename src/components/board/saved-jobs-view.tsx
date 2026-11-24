@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import {
-  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -16,13 +16,12 @@ import {
   jobStatuses,
   StatusPill,
 } from "@/components/board/job-row";
-import {
-  type JobListKind,
-  type JobListMeta,
-  type JobSnapshot,
-  useJobList,
-  useJobListMeta,
+import type {
+  JobListKind,
+  JobListMeta,
+  JobSnapshot,
 } from "@/components/board/saved-jobs";
+import { useJobList, useJobListMeta } from "@/components/board/saved-jobs";
 import {
   formatLocation,
   formatSalary,

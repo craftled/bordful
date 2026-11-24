@@ -4,7 +4,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
 
 import type { BoardFacets } from "@/lib/board/filter";
-import { type BoardQuery, parseBoardQuery } from "@/lib/board/query";
+import type { BoardQuery } from "@/lib/board/query";
+import { parseBoardQuery } from "@/lib/board/query";
 
 import { BoardFilters, buildFilterGroups, FilterChips } from "./board-filters";
 

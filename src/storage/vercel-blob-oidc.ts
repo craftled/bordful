@@ -10,14 +10,8 @@ import {
   buildStoragePathData,
   getFilePrefix,
 } from "@payloadcms/plugin-cloud-storage/utilities";
-import {
-  BlobNotFoundError,
-  copy,
-  del,
-  type HeadBlobResult,
-  head,
-  put,
-} from "@vercel/blob";
+import type { HeadBlobResult } from "@vercel/blob";
+import { BlobNotFoundError, copy, del, head, put } from "@vercel/blob";
 import type {
   CollectionConfig,
   Config,

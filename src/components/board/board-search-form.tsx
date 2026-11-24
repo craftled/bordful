@@ -1,11 +1,8 @@
 import { SearchIcon } from "lucide-react";
 
 import { BOARD_SEARCH_PATH } from "@/lib/board/paths";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  serializeBoardQuery,
-} from "@/lib/board/query";
+import type { BoardQuery, BoardQueryOptions } from "@/lib/board/query";
+import { serializeBoardQuery } from "@/lib/board/query";
 
 export const BOARD_SEARCH_INPUT_ID = "board-search-input";
 

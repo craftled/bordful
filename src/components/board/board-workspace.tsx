@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { JobPreview } from "@/components/board/job-preview";
 import { useJobList } from "@/components/board/saved-jobs";

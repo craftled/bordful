@@ -2,12 +2,14 @@ import { FooterView } from "@/components/board/footer-view";
 import type { SocialProfiles } from "@/components/board/social-links";
 import { TabBar } from "@/components/board/tab-bar";
 import { isMarketingEnabled } from "@/config/flags";
-import { boardHomePath, type FooterColumn } from "@/config/nav";
+import type { FooterColumn } from "@/config/nav";
+import { boardHomePath } from "@/config/nav";
 import { companiesFromPool } from "@/lib/board/companies";
 import { BOARD_POOL_LIMIT } from "@/lib/board/constants";
 import { buildBoardFacets } from "@/lib/board/filter";
 import { BOARD_SEARCH_PATH } from "@/lib/board/paths";
-import { countTaxonomy, type TaxonomyFacet } from "@/lib/board/taxonomy";
+import type { TaxonomyFacet } from "@/lib/board/taxonomy";
+import { countTaxonomy } from "@/lib/board/taxonomy";
 import { isLogoDevConfigured } from "@/lib/logo-dev";
 import { getSiteSettings, listPublishedJobs } from "@/lib/read";
 

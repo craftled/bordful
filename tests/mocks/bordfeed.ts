@@ -2,8 +2,8 @@ import {
   registerRequestSchema,
   verifyRequestSchema,
 } from "../../src/lib/bordfeed/register-schema";
-
-import { buildMockJob, type MockJob } from "./job-shape";
+import type { MockJob } from "./job-shape";
+import { buildMockJob } from "./job-shape";
 
 export const MOCK_API_KEY = ["bf_mock_key", "0000000000000001"].join("_");
 export const MOCK_FEED_ID = "11111111-1111-4111-8111-111111111111";

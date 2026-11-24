@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-
-import { rankSimilarJobs, type SimilarSource } from "./similar";
+import type { SimilarSource } from "./similar";
+import { rankSimilarJobs } from "./similar";
 
 function job(
   overrides: Partial<SimilarSource> & { id: string }

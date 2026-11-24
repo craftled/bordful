@@ -1,9 +1,11 @@
+import type {
+  JobEmploymentType,
+  JobSeniority,
+  SalaryBandId,
+} from "@/lib/domain/job-vocab";
 import {
   JOB_EMPLOYMENT_TYPES,
-  type JobEmploymentType,
-  type JobSeniority,
   SALARY_BAND_IDS,
-  type SalaryBandId,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
 

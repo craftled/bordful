@@ -1,6 +1,6 @@
 import { createInterface } from "node:readline/promises";
-
-import { type Payload, strictObject, z } from "payload";
+import type { Payload } from "payload";
+import { strictObject, z } from "payload";
 import { defineCLICommand } from "payload/cli";
 import { DISCONNECT_BUSY_MESSAGE } from "@/lib/bordfeed/connect/messages";
 import type { ConnectStepResult } from "@/lib/bordfeed/connect/service";

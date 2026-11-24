@@ -1,4 +1,5 @@
-import { type BordfulConfig, bordfulConfig } from "@/config";
+import type { BordfulConfig } from "@/config";
+import { bordfulConfig } from "@/config";
 
 export function resolveBordfeedBaseUrl(
   env: NodeJS.ProcessEnv | { BORDFEED_BASE_URL?: string } = process.env,

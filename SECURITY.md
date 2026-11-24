@@ -2,9 +2,9 @@
 
 ## Supported Versions
 
-| Version | Supported |
-| --- | --- |
-| 1.0.x | Supported |
+| Version                 | Supported           |
+| ----------------------- | ------------------- |
+| 1.0.x                   | Supported           |
 | 0.2.x (airtable branch) | Security fixes only |
 
 ## Reporting a Vulnerability
@@ -20,6 +20,7 @@ If you discover a security vulnerability, please follow these steps:
    - Suggested fix (if any)
 
 We will:
+
 - Acknowledge receipt within 48 hours
 - Provide an estimated timeline for a fix
 - Keep you updated on the progress

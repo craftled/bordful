@@ -1,9 +1,6 @@
 import { contrastRatio, pairedColorKey } from "@/theme/contrast";
-import {
-  DEFAULT_THEME_TOKENS,
-  THEME_COLOR_KEYS,
-  type ThemeColorKey,
-} from "@/theme/tokens";
+import type { ThemeColorKey } from "@/theme/tokens";
+import { DEFAULT_THEME_TOKENS, THEME_COLOR_KEYS } from "@/theme/tokens";
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/iu;
 const AA_TEXT_RATIO = 4.5;

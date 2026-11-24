@@ -1,4 +1,5 @@
-import { expect, type Page, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import type { BordfeedRequestLog } from "../mocks/bordfeed";
 import { loginInBrowser } from "./support/admin";
 import { bordfeedRequests, resetMock } from "./support/mock";

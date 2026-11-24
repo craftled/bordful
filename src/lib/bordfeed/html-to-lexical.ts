@@ -1,4 +1,5 @@
-import { type DefaultTreeAdapterMap, parseFragment } from "parse5";
+import type { DefaultTreeAdapterMap } from "parse5";
+import { parseFragment } from "parse5";
 
 type ChildNode = DefaultTreeAdapterMap["childNode"];
 type ElementNode = DefaultTreeAdapterMap["element"];

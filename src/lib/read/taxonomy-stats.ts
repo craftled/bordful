@@ -1,18 +1,15 @@
+import type { TaxonomyKind } from "@/lib/board/paths";
 import {
   buildTaxonomyArchivePath,
   slugifyTaxonomyValue,
-  type TaxonomyKind,
 } from "@/lib/board/paths";
 import {
   countTaxonomy,
   filterByTaxonomy,
   taxonomyValuesFor,
 } from "@/lib/board/taxonomy";
-import {
-  CAREER_LEVELS,
-  JOB_WORKPLACE_LABELS,
-  type JobEmploymentType,
-} from "@/lib/domain/job-vocab";
+import type { JobEmploymentType } from "@/lib/domain/job-vocab";
+import { CAREER_LEVELS, JOB_WORKPLACE_LABELS } from "@/lib/domain/job-vocab";
 import type { JobListItem } from "@/lib/read/types";
 
 // Fewer salaried roles than this and a median says nothing, so it is omitted.

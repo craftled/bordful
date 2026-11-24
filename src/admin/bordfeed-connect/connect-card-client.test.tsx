@@ -20,8 +20,8 @@ import {
   CREDIT_SHOWN_MESSAGE,
   RESET_MESSAGE,
 } from "@/lib/bordfeed/connect/messages";
-
-import { ConnectCardClient, type ConnectCardView } from "./connect-card-client";
+import type { ConnectCardView } from "./connect-card-client";
+import { ConnectCardClient } from "./connect-card-client";
 
 const refresh = vi.hoisted(() => vi.fn());
 

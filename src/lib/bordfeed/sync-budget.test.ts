@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-
+import type { SyncState } from "./sync-budget";
 import {
   afterAdditions,
   afterFirst,
@@ -8,7 +8,6 @@ import {
   planFetch,
   recordSpend,
   resolveLimits,
-  type SyncState,
   WATERMARK_OVERLAP_MS,
 } from "./sync-budget";
 

@@ -1,5 +1,5 @@
-import type { APIResponse } from "@playwright/test";
-import { expect, type Page, test } from "@playwright/test";
+import type { APIResponse, Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { ensureAdmin } from "./support/admin";
 import {

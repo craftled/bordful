@@ -1,4 +1,5 @@
-import { expect, type Page, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { ensureAdmin } from "./support/admin";
 import { createJob, docId, docString } from "./support/seed";

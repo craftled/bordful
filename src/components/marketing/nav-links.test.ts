@@ -2,12 +2,8 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect, test } from "vitest";
-
-import {
-  MARKETING_FOOTER_COLUMNS,
-  MARKETING_HEADER_LINKS,
-  type MarketingLink,
-} from "./nav-links";
+import type { MarketingLink } from "./nav-links";
+import { MARKETING_FOOTER_COLUMNS, MARKETING_HEADER_LINKS } from "./nav-links";
 
 const ROOT = process.cwd();
 

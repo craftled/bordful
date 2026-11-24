@@ -5,19 +5,17 @@ import type { BoardFacets } from "@/lib/board/filter";
 import { SENIORITY_LABELS } from "@/lib/board/format";
 import { boardStateHref } from "@/lib/board/links";
 import { slugifyTaxonomyValue } from "@/lib/board/paths";
-import {
-  type BoardQuery,
-  type BoardQueryOptions,
-  type BoardSort,
-  boardQueryHasFilters,
-  clearBoardFilters,
+import type {
+  BoardQuery,
+  BoardQueryOptions,
+  BoardSort,
 } from "@/lib/board/query";
+import { boardQueryHasFilters, clearBoardFilters } from "@/lib/board/query";
 import { languageLabel } from "@/lib/board/taxonomy";
+import type { JobEmploymentType, SalaryBandId } from "@/lib/domain/job-vocab";
 import {
   JOB_EMPLOYMENT_LABELS,
-  type JobEmploymentType,
   SALARY_BAND_IDS,
-  type SalaryBandId,
   SENIORITIES,
 } from "@/lib/domain/job-vocab";
 import { cn } from "@/lib/utils";

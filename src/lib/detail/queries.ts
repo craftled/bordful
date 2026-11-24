@@ -2,8 +2,8 @@ import type { Payload } from "payload";
 
 import { toJobListItem } from "@/lib/read/mappers";
 import type { JobListItem } from "@/lib/read/types";
-
-import { rankSimilarJobs, type SimilarSource } from "./similar";
+import type { SimilarSource } from "./similar";
+import { rankSimilarJobs } from "./similar";
 
 // Uncached twin of getSimilarJobs (index.ts). Tests call this directly.
 export async function querySimilarJobs(

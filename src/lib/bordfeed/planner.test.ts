@@ -3,7 +3,8 @@ import { expect, test } from "vitest";
 import type { LexicalRoot } from "./html-to-lexical";
 import type { MappedCompany } from "./map-company";
 import type { MappedJob } from "./map-job";
-import { comparableJobFields, type ExistingRow, planSync } from "./planner";
+import type { ExistingRow } from "./planner";
+import { comparableJobFields, planSync } from "./planner";
 
 const description: LexicalRoot = {
   root: {

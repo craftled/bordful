@@ -6,7 +6,8 @@ import {
   paginateBoard,
   sortBoard,
 } from "./filter";
-import { type BoardQuery, boardQueryHasFilters } from "./query";
+import type { BoardQuery } from "./query";
+import { boardQueryHasFilters } from "./query";
 
 export interface BoardView {
   docs: JobListItem[];

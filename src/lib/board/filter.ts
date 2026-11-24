@@ -1,9 +1,9 @@
-import {
-  type JobEmploymentType,
-  type JobSeniority,
-  SALARY_BAND_IDS,
-  type SalaryBandId,
+import type {
+  JobEmploymentType,
+  JobSeniority,
+  SalaryBandId,
 } from "@/lib/domain/job-vocab";
+import { SALARY_BAND_IDS } from "@/lib/domain/job-vocab";
 import type { JobListItem } from "@/lib/read/types";
 
 import { toUsd } from "./fx";

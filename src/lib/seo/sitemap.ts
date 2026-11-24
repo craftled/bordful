@@ -1,10 +1,10 @@
 import { ALTERNATIVE_SLUGS } from "@/components/marketing/alternatives/registry";
 import { DOCS_SLUGS } from "@/components/marketing/docs-content";
 import { getNav } from "@/config/nav";
+import type { TaxonomyKind } from "@/lib/board/paths";
 import {
   buildTaxonomyArchivePath,
   slugifyTaxonomyValue,
-  type TaxonomyKind,
 } from "@/lib/board/paths";
 import { countTaxonomy, isThinArchive } from "@/lib/board/taxonomy";
 import { CAREER_LEVELS } from "@/lib/domain/job-vocab";

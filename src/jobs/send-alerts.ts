@@ -1,7 +1,7 @@
 import type { TaskConfig } from "payload";
 import { z } from "zod";
-
-import { type DigestRunResult, runAlertDigests } from "@/lib/alerts/digest";
+import type { DigestRunResult } from "@/lib/alerts/digest";
+import { runAlertDigests } from "@/lib/alerts/digest";
 import { resendSender } from "@/lib/alerts/sender";
 
 const inputSchema = z.object({

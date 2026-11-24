@@ -1,6 +1,7 @@
-import { Fragment, type ReactNode } from "react";
-
-import { JobRow, type JobRowVariant } from "@/components/board/job-row";
+import type { ReactNode } from "react";
+import { Fragment } from "react";
+import type { JobRowVariant } from "@/components/board/job-row";
+import { JobRow } from "@/components/board/job-row";
 import type { JobListItem } from "@/lib/read/types";
 
 // The optional insert (the phone alert card) sits after this many rows, or

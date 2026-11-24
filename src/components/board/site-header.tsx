@@ -2,17 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, useEffect } from "react";
+import type { ReactNode } from "react";
+import { useEffect } from "react";
 
 import { BOARD_SEARCH_INPUT_ID } from "@/components/board/board-search-form";
 import { BrandMark } from "@/components/board/brand-mark";
 import { MobileNav } from "@/components/board/mobile-nav";
 import { isActiveItem } from "@/components/board/nav-active";
 import { useJobList } from "@/components/board/saved-jobs";
-import {
-  SocialLinks,
-  type SocialProfiles,
-} from "@/components/board/social-links";
+import type { SocialProfiles } from "@/components/board/social-links";
+import { SocialLinks } from "@/components/board/social-links";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { NavItem } from "@/config/nav";
 import { cn } from "@/lib/utils";

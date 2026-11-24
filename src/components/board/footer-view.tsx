@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { BordfeedCredit } from "@/components/board/bordfeed-credit";
 import { BrandMark } from "@/components/board/brand-mark";
-import {
-  SocialLinks,
-  type SocialProfiles,
-} from "@/components/board/social-links";
+import type { SocialProfiles } from "@/components/board/social-links";
+import { SocialLinks } from "@/components/board/social-links";
 import type { FooterColumn } from "@/config/nav";
 import {
   LOGO_DEV_ATTRIBUTION_HREF,

@@ -1,9 +1,9 @@
+import type { LucideIcon } from "lucide-react";
 import {
   Bell,
   ChevronRight,
   CreditCard,
   FileText,
-  type LucideIcon,
   Palette,
   Rocket,
   Rss,

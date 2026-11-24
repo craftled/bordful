@@ -1,10 +1,6 @@
 import type { Payload } from "payload";
-
-import {
-  applyConnectionEvent,
-  type ConnectionEvent,
-  type ConnectionRecord,
-} from "./connection-machine";
+import type { ConnectionEvent, ConnectionRecord } from "./connection-machine";
+import { applyConnectionEvent } from "./connection-machine";
 import { IllegalTransitionError } from "./illegal-transition-error";
 import type { SafeError } from "./types";
 

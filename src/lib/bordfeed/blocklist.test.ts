@@ -1,11 +1,6 @@
 import { expect, test } from "vitest";
-
-import {
-  type BlockableJob,
-  isBlocked,
-  isEmptyBlocklist,
-  parseBlocklist,
-} from "./blocklist";
+import type { BlockableJob } from "./blocklist";
+import { isBlocked, isEmptyBlocklist, parseBlocklist } from "./blocklist";
 
 function job(overrides: Partial<BlockableJob> = {}): BlockableJob {
   return {

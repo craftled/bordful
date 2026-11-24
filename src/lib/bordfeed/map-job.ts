@@ -1,27 +1,18 @@
 import { createHash } from "node:crypto";
 import { bulletLinesToLists } from "@/lib/board/bullet-lists";
-
-import {
-  CAREER_LEVELS,
-  type JobCareerLevel,
-  type JobEmploymentType,
-  type JobSeniority,
-  type JobWorkplaceType,
+import type {
+  JobCareerLevel,
+  JobEmploymentType,
+  JobSeniority,
+  JobWorkplaceType,
 } from "@/lib/domain/job-vocab";
+import { CAREER_LEVELS } from "@/lib/domain/job-vocab";
 import { isReservedJobSlug } from "@/lib/domain/reserved-slugs";
-
-import {
-  htmlToLexical,
-  type LexicalRoot,
-  textToLexical,
-} from "./html-to-lexical";
+import type { LexicalRoot } from "./html-to-lexical";
+import { htmlToLexical, textToLexical } from "./html-to-lexical";
 import type { BordfeedJob } from "./job-schema";
-import {
-  httpUrl,
-  type MappedCompany,
-  mapBordfeedCompany,
-  slugify,
-} from "./map-company";
+import type { MappedCompany } from "./map-company";
+import { httpUrl, mapBordfeedCompany, slugify } from "./map-company";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const CURRENCY = /^[A-Z]{3}$/u;
