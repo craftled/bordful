@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { CompanyLogoImage } from "@/components/board/company-logo-image";
 import { jobStatuses, StatusPill } from "@/components/board/job-row";

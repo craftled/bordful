@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { useId } from "react";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 // Callers render this only when Site settings enable Post a Job.
 export function PostJobCard({

@@ -1,5 +1,5 @@
 import { RichText } from "@payloadcms/richtext-lexical/react";
-import Link from "next/link";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import {
   JobApplyLink,

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { boardHomePath } from "@/config/nav";
 import { BOARD_SEARCH_PATH, buildTaxonomyArchivePath } from "@/lib/board/paths";

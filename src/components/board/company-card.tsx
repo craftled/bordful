@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { buildCompanyPath } from "@/lib/board/paths";
 
