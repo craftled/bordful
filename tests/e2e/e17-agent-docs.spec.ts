@@ -1,5 +1,8 @@
 import { type APIResponse, expect, test } from "@playwright/test";
 
+import { ensureAdmin } from "./support/admin";
+import { createJob, deleteWhere, readGlobal } from "./support/seed";
+
 const MARKDOWN_TYPE = "text/markdown";
 
 function marketingBase(): string {
@@ -22,6 +25,56 @@ function siteOrigin(): string {
 
 function marketingUrl(path: string): string {
   return new URL(path, marketingBase()).href;
+}
+
+// Deployed-target mode: E2E_MARKETING_BASE_URL points at a real deployment
+// instead of the loopback marketing server the Playwright config defaults it
+// to. Nothing has been deployed from this branch, so no run in this round
+// ever activates it; a later post-deploy run opts in by exporting
+// E2E_MARKETING_BASE_URL=<deployment URL>.
+function isDeployedTarget(): boolean {
+  const explicit = process.env.E2E_MARKETING_BASE_URL;
+  if (!explicit) {
+    return false;
+  }
+  try {
+    const { hostname } = new URL(explicit);
+    return (
+      hostname !== "127.0.0.1" &&
+      hostname !== "localhost" &&
+      hostname !== "::1" &&
+      hostname !== "[::1]"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// The overflow affordance the /jobs markdown emits: "More jobs: <url>".
+// The emitted URL is the source of truth for the next page; nothing may
+// hard-code /jobs/page/2 instead of reading it from the markdown. Both
+// regexes sit at the top level so they are compiled once.
+const MORE_JOBS_LINE = /^More jobs: (?<url>\S+)$/mu;
+const JOB_DETAIL_PATH = /\/jobs\/(?<slug>[a-z0-9-]+)/gu;
+
+function moreJobsUrl(markdown: string): string | null {
+  const match = MORE_JOBS_LINE.exec(markdown);
+  return match === null ? null : (match.groups?.url ?? null);
+}
+
+// Job detail paths (/jobs/<slug>, never the /jobs indexes or /jobs/page/N)
+// found as markdown links or HTML hrefs, so the first-page markdown and a
+// followed page can be diffed read-only.
+function jobDetailPaths(text: string): Set<string> {
+  const nonJob = new Set(["languages", "levels", "locations", "page", "types"]);
+  const paths = new Set<string>();
+  for (const match of text.matchAll(JOB_DETAIL_PATH)) {
+    const slug = match.groups?.slug ?? "";
+    if (!nonJob.has(slug)) {
+      paths.add(match[0] ?? "");
+    }
+  }
+  return paths;
 }
 
 const DOC_H1S = [
@@ -154,32 +207,151 @@ test.describe("E17 agent docs", { tag: ["@E17"] }, () => {
       expect(check.htmlContentType, path).toContain("text/html");
       // The CSP block travels with the HTML page.
       expect(check.csp, path).toContain("default-src 'self'");
-      // The app router owns Vary on HTML responses, so only its router
-      // state tokens can be asserted here: locally the final HTML response
-      // overwrites the Vary the proxy set (documented in the PR body). The
-      // Accept token for final HTML is expected from the next.config.ts
-      // headers entry applied on the Vercel edge, but that is not yet
-      // verified against a deployment, so it stays a post-deploy
-      // curl -sI release gate in the PR body instead of an assertion here.
-      expect(check.htmlVary, path).toContain("rsc");
+      // Locally the app router owns Vary on HTML responses and overwrites
+      // the Vary the proxy set (documented in the PR body), so only its
+      // router state tokens can be asserted: the Accept token for final HTML
+      // comes from the next.config.ts headers entry, which the local server
+      // does not apply after the router either. On a deployed target
+      // (isDeployedTarget: a post-deploy run passing the deployment URL
+      // through E2E_MARKETING_BASE_URL) the edge is expected to apply that
+      // entry to the final HTML, so the Accept token is asserted there.
+      // Nothing has been deployed from this branch, so that mode never ran
+      // in this round, and the post-deploy curl -sI release gate in the PR
+      // body stays regardless of it.
+      if (isDeployedTarget()) {
+        expect(check.htmlVary, path).toContain("Accept");
+      } else {
+        expect(check.htmlVary, path).toContain("rsc");
+      }
     }
   });
 
-  test("the board markdown more-jobs link leads to HTML, not the same markdown", async ({
+  test("the jobs markdown overflow link reaches the omitted jobs as HTML", async ({
     request,
   }) => {
-    // The /jobs markdown lists only the first page and links the next HTML
-    // page (/jobs/page/2) for the rest. That path is not a negotiated page,
-    // so an agent following the link with Accept: text/markdown gets the
-    // real second HTML page (or its HTML 404), never the same truncated
-    // markdown again. The omitted rows themselves are covered by the
-    // agent-board-pages unit fixtures.
-    const response = await request.get(marketingUrl("/jobs/page/2"), {
-      headers: { Accept: "text/markdown" },
-    });
-    expect(response.headers()["content-type"]).toContain("text/html");
-    const pageTwo = await response.text();
-    expect(pageTwo.startsWith("# "), "page 2 stays HTML").toBe(false);
+    test.setTimeout(120_000);
+    const SEED_MARK = "E17zq";
+
+    if (isDeployedTarget()) {
+      // Read-only pass over a deployed target: a remote board is never
+      // seeded or mutated from here. If it currently overflows its first
+      // markdown page, the emitted link must lead to a 200 HTML page
+      // holding job rows the first page omitted; if it does not overflow,
+      // the markdown must not claim it does.
+      const response = await request.get(marketingUrl("/jobs.md"), {
+        headers: { Accept: MARKDOWN_TYPE },
+      });
+      expect(response.ok()).toBe(true);
+      const markdown = await response.text();
+      const moreUrl = moreJobsUrl(markdown);
+      if (moreUrl === null) {
+        expect(markdown).not.toContain("More jobs:");
+        return;
+      }
+      const page = await request.get(moreUrl, {
+        headers: { Accept: MARKDOWN_TYPE },
+      });
+      expect(page.status(), "the overflow link is never a 404").toBe(200);
+      expect(page.headers()["content-type"]).toContain("text/html");
+      const html = await page.text();
+      expect(
+        html.startsWith("# "),
+        "the followed page stays HTML, never markdown"
+      ).toBe(false);
+      const listed = jobDetailPaths(markdown);
+      const omitted = [...jobDetailPaths(html)].filter(
+        (jobPath) => !listed.has(jobPath)
+      );
+      expect(
+        omitted.length,
+        "the followed page holds rows the first page omitted"
+      ).toBeGreaterThan(0);
+      return;
+    }
+
+    // Local isolated test database: seed past the board's jobs-per-page
+    // setting (read from the settings global, never hard-coded, never
+    // lowered), so the first markdown page must overflow.
+    const admin = await ensureAdmin(request);
+    try {
+      const settings = await readGlobal(admin, "site-settings");
+      const { board } = settings;
+      const rawPerPage =
+        board !== null && typeof board === "object"
+          ? (board as Record<string, unknown>).jobsPerPage
+          : undefined;
+      if (
+        typeof rawPerPage !== "number" ||
+        !Number.isInteger(rawPerPage) ||
+        rawPerPage < 1
+      ) {
+        throw new Error(`unexpected jobsPerPage: ${String(rawPerPage)}`);
+      }
+      const titles = Array.from(
+        { length: rawPerPage + 2 },
+        (_, index) => `${SEED_MARK} Overflow ${index + 1}`
+      );
+      // Seed one job at a time, not with Promise.all: each create runs in
+      // its own transaction and the server's Postgres pool is small, so a
+      // large burst of concurrent creates can deadlock the pool (each
+      // request holds a connection while waiting for another). e02's
+      // smaller burst stays as it is; this seed is past jobsPerPage and
+      // must never depend on winning that race.
+      for (const title of titles) {
+        // biome-ignore lint/performance/noAwaitInLoops: one create transaction at a time keeps the small Postgres pool intact; a burst of concurrent creates can deadlock it
+        await createJob(admin, {
+          _status: "published",
+          companyName: "E17zq Overflow Co",
+          employmentType: "full-time",
+          origin: "manual",
+          title,
+          workplaceType: "remote",
+        });
+      }
+
+      const response = await request.get(marketingUrl("/jobs.md"), {
+        headers: { Accept: MARKDOWN_TYPE },
+      });
+      expect(response.ok()).toBe(true);
+      const markdown = await response.text();
+      const moreUrl = moreJobsUrl(markdown);
+      if (moreUrl === null) {
+        throw new Error("the seeded overflow must emit the More jobs link");
+      }
+      // The omitted jobs are exactly the seeded rows the first page cut.
+      const omittedTitles = titles.filter(
+        (title) => !markdown.includes(`[${title}]`)
+      );
+      expect(
+        omittedTitles.length,
+        "seeded jobs spill past the first markdown page"
+      ).toBeGreaterThanOrEqual(2);
+
+      // Follow the emitted affordance itself, never a hard-coded page URL.
+      const page = await request.get(moreUrl, {
+        headers: { Accept: MARKDOWN_TYPE },
+      });
+      expect(page.status(), "the overflow link is never a 404").toBe(200);
+      expect(page.headers()["content-type"]).toContain("text/html");
+      const html = await page.text();
+      expect(
+        html.startsWith("# "),
+        "the followed page stays HTML, never markdown"
+      ).toBe(false);
+      const [firstOmitted] = omittedTitles;
+      if (firstOmitted === undefined) {
+        throw new Error("no omitted seeded job to look for");
+      }
+      expect(
+        html,
+        "the followed page shows a job the first page omitted"
+      ).toContain(firstOmitted);
+    } finally {
+      // Like the other flows, clean the seeded rows up so reruns and the
+      // rest of the suite see a clean board.
+      await deleteWhere(admin, "jobs", `where[title][like]=${SEED_MARK}`);
+      await admin.dispose();
+    }
   });
 
   test("unknown .md URLs 404 in plain text", async ({ request }) => {
