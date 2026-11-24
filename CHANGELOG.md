@@ -35,6 +35,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 
 ### Changed
 
+- graphql 17.1.0. Payload still declares graphql ^16.8.1, but Bordful disables GraphQL, and the board, admin, CLI and integration tests run clean on 17.
 - Disconnecting Bordfeed deletes every imported job instead of turning them into drafts, and the confirm step says how many. A reconnect imports only the newest `jobsPerSync` jobs, so drafts used to pile up in the admin and never came back. Companies are kept. Disconnect waits while a sync is running.
 - Taxonomy archives (type, level, location, language) with fewer than 3 indexable jobs are marked `noindex` and left out of the sitemap. They still render for visitors. Sample jobs do not count.
 - Publishing a job with a past Valid through now shows an error in the admin. It used to save, stay hidden, and go back to draft at the next expire run. Setting a past date on a live job still ends the listing.
@@ -43,7 +44,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - A Bordfeed incident, where most checked jobs are reported gone, now needs two later syncs at least 12 hours apart to see the same jobs, and unpublishes at most 10 of them per sync, and only with `BORDFEED_ALLOW_MASS_UNPUBLISH=1`. See [docs/bordfeed.md](docs/bordfeed.md#daily-sync).
 - The admin sign-in cookie is `Secure` with `SameSite=Lax`.
 - The sitemap lists `/post` and `/alerts` when they are enabled, and the taxonomy archives with at least 3 indexable jobs. `/jobs` has a description, Open Graph and Twitter tags, and links to the RSS and JSON feeds.
-- Rebuilt on Payload 4 (4.0.0-beta.11, with Lexical 0.53) and Postgres. beta.7 and later include Payload security fixes.
+- Rebuilt on Payload 4 (4.0.0-beta.12, with Lexical 0.53) and Postgres. beta.7 and later include Payload security fixes, and beta.12 adds more.
 - Requires Node.js 26.13.1 or later (26 LTS). `engines.node` is `^26.13.1`, which overrides the Vercel project Node.js setting. Built-in fetch on Vercel uses HTTP/2 on Node 26. Set the Vercel environment variable `VERCEL_FETCH_DISABLE_H2=1` to keep HTTP/1.1.
 
 ### Fixed

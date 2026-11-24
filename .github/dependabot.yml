@@ -15,8 +15,9 @@ updates:
       # Payload is pinned to a beta and bumped by hand. This also suppresses Dependabot security PRs for Payload, so watch Payload advisories manually.
       - dependency-name: payload
       - dependency-name: "@payloadcms/*"
-      # Payload 4 betas declare graphql ^16.8.1 and Bordful disables GraphQL (graphQL.disable). Revisit majors when Payload
-      # accepts graphql 17 (payloadcms/payload#18432, #18449) or makes graphql opt-in (#18206).
+      # Bordful runs graphql 17 although Payload 4 betas declare ^16.8.1: GraphQL is disabled (graphQL.disable), and
+      # the open graphql 17 bug (payloadcms/payload#18432) only hits custom mutations. Bump future majors by hand,
+      # with test:int and the e2e suite, until Payload makes graphql opt-in (#18206).
       - dependency-name: graphql
         update-types:
           - version-update:semver-major
