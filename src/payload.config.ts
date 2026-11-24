@@ -16,6 +16,7 @@ import { expireJobsTask } from "./jobs/expire-job";
 import { sendAlertsTask } from "./jobs/send-alerts";
 import { ensureSampleJobs } from "./lib/bordfeed/sample";
 import { stripDashes } from "./lib/codegen/strip-dashes";
+import { pgConnectionString } from "./lib/db/connection-string";
 import { ensureInstallId } from "./lib/install/install-id";
 import { migrations } from "./migrations";
 import { resolveMediaStorage } from "./storage/media-storage";
@@ -60,7 +61,9 @@ export default buildConfig({
   csrf: [serverURL],
   db: postgresAdapter({
     migrationDir: path.resolve(dirname, "migrations"),
-    pool: { connectionString: process.env.DATABASE_URL ?? "" },
+    pool: {
+      connectionString: pgConnectionString(process.env.DATABASE_URL ?? ""),
+    },
     prodMigrations: migrations,
     push: false,
   }),
