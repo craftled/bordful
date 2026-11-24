@@ -19,6 +19,53 @@ export const ALTERNATIVES_HUB = {
     "Bordful is a free, MIT-licensed job board template on Next.js, Payload and Postgres. You host it, you own the code and the data, and a fresh deploy starts with sample jobs. Each comparison says when the other tool is the better choice and cites a source and a check date for every fact.",
 } as const;
 
+// The closing CTA bands and the shared section labels of the alternative
+// pages. Exported so the React pages and the agent markdown version
+// (src/lib/docs/agent-pages.ts) render the same strings.
+export const ALTERNATIVES_HUB_CTA = {
+  description:
+    "Deploy the free template, or let us set it up for $999 once, with 1 year of Bordfeed Pro included.",
+  title: "Ready to own",
+  titleMuted: "your job board?",
+} as const;
+
+export const ALTERNATIVES_PAGE_CTA = {
+  description:
+    "Deploy the free template, or let us set it up for $999 once, with 1 year of Bordfeed Pro included.",
+  title: "Want a job board",
+  titleMuted: "you fully own?",
+} as const;
+
+export const ALTERNATIVES_CUSTOM_SETUP_NOTE =
+  "Custom Setup includes installation, your domain, a 1-hour consultation and 1 year of Bordfeed Pro.";
+
+// The fixed labels of an alternative page. Headings that name the tool
+// (`${name} and Bordful`, `Stay on ${name} when`, `Moving from ${name}`)
+// are composed from these and page.name by both the React page and the
+// agent markdown version (src/lib/docs/agent-pages.ts).
+export const ALTERNATIVES_PAGE_LABELS = {
+  compared: "compared.",
+  factsChecked: "Facts last checked:",
+  factsCheckedSuffix: ", Europe/Madrid.",
+  faqDescription: "Answers based on the product details above.",
+  faqTitle: "Frequently asked",
+  faqTitleMuted: "questions.",
+  limits: "Know before you switch",
+  migrationTitleMuted: "takes a little work.",
+  moves: "What moves",
+  path: "A typical path",
+  pricesNote: "Prices in US dollars as published on each site on",
+  sources: "Sources",
+  sourcesNote:
+    "Sources for every cell are listed at the bottom of this page. Facts last checked",
+  stayPrefix: "Stay on",
+  staySuffix: "when",
+  staysBehind: "What stays behind",
+  switch: "Bordful fits better when",
+  tableBordful: "Bordful",
+  tableCategory: "Category",
+} as const;
+
 export function getAlternative(slug: string): Alternative | undefined {
   return ALTERNATIVES.find((page) => page.slug === slug);
 }

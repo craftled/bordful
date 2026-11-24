@@ -17,6 +17,7 @@ test("the jobs index advertises the feeds and a description", () => {
     types: {
       "application/feed+json": "https://bordful.com/feed.json",
       "application/rss+xml": "https://bordful.com/feed.xml",
+      "text/markdown": "https://bordful.com/jobs.md",
     },
   });
   expect(marketing.openGraph).toMatchObject({
@@ -40,4 +41,9 @@ test("the jobs index advertises the feeds and a description", () => {
     url: "https://jobs.example/jobs",
   });
   expect(fork.twitter).toMatchObject({ card: "summary" });
+  // A fork serves no markdown, so it links to none.
+  expect(fork.alternates?.types).toEqual({
+    "application/feed+json": "https://jobs.example/feed.json",
+    "application/rss+xml": "https://jobs.example/feed.xml",
+  });
 });

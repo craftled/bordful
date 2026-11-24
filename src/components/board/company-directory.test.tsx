@@ -2,10 +2,12 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test } from "vitest";
+
+import { COMPANY_PAGE_SIZE } from "@/lib/board/constants";
+
 import type { CompanyDirectoryRow } from "./company-directory";
 import {
   availableFilters,
-  COMPANY_PAGE_SIZE,
   CompanyDirectory,
   filterCompanies,
 } from "./company-directory";

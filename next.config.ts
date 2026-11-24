@@ -5,6 +5,10 @@ import { withPayload } from "@payloadcms/next/withPayload";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 import {
+  AGENT_PAGE_PATHS,
+  DOCS_HTML_URL_PATTERNS,
+} from "./src/lib/docs/agent-docs-paths";
+import {
   isSentryConfigured,
   sentryBuildOptions,
 } from "./src/lib/sentry/config";
@@ -72,11 +76,28 @@ const nextConfig: NextConfig = {
     globalNotFound: true,
   },
   async headers() {
+    // The app router owns the Vary header on HTML pages (rsc, router state)
+    // and replaces anything the proxy sets there, so the Accept token for
+    // content negotiation rides in a headers() entry as well. Generated
+    // from agent-docs-paths.ts, never hand listed, so a new negotiated page
+    // cannot be forgotten: locally these entries merge into the markdown
+    // routes' own Vary. On Vercel the edge is expected to apply them to the
+    // final HTML responses after the function, but that is not yet verified
+    // against a deployment: nothing has been deployed from this branch, and
+    // the PR keeps a post-deploy curl -sI check as a release gate for it.
+    const negotiated = [
+      ...DOCS_HTML_URL_PATTERNS,
+      ...AGENT_PAGE_PATHS.map((path) => path.replaceAll(".", "\\.")),
+    ];
     return [
       {
         headers: securityHeaders,
         source: "/:path*",
       },
+      ...negotiated.map((source) => ({
+        headers: [{ key: "Vary", value: "Accept" }],
+        source,
+      })),
     ];
   },
   images: {

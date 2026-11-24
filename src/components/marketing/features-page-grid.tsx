@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { Container } from "./container";
+import { FEATURES_GRID_HEADER } from "./features-content";
 import { Section } from "./section";
 
 export const FEATURES_PAGE_ITEMS = [
@@ -69,11 +70,15 @@ export function FeaturesPageGrid() {
       <Container className="flex flex-col gap-5 md:items-center md:gap-8">
         <div className="flex flex-col gap-5 md:items-center md:gap-2.5 md:text-center">
           <h2 className="flex flex-col text-[26px] leading-8 font-medium tracking-[-0.03em] md:text-[28px] md:leading-[34px]">
-            <span className="text-foreground">Built for</span>
-            <span className="text-subtle">job boards.</span>
+            <span className="text-foreground">
+              {FEATURES_GRID_HEADER.heading[0]}
+            </span>{" "}
+            <span className="text-subtle">
+              {FEATURES_GRID_HEADER.heading[1]}
+            </span>
           </h2>
           <p className="text-muted-foreground max-w-[520px] text-[15px] leading-[18px] md:leading-[23px] md:text-balance">
-            Every part of the template, as it works in the app today.
+            {FEATURES_GRID_HEADER.lede}
           </p>
         </div>
         <ul className="grid w-full gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { resolveServerUrl } from "@/config/server-url";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
 import { BORDFUL_ICONS } from "@/lib/seo/icons";
 
 import { MARKETING_DESCRIPTION } from "./site";
@@ -91,7 +92,11 @@ export function marketingHomeMetadata(): Metadata {
 
   return {
     ...base,
-    alternates: { canonical: "/" },
+    // The home page's markdown URL is /index.md, not /.md.
+    alternates: {
+      canonical: "/",
+      types: { "text/markdown": markdownPathFor("/") },
+    },
     openGraph: {
       ...base.openGraph,
       url: "/",

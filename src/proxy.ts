@@ -5,7 +5,13 @@ import { bordfulConfig } from "@/config";
 import { isMarketingEnabled } from "@/config/flags";
 import { buildCsp } from "@/lib/csp/build-csp";
 import { createNonce } from "@/lib/csp/nonce";
-import { DOCS_MARKDOWN_ROUTE } from "@/lib/docs/agent-docs-paths";
+import {
+  AGENT_PAGE_PATHS,
+  DOCS_MARKDOWN_ROUTE,
+  htmlPathFor,
+  PAGES_MARKDOWN_ROUTE,
+  pagesMarkdownRoutePath,
+} from "@/lib/docs/agent-docs-paths";
 import { sentryConnectOrigins, sentryWorkerSources } from "@/lib/sentry/config";
 import { BORDFUL_ICON } from "@/lib/seo/icons";
 
@@ -119,11 +125,81 @@ export function docsMarkdownRewrite(
   return slug ? `${DOCS_MARKDOWN_ROUTE}/${slug}` : DOCS_MARKDOWN_ROUTE;
 }
 
-// Direct hits on the internal route never reach the handler.
+// True for the HTML path of a page that serves a markdown version.
+export function isAgentPagePath(pathname: string): boolean {
+  return (AGENT_PAGE_PATHS as readonly string[]).includes(pathname);
+}
+
+// True for every path whose response depends on the Accept header: the docs
+// pages and the pages with a markdown version, in both their .md and HTML
+// forms. The proxy sets Vary: Accept on the HTML responses that reach the
+// app; the markdown routes set it themselves.
+export function isNegotiatedPath(pathname: string): boolean {
+  if (DOCS_HTML_URL.test(pathname) || DOCS_MARKDOWN_URL.test(pathname)) {
+    return true;
+  }
+  if (isAgentPagePath(pathname)) {
+    return true;
+  }
+  const htmlOfMd = htmlPathFor(pathname);
+  return htmlOfMd !== null && isAgentPagePath(htmlOfMd);
+}
+
+// Appends a token to a Vary header without dropping the tokens Next added
+// itself (rsc, next-router-state-tree, ...). Merge, never replace.
+export function mergeVary(vary: string | null, token: string): string {
+  const tokens = new Set(
+    (vary ?? "")
+      .split(",")
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0)
+  );
+  tokens.add(token);
+  return [...tokens].join(", ");
+}
+
+// "/pages-md/<path>" for every ".md" URL (known pages serve markdown, the
+// rest get the route's plain-text 404) and for the HTML URL of a page with a
+// markdown version ("/pricing", "/", "/alternatives/wp-job-manager") when
+// acceptsMarkdown(accept). Docs paths go through docsMarkdownRewrite
+// first. A path with a broken percent escape returns null before any rewrite
+// (see the comment inside). Otherwise null.
+export function markdownRewrite(
+  pathname: string,
+  accept: string | null
+): string | null {
+  // A broken percent escape never reaches a markdown route: null here falls
+  // through to the malformed-path rewrite, so /jobs/%ZZ.md gets the regular
+  // 404 page instead of a 500 from a dynamic route.
+  if (hasMalformedEncoding(pathname)) {
+    return null;
+  }
+  const docs = docsMarkdownRewrite(pathname, accept);
+  if (docs !== null) {
+    return docs;
+  }
+  const htmlOfMd = htmlPathFor(pathname);
+  if (htmlOfMd !== null) {
+    return pagesMarkdownRoutePath(htmlOfMd);
+  }
+  if (isAgentPagePath(pathname) && acceptsMarkdown(accept)) {
+    return pagesMarkdownRoutePath(pathname);
+  }
+  return null;
+}
+
+// Direct hits on the internal routes never reach the handler.
 export function isInternalDocsMarkdownPath(pathname: string): boolean {
   return (
     pathname === DOCS_MARKDOWN_ROUTE ||
     pathname.startsWith(`${DOCS_MARKDOWN_ROUTE}/`)
+  );
+}
+
+export function isInternalPagesMarkdownPath(pathname: string): boolean {
+  return (
+    pathname === PAGES_MARKDOWN_ROUTE ||
+    pathname.startsWith(`${PAGES_MARKDOWN_ROUTE}/`)
   );
 }
 
@@ -152,14 +228,11 @@ export function proxy(request: NextRequest) {
       : NextResponse.next();
   }
 
-  // Markdown requests are rewritten to the internal route; the handler is
-  // unit tested in src/app/docs-md. rsc-bearing client navigations stay with
-  // the App Router so it never receives markdown.
+  // Markdown requests are rewritten to the internal routes; the handlers are
+  // unit tested in src/app/docs-md and src/app/pages-md. rsc-bearing client
+  // navigations stay with the App Router so it never receives markdown.
   if (isMarketingEnabled() && request.headers.get("rsc") === null) {
-    const markdown = docsMarkdownRewrite(
-      pathname,
-      request.headers.get("accept")
-    );
+    const markdown = markdownRewrite(pathname, request.headers.get("accept"));
     if (markdown) {
       return NextResponse.rewrite(new URL(markdown, request.url));
     }
@@ -189,21 +262,34 @@ export function proxy(request: NextRequest) {
 
   const init = { request: { headers: requestHeaders } };
   const response =
-    hasMalformedEncoding(pathname) || isInternalDocsMarkdownPath(pathname)
+    hasMalformedEncoding(pathname) ||
+    isInternalDocsMarkdownPath(pathname) ||
+    isInternalPagesMarkdownPath(pathname)
       ? NextResponse.rewrite(new URL(MALFORMED_PATH_REWRITE, request.url), init)
       : NextResponse.next(init);
   response.headers.set("Content-Security-Policy", csp);
+
+  // A CDN must not serve the markdown body to a browser that asked for HTML:
+  // every negotiated HTML response declares what varied it.
+  if (isNegotiatedPath(pathname)) {
+    response.headers.set(
+      "Vary",
+      mergeVary(response.headers.get("vary"), "Accept")
+    );
+  }
 
   return response;
 }
 
 export const config = {
   matcher: [
-    // Direct hits on /docs-md must always run the proxy, prefetch or not, so
-    // they are rewritten to the 404 page and get the CSP instead of serving
-    // 200 markdown without it.
+    // Direct hits on /docs-md and /pages-md must always run the proxy,
+    // prefetch or not, so they are rewritten to the 404 page and get the CSP
+    // instead of serving 200 markdown without it.
     "/docs-md",
     "/docs-md/:path*",
+    "/pages-md",
+    "/pages-md/:path*",
     {
       missing: [{ key: "next-router-prefetch", type: "header" }],
       // Static files and prefetches skip the nonce. /api and /admin stay covered.

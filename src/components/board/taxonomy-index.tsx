@@ -20,14 +20,21 @@ import {
 } from "@/lib/read/taxonomy-stats";
 import { cn } from "@/lib/utils";
 
-const POPULAR_COUNT = 4;
+export const TAXONOMY_POPULAR_COUNT = 4;
 
-const HEADING: Record<TaxonomyKind, string> = {
+const POPULAR_COUNT = TAXONOMY_POPULAR_COUNT;
+
+// The page heading and the group labels of each index. Exported so the
+// agent markdown version (src/lib/docs/agent-board-pages.ts) renders the
+// same strings.
+export const TAXONOMY_INDEX_HEADING: Record<TaxonomyKind, string> = {
   language: "Jobs by language",
   level: "Jobs by level",
   location: "Jobs by location",
   type: "Jobs by type",
 };
+
+const HEADING = TAXONOMY_INDEX_HEADING;
 
 const NOUN: Record<TaxonomyKind, [string, string]> = {
   language: ["language", "languages"],
@@ -74,11 +81,17 @@ const ALERT_COPY: Record<
 const SECTION_LABEL =
   "text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase";
 
-function subtitle(kind: TaxonomyKind, roles: number, groups: number): string {
+export function taxonomySubtitle(
+  kind: TaxonomyKind,
+  roles: number,
+  groups: number
+): string {
   const [one, many] = NOUN[kind];
   const roleWord = roles === 1 ? "open role" : "open roles";
   return `${roles} ${roleWord} in ${groups} ${groups === 1 ? one : many}.`;
 }
+
+const subtitle = taxonomySubtitle;
 
 function PopularCard({
   compact,
@@ -115,10 +128,11 @@ function PopularCard({
             "text-subtle hidden text-[15px] md:block",
             compact ? "leading-[18px]" : "leading-[22px]"
           )}
+          data-markdown-ignore
         >
           →
         </span>
-      </span>
+      </span>{" "}
       <span
         className={cn(
           "text-muted-foreground text-[13px] leading-4 md:text-[14px]",
@@ -129,7 +143,7 @@ function PopularCard({
         {inlineDetail && detail ? (
           <span className="text-subtle"> · {detail}</span>
         ) : null}
-      </span>
+      </span>{" "}
       {!inlineDetail && detail ? (
         <span
           className={cn(
@@ -241,7 +255,7 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
                   data-testid="taxonomy-link"
                   href={facet.href}
                 >
-                  <span className="text-foreground">{facet.label}</span>
+                  <span className="text-foreground">{facet.label}</span>{" "}
                   <span className="text-subtle">{facet.count}</span>
                 </Link>
               </li>
@@ -269,7 +283,7 @@ export async function TaxonomyIndex({ kind }: { kind: TaxonomyKind }) {
                   </Link>
                 ) : (
                   <span className="text-foreground">{row.label}</span>
-                )}
+                )}{" "}
                 <span className="text-subtle">{row.count}</span>
               </li>
             ))}

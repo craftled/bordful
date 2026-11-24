@@ -9,18 +9,29 @@ import {
   DOCS_GROUPS,
   DOCS_OVERVIEW,
   DOCS_REPO_BASE,
+  DOCS_SLUGS,
   firstSentence,
   listDocs,
   readDoc,
 } from "@/components/marketing/docs-content";
 import { resolveDocHref } from "@/components/marketing/docs-markdown";
 import { MARKETING_DESCRIPTION } from "@/components/marketing/site";
+import { AGENT_PAGES } from "@/lib/docs/agent-pages";
+import {
+  AGENT_PAGE_PATHS,
+  BOARD_AGENT_PAGE_PATHS,
+  LLMS_FULL_TXT_PATH,
+  llmsTxtDirective,
+  markdownPathFor,
+} from "./agent-docs-paths";
 
 export {
   DOCS_MARKDOWN_ROUTE,
   docsHtmlPath,
   docsMarkdownPath,
+  LLMS_FULL_TXT_PATH,
   LLMS_TXT_PATH,
+  llmsTxtDirective,
 } from "./agent-docs-paths";
 
 // Static on the CDN; a deploy refreshes it, browsers revalidate.
@@ -30,10 +41,6 @@ export const AGENT_DOCS_CACHE_CONTROL = "public, max-age=0, must-revalidate";
 // soft-404 detection only as "Not found", never rendered as HTML.
 export function notFoundText(): string {
   return "Not found\n";
-}
-
-export function llmsTxtDirective(siteUrl: string): string {
-  return `> For the complete documentation index, see [llms.txt](${siteUrl}/llms.txt).`;
 }
 
 const FENCE = /^```/u;
@@ -97,24 +104,37 @@ export function absolutizeDocLinks(
     .join("\n");
 }
 
-// The markdown version of one doc: the repo file with a llms.txt directive
-// after the H1 and every link made absolute. Unknown slugs return null.
-export function docMarkdown(slug: string, siteUrl: string): string | null {
+// The body of one doc with every link made absolute, without the llms.txt
+// directive. Unknown slugs return null.
+export function docBody(slug: string, siteUrl: string): string | null {
   const source = readDoc(slug);
   if (source === null) {
     return null;
   }
   const normalized = source.replaceAll("\r\n", "\n");
-  const lines = normalized.split("\n");
-  const h1 = lines.findIndex((line) => H1.test(line));
-  const head = h1 === -1 ? [] : [lines[h1] as string];
-  const rest =
-    h1 === -1 ? lines : lines.slice(0, h1).concat(lines.slice(h1 + 1));
-  const intro = [...head, "", llmsTxtDirective(siteUrl), "", ...rest].join(
-    "\n"
-  );
-  const body = absolutizeDocLinks(intro, slug, siteUrl);
+  const body = absolutizeDocLinks(normalized, slug, siteUrl);
   return `${body.replace(TRAILING_NEWLINES, "")}\n`;
+}
+
+// The markdown version of one doc: the repo file with a llms.txt directive
+// after the H1 and every link made absolute. Unknown slugs return null.
+export function docMarkdown(slug: string, siteUrl: string): string | null {
+  const body = docBody(slug, siteUrl);
+  if (body === null) {
+    return null;
+  }
+  const lines = body.split("\n");
+  const h1 = lines.findIndex((line) => H1.test(line));
+  if (h1 === -1) {
+    return `${llmsTxtDirective(siteUrl)}\n\n${body}`;
+  }
+  return [
+    ...lines.slice(0, h1 + 1),
+    "",
+    llmsTxtDirective(siteUrl),
+    "",
+    ...lines.slice(h1 + 1),
+  ].join("\n");
 }
 
 // The markdown version of the docs overview, mirroring the React page: the
@@ -136,8 +156,41 @@ export function docsIndexMarkdown(siteUrl: string): string {
   return `${lines.join("\n")}\n`;
 }
 
-// /llms.txt: one H2 per docs group in sidebar order, the overview first in
-// the first group, exactly like the sidebar. Docs pages only.
+// The board index pages' titles, from their own page metadata. They have no
+// static description (the HTML subtitle counts live rows), so llms.txt lists
+// them without one.
+export const BOARD_PAGE_TITLES: Readonly<Record<string, string>> = {
+  "/companies": "Companies",
+  "/jobs": "Jobs",
+  "/jobs/languages": "Jobs by language",
+  "/jobs/levels": "Jobs by level",
+  "/jobs/locations": "Jobs by location",
+  "/jobs/types": "Jobs by type",
+};
+
+// The llms.txt line for one agent page: the page's title, its markdown URL
+// (built with markdownPathFor, so "/" lists /index.md) and the description
+// its page metadata shows.
+function agentPageLines(paths: readonly string[], siteUrl: string): string[] {
+  return paths.flatMap((path) => {
+    const page = AGENT_PAGES[path];
+    if (page) {
+      return [
+        `- [${page.title}](${siteUrl}${markdownPathFor(path)}): ${page.description}`,
+      ];
+    }
+    const title = BOARD_PAGE_TITLES[path];
+    return title ? [`- [${title}](${siteUrl}${markdownPathFor(path)})`] : [];
+  });
+}
+
+// The llms.txt sections, in order: the docs groups first (the sidebar order,
+// the overview first), then the product pages, the alternatives, the board
+// indexes and the optional legal pages.
+// /llms.txt: the proposed llms.txt structure. Docs groups in sidebar order
+// (the overview first), then one H2 per section of the public site. Every
+// link is the page's markdown version; no job posting, archive or company
+// detail URL is ever listed.
 export function llmsTxt(siteUrl: string): string {
   const lines = [
     "# Bordful",
@@ -145,6 +198,8 @@ export function llmsTxt(siteUrl: string): string {
     `> ${MARKETING_DESCRIPTION}`,
     "",
     "Docs for deploying, configuring, theming and extending a Bordful job board. Every link below is the page's markdown version. The HTML page is the same URL without `.md`.",
+    "",
+    `The complete docs in one file: [llms-full.txt](${siteUrl}${LLMS_FULL_TXT_PATH})`,
     "",
   ];
   const entries = listDocs();
@@ -163,5 +218,77 @@ export function llmsTxt(siteUrl: string): string {
     }
     lines.push("");
   });
+  lines.push(
+    "## Product",
+    "",
+    ...agentPageLines(
+      AGENT_PAGE_PATHS.filter(
+        (path) => AGENT_PAGES[path]?.section === "Product" && path !== "/"
+      ),
+      siteUrl
+    ),
+    ...agentPageLines(["/"], siteUrl),
+    "",
+    "## Alternatives",
+    "",
+    ...agentPageLines(
+      AGENT_PAGE_PATHS.filter(
+        (path) => AGENT_PAGES[path]?.section === "Alternatives"
+      ),
+      siteUrl
+    ),
+    "",
+    "## Job board",
+    "",
+    ...agentPageLines(BOARD_AGENT_PAGE_PATHS, siteUrl),
+    "",
+    "## Optional",
+    "",
+    ...agentPageLines(
+      AGENT_PAGE_PATHS.filter(
+        (path) => AGENT_PAGES[path]?.section === "Optional"
+      ),
+      siteUrl
+    )
+  );
+  return `${lines.join("\n").replace(TRAILING_NEWLINES, "")}\n`;
+}
+
+// /llms-full.txt: every docs page in one file. The pages appear in sidebar
+// order (the overview first), each behind a `---` separator with a Source
+// line, so an agent can read the whole documentation in one request. The
+// directive is not repeated per page: the intro points at llms.txt instead.
+export function llmsFullTxt(siteUrl: string): string {
+  const lines = [
+    "# Bordful docs",
+    "",
+    `> ${MARKETING_DESCRIPTION}`,
+    "",
+    `This is every documentation page in one file. The index with every other page lives in [llms.txt](${siteUrl}/llms.txt).`,
+    "",
+  ];
+  const overview = docsIndexMarkdown(siteUrl).split("\n");
+  lines.push(
+    "---",
+    "",
+    `Source: ${siteUrl}/docs.md`,
+    "",
+    ...overview.slice(4),
+    ""
+  );
+  for (const slug of DOCS_SLUGS) {
+    const body = docBody(slug, siteUrl);
+    if (body === null) {
+      continue;
+    }
+    lines.push(
+      "---",
+      "",
+      `Source: ${siteUrl}/docs/${slug}.md`,
+      "",
+      ...body.split("\n"),
+      ""
+    );
+  }
   return `${lines.join("\n").replace(TRAILING_NEWLINES, "")}\n`;
 }

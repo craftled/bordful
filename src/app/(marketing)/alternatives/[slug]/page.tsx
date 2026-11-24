@@ -11,6 +11,7 @@ import { JsonLd } from "@/components/marketing/json-ld";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 import { resolveServerUrl } from "@/config/server-url";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
 import { alternativePageJsonLd } from "@/lib/seo/structured-data";
 
 export const dynamicParams = false;
@@ -32,6 +33,7 @@ export async function generateMetadata({
 
   return marketingPageMetadata({
     description: page.metaDescription,
+    markdownPath: markdownPathFor(`/alternatives/${slug}`),
     path: `/alternatives/${slug}`,
     title: page.metaTitle,
   });

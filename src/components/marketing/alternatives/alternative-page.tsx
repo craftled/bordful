@@ -9,7 +9,13 @@ import { SectionHeader } from "@/components/marketing/section-header";
 import { Button } from "@/components/ui/button";
 
 import { Breadcrumb } from "./breadcrumb";
-import { factsCheckedOn, formatCheckedOn } from "./registry";
+import {
+  ALTERNATIVES_CUSTOM_SETUP_NOTE,
+  ALTERNATIVES_PAGE_CTA,
+  ALTERNATIVES_PAGE_LABELS,
+  factsCheckedOn,
+  formatCheckedOn,
+} from "./registry";
 import type { Alternative, Claim, Source } from "./types";
 
 function SourceMarkers({
@@ -26,7 +32,10 @@ function SourceMarkers({
   );
 
   return (
-    <span className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline">
+    <span
+      className="text-primary hover:text-foreground -my-1 inline-flex gap-1 align-baseline"
+      data-markdown-ignore
+    >
       {sortedSources.map((id) => {
         const sourceIndex = page.sources.findIndex(
           (candidate) => candidate.id === id
@@ -80,7 +89,7 @@ function Hero({ page }: { page: Alternative }) {
             <a href={DEPLOY_URL} rel="noopener noreferrer" target="_blank">
               Deploy to Vercel
             </a>
-          </Button>
+          </Button>{" "}
           <Button
             asChild
             className="h-11 px-4 text-[15px] md:h-9 md:text-[13px]"
@@ -96,8 +105,7 @@ function Hero({ page }: { page: Alternative }) {
           </Button>
         </div>
         <p className="text-subtle text-[12px] leading-[18px] md:text-center">
-          Custom Setup includes installation, your domain, a 1-hour consultation
-          and 1 year of Bordfeed Pro.
+          {ALTERNATIVES_CUSTOM_SETUP_NOTE}
         </p>
       </Container>
     </Section>
@@ -135,7 +143,8 @@ function Verdict({ page }: { page: Alternative }) {
               className="text-foreground text-[20px] leading-7 font-medium tracking-[-0.02em]"
               id="stay-heading"
             >
-              Stay on {page.name} when
+              {ALTERNATIVES_PAGE_LABELS.stayPrefix} {page.name}{" "}
+              {ALTERNATIVES_PAGE_LABELS.staySuffix}
             </h2>
             <ClaimList claims={page.stay} page={page} />
           </section>
@@ -147,7 +156,7 @@ function Verdict({ page }: { page: Alternative }) {
               className="text-foreground text-[20px] leading-7 font-medium tracking-[-0.02em]"
               id="switch-heading"
             >
-              Bordful fits better when
+              {ALTERNATIVES_PAGE_LABELS.switch}
             </h2>
             <ClaimList claims={page.switch} page={page} />
           </section>
@@ -160,7 +169,7 @@ function Verdict({ page }: { page: Alternative }) {
             className="text-foreground text-[18px] leading-6 font-medium"
             id="limits-heading"
           >
-            Know before you switch
+            {ALTERNATIVES_PAGE_LABELS.limits}
           </h2>
           <ClaimList claims={page.limits} page={page} />
         </section>
@@ -249,6 +258,7 @@ function ComparisonTable({
                 <span
                   aria-hidden="true"
                   className="text-foreground text-[11px] font-medium md:hidden"
+                  data-markdown-ignore
                 >
                   {page.name}
                 </span>
@@ -262,6 +272,7 @@ function ComparisonTable({
                 <span
                   aria-hidden="true"
                   className="text-foreground text-[11px] font-medium md:hidden"
+                  data-markdown-ignore
                 >
                   Bordful
                 </span>
@@ -282,7 +293,7 @@ function Migration({ page }: { page: Alternative }) {
         <SectionHeader
           description={page.migration.intro}
           title={`Moving from ${page.name}`}
-          titleMuted="takes a little work."
+          titleMuted={ALTERNATIVES_PAGE_LABELS.migrationTitleMuted}
         />
         <div className="grid gap-8 md:grid-cols-2 md:gap-12">
           <section
@@ -293,7 +304,7 @@ function Migration({ page }: { page: Alternative }) {
               className="text-foreground text-[17px] leading-6 font-medium"
               id="moves-heading"
             >
-              What moves
+              {ALTERNATIVES_PAGE_LABELS.moves}
             </h3>
             <ClaimList claims={page.migration.moves} page={page} />
           </section>
@@ -305,7 +316,7 @@ function Migration({ page }: { page: Alternative }) {
               className="text-foreground text-[17px] leading-6 font-medium"
               id="behind-heading"
             >
-              What stays behind
+              {ALTERNATIVES_PAGE_LABELS.staysBehind}
             </h3>
             <ClaimList claims={page.migration.staysBehind} page={page} />
           </section>
@@ -315,7 +326,7 @@ function Migration({ page }: { page: Alternative }) {
             className="text-foreground text-[17px] leading-6 font-medium"
             id="path-heading"
           >
-            A typical path
+            {ALTERNATIVES_PAGE_LABELS.path}
           </h3>
           <ol className="text-muted-foreground marker:text-subtle flex list-decimal flex-col gap-3 pl-5 text-[14px] leading-[21px]">
             {page.migration.steps.map((step) => (
@@ -344,9 +355,10 @@ function Sources({
   return (
     <Section>
       <Container className="flex flex-col gap-5">
-        <SectionHeader title="Sources" />
+        <SectionHeader title={ALTERNATIVES_PAGE_LABELS.sources} />
         <p className="text-subtle text-[12px] leading-[18px]">
-          Facts last checked: {checkedOn}, Europe/Madrid.
+          {ALTERNATIVES_PAGE_LABELS.factsChecked} {checkedOn}
+          {ALTERNATIVES_PAGE_LABELS.factsCheckedSuffix}
         </p>
         <ol className="text-muted-foreground marker:text-subtle flex list-decimal flex-col gap-4 pl-5 text-[13px] leading-5">
           {sources.map((source) => (
@@ -396,7 +408,7 @@ export function AlternativeView({ page }: { page: Alternative }) {
         <Container className="flex flex-col gap-5">
           <SectionHeader
             title={`${page.name} and Bordful`}
-            titleMuted="compared."
+            titleMuted={ALTERNATIVES_PAGE_LABELS.compared}
           />
           <ComparisonTable
             caption={`${page.name} and Bordful compared`}
@@ -404,21 +416,23 @@ export function AlternativeView({ page }: { page: Alternative }) {
             rows={page.comparison}
           />
           <p className="text-subtle text-[12px] leading-[18px]">
-            Sources for every cell are listed at the bottom of this page. Facts
-            last checked {checkedOn}.
+            {ALTERNATIVES_PAGE_LABELS.sourcesNote} {checkedOn}.
           </p>
         </Container>
       </Section>
       <Section>
         <Container className="flex flex-col gap-5">
-          <SectionHeader title="Pricing" titleMuted="compared." />
+          <SectionHeader
+            title="Pricing"
+            titleMuted={ALTERNATIVES_PAGE_LABELS.compared}
+          />
           <ComparisonTable
             caption="Pricing compared"
             page={page}
             rows={page.pricing}
           />
           <p className="text-subtle text-[12px] leading-[18px]">
-            Prices in US dollars as published on each site on {checkedOn}.
+            {ALTERNATIVES_PAGE_LABELS.pricesNote} {checkedOn}.
           </p>
         </Container>
       </Section>
@@ -426,9 +440,9 @@ export function AlternativeView({ page }: { page: Alternative }) {
       <Section>
         <Container className="flex flex-col gap-5">
           <SectionHeader
-            description="Answers based on the product details above."
-            title="Frequently asked"
-            titleMuted="questions."
+            description={ALTERNATIVES_PAGE_LABELS.faqDescription}
+            title={ALTERNATIVES_PAGE_LABELS.faqTitle}
+            titleMuted={ALTERNATIVES_PAGE_LABELS.faqTitleMuted}
           />
           <QuestionList
             className="md:max-w-[900px]"
@@ -455,9 +469,9 @@ export function AlternativeView({ page }: { page: Alternative }) {
             label: "Custom Setup, $999 once",
           },
         ]}
-        description="Deploy the free template, or let us set it up for $999 once, with 1 year of Bordfeed Pro included."
-        title="Want a job board"
-        titleMuted="you fully own?"
+        description={ALTERNATIVES_PAGE_CTA.description}
+        title={ALTERNATIVES_PAGE_CTA.title}
+        titleMuted={ALTERNATIVES_PAGE_CTA.titleMuted}
       />
       <Sources checkedOn={checkedOn} sources={page.sources} />
       <MarketingSlimFooter />

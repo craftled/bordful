@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { faqPlainAnswers } from "@/components/marketing/faq";
+import { FAQ_PAGE_CTA, faqPlainAnswers } from "@/components/marketing/faq";
 import { FaqPageTabs } from "@/components/marketing/faq-page-tabs";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingCta } from "@/components/marketing/marketing-cta";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
-import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
 import { resolveServerUrl } from "@/config/server-url";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 import { faqPageJsonLd } from "@/lib/seo/structured-data";
 
 export const metadata: Metadata = marketingPageMetadata({
-  description:
-    "Short answers about the Bordful template, Bordfeed, posting your own jobs, and updating a fork.",
+  description: agentPageDescription("/faq"),
+  markdownPath: markdownPathFor("/faq"),
   path: "/faq",
   title: "FAQ",
 });
@@ -35,17 +36,10 @@ export default async function FaqPage() {
       />
       <FaqPageTabs />
       <MarketingCta
-        actions={[
-          {
-            external: true,
-            href: `${GITHUB_URL}/issues`,
-            label: "Open an issue",
-          },
-          { href: "/docs", label: "Read the docs" },
-        ]}
-        description="Still stuck? Read the docs or open an issue on GitHub."
-        title="Still have"
-        titleMuted="a question?"
+        actions={FAQ_PAGE_CTA.actions.map((action) => ({ ...action }))}
+        description={FAQ_PAGE_CTA.description}
+        title={FAQ_PAGE_CTA.heading[0]}
+        titleMuted={FAQ_PAGE_CTA.heading[1]}
       />
       <MarketingSlimFooter />
     </>

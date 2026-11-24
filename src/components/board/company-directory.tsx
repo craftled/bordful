@@ -6,6 +6,7 @@ import { useCallback, useId, useMemo, useState } from "react";
 import { CompanyCard } from "@/components/board/company-card";
 import { PageTitle } from "@/components/board/taxonomy-hub";
 import type { CompanyIndexRow } from "@/lib/board/companies";
+import { COMPANY_PAGE_SIZE } from "@/lib/board/constants";
 import { cn } from "@/lib/utils";
 
 export interface CompanyDirectoryRow extends CompanyIndexRow {
@@ -21,9 +22,6 @@ const FILTER_LABEL: Record<CompanyFilter, string> = {
   remote: "Remote-first",
   week: "Hiring this week",
 };
-
-// Paper shows three rows of cards, then a link to the rest.
-export const COMPANY_PAGE_SIZE = 9;
 
 /** Filters that have at least one company behind them, "All" first. */
 export function availableFilters(

@@ -6,11 +6,18 @@ import { CompanyDirectory } from "@/components/board/company-directory";
 import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import { companiesFromPool } from "@/lib/board/companies";
 import { loadBoardPool } from "@/lib/board/pool";
+import { boardMarkdownAlternate } from "@/lib/docs/markdown-alternate";
 import { companyStatsFromPool } from "@/lib/read/company-stats";
 
-export const metadata: Metadata = {
-  title: "Companies",
-};
+export function generateMetadata(): Metadata {
+  return {
+    alternates: {
+      canonical: "/companies",
+      types: boardMarkdownAlternate("/companies"),
+    },
+    title: "Companies",
+  };
+}
 
 export default async function CompaniesPage() {
   const pool = await loadBoardPool();

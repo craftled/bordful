@@ -9,7 +9,12 @@ import { SectionHeader } from "@/components/marketing/section-header";
 import { Button } from "@/components/ui/button";
 
 import { Breadcrumb } from "./breadcrumb";
-import { ALTERNATIVES, ALTERNATIVES_HUB, formatCheckedOn } from "./registry";
+import {
+  ALTERNATIVES,
+  ALTERNATIVES_HUB,
+  ALTERNATIVES_HUB_CTA,
+  formatCheckedOn,
+} from "./registry";
 
 export function AlternativesHub() {
   return (
@@ -82,9 +87,9 @@ export function AlternativesHub() {
             label: "Custom Setup, $999 once",
           },
         ]}
-        description="Deploy the free template, or let us set it up for $999 once, with 1 year of Bordfeed Pro included."
-        title="Ready to own"
-        titleMuted="your job board?"
+        description={ALTERNATIVES_HUB_CTA.description}
+        title={ALTERNATIVES_HUB_CTA.title}
+        titleMuted={ALTERNATIVES_HUB_CTA.titleMuted}
       />
       <MarketingSlimFooter />
     </>

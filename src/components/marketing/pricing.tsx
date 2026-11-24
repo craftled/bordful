@@ -21,7 +21,10 @@ interface HomePlan {
   unit: string;
 }
 
-interface Plan {
+// The pricing page and the home section share the same plan data. Exported
+// so the agent markdown version (src/lib/docs/agent-pages.ts) renders the
+// same cards.
+export interface PricingPlan {
   cta: string;
   description: string;
   external: boolean;
@@ -33,7 +36,30 @@ interface Plan {
   price: string;
 }
 
-const plans: readonly Plan[] = [
+export const PRICING_SECTION_HEADER = {
+  eyebrow: "Pricing",
+  title: "Free to run.",
+  titleMuted: "Help if you want it.",
+} as const;
+
+export const PRICING_PAYMENT_NOTE =
+  "Payments by Stripe. Prices in USD, VAT may apply. Bordfeed Pro is included with Custom Setup for 12 months.";
+
+// The standalone pricing page header and closing CTA. The page and the
+// agent markdown version render the same strings.
+export const PRICING_PAGE_HEADER = {
+  description: "Self-host for free, or let us set everything up for you.",
+  eyebrow: "Pricing",
+  title: "Simple pricing,",
+  titleMuted: "pay once or not at all.",
+} as const;
+
+export const PRICING_PAGE_CTA = {
+  description: "Start free, upgrade only if you want us to do the setup.",
+  heading: ["Ready to launch your", "job board?"],
+} as const;
+
+export const plans: readonly PricingPlan[] = [
   {
     cta: "Clone now",
     description: "For developers and hobbyists",
@@ -127,7 +153,7 @@ function FeatureText({ feature }: { feature: Feature }) {
   );
 }
 
-function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
+function PlanBody({ plan, primary }: { plan: PricingPlan; primary: boolean }) {
   return (
     <>
       <h2 className="text-foreground text-[15px] leading-[18px] font-medium md:leading-[22px]">
@@ -172,7 +198,13 @@ function PlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
   );
 }
 
-function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
+function HomePlanBody({
+  plan,
+  primary,
+}: {
+  plan: PricingPlan;
+  primary: boolean;
+}) {
   const { home } = plan;
 
   // Paper's phone card drops the badge and draws the check icons; from md
@@ -209,7 +241,11 @@ function HomePlanBody({ plan, primary }: { plan: Plan; primary: boolean }) {
             <span className="md:hidden">
               <CheckIcon />
             </span>
-            <span aria-hidden="true" className="text-subtle hidden md:inline">
+            <span
+              aria-hidden="true"
+              className="text-subtle hidden md:inline"
+              data-markdown-ignore
+            >
               ✓
             </span>
             <FeatureText feature={feature} />
@@ -271,10 +307,10 @@ export function Pricing({
     <Section id="pricing" padding="flush">
       <Container className="border-line pt-10 pb-5 md:border-b md:pt-16 md:pb-10">
         <SectionHeader
-          eyebrow="Pricing"
+          eyebrow={PRICING_SECTION_HEADER.eyebrow}
           phone="mono"
-          title="Free to run."
-          titleMuted="Help if you want it."
+          title={PRICING_SECTION_HEADER.title}
+          titleMuted={PRICING_SECTION_HEADER.titleMuted}
         />
       </Container>
       <div className="grid gap-5 px-4 md:grid-cols-2 md:gap-0 md:px-0">
@@ -294,8 +330,7 @@ export function Pricing({
       </div>
       <Container className="border-line pt-5 pb-10 md:border-t md:py-3.5">
         <p className="text-subtle text-[11px] leading-[14px]">
-          Payments by Stripe. Prices in USD, VAT may apply. Bordfeed Pro is
-          included with Custom Setup for 12 months.
+          {PRICING_PAYMENT_NOTE}
         </p>
       </Container>
     </Section>

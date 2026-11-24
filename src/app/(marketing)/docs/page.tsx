@@ -18,9 +18,11 @@ import {
   listDocs,
 } from "@/components/marketing/docs-content";
 import { DocsFrame } from "@/components/marketing/docs-layout";
+import { DocsPageActions } from "@/components/marketing/docs-page-actions";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { resolveServerUrl } from "@/config/server-url";
 import { docsMarkdownPath } from "@/lib/docs/agent-docs-paths";
 
 export const metadata: Metadata = marketingPageMetadata({
@@ -60,6 +62,12 @@ export default function DocsHomePage() {
         <p className="text-muted-foreground text-[16px] leading-6 md:leading-[25px]">
           {DOCS_OVERVIEW.lede}
         </p>
+        <div className="flex flex-wrap justify-end gap-2">
+          <DocsPageActions
+            mdPath={docsMarkdownPath(null)}
+            mdUrl={`${resolveServerUrl()}${docsMarkdownPath(null)}`}
+          />
+        </div>
       </div>
       <ul className="bg-card ring-line flex flex-col overflow-hidden rounded-[14px] ring-1 md:hidden">
         {entries.map((entry) => (

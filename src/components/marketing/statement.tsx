@@ -1,17 +1,10 @@
 import { Container } from "./container";
+import { HOME_STATEMENT } from "./home-content";
 import { Section } from "./section";
 
 // One sentence for what the board does, built from the feature list:
 // Bordfeed jobs, Resend alerts and Stripe paid posts.
-const parts = [
-  { highlight: false, text: "Bordful" },
-  { highlight: true, text: "lists" },
-  { highlight: false, text: "jobs from your feed," },
-  { highlight: true, text: "alerts" },
-  { highlight: false, text: "people when new ones land, and" },
-  { highlight: true, text: "charges" },
-  { highlight: false, text: "employers to post." },
-] as const;
+const parts = HOME_STATEMENT;
 
 export function Statement() {
   return (

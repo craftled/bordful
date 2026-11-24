@@ -5,6 +5,7 @@ import { useCallback, useId, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { HOME_WALKTHROUGH } from "./home-content";
 import { PhoneShot, Shot, ThemedBoardShot, ThemedShot } from "./shots";
 
 interface Step {
@@ -19,88 +20,65 @@ interface Step {
 const PANEL_SHOT =
   "absolute top-6 left-6 w-[640px] md:top-10 md:left-10 md:w-[800px]";
 
-// Every line here is something the app does today: URL-driven filters, a page
-// per job with a pinned mobile Apply bar, Resend alerts and browser-local saved
-// jobs, the Stripe payment link with a listing duration, and Site settings.
-const STEPS: readonly Step[] = [
-  {
-    description:
-      "Search, then filter by type, level, salary, language, remote and visa sponsorship. Every view has its own URL.",
-    id: "browse",
-    label: "Browse and filter",
-    shot: (
-      <ThemedBoardShot
-        alt="The board home with search, filter chips and the job list"
-        className={PANEL_SHOT}
+// The panel art for each step, keyed by step id. The copy lives in
+// home-content.ts, shared with the agent markdown version of the page.
+const STEP_SHOTS: Record<
+  (typeof HOME_WALKTHROUGH)["steps"][number]["id"],
+  ReactNode
+> = {
+  browse: (
+    <ThemedBoardShot
+      alt="The board home with search, filter chips and the job list"
+      className={PANEL_SHOT}
+    />
+  ),
+  read: (
+    <ThemedShot
+      alt="A job page with salary, type, level and location above the description"
+      className={PANEL_SHOT}
+      name="jobLight"
+    />
+  ),
+  alerts: (
+    <div className="absolute top-6 left-6 flex items-start gap-6 md:top-10 md:left-16 md:gap-8">
+      <PhoneShot
+        alt="The board home on a phone"
+        className="w-[180px] md:w-[220px]"
+        name="mobileHome"
       />
-    ),
-  },
-  {
-    description:
-      "Each job opens on its own page. On a phone, Apply stays pinned.",
-    id: "read",
-    label: "Read a role",
-    shot: (
-      <ThemedShot
-        alt="A job page with salary, type, level and location above the description"
-        className={PANEL_SHOT}
-        name="jobLight"
+      <PhoneShot
+        alt="A job page on a phone with the Apply bar pinned"
+        className="mt-8 w-[180px] md:w-[220px]"
+        name="mobileJob"
       />
-    ),
-  },
-  {
-    description:
-      "Visitors sign up for a daily or weekly email of new jobs, sent through Resend. Saved jobs stay in their browser.",
-    id: "alerts",
-    label: "Come back with alerts",
-    shot: (
-      <div className="absolute top-6 left-6 flex items-start gap-6 md:top-10 md:left-16 md:gap-8">
-        <PhoneShot
-          alt="The board home on a phone"
-          className="w-[180px] md:w-[220px]"
-          name="mobileHome"
-        />
-        <PhoneShot
-          alt="A job page on a phone with the Apply bar pinned"
-          className="mt-8 w-[180px] md:w-[220px]"
-          name="mobileJob"
-        />
-      </div>
-    ),
-  },
-  {
-    description:
-      "Employers pay through your Stripe payment link. You publish the job and it expires after the days you set.",
-    id: "paid",
-    label: "Take paid posts",
-    shot: (
-      <ThemedBoardShot
-        alt="The board home with the job list"
-        className={PANEL_SHOT}
+    </div>
+  ),
+  paid: (
+    <ThemedBoardShot
+      alt="The board home with the job list"
+      className={PANEL_SHOT}
+    />
+  ),
+  brand: (
+    <>
+      <Shot
+        alt="The board in the light theme"
+        className="absolute top-6 left-6 w-[560px] md:top-10 md:left-10 md:w-[640px]"
+        name="boardLight"
       />
-    ),
-  },
-  {
-    description:
-      "Name, logo, colors, fonts and radius come from Site settings, in light and dark.",
-    id: "brand",
-    label: "Make it yours",
-    shot: (
-      <>
-        <Shot
-          alt="The board in the light theme"
-          className="absolute top-6 left-6 w-[560px] md:top-10 md:left-10 md:w-[640px]"
-          name="boardLight"
-        />
-        <Shot
-          alt="The board in the dark theme"
-          className="absolute top-24 left-28 w-[560px] md:top-[120px] md:left-[200px] md:w-[640px]"
-          name="boardDark"
-        />
-      </>
-    ),
-  },
-];
+      <Shot
+        alt="The board in the dark theme"
+        className="absolute top-24 left-28 w-[560px] md:top-[120px] md:left-[200px] md:w-[640px]"
+        name="boardDark"
+      />
+    </>
+  ),
+};
+
+const STEPS: readonly Step[] = HOME_WALKTHROUGH.steps.map((step) => ({
+  ...step,
+  shot: STEP_SHOTS[step.id],
+}));
 
 function indexOf(event: { currentTarget: HTMLButtonElement }): number {
   return Number(event.currentTarget.dataset.index);
@@ -158,13 +136,13 @@ export function Walkthrough() {
       <div className="flex flex-col md:flex-row">
         <div className="flex flex-col gap-5 px-4 pt-10 pb-6 md:w-[300px] md:shrink-0 md:py-12 md:pr-8 md:pl-10">
           <p className="bg-tag text-muted-foreground flex h-5 items-center self-start rounded-sm px-[7px] text-[11px] leading-[14px] font-medium">
-            Product
+            {HOME_WALKTHROUGH.eyebrow}
           </p>
           <h2
             className="text-foreground text-[22px] leading-7 font-medium tracking-[-0.02em]"
             id={`${baseId}-heading`}
           >
-            Built for the people reading it
+            {HOME_WALKTHROUGH.heading}
           </h2>
           <div
             aria-labelledby={`${baseId}-heading`}

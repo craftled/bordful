@@ -72,7 +72,7 @@ export function PageTitle({
       )}
       data-testid={testId}
     >
-      {children}
+      {children}{" "}
       {subtitle ? <span className="text-subtle block">{subtitle}</span> : null}
     </h1>
   );

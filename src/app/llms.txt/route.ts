@@ -6,10 +6,10 @@ import {
   notFoundText,
 } from "@/lib/docs/agent-docs";
 
-// Static on the CDN; a deploy refreshes it. The marketing gate is fixed at
-// build time, the same as the static docs pages: the build must see
-// BORDFUL_MARKETING=true and the right NEXT_PUBLIC_SERVER_URL.
-export const dynamic = "force-static";
+// Rendered per request so the marketing gate reads the runtime env. A
+// build-time render fixed it to whatever the build saw, so one build served
+// to a marketing and a fork server answered both the same way.
+export const dynamic = "force-dynamic";
 
 function notFoundResponse(): Response {
   return new Response(notFoundText(), {

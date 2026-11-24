@@ -11,7 +11,11 @@ import {
   hasMalformedEncoding,
   hostnameFromHostHeader,
   isInternalDocsMarkdownPath,
+  isInternalPagesMarkdownPath,
+  isNegotiatedPath,
   MALFORMED_PATH_REWRITE,
+  markdownRewrite,
+  mergeVary,
   proxy,
   shouldRedirectVercelAppHost,
 } from "./proxy";
@@ -23,6 +27,11 @@ const MALFORMED = [
   "/docs/%E0%A4%A",
   "/jobs/page/%E0",
   "/jobs/type/%E0%A4%A",
+  // Malformed .md URLs must not be rewritten into a markdown route either.
+  "/jobs/%ZZ.md",
+  "/companies/%E0%A4%A.md",
+  "/pricing/%ZZ.md",
+  "/alternatives/%ZZ.md",
 ];
 
 const BROWSER_ACCEPT =
@@ -252,6 +261,40 @@ test("isInternalDocsMarkdownPath matches only the internal route", () => {
   expect(isInternalDocsMarkdownPath("/docsmd")).toBe(false);
 });
 
+test("a malformed .md URL is never rewritten to a markdown route", () => {
+  // htmlPathFor() accepts every path that ends in .md, so without the guard
+  // a URL like /jobs/%ZZ.md would land in the /pages-md dynamic route and
+  // surface Next's plain-text 500 instead of the intended 404.
+  for (const path of [
+    "/jobs/%ZZ.md",
+    "/companies/%E0%A4%A.md",
+    "/pricing/%ZZ.md",
+    "/alternatives/%ZZ.md",
+    "/docs/%ZZ.md",
+  ]) {
+    expect(markdownRewrite(path, null), path).toBeNull();
+    expect(markdownRewrite(path, "text/markdown"), path).toBeNull();
+  }
+
+  // Well-formed .md URLs keep rewriting as before.
+  expect(markdownRewrite("/pricing.md", null)).toBe("/pages-md/pricing");
+  expect(markdownRewrite("/jobs/types.md", null)).toBe("/pages-md/jobs/types");
+
+  // Through the whole proxy (marketing on): the malformed .md URL reaches
+  // the malformed-path rewrite and its 404 page with the CSP, whatever the
+  // Accept header, and never a markdown rewrite or a pass-through.
+  for (const accept of [null, "text/markdown", BROWSER_ACCEPT]) {
+    withMarketing("true", () => {
+      const headers = accept === null ? {} : { accept };
+      const response = run("/jobs/%ZZ.md", "localhost:3100", headers);
+      expect(rewritePath(response)).toBe(MALFORMED_PATH_REWRITE);
+      expect(response.headers.get("Content-Security-Policy")).toContain(
+        "default-src 'self'"
+      );
+    });
+  }
+});
+
 test("rewrites markdown URLs to the internal route when marketing is on", () => {
   withMarketing("true", () => {
     for (const [path, expected] of [
@@ -320,9 +363,14 @@ test("the matcher always covers /docs-md, other routes keep the prefetch skip", 
   const matches = (entry: (typeof config)["matcher"][number], path: string) =>
     match(typeof entry === "string" ? entry : entry.source)(path) !== false;
 
-  // Direct /docs-md hits must match an entry that does not require the
-  // prefetch header to be missing.
-  for (const path of ["/docs-md", "/docs-md/deploy"]) {
+  // Direct /docs-md and /pages-md hits must match an entry that does not
+  // require the prefetch header to be missing.
+  for (const path of [
+    "/docs-md",
+    "/docs-md/deploy",
+    "/pages-md",
+    "/pages-md/pricing",
+  ]) {
     const entries = config.matcher.filter((entry) => matches(entry, path));
     expect(entries.length, path).toBeGreaterThan(0);
     expect(
@@ -353,5 +401,139 @@ test("a fork never rewrites markdown URLs", () => {
     });
     expect(response.headers.get("x-middleware-rewrite")).toBeNull();
     expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+});
+
+test("markdownRewrite maps agent page URLs to the internal route", () => {
+  expect(markdownRewrite("/pricing.md", null)).toBe("/pages-md/pricing");
+  expect(markdownRewrite("/index.md", null)).toBe("/pages-md/index");
+  expect(markdownRewrite("/alternatives/wp-job-manager.md", null)).toBe(
+    "/pages-md/alternatives/wp-job-manager"
+  );
+  expect(markdownRewrite("/companies.md", null)).toBe("/pages-md/companies");
+  expect(markdownRewrite("/jobs/types.md", null)).toBe("/pages-md/jobs/types");
+  expect(markdownRewrite("/pricing", "text/markdown")).toBe(
+    "/pages-md/pricing"
+  );
+  expect(markdownRewrite("/", "text/markdown")).toBe("/pages-md/index");
+  expect(markdownRewrite("/jobs", "text/markdown")).toBe("/pages-md/jobs");
+  expect(markdownRewrite("/pricing", BROWSER_ACCEPT)).toBeNull();
+  expect(markdownRewrite("/jobs/types", BROWSER_ACCEPT)).toBeNull();
+  // Unknown .md URLs still route to the pages handler, which 404s them in
+  // plain text; only URLs that are not markdown requests at all pass through.
+  expect(markdownRewrite("/nonexistent.md", null)).toBe(
+    "/pages-md/nonexistent"
+  );
+  expect(markdownRewrite("/jobs/some-role.md", null)).toBe(
+    "/pages-md/jobs/some-role"
+  );
+  expect(markdownRewrite("/companies/acme.md", null)).toBe(
+    "/pages-md/companies/acme"
+  );
+  expect(markdownRewrite("/jobs/type/full-time.md", null)).toBe(
+    "/pages-md/jobs/type/full-time"
+  );
+  expect(markdownRewrite("/nonexistent", null)).toBeNull();
+  expect(markdownRewrite("/pricing", BROWSER_ACCEPT)).toBeNull();
+  expect(markdownRewrite("/.md", null)).toBeNull();
+  expect(markdownRewrite("/pricing.html", null)).toBeNull();
+  // Docs still go through docsMarkdownRewrite.
+  expect(markdownRewrite("/docs.md", null)).toBe("/docs-md");
+  expect(markdownRewrite("/docs/deploy", "text/markdown")).toBe(
+    "/docs-md/deploy"
+  );
+});
+
+test("rewrites agent page markdown URLs when marketing is on", () => {
+  withMarketing("true", () => {
+    for (const [path, expected] of [
+      ["/pricing.md", "/pages-md/pricing"],
+      ["/index.md", "/pages-md/index"],
+      ["/companies.md", "/pages-md/companies"],
+      ["/jobs/languages.md", "/pages-md/jobs/languages"],
+    ] as const) {
+      expect(rewritePath(run(path))).toBe(expected);
+    }
+    for (const path of ["/pricing", "/", "/jobs"]) {
+      expect(
+        rewritePath(run(path, "localhost:3100", { accept: "text/markdown" }))
+      ).toBe(path === "/" ? "/pages-md/index" : `/pages-md${path}`);
+    }
+  });
+});
+
+test("isInternalPagesMarkdownPath matches only the internal route", () => {
+  expect(isInternalPagesMarkdownPath("/pages-md")).toBe(true);
+  expect(isInternalPagesMarkdownPath("/pages-md/pricing")).toBe(true);
+  expect(isInternalPagesMarkdownPath("/pages-md/")).toBe(true);
+  expect(isInternalPagesMarkdownPath("/pricing.md")).toBe(false);
+  expect(isInternalPagesMarkdownPath("/index.md")).toBe(false);
+  expect(isInternalPagesMarkdownPath("/pagesmd")).toBe(false);
+});
+
+test("blocks direct hits on the pages route, prefetch or not", () => {
+  for (const value of ["true", "false"] as const) {
+    withMarketing(value, () => {
+      for (const path of ["/pages-md", "/pages-md/pricing"]) {
+        for (const headers of [{}, { "next-router-prefetch": "1" }]) {
+          const response = run(path, "localhost:3100", headers);
+          expect(rewritePath(response)).toBe(MALFORMED_PATH_REWRITE);
+          expect(response.headers.get("Content-Security-Policy")).toContain(
+            "default-src 'self'"
+          );
+        }
+      }
+    });
+  }
+});
+
+test("isNegotiatedPath covers docs and agent pages in both forms", () => {
+  for (const path of [
+    "/docs",
+    "/docs/deploy",
+    "/docs.md",
+    "/docs/deploy.md",
+    "/pricing",
+    "/pricing.md",
+    "/index.md",
+    "/",
+    "/jobs",
+    "/companies",
+    "/jobs/types.md",
+  ]) {
+    expect(isNegotiatedPath(path), path).toBe(true);
+  }
+  for (const path of [
+    "/faq-page",
+    "/jobs/some-role",
+    "/jobs/type/full-time",
+    "/companies/acme",
+    "/alerts",
+    "/post",
+  ]) {
+    expect(isNegotiatedPath(path), path).toBe(false);
+  }
+});
+
+test("mergeVary appends the token without dropping existing ones", () => {
+  expect(mergeVary(null, "Accept")).toBe("Accept");
+  expect(mergeVary("", "Accept")).toBe("Accept");
+  expect(mergeVary("rsc, Accept-Encoding", "Accept")).toBe(
+    "rsc, Accept-Encoding, Accept"
+  );
+  expect(mergeVary("Accept", "Accept")).toBe("Accept");
+});
+
+test("negotiated HTML responses carry Vary: Accept from the proxy", () => {
+  withMarketing("true", () => {
+    for (const path of ["/pricing", "/docs/deploy", "/jobs", "/"]) {
+      const response = run(path, "localhost:3100", {
+        accept: BROWSER_ACCEPT,
+      });
+      expect(response.headers.get("vary")).toContain("Accept");
+    }
+    // Not negotiated: no Vary token added.
+    const plain = run("/alerts", "localhost:3100", { accept: BROWSER_ACCEPT });
+    expect(plain.headers.get("vary") ?? "").not.toContain("Accept");
   });
 });

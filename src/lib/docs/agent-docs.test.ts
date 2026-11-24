@@ -11,16 +11,26 @@ import {
 } from "@/components/marketing/docs-content";
 import {
   absolutizeDocLinks,
+  docBody,
   docMarkdown,
   docsIndexMarkdown,
+  llmsFullTxt,
   llmsTxt,
   llmsTxtDirective,
 } from "./agent-docs";
+import {
+  BOARD_AGENT_PAGE_PATHS,
+  LLMS_FULL_TXT_PATH,
+  LLMS_TXT_PATH,
+  markdownPathFor,
+  STATIC_AGENT_PAGE_PATHS,
+} from "./agent-docs-paths";
+import { AGENT_PAGES } from "./agent-pages";
 
 const siteUrl = "http://localhost:3000";
 
-const ABSOLUTE_MD_LINK =
-  /\]\(http:\/\/localhost:3000\/docs(?:\/[a-z0-9-]+)?\.md\)/u;
+// Any absolute markdown link on this site: a docs page or a public page.
+const ABSOLUTE_MD_LINK = /\]\(http:\/\/localhost:3000\/(?:[^)]+)?\.md\)/u;
 const RELATIVE_LINK = /\]\((?!https?:\/\/|mailto:)/u;
 const H1 = /^#\s/u;
 
@@ -36,11 +46,19 @@ test("llmsTxt lists every docs page as an absolute markdown link", () => {
     .split("\n")
     .filter((line) => line.startsWith("## "))
     .map((line) => line.slice(3));
-  expect(h2s).toEqual(DOCS_GROUPS.map((group) => group.title));
+  // The docs groups come first, in sidebar order, then the site sections.
+  expect(h2s.slice(0, DOCS_GROUPS.length)).toEqual(
+    DOCS_GROUPS.map((group) => group.title)
+  );
 
   const linkLines = text.split("\n").filter((line) => line.startsWith("- ["));
-  // Overview plus every doc.
-  expect(linkLines).toHaveLength(DOCS_SLUGS.length + 1);
+  // Overview plus every doc, every static agent page and every board index.
+  expect(linkLines).toHaveLength(
+    DOCS_SLUGS.length +
+      1 +
+      STATIC_AGENT_PAGE_PATHS.length +
+      BOARD_AGENT_PAGE_PATHS.length
+  );
   expect(linkLines[0]).toContain(`(${siteUrl}/docs.md)`);
   for (const line of linkLines) {
     expect(line).toMatch(ABSOLUTE_MD_LINK);
@@ -140,4 +158,63 @@ test("docsIndexMarkdown mirrors the React overview", () => {
   );
   const actual = markdown.split("\n").filter((line) => line.startsWith("- ["));
   expect(actual).toEqual(expected);
+});
+
+test("llmsTxt links the llms-full.txt file and every agent page", () => {
+  const text = llmsTxt(siteUrl);
+  expect(text).toContain(`[llms-full.txt](${siteUrl}${LLMS_FULL_TXT_PATH})`);
+  for (const path of STATIC_AGENT_PAGE_PATHS) {
+    const page = AGENT_PAGES[path];
+    expect(page, `no agent page for ${path}`).toBeDefined();
+    expect(text).toContain(
+      `[${page?.title}](${siteUrl}${markdownPathFor(path)})`
+    );
+    expect(text).toContain(page?.description ?? "");
+  }
+  for (const path of BOARD_AGENT_PAGE_PATHS) {
+    expect(text).toContain(`${siteUrl}${markdownPathFor(path)}`);
+  }
+});
+
+// No job posting, company detail or archive URLs: /jobs/<kind>/<value>
+// archives would need a whole page per value.
+const JOB_DETAIL_URL =
+  /\/jobs\/(?!types\.md|levels\.md|locations\.md|languages\.md)[a-z0-9-]+/u;
+
+test("llmsTxt stays small, links no job URLs and uses no dash characters", () => {
+  const text = llmsTxt(siteUrl);
+  expect(text.length).toBeLessThan(50_000);
+  expect(text).not.toMatch(JOB_DETAIL_URL);
+  expect(text).not.toContain("\u2014");
+  expect(text).not.toContain("\u2013");
+});
+
+test("llmsFullTxt carries every docs page in sidebar order without repeating the directive", () => {
+  const text = llmsFullTxt(siteUrl);
+  expect(text).toContain("# Bordful docs");
+  expect(text).toContain(`[llms.txt](${siteUrl}${LLMS_TXT_PATH})`);
+  // The directive is not repeated once per page: llms-full.txt points at
+  // llms.txt once instead.
+  expect(text.split(llmsTxtDirective(siteUrl)).length - 1).toBe(0);
+
+  // Every page appears behind a Source line, overview first, then sidebar order.
+  const sources = [`Source: ${siteUrl}/docs.md`];
+  for (const slug of DOCS_SLUGS) {
+    sources.push(`Source: ${siteUrl}/docs/${slug}.md`);
+  }
+  const positions = sources.map((source) => text.indexOf(source));
+  expect(positions.every((position) => position >= 0)).toBe(true);
+  expect(positions).toEqual([...positions].sort((left, right) => left - right));
+
+  // The overview lede and every doc body are present.
+  expect(text).toContain(DOCS_OVERVIEW.lede);
+  for (const slug of DOCS_SLUGS) {
+    const body = docBody(slug, siteUrl);
+    expect(body).not.toBeNull();
+    // The H1 line of every doc body rides along in the full file.
+    expect(text).toContain(
+      `# ${listDocs().find((entry) => entry.slug === slug)?.title ?? ""}`
+    );
+  }
+  expect(text.length).toBeLessThan(50_000);
 });

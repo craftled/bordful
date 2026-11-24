@@ -113,6 +113,12 @@
       "file": "e16-alternatives.spec.ts",
       "requires": ["L6"],
       "enabled": true
+    },
+    {
+      "id": "E17",
+      "file": "e17-agent-docs.spec.ts",
+      "requires": ["L6"],
+      "enabled": true
     }
   ]
 }

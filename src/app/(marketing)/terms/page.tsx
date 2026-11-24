@@ -1,76 +1,37 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 
 import { Container } from "@/components/marketing/container";
 import { DocsSectionNav } from "@/components/marketing/docs-section-nav";
+import { TERMS_CONTENT } from "@/components/marketing/legal-content";
 import { MarketingSlimFooter } from "@/components/marketing/marketing-footer";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { markdownPathFor } from "@/lib/docs/agent-docs-paths";
+import { agentPageDescription } from "@/lib/docs/agent-pages";
 
 import {
   LegalBreadcrumb,
   LegalMobileBar,
 } from "../_components/legal-mobile-bar";
+import { LegalParts } from "../_components/legal-parts";
+
+const { blocks, heading, lastUpdated, lede } = TERMS_CONTENT;
 
 export const metadata: Metadata = marketingPageMetadata({
-  description: "Please read these terms carefully before using Bordful.",
+  description: agentPageDescription("/terms"),
+  markdownPath: markdownPathFor("/terms"),
   path: "/terms",
-  title: "Terms of Service",
+  title: heading,
 });
-
-const SECTIONS = [
-  "Acceptance of Terms",
-  "Use License",
-  "Your Responsibilities",
-  "Disclaimer",
-  "Limitations",
-  "Third-Party Services",
-  "Revisions",
-  "Contact",
-] as const;
 
 function slugify(value: string): string {
   return value.toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-");
 }
 
-const NAV_ITEMS = SECTIONS.map((label) => ({ id: slugify(label), label }));
-
-function Block({
-  children,
-  index,
-  title,
-}: {
-  children: ReactNode;
-  index: number;
-  title: string;
-}) {
-  return (
-    <section
-      aria-labelledby={`${slugify(title)}-heading`}
-      className="scroll-mt-32 space-y-3 lg:scroll-mt-24"
-      id={slugify(title)}
-    >
-      <h2
-        className="text-foreground text-[17px] leading-[22px] font-medium md:text-xl md:leading-[26px] md:tracking-[-0.02em]"
-        id={`${slugify(title)}-heading`}
-      >
-        {index}. {title}
-      </h2>
-      <div className="text-muted-foreground space-y-3 text-[14px] leading-[22px]">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function Item({ children }: { children: ReactNode }) {
-  return (
-    <li className="flex gap-2.5">
-      <span className="text-subtle">•</span>
-      <span>{children}</span>
-    </li>
-  );
-}
+const NAV_ITEMS = blocks.map((block) => ({
+  id: slugify(block.title),
+  label: block.title,
+}));
 
 export default function TermsPage() {
   assertMarketingEnabled();
@@ -86,106 +47,72 @@ export default function TermsPage() {
           <div className="flex w-full max-w-[680px] flex-col gap-6 lg:gap-8">
             <LegalBreadcrumb label="Terms" />
             <h1 className="text-foreground text-[30px] leading-9 font-medium tracking-[-0.03em] sm:text-[40px] sm:leading-[46px]">
-              Terms of Service
+              {heading}
             </h1>
             <div className="space-y-1">
               <p className="text-muted-foreground text-[14px] leading-5">
-                Please read these terms carefully before using Bordful.
+                {lede}
               </p>
               <p className="text-subtle text-[14px] leading-5">
-                Last updated: October 23, 2026
+                Last updated: {lastUpdated}
               </p>
             </div>
             <div className="flex flex-col gap-8">
-              <Block index={1} title="Acceptance of Terms">
-                <p>
-                  By accessing and using Bordful, you agree to be bound by these
-                  terms of service. If you disagree with any part of these
-                  terms, you may not use our software.
-                </p>
-              </Block>
-              <Block index={2} title="Use License">
-                <p>
-                  Bordful is open source software released under the MIT
-                  License. You are free to:
-                </p>
-                <ul className="ml-4 space-y-2">
-                  <Item>Modify and distribute the code</Item>
-                  <Item>Use for commercial purposes</Item>
-                  <Item>Sublicense and sell copies</Item>
-                  <Item>Integrate with other software</Item>
-                </ul>
-                <p>
-                  The only requirement is that the original copyright and
-                  license notice must be included in all copies or substantial
-                  portions of the software.
-                </p>
-              </Block>
-              <Block index={3} title="Your Responsibilities">
-                <p>When using Bordful, you are responsible for:</p>
-                <ul className="ml-4 space-y-2">
-                  <Item>Maintaining the security of your deployment</Item>
-                  <Item>
-                    Complying with data protection laws in your jurisdiction
-                  </Item>
-                  <Item>Managing your own job board content and user data</Item>
-                  <Item>
-                    Ensuring proper use of third-party services you connect,
-                    including your host
-                  </Item>
-                </ul>
-              </Block>
-              <Block index={4} title="Disclaimer">
-                <p>
-                  Bordful is provided &quot;as is&quot;, without warranty of any
-                  kind, express or implied. We do not warrant that the software
-                  will be error-free, uninterrupted, secure, or meet your
-                  specific requirements. In no event shall the authors be liable
-                  for any claim, damages, or other liability arising from the
-                  use of the software.
-                </p>
-              </Block>
-              <Block index={5} title="Limitations">
-                <p>You may not use Bordful:</p>
-                <ul className="ml-4 space-y-2">
-                  <Item>For any illegal purposes</Item>
-                  <Item>To violate any laws in your jurisdiction</Item>
-                  <Item>To infringe upon intellectual property rights</Item>
-                  <Item>To transmit harmful code or malware</Item>
-                </ul>
-              </Block>
-              <Block index={6} title="Third-Party Services">
-                <p>
-                  Bordful can connect to third-party services such as your host,
-                  Bordfeed (jobs feed and Connect Bordfeed, if connected),
-                  Resend (job alert emails, if enabled), and Stripe (Post a Job
-                  payments, if enabled). Your use of these services is subject
-                  to their respective terms of service and privacy policies. We
-                  are not responsible for the practices or policies of these
-                  third-party services.
-                </p>
-              </Block>
-              <Block index={7} title="Revisions">
-                <p>
-                  We may revise these terms of service at any time without
-                  notice. By using Bordful you agree to be bound by the current
-                  version of these terms of service. We recommend checking this
-                  page periodically for changes.
-                </p>
-              </Block>
-              <Block index={8} title="Contact">
-                <p>
-                  If you have any questions about these terms, please contact us
-                  at{" "}
-                  <a
-                    className="text-foreground underline underline-offset-4"
-                    href="mailto:support@bordful.com"
+              {blocks.map((block, index) => (
+                <section
+                  aria-labelledby={`${slugify(block.title)}-heading`}
+                  className="scroll-mt-32 space-y-3 lg:scroll-mt-24"
+                  id={slugify(block.title)}
+                  key={block.title}
+                >
+                  <h2
+                    className="text-foreground text-[17px] leading-[22px] font-medium md:text-xl md:leading-[26px] md:tracking-[-0.02em]"
+                    id={`${slugify(block.title)}-heading`}
                   >
-                    support@bordful.com
-                  </a>
-                  .
-                </p>
-              </Block>
+                    {index + 1}. {block.title}
+                  </h2>
+                  <div className="text-muted-foreground space-y-3 text-[14px] leading-[22px]">
+                    {block.paragraphs.map((paragraph) => (
+                      <p
+                        key={paragraph
+                          .map((part) =>
+                            typeof part === "string" ? part : part.href
+                          )
+                          .join("")}
+                      >
+                        <LegalParts
+                          linkClassName="text-foreground underline underline-offset-4"
+                          parts={paragraph}
+                        />
+                      </p>
+                    ))}
+                    {block.bullets ? (
+                      <ul className="ml-4 space-y-2">
+                        {block.bullets.map((bullet) => (
+                          <li
+                            className="flex gap-2.5"
+                            key={bullet
+                              .map((part) =>
+                                typeof part === "string" ? part : part.href
+                              )
+                              .join("")}
+                          >
+                            <span className="text-subtle" data-markdown-ignore>
+                              •
+                            </span>
+                            <span>
+                              <LegalParts
+                                linkClassName="text-foreground underline underline-offset-4"
+                                parts={bullet}
+                              />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                </section>
+              ))}
             </div>
           </div>
         </div>

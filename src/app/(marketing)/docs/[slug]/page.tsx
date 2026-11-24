@@ -19,9 +19,11 @@ import {
   DocsMarkdown,
   extractHeadings,
 } from "@/components/marketing/docs-markdown";
+import { DocsPageActions } from "@/components/marketing/docs-page-actions";
 import { marketingPageMetadata } from "@/components/marketing/metadata";
 import { GITHUB_URL } from "@/components/marketing/site";
 import { assertMarketingEnabled } from "@/config/marketing-guard";
+import { resolveServerUrl } from "@/config/server-url";
 import { docsMarkdownPath } from "@/lib/docs/agent-docs-paths";
 
 export const dynamicParams = false;
@@ -98,12 +100,20 @@ export default async function DocPage({
           {title}
         </h1>
         <DocsLede repoBase={DOCS_REPO_BASE} source={source} />
-        {updated ? (
-          <p className="text-subtle text-[12px] leading-4 md:leading-[17px]">
-            Last updated{" "}
-            <time dateTime={updated}>{formatDocDate(updated)}</time>
-          </p>
-        ) : null}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {updated ? (
+            <p className="text-subtle text-[12px] leading-4 md:leading-[17px]">
+              Last updated{" "}
+              <time dateTime={updated}>{formatDocDate(updated)}</time>
+            </p>
+          ) : (
+            <span />
+          )}
+          <DocsPageActions
+            mdPath={docsMarkdownPath(slug)}
+            mdUrl={`${resolveServerUrl()}${docsMarkdownPath(slug)}`}
+          />
+        </div>
       </div>
       <DocsMarkdown
         repoBase={DOCS_REPO_BASE}

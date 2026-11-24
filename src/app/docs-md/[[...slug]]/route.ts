@@ -10,17 +10,21 @@ import {
 } from "@/lib/docs/agent-docs";
 
 // Internal route the proxy rewrites markdown requests to. Public URLs never
-// point here. dynamicParams stays at its default (true) so an unknown slug
-// reaches this handler and gets a plain-text 404, not the HTML 404 page
-// (which the CSP block would serve without a CSP header here).
-export function generateStaticParams() {
-  return [{ slug: [] }, ...DOCS_SLUGS.map((slug) => ({ slug: [slug] }))];
-}
+// point here. Rendered per request, with no generateStaticParams, so the
+// marketing gate reads the runtime env and an unknown slug reaches this
+// handler for a plain-text 404, not the HTML 404 page (which would be served
+// without a CSP header here).
+export const dynamic = "force-dynamic";
 
 function notFoundResponse(): Response {
   return new Response(notFoundText(), {
     status: 404,
-    headers: { "content-type": "text/plain; charset=utf-8" },
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      // The 404 is itself a negotiated response (the .md URL reached this
+      // route through the Accept-aware proxy rewrite), so it varies too.
+      vary: "Accept",
+    },
   });
 }
 

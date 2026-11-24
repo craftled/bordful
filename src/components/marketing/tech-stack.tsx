@@ -1,29 +1,15 @@
 import { cn } from "@/lib/utils";
 
+import { HOME_TECH_STACK } from "./home-content";
 import { MarketingImage } from "./marketing-image";
 
-// The pieces the 1.0 template is built on or wires up. Payload, Stripe and
-// Resend have no logo file in this repo, so they get a lettermark.
-const stack = [
-  { invert: true, name: "Next.js", src: "/marketing/logos/nextjs.svg" },
-  { invert: false, name: "Payload", src: null },
-  { invert: false, name: "Postgres", src: "/marketing/logos/postgresql.svg" },
-  { invert: true, name: "Vercel", src: "/marketing/logos/vercel.svg" },
-  {
-    invert: true,
-    name: "Tailwind CSS",
-    src: "/marketing/logos/tailwindcss.svg",
-  },
-  { invert: true, name: "shadcn/ui", src: "/marketing/logos/shadcn.svg" },
-  { invert: false, name: "Stripe", src: null },
-  { invert: false, name: "Resend", src: null },
-] as const;
+const stack = HOME_TECH_STACK.items;
 
 export function TechStack() {
   return (
     <section aria-labelledby="marketing-stack-heading">
       <h2 className="sr-only" id="marketing-stack-heading">
-        Built with a modern stack
+        {HOME_TECH_STACK.heading}
       </h2>
       {/* Paper's phone strip: a "Built on" label over wrapping name chips. */}
       <div className="border-line flex flex-col gap-3.5 border-b px-4 py-10 md:hidden">
@@ -31,7 +17,7 @@ export function TechStack() {
           aria-hidden="true"
           className="text-subtle font-mono text-[11px] leading-[14px] font-medium tracking-[0.04em] uppercase"
         >
-          Built on
+          {HOME_TECH_STACK.builtOnLabel}
         </p>
         <ul className="flex flex-wrap gap-2">
           {stack.map((item) => (

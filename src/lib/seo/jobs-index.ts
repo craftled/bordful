@@ -23,6 +23,8 @@ export function jobsIndexMetadata(input: {
       types: {
         "application/feed+json": `${siteUrl}/feed.json`,
         "application/rss+xml": `${siteUrl}/feed.xml`,
+        // Served only on a marketing build; a fork gets no link to a 404.
+        ...(input.marketing ? { "text/markdown": `${siteUrl}/jobs.md` } : {}),
       },
     },
     description: input.description,
