@@ -1,5 +1,5 @@
+import { match } from "next/dist/compiled/path-to-regexp";
 import { NextRequest } from "next/server";
-import { match } from "path-to-regexp";
 import { expect, test } from "vitest";
 
 import { PAYLOAD_MONACO_CDN } from "@/lib/csp/build-csp";
