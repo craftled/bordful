@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { BOARD_SEARCH_INPUT_ID } from "@/components/board/board-search-form";
 import { BrandMark } from "@/components/board/brand-mark";

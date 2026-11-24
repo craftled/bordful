@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { RelativeTime } from "@/components/board/relative-time";
 import {

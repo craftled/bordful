@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { MouseEvent } from "react";
 import {
   useCallback,
@@ -9,6 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { JobCardList, JobCardRow } from "@/components/board/job-card-row";
 import {

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { boardStateHref } from "@/lib/board/links";
 import { pageSlots } from "@/lib/board/pagination";

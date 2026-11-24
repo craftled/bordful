@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import { CompanyLogoImage } from "@/components/board/company-logo-image";
 import { RowSaveButton } from "@/components/board/job-row-save";

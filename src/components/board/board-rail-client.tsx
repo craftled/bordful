@@ -1,8 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
-import Link from "next/link";
 import { useCallback } from "react";
+import { BoardLink as Link } from "@/components/board/board-link";
 
 import {
   RAIL_COUNT,

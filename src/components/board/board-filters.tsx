@@ -1,5 +1,5 @@
 import { ListFilter, X } from "lucide-react";
-import Link from "next/link";
+import { BoardLink as Link } from "@/components/board/board-link";
 import { MenuDetails } from "@/components/board/menu-details";
 import type { BoardFacets } from "@/lib/board/filter";
 import { SENIORITY_LABELS } from "@/lib/board/format";
