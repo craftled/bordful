@@ -22,31 +22,31 @@ Migrations run automatically. With `NODE_ENV=production`, Payload applies `prodM
 
 E2E-only variables (`BORDFUL_TEST_CLOCK`, `MOCK_PORT`, `APP_PORT`, `APP_MARKETING_PORT`, `PLAYWRIGHT_BASE_URL`, `E2E_MARKETING_BASE_URL`) are omitted here, except `DATABASE_URL_TEST` and `E2E_FLOWS`, which the table lists. Do not set any of them on a deployed board.
 
-| Variable                                | Required   | Who sets it                                         | Notes                                                                                                                                                                                                                                                                                                                                                                        |
-| --------------------------------------- | ---------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                          | Yes        | Neon integration on Vercel. You, on any other host. | Postgres connection string.                                                                                                                                                                                                                                                                                                                                                  |
-| `PAYLOAD_SECRET`                        | Yes        | You                                                 | 32+ random characters. Mark Sensitive. Production uses one value. Preview uses a different value and its own Neon branch.                                                                                                                                                                                                                                                    |
-| `CRON_SECRET`                           | Yes        | You                                                 | Bearer secret for `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`.                                                                                                                                                                                                                                                                                          |
-| `NEXT_PUBLIC_SERVER_URL`                | No         | You                                                 | Public origin, no trailing slash. Optional on Vercel (Production uses the production domain, Preview its deployment URL). Off Vercel it falls back to `http://localhost:3000`, so set it. Inlined at build time.                                                                                                                                                             |
-| `BLOB_STORE_ID`                         | No locally | Blob integration on Vercel                          | On Vercel, uploads need Blob (the Deploy button provisions it). Bordful authenticates to the store with Vercel OIDC. Without Blob, Payload stores uploads in the local `media/` directory, which needs a persistent disk. Serverless and other read-only hosts cannot use that directory.                                                                                    |
-| `BLOB_READ_WRITE_TOKEN`                 | No         | You, optionally                                     | A static Blob token. Older stores set it, and you need it to use Blob from a host other than Vercel. When it is set, it is used instead of OIDC.                                                                                                                                                                                                                             |
-| `BORDFUL_MARKETING`                     | No         | You, only on bordful.com                            | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`.                                                                                                                                                                                                                                                              |
-| `RESEND_API_KEY`                        | No         | You                                                 | Job alerts stay off without it. See [Job alerts](alerts.md).                                                                                                                                                                                                                                                                                                                 |
-| `RESEND_BASE_URL`                       | No         | You                                                 | Resend API origin. Empty uses the SDK default.                                                                                                                                                                                                                                                                                                                               |
-| `NEXT_PUBLIC_LOGO_DEV_TOKEN`            | No         | You                                                 | A [Logo.dev](https://logo.dev) publishable key (`pk_...`). Companies with no uploaded logo then show their Logo.dev logo by domain, or by the company website if no domain is stored, ahead of any logo URL. The footer credits Logo.dev. A secret key (`sk_...`) is ignored, because the key is visible in page HTML. Inlined at build time, so redeploy after changing it. |
-| `BORDFEED_BASE_URL`                     | No         | You                                                 | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board.                                                                                                                                                                                                                                                   |
-| `BORDFEED_API_KEY`                      | No         | You                                                 | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin.                                                                                                                                                                                                                                                                                   |
-| `BORDFEED_ALLOW_MASS_UNPUBLISH`         | No         | You                                                 | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync).                                                                                                                                                                                                                                                  |
-| `BORDFUL_RELEASES_URL`                  | No         | You                                                 | Update check endpoint. The check runs at most once every 24 hours. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`.                                                                                                                                                                                                                            |
-| `SENTRY_DSN`                            | No         | You                                                 | Server and edge error capture. Unset means Sentry is off.                                                                                                                                                                                                                                                                                                                    |
-| `NEXT_PUBLIC_SENTRY_DSN`                | No         | You                                                 | Browser error capture. The ingest origin is also added to the CSP `connect-src`. Inlined at build, so redeploy after changing it.                                                                                                                                                                                                                                            |
-| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | No         | You                                                 | Trace sample rate, `0` to `1`. Empty uses `0.1`.                                                                                                                                                                                                                                                                                                                             |
-| `NEXT_PUBLIC_SENTRY_REPLAY`             | No         | You                                                 | Session Replay in the browser. Only the exact value `true` turns it on.                                                                                                                                                                                                                                                                                                      |
-| `SENTRY_AUTH_TOKEN`                     | No         | You, for source maps                                | Source map upload token. Mark Sensitive. Upload needs this plus `SENTRY_ORG` and `SENTRY_PROJECT`.                                                                                                                                                                                                                                                                           |
-| `SENTRY_ORG`                            | No         | You, for source maps                                | Sentry org slug. Craftled uses `craftled-se`.                                                                                                                                                                                                                                                                                                                                |
-| `SENTRY_PROJECT`                        | No         | You, for source maps                                | Sentry project slug. Craftled uses `bordful`.                                                                                                                                                                                                                                                                                                                                |
-| `DATABASE_URL_TEST`                     | No         | You, locally                                        | Used by `bun run test:int`. The database name must end in `_int` or `_test`. Do not set this on Vercel.                                                                                                                                                                                                                                                                      |
-| `E2E_FLOWS`                             | No         | Playwright                                          | Local Playwright flow filter. Do not set this on Vercel. The `S0-a11y` flow needs a fresh database that holds only the sample jobs.                                                                                                                                                                                                                                          |
+| Variable | Required | Who sets it | Notes |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | Yes | Neon integration on Vercel. You, on any other host. | Postgres connection string. |
+| `PAYLOAD_SECRET` | Yes | You | 32+ random characters. Mark Sensitive. Production uses one value. Preview uses a different value and its own Neon branch. |
+| `CRON_SECRET` | Yes | You | Bearer secret for `/api/cron/bordfeed`, `/api/cron/expire`, and `/api/cron/alerts`. |
+| `NEXT_PUBLIC_SERVER_URL` | No | You | Public origin, no trailing slash. Optional on Vercel (Production uses the production domain, Preview its deployment URL). Off Vercel it falls back to `http://localhost:3000`, so set it. Inlined at build time. |
+| `BLOB_STORE_ID` | No locally | Blob integration on Vercel | On Vercel, uploads need Blob (the Deploy button provisions it). Bordful authenticates to the store with Vercel OIDC. Without Blob, Payload stores uploads in the local `media/` directory, which needs a persistent disk. Serverless and other read-only hosts cannot use that directory. |
+| `BLOB_READ_WRITE_TOKEN` | No | You, optionally | A static Blob token. Older stores set it, and you need it to use Blob from a host other than Vercel. When it is set, it is used instead of OIDC. |
+| `BORDFUL_MARKETING` | No | You, only on bordful.com | `true` only for bordful.com. Leave unset or `false` on a fork. Marketing routes stay off unless this is `true`. |
+| `RESEND_API_KEY` | No | You | Job alerts stay off without it. See [Job alerts](alerts.md). |
+| `RESEND_BASE_URL` | No | You | Resend API origin. Empty uses the SDK default. |
+| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | You | A [Logo.dev](https://logo.dev) publishable key (`pk_...`). Companies with no uploaded logo then show their Logo.dev logo by domain, or by the company website if no domain is stored, ahead of any logo URL. The footer credits Logo.dev. A secret key (`sk_...`) is ignored, because the key is visible in page HTML. Inlined at build time, so redeploy after changing it. |
+| `BORDFEED_BASE_URL` | No | You | Overrides `bordfeed.baseUrl` in `bordful.config.ts`. `http` is allowed here for local mocks. Use `https` for a real board. |
+| `BORDFEED_API_KEY` | No | You | Optional default for `bun run bordful connect --key`. Leave empty to connect in the admin. |
+| `BORDFEED_ALLOW_MASS_UNPUBLISH` | No | You | Set to `1` only to let a confirmed Bordfeed incident unpublish jobs. Leave unset. See [Daily sync](bordfeed.md#daily-sync). |
+| `BORDFUL_RELEASES_URL` | No | You | Update check endpoint. The check runs at most once every 24 hours. Default: `https://api.github.com/repos/craftled/bordful/releases?per_page=20`. |
+| `SENTRY_DSN` | No | You | Server and edge error capture. Unset means Sentry is off. |
+| `NEXT_PUBLIC_SENTRY_DSN` | No | You | Browser error capture. The ingest origin is also added to the CSP `connect-src`. Inlined at build, so redeploy after changing it. |
+| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | No | You | Trace sample rate, `0` to `1`. Empty uses `0.1`. |
+| `NEXT_PUBLIC_SENTRY_REPLAY` | No | You | Session Replay in the browser. Only the exact value `true` turns it on. |
+| `SENTRY_AUTH_TOKEN` | No | You, for source maps | Source map upload token. Mark Sensitive. Upload needs this plus `SENTRY_ORG` and `SENTRY_PROJECT`. |
+| `SENTRY_ORG` | No | You, for source maps | Sentry org slug. Craftled uses `craftled-se`. |
+| `SENTRY_PROJECT` | No | You, for source maps | Sentry project slug. Craftled uses `bordful`. |
+| `DATABASE_URL_TEST` | No | You, locally | Used by `bun run test:int`. The database name must end in `_int` or `_test`. Do not set this on Vercel. |
+| `E2E_FLOWS` | No | Playwright | Local Playwright flow filter. Do not set this on Vercel. The `S0-a11y` flow needs a fresh database that holds only the sample jobs. |
 
 Placeholders only: `PAYLOAD_SECRET=replace-with-32-plus-random-chars`. Never commit `.env`.
 
@@ -68,11 +68,11 @@ Browser capture starts only after the Sentry module loads asynchronously, so an 
 
 `vercel.json` schedules three routes. Vercel Hobby rejects more frequent crons, so each one is daily. Each route requires `Authorization: Bearer <CRON_SECRET>`.
 
-| Path                 | UTC schedule         |
-| -------------------- | -------------------- |
-| `/api/cron/bordfeed` | 06:00 (`0 6 * * *`)  |
-| `/api/cron/expire`   | 05:30 (`30 5 * * *`) |
-| `/api/cron/alerts`   | 08:00 (`0 8 * * *`)  |
+| Path | UTC schedule |
+| --- | --- |
+| `/api/cron/bordfeed` | 06:00 (`0 6 * * *`) |
+| `/api/cron/expire` | 05:30 (`30 5 * * *`) |
+| `/api/cron/alerts` | 08:00 (`0 8 * * *`) |
 
 The Bordfeed cron fetches only jobs new to the feed since the last sync, capped per sync and per day, and finds closed jobs with free lookups, so one run spends at most `jobsPerSync` credits and a day at most `jobsPerDay`. See [Credits per sync](bordfeed.md#credits-per-sync).
 
@@ -89,12 +89,12 @@ Bots can send `/jobs/search` thousands of different queries an hour. Search no l
 
 In the Vercel project, open Firewall, then Configure, and add a custom rule:
 
-| Setting | Value                                                      |
-| ------- | ---------------------------------------------------------- |
-| Name    | `Challenge search and alerts`                              |
-| If      | Request Path equals `/jobs/search` and Method equals `GET` |
-| Or      | Request Path equals `/alerts` and Method equals `GET`      |
-| Then    | Challenge                                                  |
+| Setting | Value |
+| --- | --- |
+| Name | `Challenge search and alerts` |
+| If | Request Path equals `/jobs/search` and Method equals `GET` |
+| Or | Request Path equals `/alerts` and Method equals `GET` |
+| Then | Challenge |
 
 Publish the change. Browsers pass the challenge once. Scripts get HTTP 429 with `x-vercel-mitigated: challenge`. Search engines are unaffected, since `robots.txt` already disallows `/jobs/search`. The alerts form still works, because it posts with `POST`.
 
