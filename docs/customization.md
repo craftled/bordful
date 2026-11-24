@@ -35,3 +35,12 @@ export const customSlots: Partial<Record<SlotId, ComponentType>> = {
 ```
 
 Do not add dependencies for a slot. Use the components already in the repo, or plain elements.
+
+## Agent-readable pages
+
+bordful.com serves its public pages for AI agents as well as browsers. A board with `BORDFUL_MARKETING=false` is unchanged.
+
+- `/llms.txt` lists every public page as its markdown URL: the docs, the marketing pages and the board index pages. No job posting URL is listed.
+- `/llms-full.txt` serves every docs page in one file, each behind a `Source` line.
+- Every docs, marketing and board index page has a markdown version at its own URL plus `.md` (`/index.md` for the home page), and returns markdown when a request sends `Accept: text/markdown`. The markdown is generated from the same data modules the pages render, so the two cannot drift.
+- Docs pages carry Copy as Markdown, Open in ChatGPT and Open in Claude actions, built from the page's absolute markdown URL.
