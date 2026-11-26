@@ -52,15 +52,10 @@ jobs:
       - name: Test
         run: bun run test
 
-      - name: Build
-        run: bun run build
-        env:
-          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/bordful
-          NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-
   e2e:
     name: e2e
-    needs: check
+    # Runs alongside check rather than after it, and is the only job that
+    # builds: both jobs are required, so a PR still needs both to pass.
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -103,8 +98,24 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
 
+      - name: Read Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
       - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: bunx playwright install --with-deps chromium
+
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: bunx playwright install-deps chromium
 
       - name: Create integration database
         run: PGPASSWORD=postgres createdb -h localhost -U postgres bordful_int
@@ -116,6 +127,14 @@ jobs:
 
       - name: Migrate
         run: bun run payload migrate
+
+      - name: Cache Next.js build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('src/**', 'next.config.ts', 'docs/**', 'public/**') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
 
       - name: Build
         run: bun run build
