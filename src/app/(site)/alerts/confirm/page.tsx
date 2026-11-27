@@ -12,10 +12,18 @@ import { confirmAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  robots: { index: false },
-  title: "Confirm job alerts",
-};
+// A link without a token is a 404. Checking it here too keeps the page
+// title off that 404.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  if (!firstSearchValue((await searchParams).token)) {
+    notFound();
+  }
+  return { robots: { index: false }, title: "Confirm job alerts" };
+}
 
 export default async function ConfirmAlertPage({
   searchParams,

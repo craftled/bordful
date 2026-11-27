@@ -15,9 +15,15 @@ import { querySiteSettings } from "@/lib/read/queries";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Job alerts",
-};
+// Alerts can be off (no Resend key, or turned off in Site settings). The
+// title is decided here too, so the 404 does not carry the "Job alerts" title.
+export async function generateMetadata(): Promise<Metadata> {
+  const payload = await getPayload({ config });
+  if (!alertsReady(await querySiteSettings(payload)).ready) {
+    notFound();
+  }
+  return { title: "Job alerts" };
+}
 
 function toSearchParams(
   raw: Record<string, string | string[] | undefined>
