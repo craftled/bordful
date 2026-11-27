@@ -20,7 +20,7 @@ export default function GlobalError({
       process.env.NEXT_PUBLIC_SENTRY_DSN &&
       readDsn(process.env.NEXT_PUBLIC_SENTRY_DSN)
     ) {
-      void import("@sentry/nextjs").then((Sentry) => {
+      void import("@/lib/sentry/client-sdk").then((Sentry) => {
         Sentry.captureException(error);
       });
     }

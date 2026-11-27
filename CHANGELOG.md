@@ -45,6 +45,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - The admin sign-in cookie is `Secure` with `SameSite=Lax`.
 - The sitemap lists `/post` and `/alerts` when they are enabled, and the taxonomy archives with at least 3 indexable jobs. `/jobs` has a description, Open Graph and Twitter tags, and links to the RSS and JSON feeds.
 - Rebuilt on Payload 4 (4.0.0-beta.12, with Lexical 0.53) and Postgres. beta.7 and later include Payload security fixes, and beta.12 adds more.
+- The browser Sentry SDK loads Session Replay only when `NEXT_PUBLIC_SENTRY_REPLAY` is `true`. With Replay off, each page downloads about 65 KB of gzipped Sentry code instead of 157 KB.
 - Marketing screenshots are WebP instead of PNG, 2.5 MB down to about 1.1 MB. The social share image stays PNG.
 - `pg` is a direct dependency, pinned to the version `@payloadcms/db-postgres` uses, because the install check imports it.
 - Bun 1.4.5 for installs, scripts and CI (was 1.4.2). It includes Bun's TLS, HTTP and DNS security fixes.

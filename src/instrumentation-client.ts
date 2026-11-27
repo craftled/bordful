@@ -31,19 +31,24 @@ const sentryOptions = clientInitOptions(sentryEnv);
 
 // The SDK module once the import has resolved. A router transition before
 // then is dropped, which only costs one navigation span.
-let sentryClient: typeof import("@sentry/nextjs") | null = null;
+let sentryClient: typeof import("@/lib/sentry/client-sdk") | null = null;
 
 if (process.env.NEXT_PUBLIC_SENTRY_DSN && sentryOptions) {
   const options = sentryOptions;
-  void import("@sentry/nextjs").then((Sentry) => {
+  const { replay, ...initOptions } = options;
+  // Replay (rrweb) is about half the SDK, so it is a separate import that only
+  // runs when Replay is on.
+  void Promise.all([
+    import("@/lib/sentry/client-sdk"),
+    replay ? import("@/lib/sentry/client-replay") : null,
+  ]).then(([Sentry, Replay]) => {
     sentryClient = Sentry;
-    const { replay, ...initOptions } = options;
     Sentry.init(
-      replay
+      replay && Replay
         ? {
             ...initOptions,
             integrations: [
-              Sentry.replayIntegration({
+              Replay.replayIntegration({
                 maskAllText: replay.maskAllText,
                 maskAllInputs: replay.maskAllInputs,
                 blockAllMedia: replay.blockAllMedia,
