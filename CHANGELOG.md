@@ -26,6 +26,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 - Import blocklist in the admin: Bordfeed jobs from listed companies or domains, or with listed keywords, are not imported. Saving it unpublishes matching imported jobs. See [docs/bordfeed.md](docs/bordfeed.md#import-blocklist).
 - Restoring an older job version in the admin creates a draft. Publish it to make the restored version live.
 - Company logos from [Logo.dev](https://logo.dev). Set `NEXT_PUBLIC_LOGO_DEV_TOKEN` to a publishable key, and companies with no uploaded logo and no logo URL show their logo by domain, or by the company website if no domain is stored. The footer then credits Logo.dev. See [docs/deploy.md](docs/deploy.md#environment-variables).
+- Optional Sentry error monitoring for the server, edge and browser. It stays off until you set `SENTRY_DSN` or `NEXT_PUBLIC_SENTRY_DSN`; Session Replay needs `NEXT_PUBLIC_SENTRY_REPLAY=true`. See [docs/deploy.md](docs/deploy.md#error-monitoring-optional).
 - Light and dark themes. The board follows the visitor's system setting, and a header toggle switches between system, light and dark and remembers the choice. See [docs/theming.md](docs/theming.md).
 - Board search also matches location, remote region, summary and skills.
 - On Vercel, alert signup is checked by Vercel BotID. See [docs/alerts.md](docs/alerts.md).
