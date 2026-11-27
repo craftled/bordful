@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { AppLink as Link } from "@/components/app-link";
 
 import { cn } from "@/lib/utils";
 

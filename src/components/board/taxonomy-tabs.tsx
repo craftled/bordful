@@ -1,4 +1,4 @@
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 import type { TaxonomyKind } from "@/lib/board/paths";
 import { cn } from "@/lib/utils";
 

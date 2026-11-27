@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { CompanyLogoImage } from "@/components/board/company-logo-image";
 import { jobStatuses, StatusPill } from "@/components/board/job-row";

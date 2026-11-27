@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { Container } from "@/components/marketing/container";
 import { CUSTOM_SETUP_URL, DEPLOY_URL } from "@/components/marketing/links";

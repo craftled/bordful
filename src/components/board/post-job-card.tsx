@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 // Callers render this only when Site settings enable Post a Job.
 export function PostJobCard({

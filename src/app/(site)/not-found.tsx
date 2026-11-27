@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { BoardShell } from "@/components/board/board-shell";
 import { compactRelative } from "@/components/board/job-row";

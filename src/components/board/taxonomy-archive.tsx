@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 import { BoardList } from "@/components/board/board-list";
 import type { ListStats } from "@/components/board/board-listing";
 import { alertsHref, listStats } from "@/components/board/board-listing";

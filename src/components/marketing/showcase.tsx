@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

@@ -1,8 +1,8 @@
+import { AppLink as Link } from "@/components/app-link";
 import {
   buildFilterGroups,
   FilterChips,
 } from "@/components/board/board-filters";
-import { BoardLink as Link } from "@/components/board/board-link";
 import { MenuDetails } from "@/components/board/menu-details";
 import { SaveSearchButton } from "@/components/board/save-search-button";
 import type { BoardFacets } from "@/lib/board/filter";

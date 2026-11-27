@@ -1,4 +1,4 @@
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { Crumbs, PageFrame, PageTitle } from "@/components/board/taxonomy-hub";
 import {
