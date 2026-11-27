@@ -33,6 +33,7 @@ Bordful 1.0 includes:
 - Company logos from Logo.dev for companies with no uploaded logo
 - `bun run bordful reset-password` for a lost admin password
 - Nonce-based CSP and security headers
+- Optional Sentry error monitoring
 
 ## Quick start
 
