@@ -15,6 +15,9 @@ updates:
       # Payload is pinned to a beta and bumped by hand. This also suppresses Dependabot security PRs for Payload, so watch Payload advisories manually.
       - dependency-name: payload
       - dependency-name: "@payloadcms/*"
+      # pg is listed only because src/lib/install/database-target.ts imports it. Keep it on the exact version
+      # @payloadcms/db-postgres pins, so the app and the adapter share one copy. Bump it with Payload; osv in CI still flags pg advisories.
+      - dependency-name: pg
       # Bordful runs graphql 17 although Payload 4 betas declare ^16.8.1: GraphQL is disabled (graphQL.disable), and
       # the open graphql 17 bug (payloadcms/payload#18432) only hits custom mutations. Bump future majors by hand,
       # with test:int and the e2e suite, until Payload makes graphql opt-in (#18206).

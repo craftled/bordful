@@ -24,7 +24,7 @@ import { SHOWCASE_ISSUE_URL } from "./site";
 // Dark-theme captures for entries we have one for. The demo's thumbnail is
 // the board, so dark pages show the dark board shot.
 const DARK_IMAGES: Record<string, string> = {
-  [SHOWCASE_DEMO.image]: "/marketing/shots/board-dark.png",
+  [SHOWCASE_DEMO.image]: "/marketing/shots/board-dark.webp",
 };
 
 const thumbClass =

@@ -8,7 +8,7 @@ export interface ShowcaseEntry {
 export const SHOWCASE_DEMO: ShowcaseEntry = {
   description:
     "The live Bordful board, using the default theme and sample jobs from Bordfeed.",
-  image: "/marketing/bordful-demo.png",
+  image: "/marketing/bordful-demo.webp",
   name: "Bordful demo",
   url: "https://bordful.com/jobs",
 };

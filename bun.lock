@@ -6,7 +6,6 @@
       "name": "bordful",
       "dependencies": {
         "@payloadcms/db-postgres": "4.0.0-beta.12",
-        "@payloadcms/email-resend": "4.0.0-beta.12",
         "@payloadcms/next": "4.0.0-beta.12",
         "@payloadcms/plugin-cloud-storage": "4.0.0-beta.12",
         "@payloadcms/richtext-lexical": "4.0.0-beta.12",
@@ -23,6 +22,7 @@
         "next": "^16.4.6",
         "parse5": "8.1.1",
         "payload": "4.0.0-beta.12",
+        "pg": "8.20.0",
         "radix-ui": "1.8.1",
         "react": "19.3.1",
         "react-dom": "19.3.1",
@@ -425,8 +425,6 @@
     "@payloadcms/db-postgres": ["@payloadcms/db-postgres@4.0.0-beta.12", "", { "dependencies": { "@payloadcms/drizzle": "4.0.0-beta.12", "@types/pg": "8.20.0", "console-table-printer": "2.15.0", "drizzle-kit": "0.31.7", "drizzle-orm": "0.45.2", "pg": "8.20.0", "prompts": "2.4.2", "to-snake-case": "1.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.12" } }, "sha512-LMC5ord79optRTekQTwA7d3wpVguBhLswnt1AGNFiYOavR0M9Xxnq7xm13cjacf33wB3eA0mAVkUtHs+tCUdXQ=="],
 
     "@payloadcms/drizzle": ["@payloadcms/drizzle@4.0.0-beta.12", "", { "dependencies": { "console-table-printer": "2.15.0", "dequal": "2.0.3", "drizzle-orm": "0.45.2", "prompts": "2.4.2", "to-snake-case": "1.0.0", "uuid": "14.0.0" }, "peerDependencies": { "payload": "4.0.0-beta.12" } }, "sha512-43ks8lHB185jDphHEMFeOl/QPPzQFANHwhqhYVuU5uJbN7MgQa9plypgddIvPKEN6D5mtTy9XrpVSP7Ao2FVww=="],
-
-    "@payloadcms/email-resend": ["@payloadcms/email-resend@4.0.0-beta.12", "", { "peerDependencies": { "payload": "4.0.0-beta.12" } }, "sha512-VIzvYuEM93SAuiVGCEy8UlJVM258qLS/pV3RaqxQtAa/QLvhyZI9GkxXSOArRtBZeLulsWQP2yMI31S75dvlfQ=="],
 
     "@payloadcms/graphql": ["@payloadcms/graphql@4.0.0-beta.12", "", { "dependencies": { "graphql-scalars": "1.22.2", "pluralize": "8.0.0", "ts-essentials": "10.0.3", "tsx": "4.23.15" }, "peerDependencies": { "graphql": "^16.8.1", "payload": "4.0.0-beta.12" }, "bin": { "payload-graphql": "bin.js" } }, "sha512-Mm4L+yddVMPuWLeZwiy32Rv/d9FPLMzy21Mf5vOEvcTNU7K566cd6qU9vw53goC1yhEzLW1PpIzwYLN+wYSO3Q=="],
 

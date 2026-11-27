@@ -7,54 +7,54 @@ import { MarketingImage } from "./marketing-image";
 export const SHOTS = {
   boardDark: {
     height: 1800,
-    src: "/marketing/shots/board-dark.png",
+    src: "/marketing/shots/board-dark.webp",
     width: 2880,
   },
   boardLight: {
     height: 1800,
-    src: "/marketing/shots/board-light.png",
+    src: "/marketing/shots/board-light.webp",
     width: 2880,
   },
   jobDark: {
     height: 1800,
-    src: "/marketing/shots/job-dark.png",
+    src: "/marketing/shots/job-dark.webp",
     width: 2880,
   },
   jobLight: {
     height: 1800,
-    src: "/marketing/shots/job-light.png",
+    src: "/marketing/shots/job-light.webp",
     width: 2880,
   },
   mobileHome: {
     height: 1688,
-    src: "/marketing/shots/mobile-home.png",
+    src: "/marketing/shots/mobile-home.webp",
     width: 780,
   },
   mobileHomeDark: {
     height: 1688,
-    src: "/marketing/shots/mobile-home-dark.png",
+    src: "/marketing/shots/mobile-home-dark.webp",
     width: 780,
   },
   mobileJob: {
     height: 1688,
-    src: "/marketing/shots/mobile-job.png",
+    src: "/marketing/shots/mobile-job.webp",
     width: 780,
   },
   mobileJobDark: {
     height: 1688,
-    src: "/marketing/shots/mobile-job-dark.png",
+    src: "/marketing/shots/mobile-job-dark.webp",
     width: 780,
   },
   // The board's phone list cut to the search bar and the first three jobs
   // (the filter chips and result count taken out), Paper's 358x296 card.
   mobileListDark: {
     height: 645,
-    src: "/marketing/shots/mobile-rows-dark.png",
+    src: "/marketing/shots/mobile-rows-dark.webp",
     width: 780,
   },
   mobileListLight: {
     height: 645,
-    src: "/marketing/shots/mobile-rows-light.png",
+    src: "/marketing/shots/mobile-rows-light.webp",
     width: 780,
   },
 } as const;
