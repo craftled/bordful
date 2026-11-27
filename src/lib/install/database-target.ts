@@ -2,7 +2,7 @@
 // it when NODE_ENV is production. The Payload CLI loads the first .env file it
 // finds in a parent folder when the current folder has none. Commands that
 // change data confirm the target before they boot.
-// biome-ignore lint/correctness/noUndeclaredDependencies: pg is the driver Payload's Postgres adapter connects with, so this parses the URL exactly as it will.
+// pg is the driver Payload's Postgres adapter connects with, so this parses the URL exactly as it will.
 import { Client } from "pg";
 
 export type DatabaseTarget =

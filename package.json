@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@payloadcms/db-postgres": "4.0.0-beta.12",
-    "@payloadcms/email-resend": "4.0.0-beta.12",
     "@payloadcms/next": "4.0.0-beta.12",
     "@payloadcms/plugin-cloud-storage": "4.0.0-beta.12",
     "@payloadcms/richtext-lexical": "4.0.0-beta.12",
@@ -50,6 +49,7 @@
     "next": "^16.4.6",
     "parse5": "8.1.1",
     "payload": "4.0.0-beta.12",
+    "pg": "8.20.0",
     "radix-ui": "1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
