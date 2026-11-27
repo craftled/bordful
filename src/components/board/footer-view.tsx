@@ -1,4 +1,4 @@
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { BordfeedCredit } from "@/components/board/bordfeed-credit";
 import { BrandMark } from "@/components/board/brand-mark";

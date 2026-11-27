@@ -1,9 +1,9 @@
+import { AppLink as Link } from "@/components/app-link";
 import {
   BoardFilters,
   buildFilterGroups,
 } from "@/components/board/board-filters";
 import { BoardHero, heroStats } from "@/components/board/board-hero";
-import { BoardLink as Link } from "@/components/board/board-link";
 import { BoardList } from "@/components/board/board-list";
 import { BoardPagination } from "@/components/board/board-pagination";
 import { BoardRail } from "@/components/board/board-rail";

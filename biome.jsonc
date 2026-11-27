@@ -17,7 +17,37 @@
       "!test-results"
     ]
   },
+  "linter": {
+    "rules": {
+      "style": {
+        // Links go through AppLink so they do not prefetch by default.
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "next/link": "Import { AppLink as Link } from \"@/components/app-link\" instead. It turns prefetch off unless a link asks for it."
+            }
+          }
+        }
+      }
+    }
+  },
   "overrides": [
+    {
+      // The one place that wraps next/link, and tests that mock it.
+      "includes": [
+        "src/components/app-link.tsx",
+        "**/*.test.tsx",
+        "**/*.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    },
     {
       // docs/*.md is served as-is to agents (/docs/*.md, llms-full.txt), so
       // padding its tables would only add bytes to every response.

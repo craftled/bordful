@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { JSX } from "react";
 import { useEffect, useState } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { isActiveItem } from "@/components/board/nav-active";
 import { useJobList } from "@/components/board/saved-jobs";

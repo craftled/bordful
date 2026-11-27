@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { isMarketingEnabled } from "@/config/flags";
 

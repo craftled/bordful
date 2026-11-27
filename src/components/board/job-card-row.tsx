@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { cn } from "@/lib/utils";
 

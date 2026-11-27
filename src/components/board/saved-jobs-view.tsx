@@ -8,7 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { JobCardList, JobCardRow } from "@/components/board/job-card-row";
 import {

@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 import { isActiveItem } from "@/components/board/nav-active";
 import type { SocialProfiles } from "@/components/board/social-links";
 import { SocialLinks } from "@/components/board/social-links";

@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useCallback } from "react";
-import { BoardLink as Link } from "@/components/board/board-link";
+import { AppLink as Link } from "@/components/app-link";
 
 import {
   RAIL_COUNT,

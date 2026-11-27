@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import type { ChangeEvent, ReactNode } from "react";
 import { useActionState, useCallback, useState } from "react";
-
 import { subscribeAction } from "@/app/(site)/alerts/actions";
+import { AppLink as Link } from "@/components/app-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { AppLink as Link } from "@/components/app-link";
 import { docsMarkdownPath, LLMS_TXT_PATH } from "@/lib/docs/agent-docs-paths";
 import { cn } from "@/lib/utils";
 

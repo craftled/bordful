@@ -54,7 +54,7 @@ The `v1.0.0` tag was cut on 3 November. Changes merged to `main` since then are 
 ### Fixed
 
 - No more `SECURITY WARNING` about SSL modes in the logs. A `DATABASE_URL` with `sslmode=require` (what Neon gives you), `prefer` or `verify-ca` is now passed to Postgres as `sslmode=verify-full`. That is how pg already treated it, and it stays that way when pg 9 makes `require` mean something weaker.
-- Board links to `/jobs/search` no longer prefetch. Each prefetch ran a search query, and behind a firewall bot challenge it failed with a 429 in the console. Clicking a search link works as before.
+- Links no longer prefetch. Pages render per request and have no loading boundary, so a prefetch only returned the route tree while costing one server invocation per link in view (about 40 on `/jobs`). Search prefetches also failed with a 429 behind the firewall bot challenge. Clicks navigate as before. Links use `AppLink` from `@/components/app-link`, and lint rejects a direct `next/link` import.
 - The `/jobs.md` markdown had an empty heading when the board title was blank. It now uses "Latest jobs", like the page. It also no longer leaves a blank paragraph for an empty description, and the company, location and type in job rows are spaced. Docs markdown no longer has a double blank line after the llms.txt note.
 - Docs now match the code on the Bordfeed board name rule, `NEXT_PUBLIC_SERVER_URL` fallbacks, the CLI options and exit codes, connect and alert limits, the digest size, and the sitemap rule.
 - The FAQ answer "How do I update a fork?" told readers to pull code and run migrations by hand. It now points at `bun run bordful:upgrade` and says migrations run on deploy.

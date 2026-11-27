@@ -2,8 +2,9 @@
 // biome-ignore-all lint/style/useNamedCaptureGroup: positional groups are clearer here
 // biome-ignore-all lint/complexity/noExcessiveCognitiveComplexity: line-based block parser
 // biome-ignore-all lint/suspicious/noArrayIndexKey: static markdown never reorders
-import Link from "next/link";
+
 import type { ReactNode } from "react";
+import { AppLink as Link } from "@/components/app-link";
 
 import { cn } from "@/lib/utils";
 

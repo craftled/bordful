@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/app-link";
 
 import { Container } from "./container";
 import { MarketingLogo } from "./marketing-header";
